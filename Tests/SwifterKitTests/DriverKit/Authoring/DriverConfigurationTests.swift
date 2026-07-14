@@ -11,10 +11,14 @@ import Testing
       capabilities: [.usb, .memory]
     )
 
-    #expect(configuration.serviceMatch.serviceClass == DriverConfiguration.runtimeServiceClass)
+    #expect(configuration.serviceMatch.serviceClass == "IOService")
     #expect(
       configuration.serviceMatch.registryProperties["CFBundleIdentifier"]
         == .string("com.example.driver")
+    )
+    #expect(
+      configuration.serviceMatch.registryProperties["IOUserClass"]
+        == .string(DriverConfiguration.runtimeServiceClass)
     )
     #expect(configuration.matchingProperties["idVendor"] == .integer(1))
     #expect(configuration.capabilities.contains(.usb))

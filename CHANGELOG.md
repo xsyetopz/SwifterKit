@@ -4,6 +4,12 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+## 0.1.2
+
+### Fixed
+
+- Discover generated runtime services through their `IOUserClass` registry property instead of treating the DriverKit user class as a kernel service class.
+
 ## 0.1.1
 
 ### Added

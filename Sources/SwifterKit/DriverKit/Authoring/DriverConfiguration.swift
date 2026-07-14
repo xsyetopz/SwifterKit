@@ -80,8 +80,11 @@ public struct DriverConfiguration: Sendable, Hashable {
   /// The criteria used to discover this generated extension.
   public var serviceMatch: DriverServiceMatch {
     DriverServiceMatch(
-      serviceClass: Self.runtimeServiceClass,
-      registryProperties: ["CFBundleIdentifier": .string(bundleIdentifier)]
+      serviceClass: "IOService",
+      registryProperties: [
+        "CFBundleIdentifier": .string(bundleIdentifier),
+        "IOUserClass": .string(Self.runtimeServiceClass),
+      ]
     )
   }
 }
