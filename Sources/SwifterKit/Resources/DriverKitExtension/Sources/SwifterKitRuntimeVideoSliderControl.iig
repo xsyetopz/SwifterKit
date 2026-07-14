@@ -1,0 +1,28 @@
+#ifndef SwifterKitRuntimeVideoSliderControl_h
+#define SwifterKitRuntimeVideoSliderControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoSliderControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoSliderControl : public IOUserVideoSliderControl {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        uint32_t value,
+        IOUserVideoSliderRange range,
+        IOUserVideoObjectPropertyElement element,
+        IOUserVideoObjectPropertyScope scope,
+        IOUserVideoClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeControlValue(uint32_t value) LOCALONLY override;
+};
+#endif
+#endif

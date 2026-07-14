@@ -1,0 +1,52 @@
+name: Signed DriverKit Validation
+
+"on":
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signed-driverkit:
+    name: Signed DriverKit extension
+    runs-on: macos-26
+    timeout-minutes: 45
+    environment: driverkit-signing
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      APPLE_DEVELOPMENT_CERT_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERT_BASE64 }}
+      CERTIFICATE_SECRET: ${{ secrets.CERTIFICATE_SECRET }}
+      KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
+      SWIFTERKIT_DEXT_PROFILE_BASE64: ${{ secrets.SWIFTERKIT_DEXT_PROFILE_BASE64 }}
+      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM }}
+      DEXT_BUNDLE_IDENTIFIER: ${{ vars.SWIFTERKIT_DEXT_BUNDLE_IDENTIFIER }}
+      CODESIGN_IDENTITY: Apple Development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Import signing credentials
+        id: signing
+        run: ./scripts/signing/import-ci-credentials.sh
+
+      - name: Build signed extension
+        env:
+          DEXT_PROVISIONING_PROFILE_SPECIFIER: ${{ steps.signing.outputs.profile-name }}
+          SIGNING_KEYCHAIN: ${{ steps.signing.outputs.keychain-path }}
+        run: ./scripts/signing/build-driverkit.sh
+
+      - name: Verify signature and entitlements
+        run: |
+          dext="$(find .build/DriverKitSigned -type d -name '*.dext' -print -quit)"
+          test -n "$dext"
+          codesign --verify --deep --strict --verbose=2 "$dext"
+          codesign --display --entitlements :- "$dext"
+          ditto -c -k --keepParent "$dext" .build/SwifterKitRuntime-signed.zip
+
+      - name: Upload signed validation artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: SwifterKitRuntime-signed
+          path: .build/SwifterKitRuntime-signed.zip
+          if-no-files-found: error
+          retention-days: 1

@@ -1,0 +1,28 @@
+#ifndef SwifterKitRuntimeAudioSliderControl_h
+#define SwifterKitRuntimeAudioSliderControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_AUDIO
+    #include <AudioDriverKit/IOUserAudioSliderControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeAudioSliderControl : public IOUserAudioSliderControl {
+public:
+    virtual bool init(
+        IOUserAudioDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        uint32_t value,
+        IOUserAudioSliderRange range,
+        IOUserAudioObjectPropertyElement element,
+        IOUserAudioObjectPropertyScope scope,
+        IOUserAudioClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeControlValue(uint32_t value) LOCALONLY override;
+};
+#endif
+#endif

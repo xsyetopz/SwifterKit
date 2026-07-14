@@ -1,0 +1,29 @@
+#ifndef SwifterKitRuntimeVideoLevelControl_h
+#define SwifterKitRuntimeVideoLevelControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoLevelControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoLevelControl : public IOUserVideoLevelControl {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        float value,
+        IOUserVideoLevelControlRange range,
+        IOUserVideoObjectPropertyElement element,
+        IOUserVideoObjectPropertyScope scope,
+        IOUserVideoClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeDecibelValue(float value) LOCALONLY override;
+    virtual kern_return_t HandleChangeScalarValue(float value) LOCALONLY override;
+};
+#endif
+#endif

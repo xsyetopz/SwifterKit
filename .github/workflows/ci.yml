@@ -1,0 +1,70 @@
+name: CI
+
+"on":
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    name: Swift 6.1 / macOS 10.15
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.3.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Prepare compatibility manifest
+        run: |
+          git apply --check --unidiff-zero .github/compatibility/swift-6.1.patch
+          git apply --unidiff-zero .github/compatibility/swift-6.1.patch
+
+      - name: Verify compatibility toolchain
+        run: |
+          test "$(head -n 1 Package.swift)" = "// swift-tools-version: 6.1"
+          swift --version | grep -E "Swift version 6\.1([ .(]|$)"
+          xcodebuild -version
+
+      - name: Verify deployment floor
+        run: |
+          swift package dump-package | jq -e 'any(.platforms[]; .platformName == "macos" and .version == "10.15")'
+
+      - name: Build package and tests
+        run: swift build --build-tests -Xswiftc -warnings-as-errors
+
+      - name: Build release package
+        run: swift build -c release -Xswiftc -warnings-as-errors
+
+  validate:
+    name: Swift 6 and DriverKit
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Toolchain
+        run: |
+          grep -E "^6\.3([.]|$)" .swift-version
+          sw_vers
+          swift --version | grep -E "Swift version 6\.3([ .(]|$)"
+          xcodebuild -version
+
+      - name: Install validation tools
+        run: brew install swiftlint llvm
+
+      - name: Validate
+        run: ./scripts/ci/validate.sh

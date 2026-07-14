@@ -1,0 +1,29 @@
+#ifndef SwifterKitRuntimeAudioStereoPanControl_h
+#define SwifterKitRuntimeAudioStereoPanControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_AUDIO
+    #include <AudioDriverKit/IOUserAudioStereoPanControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeAudioStereoPanControl : public IOUserAudioStereoPanControl {
+public:
+    virtual bool init(
+        IOUserAudioDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        float value,
+        IOUserAudioObjectPropertyElement leftChannel,
+        IOUserAudioObjectPropertyElement rightChannel,
+        IOUserAudioObjectPropertyElement element,
+        IOUserAudioObjectPropertyScope scope,
+        IOUserAudioClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeControlValue(float value) LOCALONLY override;
+};
+#endif
+#endif

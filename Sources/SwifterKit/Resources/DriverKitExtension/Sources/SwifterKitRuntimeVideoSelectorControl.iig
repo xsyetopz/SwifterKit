@@ -1,0 +1,28 @@
+#ifndef SwifterKitRuntimeVideoSelectorControl_h
+#define SwifterKitRuntimeVideoSelectorControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoSelectorControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoSelectorControl : public IOUserVideoSelectorControl {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        IOUserVideoObjectPropertyElement element,
+        IOUserVideoObjectPropertyScope scope,
+        IOUserVideoClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeSelectedValues(
+        const IOUserVideoSelectorValue* values,
+        size_t count) LOCALONLY override;
+};
+#endif
+#endif

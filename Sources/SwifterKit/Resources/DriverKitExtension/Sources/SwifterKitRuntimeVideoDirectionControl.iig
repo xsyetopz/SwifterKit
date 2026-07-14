@@ -1,0 +1,27 @@
+#ifndef SwifterKitRuntimeVideoDirectionControl_h
+#define SwifterKitRuntimeVideoDirectionControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoDirectionControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoDirectionControl : public IOUserVideoDirectionControl {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        bool value,
+        IOUserVideoObjectPropertyElement element,
+        IOUserVideoObjectPropertyScope scope,
+        IOUserVideoClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeControlValue(bool value) LOCALONLY override;
+};
+#endif
+#endif

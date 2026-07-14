@@ -1,0 +1,507 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0D0020202AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */; };
+		0D0020212AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */; };
+		0D0020222AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020262AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp */; };
+		0D0030202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig */; };
+		0D0030212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp */; };
+		0D0030012AAAAAAA00000001 /* SwifterKitRuntimeVideoControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031012AAAAAAA00000001 /* SwifterKitRuntimeVideoControls.cpp */; };
+		0D0030022AAAAAAA00000001 /* SwifterKitRuntimeVideoControlCallbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031022AAAAAAA00000001 /* SwifterKitRuntimeVideoControlCallbacks.cpp */; };
+		0D0030032AAAAAAA00000001 /* SwifterKitRuntimeVideoBooleanControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031032AAAAAAA00000001 /* SwifterKitRuntimeVideoBooleanControl.iig */; };
+		0D0030042AAAAAAA00000001 /* SwifterKitRuntimeVideoDirectionControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031042AAAAAAA00000001 /* SwifterKitRuntimeVideoDirectionControl.iig */; };
+		0D0030052AAAAAAA00000001 /* SwifterKitRuntimeVideoLevelControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031052AAAAAAA00000001 /* SwifterKitRuntimeVideoLevelControl.iig */; };
+		0D0030062AAAAAAA00000001 /* SwifterKitRuntimeVideoSelectorControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031062AAAAAAA00000001 /* SwifterKitRuntimeVideoSelectorControl.iig */; };
+		0D0030072AAAAAAA00000001 /* SwifterKitRuntimeVideoSliderControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031072AAAAAAA00000001 /* SwifterKitRuntimeVideoSliderControl.iig */; };
+		0D0030082AAAAAAA00000001 /* SwifterKitRuntimeVideoStereoPanControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031082AAAAAAA00000001 /* SwifterKitRuntimeVideoStereoPanControl.iig */; };
+		0D0030092AAAAAAA00000001 /* SwifterKitRuntimeVideoCustomProperty.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031092AAAAAAA00000001 /* SwifterKitRuntimeVideoCustomProperty.iig */; };
+		0D0020232AAAAAAA00000001 /* VideoDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D0020272AAAAAAA00000001 /* VideoDriverKit.framework */; };
+		0D0020112AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */; };
+		0D0020132AAAAAAA00000001 /* SCSIPeripheralsDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D0020142AAAAAAA00000001 /* SCSIPeripheralsDriverKit.framework */; };
+		0D0020012AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */; };
+		0D0020032AAAAAAA00000001 /* SCSIControllerDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D0020042AAAAAAA00000001 /* SCSIControllerDriverKit.framework */; };
+		0D001BB12AAAAAAA00000001 /* SwifterKitRuntimeService.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB22AAAAAAA00000001 /* SwifterKitRuntimeService.iig */; };
+		0D001BB32AAAAAAA00000001 /* SwifterKitRuntimeService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB42AAAAAAA00000001 /* SwifterKitRuntimeService.cpp */; };
+		0D001BB52AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB62AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig */; };
+		0D001BB72AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB82AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp */; };
+		0D001BD12AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */; };
+		0D001BE12AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BE22AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp */; };
+		0D001BF12AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BF22AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp */; };
+		0D001BF32AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BF42AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp */; };
+		0D001BF52AAAAAAA00000001 /* SwifterKitRuntimeSerial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BF62AAAAAAA00000001 /* SwifterKitRuntimeSerial.cpp */; };
+		0D001BF72AAAAAAA00000001 /* SwifterKitRuntimeEvents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BF82AAAAAAA00000001 /* SwifterKitRuntimeEvents.cpp */; };
+		0D001BF92AAAAAAA00000001 /* SwifterKitRuntimeBlockStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BFA2AAAAAAA00000001 /* SwifterKitRuntimeBlockStorage.cpp */; };
+		0D001D112AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D122AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp */; };
+		0D001D312AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */; };
+		0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */; };
+		0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */; };
+		0D001D712AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */; };
+		0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */; };
+		0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */; };
+		0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */; };
+		0D001EA12AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EA22AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp */; };
+		0D001EB12AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig */; };
+		0D001ED12AAAAAAA00000001 /* SwifterKitRuntimeAudioLevelControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001ED22AAAAAAA00000001 /* SwifterKitRuntimeAudioLevelControl.iig */; };
+		0D001EE12AAAAAAA00000001 /* SwifterKitRuntimeAudioSelectorControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EE22AAAAAAA00000001 /* SwifterKitRuntimeAudioSelectorControl.iig */; };
+		0D001EF12AAAAAAA00000001 /* SwifterKitRuntimeAudioSliderControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EF22AAAAAAA00000001 /* SwifterKitRuntimeAudioSliderControl.iig */; };
+		0D001F012AAAAAAA00000001 /* SwifterKitRuntimeAudioStereoPanControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001F022AAAAAAA00000001 /* SwifterKitRuntimeAudioStereoPanControl.iig */; };
+		0D001F112AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001F122AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig */; };
+		0D001EC12AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EC22AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp */; };
+		0D001E412AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E422AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp */; };
+		0D001D612AAAAAAA00000001 /* NetworkingDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001D622AAAAAAA00000001 /* NetworkingDriverKit.framework */; };
+		0D001E512AAAAAAA00000001 /* AudioDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001E522AAAAAAA00000001 /* AudioDriverKit.framework */; };
+		0D001CC12AAAAAAA00000001 /* HIDDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CC22AAAAAAA00000001 /* HIDDriverKit.framework */; };
+		0D001CD12AAAAAAA00000001 /* USBDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CD22AAAAAAA00000001 /* USBDriverKit.framework */; };
+		0D001CE12AAAAAAA00000001 /* PCIDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CE22AAAAAAA00000001 /* PCIDriverKit.framework */; };
+		0D001CF12AAAAAAA00000001 /* SerialDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CF22AAAAAAA00000001 /* SerialDriverKit.framework */; };
+		0D001D012AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001D022AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework */; };
+		0D001D212AAAAAAA00000001 /* MIDIDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001D222AAAAAAA00000001 /* MIDIDriverKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoDevice.iig; sourceTree = "<group>"; };
+		0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoDevice.cpp; sourceTree = "<group>"; };
+		0D0020262AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideo.cpp; sourceTree = "<group>"; };
+		0D0031202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoStream.iig; sourceTree = "<group>"; };
+		0D0031212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoStream.cpp; sourceTree = "<group>"; };
+		0D0031012AAAAAAA00000001 /* SwifterKitRuntimeVideoControls.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoControls.cpp; sourceTree = "<group>"; };
+		0D0031022AAAAAAA00000001 /* SwifterKitRuntimeVideoControlCallbacks.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoControlCallbacks.cpp; sourceTree = "<group>"; };
+		0D0031032AAAAAAA00000001 /* SwifterKitRuntimeVideoBooleanControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoBooleanControl.iig; sourceTree = "<group>"; };
+		0D0031042AAAAAAA00000001 /* SwifterKitRuntimeVideoDirectionControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoDirectionControl.iig; sourceTree = "<group>"; };
+		0D0031052AAAAAAA00000001 /* SwifterKitRuntimeVideoLevelControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoLevelControl.iig; sourceTree = "<group>"; };
+		0D0031062AAAAAAA00000001 /* SwifterKitRuntimeVideoSelectorControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoSelectorControl.iig; sourceTree = "<group>"; };
+		0D0031072AAAAAAA00000001 /* SwifterKitRuntimeVideoSliderControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoSliderControl.iig; sourceTree = "<group>"; };
+		0D0031082AAAAAAA00000001 /* SwifterKitRuntimeVideoStereoPanControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoStereoPanControl.iig; sourceTree = "<group>"; };
+		0D0031092AAAAAAA00000001 /* SwifterKitRuntimeVideoCustomProperty.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoCustomProperty.iig; sourceTree = "<group>"; };
+		0D0020272AAAAAAA00000001 /* VideoDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/VideoDriverKit.framework; sourceTree = SDKROOT; };
+		0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeSCSIPeripheral.cpp; sourceTree = "<group>"; };
+		0D0020142AAAAAAA00000001 /* SCSIPeripheralsDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSIPeripheralsDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/SCSIPeripheralsDriverKit.framework; sourceTree = SDKROOT; };
+		0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeSCSI.cpp; sourceTree = "<group>"; };
+		0D0020042AAAAAAA00000001 /* SCSIControllerDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSIControllerDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/SCSIControllerDriverKit.framework; sourceTree = SDKROOT; };
+		0D001AA12AAAAAAA00000001 /* SwifterKitRuntime.dext */ = {isa = PBXFileReference; explicitFileType = "wrapper.driver-extension"; includeInIndex = 0; path = SwifterKitRuntime.dext; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D001BB22AAAAAAA00000001 /* SwifterKitRuntimeService.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeService.iig; sourceTree = "<group>"; };
+		0D001BB42AAAAAAA00000001 /* SwifterKitRuntimeService.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeService.cpp; sourceTree = "<group>"; };
+		0D001BB62AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeUserClient.iig; sourceTree = "<group>"; };
+		0D001BB82AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUserClient.cpp; sourceTree = "<group>"; };
+		0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSB.cpp; sourceTree = "<group>"; };
+		0D001BE22AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimePCI.cpp; sourceTree = "<group>"; };
+		0D001BF22AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeInterrupts.cpp; sourceTree = "<group>"; };
+		0D001BF42AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeMemory.cpp; sourceTree = "<group>"; };
+		0D001BF62AAAAAAA00000001 /* SwifterKitRuntimeSerial.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeSerial.cpp; sourceTree = "<group>"; };
+		0D001BF82AAAAAAA00000001 /* SwifterKitRuntimeEvents.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeEvents.cpp; sourceTree = "<group>"; };
+		0D001BFA2AAAAAAA00000001 /* SwifterKitRuntimeBlockStorage.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeBlockStorage.cpp; sourceTree = "<group>"; };
+		0D001D122AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeMIDI.cpp; sourceTree = "<group>"; };
+		0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkSetup.cpp; sourceTree = "<group>"; };
+		0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkPackets.cpp; sourceTree = "<group>"; };
+		0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeLifecycle.cpp; sourceTree = "<group>"; };
+		0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeClients.cpp; sourceTree = "<group>"; };
+		0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioDevice.iig; sourceTree = "<group>"; };
+		0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioDevice.cpp; sourceTree = "<group>"; };
+		0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudio.cpp; sourceTree = "<group>"; };
+		0D001EA22AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioControls.cpp; sourceTree = "<group>"; };
+		0D001EB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioBooleanControl.iig; sourceTree = "<group>"; };
+		0D001ED22AAAAAAA00000001 /* SwifterKitRuntimeAudioLevelControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioLevelControl.iig; sourceTree = "<group>"; };
+		0D001EE22AAAAAAA00000001 /* SwifterKitRuntimeAudioSelectorControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioSelectorControl.iig; sourceTree = "<group>"; };
+		0D001EF22AAAAAAA00000001 /* SwifterKitRuntimeAudioSliderControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioSliderControl.iig; sourceTree = "<group>"; };
+		0D001F022AAAAAAA00000001 /* SwifterKitRuntimeAudioStereoPanControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioStereoPanControl.iig; sourceTree = "<group>"; };
+		0D001F122AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioCustomProperty.iig; sourceTree = "<group>"; };
+		0D001EC22AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioControlCallbacks.cpp; sourceTree = "<group>"; };
+		0D001E422AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeHID.cpp; sourceTree = "<group>"; };
+		0D001BBA2AAAAAAA00000001 /* SwifterKitRuntimeProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeProtocol.h; sourceTree = "<group>"; };
+		0D001BFC2AAAAAAA00000001 /* SwifterKitRuntimeUserClientHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeUserClientHelpers.h; sourceTree = "<group>"; };
+		0D001AAF2AAAAAAA00000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0D001AB02AAAAAAA00000001 /* SwifterKitRuntime.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwifterKitRuntime.entitlements; sourceTree = "<group>"; };
+		0D001CC22AAAAAAA00000001 /* HIDDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HIDDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/HIDDriverKit.framework; sourceTree = SDKROOT; };
+		0D001CD22AAAAAAA00000001 /* USBDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = USBDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/USBDriverKit.framework; sourceTree = SDKROOT; };
+		0D001CE22AAAAAAA00000001 /* PCIDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PCIDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/PCIDriverKit.framework; sourceTree = SDKROOT; };
+		0D001CF22AAAAAAA00000001 /* SerialDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SerialDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/SerialDriverKit.framework; sourceTree = SDKROOT; };
+		0D001D022AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BlockStorageDeviceDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/BlockStorageDeviceDriverKit.framework; sourceTree = SDKROOT; };
+		0D001D622AAAAAAA00000001 /* NetworkingDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkingDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/NetworkingDriverKit.framework; sourceTree = SDKROOT; };
+		0D001D222AAAAAAA00000001 /* MIDIDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MIDIDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/MIDIDriverKit.framework; sourceTree = SDKROOT; };
+		0D001E522AAAAAAA00000001 /* AudioDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/AudioDriverKit.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0D001A9E2AAAAAAA00000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0D001CC12AAAAAAA00000001 /* HIDDriverKit.framework in Frameworks */,
+				0D001CD12AAAAAAA00000001 /* USBDriverKit.framework in Frameworks */,
+				0D001CE12AAAAAAA00000001 /* PCIDriverKit.framework in Frameworks */,
+				0D001CF12AAAAAAA00000001 /* SerialDriverKit.framework in Frameworks */,
+				0D001D012AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework in Frameworks */,
+				0D001D212AAAAAAA00000001 /* MIDIDriverKit.framework in Frameworks */,
+				0D001D612AAAAAAA00000001 /* NetworkingDriverKit.framework in Frameworks */,
+				0D001E512AAAAAAA00000001 /* AudioDriverKit.framework in Frameworks */,
+				0D0020232AAAAAAA00000001 /* VideoDriverKit.framework in Frameworks */,
+				0D0020032AAAAAAA00000001 /* SCSIControllerDriverKit.framework in Frameworks */,
+				0D0020132AAAAAAA00000001 /* SCSIPeripheralsDriverKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0D001A982AAAAAAA00000001 = {
+			isa = PBXGroup;
+			children = (
+				0D001AAF2AAAAAAA00000001 /* Info.plist */,
+				0D001AB02AAAAAAA00000001 /* SwifterKitRuntime.entitlements */,
+				0D001AA32AAAAAAA00000001 /* Sources */,
+				0D001AA22AAAAAAA00000001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0D001AA22AAAAAAA00000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0D001AA12AAAAAAA00000001 /* SwifterKitRuntime.dext */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0D001BBB2AAAAAAA00000001 /* RuntimeSources */ = {
+			isa = PBXGroup;
+			children = (
+				0D001BB42AAAAAAA00000001 /* SwifterKitRuntimeService.cpp */,
+				0D001BB62AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig */,
+				0D001BB82AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp */,
+				0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */,
+				0D001BE22AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp */,
+				0D001BF22AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp */,
+				0D001BF42AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp */,
+				0D001BF62AAAAAAA00000001 /* SwifterKitRuntimeSerial.cpp */,
+				0D001BF82AAAAAAA00000001 /* SwifterKitRuntimeEvents.cpp */,
+				0D001BFA2AAAAAAA00000001 /* SwifterKitRuntimeBlockStorage.cpp */,
+				0D001D122AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp */,
+				0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */,
+				0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */,
+				0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */,
+				0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */,
+				0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */,
+				0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */,
+				0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */,
+				0D0020262AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp */,
+				0D0031202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig */,
+				0D0031212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp */,
+				0D0031012AAAAAAA00000001 /* SwifterKitRuntimeVideoControls.cpp */,
+				0D0031022AAAAAAA00000001 /* SwifterKitRuntimeVideoControlCallbacks.cpp */,
+				0D0031032AAAAAAA00000001 /* SwifterKitRuntimeVideoBooleanControl.iig */,
+				0D0031042AAAAAAA00000001 /* SwifterKitRuntimeVideoDirectionControl.iig */,
+				0D0031052AAAAAAA00000001 /* SwifterKitRuntimeVideoLevelControl.iig */,
+				0D0031062AAAAAAA00000001 /* SwifterKitRuntimeVideoSelectorControl.iig */,
+				0D0031072AAAAAAA00000001 /* SwifterKitRuntimeVideoSliderControl.iig */,
+				0D0031082AAAAAAA00000001 /* SwifterKitRuntimeVideoStereoPanControl.iig */,
+				0D0031092AAAAAAA00000001 /* SwifterKitRuntimeVideoCustomProperty.iig */,
+				0D001EA22AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp */,
+				0D001EB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig */,
+				0D001ED22AAAAAAA00000001 /* SwifterKitRuntimeAudioLevelControl.iig */,
+				0D001EE22AAAAAAA00000001 /* SwifterKitRuntimeAudioSelectorControl.iig */,
+				0D001EF22AAAAAAA00000001 /* SwifterKitRuntimeAudioSliderControl.iig */,
+				0D001F022AAAAAAA00000001 /* SwifterKitRuntimeAudioStereoPanControl.iig */,
+				0D001F122AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig */,
+				0D001EC22AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp */,
+				0D001E422AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp */,
+				0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */,
+				0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */,
+				0D001BBA2AAAAAAA00000001 /* SwifterKitRuntimeProtocol.h */,
+				0D001BFC2AAAAAAA00000001 /* SwifterKitRuntimeUserClientHelpers.h */,
+			);
+			path = "";
+			sourceTree = "<group>";
+		};
+		0D001AA32AAAAAAA00000001 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				0D001BB22AAAAAAA00000001 /* SwifterKitRuntimeService.iig */,
+				0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */,
+				0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */,
+				0D001BBB2AAAAAAA00000001 /* RuntimeSources */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0D001AA02AAAAAAA00000001 /* SwifterKitRuntime */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D001AB12AAAAAAA00000001 /* Build configuration list for PBXNativeTarget "SwifterKitRuntime" */;
+			buildPhases = (
+				0D001A9D2AAAAAAA00000001 /* Sources */,
+				0D001A9E2AAAAAAA00000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SwifterKitRuntime;
+			productName = SwifterKitRuntime;
+			productReference = 0D001AA12AAAAAAA00000001 /* SwifterKitRuntime.dext */;
+			productType = "com.apple.product-type.driver-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0D001A992AAAAAAA00000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 0D001A9C2AAAAAAA00000001 /* Build configuration list for PBXProject "SwifterKitRuntime" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0D001A982AAAAAAA00000001;
+			productRefGroup = 0D001AA22AAAAAAA00000001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0D001AA02AAAAAAA00000001 /* SwifterKitRuntime */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0D001A9D2AAAAAAA00000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0D001BB12AAAAAAA00000001 /* SwifterKitRuntimeService.iig in Sources */,
+				0D001BB32AAAAAAA00000001 /* SwifterKitRuntimeService.cpp in Sources */,
+				0D001BB52AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig in Sources */,
+				0D001BB72AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp in Sources */,
+				0D001BD12AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp in Sources */,
+				0D001BE12AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp in Sources */,
+				0D001BF12AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp in Sources */,
+				0D001BF32AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp in Sources */,
+				0D001BF52AAAAAAA00000001 /* SwifterKitRuntimeSerial.cpp in Sources */,
+				0D001BF72AAAAAAA00000001 /* SwifterKitRuntimeEvents.cpp in Sources */,
+				0D001BF92AAAAAAA00000001 /* SwifterKitRuntimeBlockStorage.cpp in Sources */,
+				0D001D112AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp in Sources */,
+				0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */,
+				0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */,
+				0D001D712AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp in Sources */,
+				0D001D312AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp in Sources */,
+				0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */,
+				0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */,
+				0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */,
+				0D0020202AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig in Sources */,
+				0D0020212AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp in Sources */,
+				0D0020222AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp in Sources */,
+				0D0030202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig in Sources */,
+				0D0030212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp in Sources */,
+				0D0030012AAAAAAA00000001 /* SwifterKitRuntimeVideoControls.cpp in Sources */,
+				0D0030022AAAAAAA00000001 /* SwifterKitRuntimeVideoControlCallbacks.cpp in Sources */,
+				0D0030032AAAAAAA00000001 /* SwifterKitRuntimeVideoBooleanControl.iig in Sources */,
+				0D0030042AAAAAAA00000001 /* SwifterKitRuntimeVideoDirectionControl.iig in Sources */,
+				0D0030052AAAAAAA00000001 /* SwifterKitRuntimeVideoLevelControl.iig in Sources */,
+				0D0030062AAAAAAA00000001 /* SwifterKitRuntimeVideoSelectorControl.iig in Sources */,
+				0D0030072AAAAAAA00000001 /* SwifterKitRuntimeVideoSliderControl.iig in Sources */,
+				0D0030082AAAAAAA00000001 /* SwifterKitRuntimeVideoStereoPanControl.iig in Sources */,
+				0D0030092AAAAAAA00000001 /* SwifterKitRuntimeVideoCustomProperty.iig in Sources */,
+				0D001EA12AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp in Sources */,
+				0D001EB12AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig in Sources */,
+				0D001ED12AAAAAAA00000001 /* SwifterKitRuntimeAudioLevelControl.iig in Sources */,
+				0D001EE12AAAAAAA00000001 /* SwifterKitRuntimeAudioSelectorControl.iig in Sources */,
+				0D001EF12AAAAAAA00000001 /* SwifterKitRuntimeAudioSliderControl.iig in Sources */,
+				0D001F012AAAAAAA00000001 /* SwifterKitRuntimeAudioStereoPanControl.iig in Sources */,
+				0D001F112AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig in Sources */,
+				0D001EC12AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp in Sources */,
+				0D001E412AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp in Sources */,
+				0D0020012AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp in Sources */,
+				0D0020112AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0D001AB22AAAAAAA00000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				OTHER_CPLUSPLUSFLAGS = "-fblocks -Wall -Wextra -Wpedantic -Wcast-qual -Wshadow-all -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-gnu-statement-expression-from-macro-expansion -Wno-zero-length-array";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DRIVERKIT_DEPLOYMENT_TARGET = 19.0;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Sources";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = driverkit;
+				SUPPORTED_PLATFORMS = driverkit;
+			};
+			name = Debug;
+		};
+		0D001AB32AAAAAAA00000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				OTHER_CPLUSPLUSFLAGS = "-fblocks -Wall -Wextra -Wpedantic -Wcast-qual -Wshadow-all -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-gnu-statement-expression-from-macro-expansion -Wno-zero-length-array";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DRIVERKIT_DEPLOYMENT_TARGET = 19.0;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Sources";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = driverkit;
+				SUPPORTED_PLATFORMS = driverkit;
+			};
+			name = Release;
+		};
+		0D001AB42AAAAAAA00000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SwifterKitRuntime.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9PQP6CDMQT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swifterkit.Runtime;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		0D001AB52AAAAAAA00000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SwifterKitRuntime.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9PQP6CDMQT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swifterkit.Runtime;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0D001A9C2AAAAAAA00000001 /* Build configuration list for PBXProject "SwifterKitRuntime" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D001AB22AAAAAAA00000001 /* Debug */,
+				0D001AB32AAAAAAA00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D001AB12AAAAAAA00000001 /* Build configuration list for PBXNativeTarget "SwifterKitRuntime" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D001AB42AAAAAAA00000001 /* Debug */,
+				0D001AB52AAAAAAA00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0D001A992AAAAAAA00000001 /* Project object */;
+}

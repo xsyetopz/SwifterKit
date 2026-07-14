@@ -1,0 +1,6 @@
+diff --git a/Package.swift b/Package.swift
+--- a/Package.swift
++++ b/Package.swift
+@@ -1 +1 @@
+-// swift-tools-version: 6.2
++// swift-tools-version: 6.1

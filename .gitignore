@@ -1,0 +1,11 @@
+.build/
+.swiftpm/
+.DS_Store
+# Local signing and notarization configuration
+.env
+.env.*
+!.env.*.example
+.envrc
+*.p12
+*.provisionprofile
+*.mobileprovision

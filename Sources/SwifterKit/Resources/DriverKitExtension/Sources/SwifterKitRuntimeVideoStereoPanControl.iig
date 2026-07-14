@@ -1,0 +1,29 @@
+#ifndef SwifterKitRuntimeVideoStereoPanControl_h
+#define SwifterKitRuntimeVideoStereoPanControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoStereoPanControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoStereoPanControl : public IOUserVideoStereoPanControl {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        float value,
+        IOUserVideoObjectPropertyElement leftChannel,
+        IOUserVideoObjectPropertyElement rightChannel,
+        IOUserVideoObjectPropertyElement element,
+        IOUserVideoObjectPropertyScope scope,
+        IOUserVideoClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeControlValue(float value) LOCALONLY override;
+};
+#endif
+#endif

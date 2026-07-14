@@ -1,0 +1,58 @@
+#ifndef SwifterKitRuntimeVideoDevice_h
+#define SwifterKitRuntimeVideoDevice_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeProtocol.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoDevice.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoDevice : public IOUserVideoDevice {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        OSString* deviceUID,
+        OSString* modelUID,
+        OSString* manufacturerUID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+    kern_return_t Configure() LOCALONLY;
+    kern_return_t ReadBuffer(const SwifterKitVideoTransferHeader* transfer, OSData** response)
+        LOCALONLY;
+    kern_return_t WriteBuffer(const SwifterKitVideoTransferHeader* transfer, const uint8_t* bytes)
+        LOCALONLY;
+    kern_return_t EnqueueOutput(uint32_t streamIndex, const SwifterKitVideoQueueEntry* entry)
+        LOCALONLY;
+    kern_return_t DequeueInput(uint32_t streamIndex, OSData** response) LOCALONLY;
+    kern_return_t NotifyOutput(uint32_t streamIndex) LOCALONLY;
+    kern_return_t UpdateTimestamp(const SwifterKitVideoTimestamp* timestamp) LOCALONLY;
+    kern_return_t RequestSampleRate(double sampleRate) LOCALONLY;
+    kern_return_t ConfigureControls() LOCALONLY;
+    kern_return_t CopyControl(const SwifterKitVideoControlGet* request, OSData** response)
+        LOCALONLY;
+    kern_return_t SetControl(
+        const SwifterKitVideoControlValueHeader* request,
+        const uint32_t* values) LOCALONLY;
+    kern_return_t CopyCustomProperty(
+        const SwifterKitVideoCustomPropertyHeader* request,
+        const uint8_t* bytes,
+        OSData** response) LOCALONLY;
+    kern_return_t SetCustomProperty(
+        const SwifterKitVideoCustomPropertyHeader* request,
+        const uint8_t* bytes) LOCALONLY;
+
+protected:
+    virtual kern_return_t StartIO(IOUserVideoStartStopFlags flags) LOCALONLY override;
+    virtual kern_return_t StopIO(IOUserVideoStartStopFlags flags) LOCALONLY override;
+    virtual kern_return_t PerformDeviceConfigurationChange(
+        uint64_t changeAction,
+        OSObject* changeInfo) LOCALONLY override;
+    virtual kern_return_t AbortDeviceConfigurationChange(
+        uint64_t changeAction,
+        OSObject* changeInfo) LOCALONLY override;
+    virtual kern_return_t HandleChangeSampleRate(double sampleRate) LOCALONLY override;
+};
+#endif
+#endif

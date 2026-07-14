@@ -1,0 +1,30 @@
+#ifndef SwifterKitRuntimeVideoStream_h
+#define SwifterKitRuntimeVideoStream_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoStream.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoStream : public IOUserVideoStream {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t streamIndex,
+        OSString* identifier,
+        IOUserVideoStreamDirection direction,
+        OSArray* buffers) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t StartIO(IOUserVideoStartStopFlags flags) LOCALONLY override;
+    virtual kern_return_t StopIO(IOUserVideoStartStopFlags flags) LOCALONLY override;
+    virtual void InputNotification() LOCALONLY override;
+    virtual kern_return_t HandleChangeCurrentStreamFormat(
+        const IOUserVideoStreamBasicDescription* format) LOCALONLY override;
+    virtual kern_return_t HandleChangeStreamIsActive(bool isActive) LOCALONLY override;
+};
+#endif
+#endif

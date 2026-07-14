@@ -1,0 +1,28 @@
+#ifndef SwifterKitRuntimeVideoCustomProperty_h
+#define SwifterKitRuntimeVideoCustomProperty_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoCustomProperty.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoCustomProperty : public IOUserVideoCustomProperty {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        IOUserVideoObjectPropertyAddress address,
+        bool isSettable,
+        IOUserVideoCustomPropertyDataType qualifierType,
+        IOUserVideoCustomPropertyDataType dataType) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeCustomPropertyDataValueWithQualifier(
+        OSObject* qualifier,
+        OSObject* value) LOCALONLY override;
+};
+#endif
+#endif

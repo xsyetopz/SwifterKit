@@ -1,0 +1,28 @@
+#ifndef SwifterKitRuntimeAudioCustomProperty_h
+#define SwifterKitRuntimeAudioCustomProperty_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_AUDIO
+    #include <AudioDriverKit/IOUserAudioCustomProperty.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeAudioCustomProperty : public IOUserAudioCustomProperty {
+public:
+    virtual bool init(
+        IOUserAudioDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        IOUserAudioObjectPropertyAddress address,
+        bool isSettable,
+        IOUserAudioCustomPropertyDataType qualifierType,
+        IOUserAudioCustomPropertyDataType dataType) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeCustomPropertyDataValueWithQualifier(
+        OSObject* qualifier,
+        OSObject* value) LOCALONLY override;
+};
+#endif
+#endif

@@ -1,0 +1,29 @@
+#ifndef SwifterKitRuntimeAudioLevelControl_h
+#define SwifterKitRuntimeAudioLevelControl_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_AUDIO
+    #include <AudioDriverKit/IOUserAudioLevelControl.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeAudioLevelControl : public IOUserAudioLevelControl {
+public:
+    virtual bool init(
+        IOUserAudioDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t identifier,
+        bool isSettable,
+        float value,
+        IOUserAudioLevelControlRange range,
+        IOUserAudioObjectPropertyElement element,
+        IOUserAudioObjectPropertyScope scope,
+        IOUserAudioClassID classID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeDecibelValue(float value) LOCALONLY override;
+    virtual kern_return_t HandleChangeScalarValue(float value) LOCALONLY override;
+};
+#endif
+#endif
