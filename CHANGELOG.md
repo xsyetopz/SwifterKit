@@ -4,6 +4,15 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+## 0.1.1
+
+### Added
+
+- Added typed extension-side HID input-report delivery statistics for diagnostics and self-tests.
+- Generated HID devices now publish a usage-pair array matching their primary usage metadata.
+
+## 0.1.0
+
 ### Changed
 
 - Set the package deployment target to macOS 10.15, matching the first DriverKit release and the generated extension default of DriverKit 19.0. Swift 6.1 compatibility is checked only in CI; local development uses the version in `.swift-version`.

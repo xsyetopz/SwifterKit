@@ -27,6 +27,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     USBClearStall = 0x0202,
     USBSelectAlternateSetting = 0x0203,
     HIDSubmitInputReport = 0x0300,
+    HIDGetRuntimeStatistics = 0x0301,
     PCIRead = 0x0400,
     PCIWrite = 0x0401,
     PCIGetBARInfo = 0x0402,
@@ -189,6 +190,12 @@ struct __attribute__((packed)) SwifterKitHIDReportHeader {
     uint32_t options;
     uint32_t reportLength;
     uint32_t reserved;
+};
+
+struct __attribute__((packed)) SwifterKitHIDRuntimeStatistics {
+    uint64_t inputReportAttempts;
+    uint64_t inputReportSuccesses;
+    uint64_t inputReportFailures;
 };
 
 struct __attribute__((packed)) SwifterKitNetworkReceiveHeader {

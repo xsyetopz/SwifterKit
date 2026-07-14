@@ -54,6 +54,12 @@ import Testing
     #expect(runtimeConfiguration.contains("SWIFTERKIT_ENABLE_HID 1"))
     #expect(runtimeConfiguration.contains("kSwifterKitHIDVendorID = 4660"))
 
+    let hidSource = try String(
+      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeHID.cpp"),
+      encoding: .utf8
+    )
+    #expect(hidSource.contains("kIOHIDDeviceUsagePairsKey"))
+
     let entitlements = try loadPropertyList(
       at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
     )
@@ -146,6 +152,13 @@ import Testing
     #expect(service.contains("public IOUserHIDDevice"))
     #expect(service.contains("USBControlTransfer"))
     #expect(service.contains("SubmitHIDInputReport"))
+    #expect(service.contains("CopyHIDRuntimeStatistics"))
+
+    let protocolHeader = try String(
+      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeProtocol.h"),
+      encoding: .utf8
+    )
+    #expect(protocolHeader.contains("HIDGetRuntimeStatistics = 0x0301"))
 
     let build = try buildGeneratedExtension(
       at: output,

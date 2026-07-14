@@ -30,6 +30,30 @@ import Testing
     }
   }
 
+  @Test func decodesRuntimeStatisticsAndConfiguresCommand() throws {
+    var payload = Data()
+    payload.appendRuntimeInteger(UInt64(12))
+    payload.appendRuntimeInteger(UInt64(10))
+    payload.appendRuntimeInteger(UInt64(2))
+
+    #expect(
+      try HIDRuntimeStatistics(runtimePayload: payload)
+        == HIDRuntimeStatistics(
+          inputReportAttempts: 12,
+          inputReportSuccesses: 10,
+          inputReportFailures: 2
+        )
+    )
+    #expect(DriverCommand.hidRuntimeStatistics.opcode == 0x0301)
+    #expect(DriverCommand.hidRuntimeStatistics.requiredCapabilities == .hid)
+  }
+
+  @Test func rejectsMalformedRuntimeStatistics() {
+    #expect(throws: HIDRuntimeError.invalidStatisticsPayload) {
+      try HIDRuntimeStatistics(runtimePayload: Data([1]))
+    }
+  }
+
   @Test func decodesOnlyHIDEvents() throws {
     let report = HIDReport(bytes: [5], type: .output)
     let event = DriverEvent(type: 0x0300, payload: Array(try report.encodedRuntimePayload()))

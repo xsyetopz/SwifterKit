@@ -22,7 +22,7 @@ Networking uses the DriverKit 22.0 queue-registration API. VideoDriverKit is cur
 
 ### Virtual HID
 
-Use `.hid` with ``HIDDeviceConfiguration``. Submit input reports with ``DriverContext/submitHIDInputReport(_:)`` and decode host output or feature reports with ``DriverEvent/hidReport()``.
+Use `.hid` with ``HIDDeviceConfiguration``. Submit input reports with ``DriverContext/submitHIDInputReport(_:)`` and decode host output or feature reports with ``DriverEvent/hidReport()``. Read extension-side delivery evidence with ``DriverContext/hidRuntimeStatistics()``; its counters distinguish attempted, successful, and failed HIDDriverKit submissions.
 
 ### USB and PCI
 

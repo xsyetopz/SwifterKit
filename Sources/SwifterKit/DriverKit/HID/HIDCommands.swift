@@ -12,12 +12,24 @@ extension DriverCommand {
       maximumResponseSize: RuntimeMessage.headerSize
     )
   }
+
+  /// Reads extension-side HID input-report delivery counters.
+  public static let hidRuntimeStatistics = Self(
+    opcode: 0x0301,
+    requiredCapabilities: .hid,
+    maximumResponseSize: RuntimeMessage.headerSize + 24
+  )
 }
 
 extension DriverContext {
   /// Submits one input report through HIDDriverKit.
   public func submitHIDInputReport(_ report: HIDReport) async throws {
     _ = try await execute(.submitHIDInputReport(report))
+  }
+
+  /// Reads extension-side HID input-report delivery counters.
+  public func hidRuntimeStatistics() async throws -> HIDRuntimeStatistics {
+    try HIDRuntimeStatistics(runtimePayload: await execute(.hidRuntimeStatistics))
   }
 }
 

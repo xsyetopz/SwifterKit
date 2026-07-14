@@ -345,6 +345,27 @@ namespace {
 #else
                 return kIOReturnUnsupported;
 #endif
+            case SwifterKitRuntimeOpcode::HIDGetRuntimeStatistics:
+#if SWIFTERKIT_ENABLE_HID
+                if (service == nullptr || commandPayloadLength != 0) {
+                    return kIOReturnBadArgument;
+                }
+                {
+                    SwifterKitHIDRuntimeStatistics statistics = {};
+                    const kern_return_t result = service->CopyHIDRuntimeStatistics(&statistics);
+                    if (result != kIOReturnSuccess) {
+                        return result;
+                    }
+                    return BuildResponse(
+                        arguments,
+                        SwifterKitRuntimeMessageKind::Response,
+                        request->requestID,
+                        &statistics,
+                        sizeof(statistics));
+                }
+#else
+                return kIOReturnUnsupported;
+#endif
             case SwifterKitRuntimeOpcode::HIDSubmitInputReport:
 #if SWIFTERKIT_ENABLE_HID
                 if (commandPayloadLength < sizeof(SwifterKitHIDReportHeader)) {

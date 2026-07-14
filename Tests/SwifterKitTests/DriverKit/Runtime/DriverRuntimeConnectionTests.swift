@@ -34,6 +34,21 @@ import Testing
     #expect(await backend.callCount == callsBeforeCommand)
   }
 
+  @Test func readsTypedHIDRuntimeStatistics() async throws {
+    let backend = RuntimeMockConnection(capabilities: [.hid])
+    let runtime = try await makeRuntime(backend: backend, requiring: .hid)
+    let context = await DriverContext(runtime: runtime)
+
+    #expect(
+      try await context.hidRuntimeStatistics()
+        == HIDRuntimeStatistics(
+          inputReportAttempts: 8,
+          inputReportSuccesses: 7,
+          inputReportFailures: 1
+        )
+    )
+  }
+
   @Test func returnsQueuedEventThenNil() async throws {
     let event = DriverEvent(type: 7, payload: [8, 9])
     let backend = RuntimeMockConnection(capabilities: [], events: [event])
@@ -124,6 +139,13 @@ private actor RuntimeMockConnection: DriverConnection {
         payload.appendRuntimeInteger(event.type)
         payload.append(contentsOf: event.payload)
         return try response(kind: .event, requestID: responseID, payload: payload)
+      }
+      if opcode == 0x0301 {
+        var payload = Data()
+        payload.appendRuntimeInteger(UInt64(8))
+        payload.appendRuntimeInteger(UInt64(7))
+        payload.appendRuntimeInteger(UInt64(1))
+        return try response(kind: .response, requestID: responseID, payload: payload)
       }
       return try response(kind: .response, requestID: responseID, payload: Data())
     case .response, .event, .error: throw RuntimeProtocolError.unknownMessageKind

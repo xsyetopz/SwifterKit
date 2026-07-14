@@ -428,6 +428,8 @@ extension DriverExtensionGenerator {
           kern_return_t SubmitHIDInputReport(
               const SwifterKitHIDReportHeader* header,
               const uint8_t* bytes) LOCALONLY;
+          kern_return_t CopyHIDRuntimeStatistics(
+              SwifterKitHIDRuntimeStatistics* statistics) LOCALONLY;
 
       protected:
           virtual bool handleStart(IOService* provider) LOCALONLY override;

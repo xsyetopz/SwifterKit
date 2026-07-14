@@ -99,6 +99,11 @@ struct SwifterKitMemoryEntry {
 struct SwifterKitRuntimeService_IVars {
     IOLock* eventLock = nullptr;
     OSArray* events = nullptr;
+#if SWIFTERKIT_ENABLE_HID
+    uint64_t hidInputReportAttempts = 0;
+    uint64_t hidInputReportSuccesses = 0;
+    uint64_t hidInputReportFailures = 0;
+#endif
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     IOLock* scsiLock = nullptr;
     uint32_t nextSCSIRequestID = 1;

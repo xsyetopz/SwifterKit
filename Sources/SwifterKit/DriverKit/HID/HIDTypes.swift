@@ -60,6 +60,36 @@ public struct HIDReport: Sendable, Hashable {
   }
 }
 
+/// Extension-side delivery counters for submitted HID input reports.
+public struct HIDRuntimeStatistics: Sendable, Hashable {
+  /// Reports accepted from Swift for delivery through HIDDriverKit.
+  public let inputReportAttempts: UInt64
+  /// Reports delivered successfully through HIDDriverKit.
+  public let inputReportSuccesses: UInt64
+  /// Reports rejected before or during HIDDriverKit delivery.
+  public let inputReportFailures: UInt64
+
+  /// Creates a HID runtime statistics snapshot.
+  public init(
+    inputReportAttempts: UInt64,
+    inputReportSuccesses: UInt64,
+    inputReportFailures: UInt64
+  ) {
+    self.inputReportAttempts = inputReportAttempts
+    self.inputReportSuccesses = inputReportSuccesses
+    self.inputReportFailures = inputReportFailures
+  }
+
+  init(runtimePayload: Data) throws {
+    guard runtimePayload.count == 24 else { throw HIDRuntimeError.invalidStatisticsPayload }
+    self.init(
+      inputReportAttempts: try runtimePayload.readRuntimeInteger(at: 0),
+      inputReportSuccesses: try runtimePayload.readRuntimeInteger(at: 8),
+      inputReportFailures: try runtimePayload.readRuntimeInteger(at: 16)
+    )
+  }
+}
+
 /// Static identity and descriptor data for a generated virtual HID device.
 public struct HIDDeviceConfiguration: Sendable, Hashable {
   /// The HID report descriptor returned by the generated extension.
@@ -123,6 +153,8 @@ public enum HIDRuntimeError: Error, Sendable, Equatable {
   case emptyReport
   /// The report cannot fit in the runtime wire format.
   case reportTooLarge
+  /// The extension returned a malformed statistics snapshot.
+  case invalidStatisticsPayload
   /// The native runtime returned an unknown report type.
   case invalidReportType
   /// The native runtime returned a malformed report payload.

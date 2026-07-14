@@ -84,6 +84,20 @@ namespace {
         }
     }
 
+    void AddPrimaryUsagePair(OSDictionary* description) {
+        OSArray* pairs = OSArray::withCapacity(1);
+        OSDictionary* pair = OSDictionary::withCapacity(2);
+        if (pairs != nullptr && pair != nullptr) {
+            SetNumber(pair, kIOHIDDeviceUsagePageKey, kSwifterKitHIDPrimaryUsagePage);
+            SetNumber(pair, kIOHIDDeviceUsageKey, kSwifterKitHIDPrimaryUsage);
+            if (pairs->setObject(pair)) {
+                OSDictionarySetValue(description, kIOHIDDeviceUsagePairsKey, pairs);
+            }
+        }
+        OSSafeReleaseNULL(pair);
+        OSSafeReleaseNULL(pairs);
+    }
+
     kern_return_t
         CopyDescriptorBytes(IOMemoryDescriptor* descriptor, uint32_t length, OSData* destination) {
         IOMemoryMap* map = nullptr;
@@ -165,6 +179,7 @@ OSDictionary* SwifterKitRuntimeService::newDeviceDescription() {
     SetString(description, kIOHIDSerialNumberKey, kSwifterKitHIDSerialNumber);
     SetNumber(description, kIOHIDPrimaryUsagePageKey, kSwifterKitHIDPrimaryUsagePage);
     SetNumber(description, kIOHIDPrimaryUsageKey, kSwifterKitHIDPrimaryUsage);
+    AddPrimaryUsagePair(description);
     return description;
 }
 
@@ -178,8 +193,19 @@ OSData* SwifterKitRuntimeService::newReportDescriptor() {
 kern_return_t SwifterKitRuntimeService::SubmitHIDInputReport(
     const SwifterKitHIDReportHeader* header,
     const uint8_t* bytes) {
+    if (ivars == nullptr || ivars->eventLock == nullptr) {
+        return kIOReturnNotReady;
+    }
+
+    IOLockLock(ivars->eventLock);
+    ivars->hidInputReportAttempts += 1;
+    IOLockUnlock(ivars->eventLock);
+
     if (header == nullptr || bytes == nullptr || header->reportLength == 0
         || header->reportType != kIOHIDReportTypeInput || header->reserved != 0) {
+        IOLockLock(ivars->eventLock);
+        ivars->hidInputReportFailures += 1;
+        IOLockUnlock(ivars->eventLock);
         return kIOReturnBadArgument;
     }
 
@@ -187,7 +213,10 @@ kern_return_t SwifterKitRuntimeService::SubmitHIDInputReport(
     kern_return_t result =
         IOBufferMemoryDescriptor::Create(kIOMemoryDirectionIn, header->reportLength, 0, &buffer);
     if (result != kIOReturnSuccess || buffer == nullptr) {
-        return result;
+        IOLockLock(ivars->eventLock);
+        ivars->hidInputReportFailures += 1;
+        IOLockUnlock(ivars->eventLock);
+        return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
     }
     (void)buffer->SetLength(header->reportLength);
 
@@ -210,7 +239,31 @@ kern_return_t SwifterKitRuntimeService::SubmitHIDInputReport(
 
     OSSafeReleaseNULL(map);
     buffer->release();
+
+    IOLockLock(ivars->eventLock);
+    if (result == kIOReturnSuccess) {
+        ivars->hidInputReportSuccesses += 1;
+    } else {
+        ivars->hidInputReportFailures += 1;
+    }
+    IOLockUnlock(ivars->eventLock);
     return result;
+}
+
+kern_return_t SwifterKitRuntimeService::CopyHIDRuntimeStatistics(
+    SwifterKitHIDRuntimeStatistics* statistics) {
+    if (statistics == nullptr || ivars == nullptr || ivars->eventLock == nullptr) {
+        return kIOReturnBadArgument;
+    }
+
+    IOLockLock(ivars->eventLock);
+    *statistics = {
+        .inputReportAttempts = ivars->hidInputReportAttempts,
+        .inputReportSuccesses = ivars->hidInputReportSuccesses,
+        .inputReportFailures = ivars->hidInputReportFailures,
+    };
+    IOLockUnlock(ivars->eventLock);
+    return kIOReturnSuccess;
 }
 
 kern_return_t SwifterKitRuntimeService::setReport(
