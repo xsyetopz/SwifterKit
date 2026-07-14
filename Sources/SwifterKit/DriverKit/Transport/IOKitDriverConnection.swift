@@ -22,6 +22,25 @@ actor IOKitDriverConnection: DriverConnection {
     }
     try validate(request)
 
+    let output = Self.invoke(connection: connection, request: request)
+
+    guard output.result == kIOReturnSuccess else {
+      throw DriverKitError(
+        kind: .ioReturn(output.result),
+        operation: "IOConnectCallMethod",
+        serviceID: serviceID
+      )
+    }
+
+    return DriverResponse(
+      scalarOutput: output.scalarOutput,
+      structureOutput: Data(output.structureOutput)
+    )
+  }
+
+  nonisolated private static func invoke(connection: io_connect_t, request: DriverRequest)
+    -> IOKitMethodOutput
+  {
     var scalarOutput = [UInt64](repeating: 0, count: request.scalarOutputCapacity)
     var scalarOutputCount = UInt32(request.scalarOutputCapacity)
     var structureOutput = [UInt8](repeating: 0, count: request.structureOutputCapacity)
@@ -48,17 +67,10 @@ actor IOKitDriverConnection: DriverConnection {
       }
     }
 
-    guard result == kIOReturnSuccess else {
-      throw DriverKitError(
-        kind: .ioReturn(result),
-        operation: "IOConnectCallMethod",
-        serviceID: serviceID
-      )
-    }
-
-    return DriverResponse(
+    return IOKitMethodOutput(
+      result: result,
       scalarOutput: Array(scalarOutput.prefix(Int(scalarOutputCount))),
-      structureOutput: Data(structureOutput.prefix(structureOutputSize))
+      structureOutput: Array(structureOutput.prefix(structureOutputSize))
     )
   }
 
@@ -81,4 +93,10 @@ actor IOKitDriverConnection: DriverConnection {
       )
     }
   }
+}
+
+private struct IOKitMethodOutput {
+  let result: kern_return_t
+  let scalarOutput: [UInt64]
+  let structureOutput: [UInt8]
 }
