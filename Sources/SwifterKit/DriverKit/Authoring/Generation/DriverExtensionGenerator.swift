@@ -450,17 +450,12 @@ public enum DriverExtensionGenerator {
     )
 
     let project = directory.appendingPathComponent("SwifterKitRuntime.xcodeproj/project.pbxproj")
-    try replace(in: project, source: "com.swifterkit.Runtime", with: configuration.bundleIdentifier)
-    try replace(
-      in: project,
-      source: "DRIVERKIT_DEPLOYMENT_TARGET = 19.0;",
-      with: "DRIVERKIT_DEPLOYMENT_TARGET = \(options.deploymentTarget);"
-    )
-    try replace(
-      in: project,
-      source: "DEVELOPMENT_TEAM = 9PQP6CDMQT;",
-      with: "DEVELOPMENT_TEAM = \"\";"
-    )
+    let template = try String(contentsOf: project, encoding: .utf8)
+    try DriverExtensionProject.render(
+      configuration: configuration,
+      options: options,
+      template: template
+    ).write(to: project, atomically: true, encoding: .utf8)
   }
 
   private static func replace(in file: URL, source: String, with replacement: String) throws {

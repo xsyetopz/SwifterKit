@@ -4,6 +4,11 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Generated extensions now link only the DriverKit family frameworks selected
+  by their configuration, avoiding launch-time dependencies on unused families.
+
 ### Added
 
 - Added a typed HID host-report allowlist. Generated runtimes preserve output
