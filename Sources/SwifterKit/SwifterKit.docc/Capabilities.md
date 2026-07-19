@@ -24,6 +24,8 @@ Networking uses the DriverKit 22.0 queue-registration API. VideoDriverKit is cur
 
 Use `.hid` with ``HIDDeviceConfiguration``. Submit input reports with ``DriverContext/submitHIDInputReport(_:)`` and decode host output or feature reports with ``DriverEvent/hidReport()``. Read extension-side delivery evidence with ``DriverContext/hidRuntimeStatistics()``; its counters distinguish attempted, successful, and failed HIDDriverKit submissions.
 
+``HIDDeviceConfiguration/acceptedHostReportTypes`` defaults to ``HIDHostReportTypes/all``, preserving output and feature report delivery. Use ``HIDHostReportTypes/output`` for an output-only descriptor. The generated extension returns `kIOReturnUnsupported` synchronously for disallowed types before it reads, allocates, or enqueues their payloads, so the Swift host never receives those events.
+
 ### USB and PCI
 
 Use `.usb` with ``USBDeviceConfiguration`` for an `IOUSBHostInterface` provider. ``DriverContext`` provides control transfers, endpoint reads and writes, stall clearing, and alternate-setting selection.

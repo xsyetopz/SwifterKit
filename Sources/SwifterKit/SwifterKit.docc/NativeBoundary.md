@@ -8,6 +8,8 @@ SwifterKit separates Swift driver behavior from the native extension required by
 
 The generator validates combinations that the native runtime supports. A declared capability needs its matching configuration object when required, and some capability combinations are mutually exclusive. For example, USB matching requires `IOUSBHostInterface` as the provider class, and PCI matching requires `IOPCIDevice`.
 
+HID host-report acceptance is static capability policy owned by ``HIDDeviceConfiguration/acceptedHostReportTypes``. The generator writes that typed allowlist into the native runtime configuration. The extension checks it synchronously in `setReport` and returns `kIOReturnUnsupported` for a disallowed type before reading or forwarding the report payload.
+
 ## Runtime messages stay typed
 
 The generated extension and Swift host exchange versioned ``RuntimeMessage`` values. ``DriverContext`` checks ``RuntimeCapabilities`` before it sends a ``DriverCommand``. Capability extensions expose typed methods such as ``DriverContext/usbRead(endpoint:length:timeout:)``, ``DriverContext/pciRead(space:offset:width:options:)``, and ``DriverContext/allocateMemory(capacity:length:direction:alignment:)`` instead of exposing DriverKit objects or native pointers.

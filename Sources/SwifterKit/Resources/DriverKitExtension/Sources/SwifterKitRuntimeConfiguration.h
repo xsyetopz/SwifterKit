@@ -160,5 +160,8 @@ static constexpr char kSwifterKitHIDProduct[] = "SwifterKit Runtime";
 static constexpr char kSwifterKitHIDSerialNumber[] = "SwifterKit";
 static constexpr uint32_t kSwifterKitHIDPrimaryUsagePage = 0;
 static constexpr uint32_t kSwifterKitHIDPrimaryUsage = 0;
+static constexpr uint32_t kSwifterKitHIDHostReportOutput = 1U << 0;
+static constexpr uint32_t kSwifterKitHIDHostReportFeature = 1U << 1;
+static constexpr uint32_t kSwifterKitHIDAcceptedHostReportTypes = 3;
 
 #endif

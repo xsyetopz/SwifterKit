@@ -300,6 +300,7 @@ public enum DriverExtensionGenerator {
   private static func isValid(hid: HIDDeviceConfiguration) -> Bool {
     let strings = [hid.transport, hid.manufacturer, hid.product, hid.serialNumber]
     return !hid.reportDescriptor.isEmpty && hid.reportDescriptor.count <= 65_488
+      && hid.acceptedHostReportTypes.subtracting(.all).isEmpty
       && strings.allSatisfy { !$0.isEmpty && !$0.contains("\0") }
   }
 

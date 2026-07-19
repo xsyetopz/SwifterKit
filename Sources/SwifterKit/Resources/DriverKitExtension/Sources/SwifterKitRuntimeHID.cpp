@@ -117,6 +117,19 @@ namespace {
         map->release();
         return result;
     }
+
+    bool AcceptsHostReportType(IOHIDReportType reportType) {
+        switch (reportType) {
+            case kIOHIDReportTypeOutput:
+                return (kSwifterKitHIDAcceptedHostReportTypes & kSwifterKitHIDHostReportOutput)
+                       != 0;
+            case kIOHIDReportTypeFeature:
+                return (kSwifterKitHIDAcceptedHostReportTypes & kSwifterKitHIDHostReportFeature)
+                       != 0;
+            default:
+                return false;
+        }
+    }
 }  // namespace
 
 bool SwifterKitRuntimeService::handleStart(IOService* provider) {
@@ -272,6 +285,9 @@ kern_return_t SwifterKitRuntimeService::setReport(
     IOOptionBits options,
     uint32_t,
     OSAction*) {
+    if (!AcceptsHostReportType(reportType)) {
+        return kIOReturnUnsupported;
+    }
     if (report == nullptr || ivars == nullptr || ivars->events == nullptr
         || ivars->eventLock == nullptr) {
         return kIOReturnBadArgument;

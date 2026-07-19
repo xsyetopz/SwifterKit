@@ -1,5 +1,21 @@
 import Foundation
 
+/// Host-to-device HID report types accepted by a generated runtime.
+public struct HIDHostReportTypes: OptionSet, Sendable, Hashable {
+  /// The underlying allowlist bit mask.
+  public let rawValue: UInt32
+
+  /// Creates a host report type allowlist from its raw bit mask.
+  public init(rawValue: UInt32) { self.rawValue = rawValue }
+
+  /// Output reports produced by the host for the device.
+  public static let output = Self(rawValue: 1 << 0)
+  /// Feature reports used for bidirectional device configuration.
+  public static let feature = Self(rawValue: 1 << 1)
+  /// All host-to-device report types supported by SwifterKit.
+  public static let all: Self = [.output, .feature]
+}
+
 /// The direction and semantics of a HID report.
 public enum HIDReportType: UInt32, Sendable, Hashable {
   /// Data produced by a device for the host.
@@ -116,6 +132,8 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
   public let primaryUsagePage: UInt32
   /// The descriptor's primary usage.
   public let primaryUsage: UInt32
+  /// Host-to-device report types accepted by the generated runtime.
+  public let acceptedHostReportTypes: HIDHostReportTypes
 
   /// Creates virtual HID device metadata.
   public init(
@@ -130,7 +148,8 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
     product: String,
     serialNumber: String,
     primaryUsagePage: UInt32,
-    primaryUsage: UInt32
+    primaryUsage: UInt32,
+    acceptedHostReportTypes: HIDHostReportTypes = .all
   ) {
     self.reportDescriptor = reportDescriptor
     self.transport = transport
@@ -144,6 +163,7 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
     self.serialNumber = serialNumber
     self.primaryUsagePage = primaryUsagePage
     self.primaryUsage = primaryUsage
+    self.acceptedHostReportTypes = acceptedHostReportTypes
   }
 }
 

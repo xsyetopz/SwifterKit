@@ -141,6 +141,10 @@ extension DriverExtensionGenerator {
           \(cString(hid?.serialNumber ?? "SwifterKit"));
       static constexpr uint32_t kSwifterKitHIDPrimaryUsagePage = \(hid?.primaryUsagePage ?? 0);
       static constexpr uint32_t kSwifterKitHIDPrimaryUsage = \(hid?.primaryUsage ?? 0);
+      static constexpr uint32_t kSwifterKitHIDHostReportOutput = 1U << 0;
+      static constexpr uint32_t kSwifterKitHIDHostReportFeature = 1U << 1;
+      static constexpr uint32_t kSwifterKitHIDAcceptedHostReportTypes =
+          \(hid?.acceptedHostReportTypes.rawValue ?? 0);
 
       #endif
       """

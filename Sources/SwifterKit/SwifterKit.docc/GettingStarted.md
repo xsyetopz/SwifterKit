@@ -46,6 +46,8 @@ struct ExampleHIDDriver: SwiftDriver {
 
 ``SwiftDriver/start(context:)`` and ``SwiftDriver/handle(event:context:)`` run after the runtime has negotiated the capabilities declared by the generated extension. ``DriverContext`` throws ``DriverContextError/unsupportedCapability(_:)`` when a requested operation is not available.
 
+The HID configuration accepts output and feature reports by default. If the report descriptor supports output reports but no feature reports, pass `acceptedHostReportTypes: .output` to ``HIDDeviceConfiguration/init(reportDescriptor:transport:vendorID:productID:versionNumber:countryCode:locationID:manufacturer:product:serialNumber:primaryUsagePage:primaryUsage:acceptedHostReportTypes:)``. Disallowed report types are rejected by the extension and do not become ``DriverEvent`` values.
+
 ## Generate the extension project
 
 Pass the static configuration to ``DriverExtensionGenerator``. Generation creates a new directory and fails if the destination already exists.
