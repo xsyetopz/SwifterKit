@@ -11,7 +11,7 @@ public struct DriverExtensionGenerationOptions: Sendable, Hashable {
 
   /// Creates extension generation settings.
   public init(
-    shortVersion: String = "0.1.0",
+    shortVersion: String = "0.1.1",
     buildVersion: String = "1",
     deploymentTarget: String = "19.0"
   ) {

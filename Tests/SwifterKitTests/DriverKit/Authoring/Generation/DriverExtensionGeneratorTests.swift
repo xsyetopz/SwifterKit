@@ -71,6 +71,10 @@ import Testing
     )
     #expect(project.contains("com.example.swift-driver"))
     #expect(project.contains("DRIVERKIT_DEPLOYMENT_TARGET = 21.0;"))
+    #expect(project.contains("CLANG_CXX_LANGUAGE_STANDARD = \"gnu++20\";"))
+    #expect(project.contains("-Wno-language-extension-token"))
+    #expect(project.contains("CLANG_CXX_LANGUAGE_STANDARD = \"gnu++20\";"))
+    #expect(project.contains("-Wno-language-extension-token"))
     #expect(!project.contains("9PQP6CDMQT"))
 
     let build = try buildGeneratedExtension(

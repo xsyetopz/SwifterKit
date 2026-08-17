@@ -333,9 +333,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_CXX_LIBRARY = "libc++";
-				OTHER_CPLUSPLUSFLAGS = "-fblocks -Wall -Wextra -Wpedantic -Wcast-qual -Wshadow-all -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-gnu-statement-expression-from-macro-expansion -Wno-zero-length-array";
+				OTHER_CPLUSPLUSFLAGS = "-fblocks -Wall -Wextra -Wpedantic -Wcast-qual -Wshadow-all -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-gnu-statement-expression-from-macro-expansion -Wno-language-extension-token -Wno-zero-length-array";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -395,9 +395,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_CXX_LIBRARY = "libc++";
-				OTHER_CPLUSPLUSFLAGS = "-fblocks -Wall -Wextra -Wpedantic -Wcast-qual -Wshadow-all -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-gnu-statement-expression-from-macro-expansion -Wno-zero-length-array";
+				OTHER_CPLUSPLUSFLAGS = "-fblocks -Wall -Wextra -Wpedantic -Wcast-qual -Wshadow-all -Wno-overloaded-virtual -Wno-non-virtual-dtor -Wno-gnu-statement-expression-from-macro-expansion -Wno-language-extension-token -Wno-zero-length-array";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
