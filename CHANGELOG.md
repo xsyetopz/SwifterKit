@@ -4,8 +4,12 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+## 0.1.3
+
 ### Fixed
 
+- Generated DriverKit extensions now build IIG sources with the GNU C++20
+  extensions required by current DriverKit SDK headers.
 - Generated extensions now link only the DriverKit family frameworks selected
   by their configuration, avoiding launch-time dependencies on unused families.
 
