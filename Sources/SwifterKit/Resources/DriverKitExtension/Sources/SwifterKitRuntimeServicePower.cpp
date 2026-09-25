@@ -64,6 +64,10 @@ kern_return_t SwifterKitRuntimeService::SetPowerState_Impl(uint32_t powerFlags) 
         if (result == kIOReturnSuccess) {
             result = ivars->powerTimer->SetHandler(ivars->powerTimerAction);
         }
+        // A dispatch source may start disabled; the timeout must be able to fire.
+        if (result == kIOReturnSuccess) {
+            result = ivars->powerTimer->SetEnableWithCompletion(true, nullptr);
+        }
         if (result != kIOReturnSuccess) {
             ReleasePowerTimer(ivars);
         }

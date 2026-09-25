@@ -64,12 +64,15 @@ struct ServiceRuntimeContractTests {
       #expect(codec.contains("depth > kSwifterKitPropertyMaximumDepth"))
       #expect(codec.contains("reader.remaining() != 0"))
       #expect(codec.contains("(bits < 64 && (value >> bits) != 0)"))
+      // Wire strings carry no NUL, so they are terminated before OSString copies them.
+      #expect(codec.contains("OSString::withCString(copy);"))
 
       let control = try source("SwifterKitRuntimeServiceControl.cpp", in: output)
       #expect(
         control.contains("kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize;")
       )
       #expect(control.contains("SwifterKitEncodeProperty(value, data, kMaximumResponseLength)"))
+      #expect(!control.contains("OSString::withCString(") && !codec.contains("withCString(start"))
       // A missing property is an empty reply, which Swift reads as nil.
       let search = try section(
         of: control,
@@ -126,6 +129,7 @@ struct ServiceRuntimeContractTests {
       let timer = try #require(setPower.range(of: "IOTimerDispatchSource::Create(")?.lowerBound)
       #expect(supersede < timer)
       #expect(setPower.contains("ReleasePowerTimer(ivars);"))
+      #expect(setPower.contains("ivars->powerTimer->SetEnableWithCompletion(true, nullptr)"))
       // No host, a stopped service, or a failed timer acknowledges immediately.
       #expect(
         setPower.contains(

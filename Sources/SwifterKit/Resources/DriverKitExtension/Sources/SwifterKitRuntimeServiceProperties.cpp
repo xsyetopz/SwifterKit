@@ -60,7 +60,7 @@ namespace {
             || HasNul(start, count)) {
             return nullptr;
         }
-        return OSString::withCString(reinterpret_cast<const char*>(start), count);
+        return SwifterKitCreateString(start, count);
     }
 
     OSObject* DecodeData(PropertyReader* reader) {
@@ -103,7 +103,7 @@ namespace {
             const OSString* name = nullptr;
             if (reader->readBytes(&keyLength, sizeof(keyLength)) && keyLength != 0
                 && reader->skip(keyLength, &key) && !HasNul(key, keyLength)) {
-                name = OSString::withCString(reinterpret_cast<const char*>(key), keyLength);
+                name = SwifterKitCreateString(key, keyLength);
             }
             const OSObject* element = name == nullptr || dictionary->getObject(name) != nullptr
                                           ? nullptr
@@ -264,6 +264,20 @@ kern_return_t
         return kIOReturnBadArgument;
     }
     return EncodeValue(value, data, maximumLength, 1);
+}
+
+OSString* SwifterKitCreateString(const uint8_t* bytes, uint32_t length) {
+    if (bytes == nullptr || length == UINT32_MAX) {
+        return nullptr;
+    }
+    auto* copy = static_cast<char*>(IOMallocZero(length + 1));
+    if (copy == nullptr) {
+        return nullptr;
+    }
+    memcpy(copy, bytes, length);
+    OSString* string = OSString::withCString(copy);
+    IOFree(copy, length + 1);
+    return string;
 }
 
 bool SwifterKitIsPropertyName(const uint8_t* bytes, uint32_t length) {

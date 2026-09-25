@@ -102,7 +102,9 @@ extension DriverContext {
 
   /// Acknowledges a ``ServicePowerStateRequest`` once the device is safe for the new state.
   ///
-  /// Fails with `kIOReturnNotFound` when the extension already acknowledged the request.
+  /// Fails with `kIOReturnNotFound` when the extension already acknowledged the request, after
+  /// its ten-second timeout or a newer change. Rethrowing that error from
+  /// ``SwiftDriver/handle(event:context:)`` ends event delivery.
   public func completePowerState(requestID: UInt32) async throws {
     _ = try await execute(try .completePowerState(requestID: requestID))
   }

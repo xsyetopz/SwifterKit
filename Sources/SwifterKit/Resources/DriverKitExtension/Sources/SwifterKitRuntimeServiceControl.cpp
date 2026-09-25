@@ -67,9 +67,8 @@ namespace {
     }
 
     OSString* CopyRegistryString(const uint8_t* bytes, uint32_t length) {
-        return SwifterKitIsPropertyName(bytes, length)
-                   ? OSString::withCString(reinterpret_cast<const char*>(bytes), length)
-                   : nullptr;
+        return SwifterKitIsPropertyName(bytes, length) ? SwifterKitCreateString(bytes, length)
+                                                       : nullptr;
     }
 
     // Reads SwifterKitServiceNamedValueHeader, the name, and a dictionary that is required,

@@ -6,6 +6,16 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** every generated service overrides `IOService::SetPowerState`
+  and, while a host is connected, delivers each power change as a
+  `ServicePowerStateRequest` from `DriverEvent.servicePowerState()`. DriverKit
+  changes power only after the change is acknowledged, so handle the event and
+  call `completePowerState(requestID:)` once the device is safe. A driver that
+  ignores it delays each sleep and wake by ten seconds, after which the
+  extension acknowledges the change itself; it also does so when the host
+  disconnects, when the service stops, and at once when no host is connected.
+  Completing a request the extension already acknowledged fails with
+  `kIOReturnNotFound`, which ends `runEvents()` if the handler rethrows it.
 - **Breaking:** event delivery is push-based. The extension notifies the host
   through an asynchronous external method when events are queued, and the host
   drains the queue until it is empty. `DriverHost.runEvents()` replaces
@@ -69,11 +79,6 @@ SwifterKit records user-visible changes in this file.
   `DriverProperty`, are bounded to one runtime message, and are validated by
   Swift and the extension; `.real` is rejected and numbers read back as
   `.unsignedInteger`. `ServiceRuntimeError` reports invalid requests.
-- Every generated service overrides `IOService::SetPowerState` and delivers the
-  change as a `ServicePowerStateRequest` from `DriverEvent.servicePowerState()`.
-  Swift answers with `completePowerState(requestID:)`. The extension
-  acknowledges the change itself after ten seconds, when the host disconnects,
-  when the service stops, or at once when no host is connected.
 - IOService and IOUserServer have no remaining coverage gaps except the
   IOReporting members `ConfigureReport`, `UpdateReport`, and `SetLegend`.
 - PCI device control: `pciReset(type:options:)`, `pciSaveDeviceState(options:)`,
