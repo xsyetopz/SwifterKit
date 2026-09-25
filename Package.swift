@@ -26,12 +26,9 @@ let package = Package(
       name: "SwifterKitCoverageTests",
       dependencies: ["SwifterKitCoverage"],
       swiftSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))],
-      linkerSettings: [
-        .unsafeFlags(
-          ["-F", testingFrameworks, "-Xlinker", "-rpath", "-Xlinker", testingRuntime],
-          .when(platforms: [.macOS])
-        )
-      ]
+      // Both test targets link into one test bundle, so only SwifterKitTests adds the
+      // testing runtime rpath; a second copy makes the linker warn about a duplicate.
+      linkerSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))]
     ),
     .testTarget(
       name: "SwifterKitTests",
