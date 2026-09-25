@@ -109,11 +109,9 @@ public enum DriverExtensionGenerator {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.hid)
     }
     if configuration.capabilities.contains(.usb) {
-      guard let usb = configuration.usbDevice, usb.vendorID != 0,
-        Set(usb.productIDs).count == usb.productIDs.count,
-        usb.productIDMask == nil || usb.productIDs.count == 1,
-        configuration.providerClass == "IOUSBHostInterface"
-      else { throw DriverExtensionGenerationError.invalidUSBConfiguration }
+      guard isValidUSB(configuration) else {
+        throw DriverExtensionGenerationError.invalidUSBConfiguration
+      }
     } else if configuration.usbDevice != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.usb)
     }

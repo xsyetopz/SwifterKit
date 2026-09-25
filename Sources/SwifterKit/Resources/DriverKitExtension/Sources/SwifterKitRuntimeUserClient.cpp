@@ -127,6 +127,56 @@ namespace {
 #else
                 return kIOReturnUnsupported;
 #endif
+            case SwifterKitRuntimeOpcode::USBDeviceSetConfiguration:
+            case SwifterKitRuntimeOpcode::USBDeviceReset:
+            case SwifterKitRuntimeOpcode::USBGetDeviceSpeed:
+            case SwifterKitRuntimeOpcode::USBGetDeviceAddress:
+            case SwifterKitRuntimeOpcode::USBGetPortStatus:
+            case SwifterKitRuntimeOpcode::USBGetFrameNumber:
+            case SwifterKitRuntimeOpcode::USBGetCurrentMicroframe:
+            case SwifterKitRuntimeOpcode::USBGetReferenceMicroframe:
+            case SwifterKitRuntimeOpcode::USBCopyDeviceDescriptor:
+            case SwifterKitRuntimeOpcode::USBCopyConfigurationDescriptor:
+            case SwifterKitRuntimeOpcode::USBCopyStringDescriptor:
+            case SwifterKitRuntimeOpcode::USBCopyCapabilityDescriptors:
+            case SwifterKitRuntimeOpcode::USBCopyDescriptor:
+            case SwifterKitRuntimeOpcode::USBCopyInterfaces:
+            case SwifterKitRuntimeOpcode::USBCopyInterfaceDescriptor:
+            case SwifterKitRuntimeOpcode::USBSetIdlePolicy:
+            case SwifterKitRuntimeOpcode::USBGetIdlePolicy:
+            case SwifterKitRuntimeOpcode::USBAbortDeviceRequests:
+            case SwifterKitRuntimeOpcode::USBPipeAsyncIO:
+            case SwifterKitRuntimeOpcode::USBPipeAbort:
+            case SwifterKitRuntimeOpcode::USBPipeSetIdlePolicy:
+            case SwifterKitRuntimeOpcode::USBPipeGetIdlePolicy:
+            case SwifterKitRuntimeOpcode::USBPipeGetDescriptors:
+            case SwifterKitRuntimeOpcode::USBPipeGetSpeed:
+            case SwifterKitRuntimeOpcode::USBPipeGetDeviceAddress:
+            case SwifterKitRuntimeOpcode::USBPipeIsochIO:
+#if SWIFTERKIT_ENABLE_USB
+                if (service == nullptr) {
+                    return kIOReturnNotReady;
+                }
+                {
+                    OSData* response = nullptr;
+                    const kern_return_t result = service->USBCommand(
+                        command->opcode,
+                        commandPayload,
+                        commandPayloadLength,
+                        &response);
+                    if (result == kIOReturnSuccess && response == nullptr) {
+                        return BuildResponse(
+                            arguments,
+                            SwifterKitRuntimeMessageKind::Response,
+                            request->requestID,
+                            nullptr,
+                            0);
+                    }
+                    return RespondWithData(result, response, arguments, request->requestID);
+                }
+#else
+                return kIOReturnUnsupported;
+#endif
             case SwifterKitRuntimeOpcode::PCIRead:
             case SwifterKitRuntimeOpcode::PCIWrite:
             case SwifterKitRuntimeOpcode::PCIGetBARInfo:

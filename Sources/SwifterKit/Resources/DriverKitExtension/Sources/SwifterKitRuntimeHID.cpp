@@ -19,25 +19,16 @@ namespace {
         SwifterKitRuntimeService* service,
         IOService* provider,
         SwifterKitRuntimeService_IVars* state) {
-        if (service == nullptr || provider == nullptr || state == nullptr)
+        if (service == nullptr || state == nullptr)
             return kIOReturnBadArgument;
-        state->usbInterface = OSDynamicCast(IOUSBHostInterface, provider);
-        if (state->usbInterface == nullptr)
-            return kIOReturnBadArgument;
-        state->usbInterface->retain();
-        const kern_return_t result = state->usbInterface->Open(service, 0, nullptr);
-        if (result != kIOReturnSuccess)
-            OSSafeReleaseNULL(state->usbInterface);
-        return result;
+        return service->StartUSB(provider);
     }
 
     [[maybe_unused]] void CloseUSBProvider(
         SwifterKitRuntimeService* service,
         SwifterKitRuntimeService_IVars* state) {
-        if (service != nullptr && state != nullptr && state->usbInterface != nullptr) {
-            (void)state->usbInterface->Close(service, 0);
-            OSSafeReleaseNULL(state->usbInterface);
-        }
+        if (service != nullptr && state != nullptr)
+            service->StopUSB();
     }
     #endif
 

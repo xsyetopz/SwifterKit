@@ -51,6 +51,32 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     USBPipeTransfer = 0x0201,
     USBClearStall = 0x0202,
     USBSelectAlternateSetting = 0x0203,
+    USBDeviceSetConfiguration = 0x0210,
+    USBDeviceReset = 0x0211,
+    USBGetDeviceSpeed = 0x0212,
+    USBGetDeviceAddress = 0x0213,
+    USBGetPortStatus = 0x0214,
+    USBGetFrameNumber = 0x0215,
+    USBGetCurrentMicroframe = 0x0216,
+    USBGetReferenceMicroframe = 0x0217,
+    USBCopyDeviceDescriptor = 0x0218,
+    USBCopyConfigurationDescriptor = 0x0219,
+    USBCopyStringDescriptor = 0x021A,
+    USBCopyCapabilityDescriptors = 0x021B,
+    USBCopyDescriptor = 0x021C,
+    USBCopyInterfaces = 0x021D,
+    USBCopyInterfaceDescriptor = 0x021E,
+    USBSetIdlePolicy = 0x021F,
+    USBGetIdlePolicy = 0x0220,
+    USBAbortDeviceRequests = 0x0221,
+    USBPipeAsyncIO = 0x0230,
+    USBPipeAbort = 0x0231,
+    USBPipeSetIdlePolicy = 0x0232,
+    USBPipeGetIdlePolicy = 0x0233,
+    USBPipeGetDescriptors = 0x0234,
+    USBPipeGetSpeed = 0x0235,
+    USBPipeGetDeviceAddress = 0x0236,
+    USBPipeIsochIO = 0x0237,
     HIDSubmitInputReport = 0x0300,
     HIDGetRuntimeStatistics = 0x0301,
     PCIRead = 0x0400,
@@ -114,6 +140,8 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
 };
 
 static constexpr uint32_t kSwifterKitEventInterrupt = 0x0100;
+static constexpr uint32_t kSwifterKitEventUSBPipeIO = 0x0200;
+static constexpr uint32_t kSwifterKitEventUSBPipeIsochIO = 0x0201;
 static constexpr uint32_t kSwifterKitEventHIDReport = 0x0300;
 static constexpr uint32_t kSwifterKitEventSerial = 0x0600;
 static constexpr uint32_t kSwifterKitEventBlockStorage = 0x0700;

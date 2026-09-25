@@ -12,7 +12,8 @@ public enum DriverExtensionGenerationError: Error, Sendable, Equatable {
   case unsupportedCapabilities(RuntimeCapabilities)
   /// HID metadata is absent or malformed.
   case invalidHIDConfiguration
-  /// USB metadata is absent or does not target an interface provider.
+  /// USB metadata is absent or malformed, the provider class is neither `IOUSBHostInterface` nor
+  /// `IOUSBHostDevice`, or a device provider sets configuration or interface matching fields.
   case invalidUSBConfiguration
   /// PCI metadata is absent, malformed, or conflicts with another physical transport.
   case invalidPCIConfiguration

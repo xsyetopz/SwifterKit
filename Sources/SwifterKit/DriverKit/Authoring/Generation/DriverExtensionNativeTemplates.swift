@@ -43,6 +43,9 @@ extension DriverExtensionGenerator {
       #define SWIFTERKIT_ENABLE_INTERRUPTS \(interruptsEnabled)
       #define SWIFTERKIT_ENABLE_MEMORY \(memory == nil ? 0 : 1)
 
+      static constexpr bool kSwifterKitUSBDeviceProvider =
+          \(usesUSBDeviceProvider(configuration));
+
       static constexpr uint8_t kSwifterKitEthernetAddress[] = {\(ethernetAddress(ethernet))};
       static constexpr uint32_t kSwifterKitEthernetMTU = \(ethernet?.maximumTransferUnit ?? 0);
       static constexpr uint32_t kSwifterKitEthernetPacketBufferSize =
@@ -237,22 +240,7 @@ extension DriverExtensionGenerator {
     let videoMethods = videoServiceMethods(enabled: video)
     let scsiMethods = scsiServiceMethods(enabled: scsiController)
     let scsiPeripheralMethods = scsiPeripheralServiceMethods(configuration.scsiPeripheral)
-    let usbMethods =
-      usb
-      ? """
-          kern_return_t USBControlTransfer(
-              const SwifterKitUSBControlTransferHeader* header,
-              const uint8_t* bytes,
-              uint32_t payloadLength,
-              OSData** response) LOCALONLY;
-          kern_return_t USBPipeTransfer(
-              const SwifterKitUSBPipeTransferHeader* header,
-              const uint8_t* bytes,
-              uint32_t payloadLength,
-              OSData** response) LOCALONLY;
-          kern_return_t USBClearStall(uint8_t endpoint, bool withRequest) LOCALONLY;
-          kern_return_t USBSelectAlternateSetting(uint8_t alternateSetting) LOCALONLY;
-      """ : ""
+    let usbMethods = usbServiceMethods(enabled: usb)
     let pciMethods = pciServiceMethods(enabled: pci)
     let midiMethods =
       midi
@@ -444,6 +432,7 @@ extension DriverExtensionGenerator {
       #include <DriverKit/OSData.iig>
       \(superclassInclude)
       \(interruptInclude)
+      \(usb ? "#include <USBDriverKit/IOUSBHostPipe.iig>" : "")
       \(networking ? "#include <DriverKit/IODataQueueDispatchSource.iig>" : "")
 
       #include "SwifterKitRuntimeProtocol.h"

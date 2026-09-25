@@ -35,6 +35,9 @@ auto SwifterKitRuntimeService::init() -> bool {
 #if SWIFTERKIT_ENABLE_SERIAL
     ivars->serialLock = IOLockAlloc();
 #endif
+#if SWIFTERKIT_ENABLE_USB
+    ivars->usbLock = IOLockAlloc();
+#endif
     return ivars->eventLock != nullptr && ivars->events != nullptr
            && ivars->requiredEvents != nullptr
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
@@ -57,6 +60,9 @@ auto SwifterKitRuntimeService::init() -> bool {
 #endif
 #if SWIFTERKIT_ENABLE_SERIAL
            && ivars->serialLock != nullptr
+#endif
+#if SWIFTERKIT_ENABLE_USB
+           && ivars->usbLock != nullptr
 #endif
         ;
 }

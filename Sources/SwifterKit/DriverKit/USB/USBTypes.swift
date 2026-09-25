@@ -109,8 +109,18 @@ public enum USBRequest {
   public static let setInterface: UInt8 = 0x0B
 }
 
-/// Hardware matching used by a generated USB interface driver and its entitlement.
+/// Hardware matching used by a generated USB driver and its entitlement.
+///
+/// Set ``DriverConfiguration/providerClass`` to ``interfaceProviderClass`` to match one interface
+/// of a configured device, or to ``deviceProviderClass`` to match the whole device. A device
+/// driver opens the device and can select its configuration, so its matching must leave
+/// ``configurationValue`` and the interface fields `nil`.
 public struct USBDeviceConfiguration: Sendable, Hashable {
+  /// The provider class for a driver that matches one USB interface.
+  public static let interfaceProviderClass = "IOUSBHostInterface"
+  /// The provider class for a driver that matches a whole USB device.
+  public static let deviceProviderClass = "IOUSBHostDevice"
+
   /// The USB vendor identifier assigned to the hardware manufacturer.
   public let vendorID: UInt16
   /// Product identifiers supported by the extension, or an empty array for the whole vendor.
@@ -136,7 +146,7 @@ public struct USBDeviceConfiguration: Sendable, Hashable {
   /// Optional USB interface protocol match.
   public let interfaceProtocol: UInt8?
 
-  /// Creates hardware matching for an `IOUSBHostInterface` provider.
+  /// Creates hardware matching for an `IOUSBHostInterface` or `IOUSBHostDevice` provider.
   public init(
     vendorID: UInt16,
     productIDs: [UInt16] = [],

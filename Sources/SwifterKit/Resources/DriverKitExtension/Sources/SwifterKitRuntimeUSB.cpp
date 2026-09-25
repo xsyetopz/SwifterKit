@@ -5,11 +5,14 @@
     #include <DriverKit/IOBufferMemoryDescriptor.h>
     #include <DriverKit/IOMemoryMap.h>
     #include <DriverKit/OSData.h>
+    #include <USBDriverKit/IOUSBHostDevice.h>
     #include <USBDriverKit/IOUSBHostPipe.h>
+    #include <USBDriverKit/USBDriverKitDefs.h>
 
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeServiceState.h"
+    #include "SwifterKitRuntimeUSBSupport.h"
 
 namespace {
     constexpr uint32_t kTransferCountSize = sizeof(uint32_t);
@@ -23,44 +26,17 @@ namespace {
             OSSafeReleaseNULL(descriptor);
         }
 
-        kern_return_t prepare(
-            IOUSBHostInterface* interface,
-            bool input,
-            uint32_t length,
-            const uint8_t* bytes) {
+        template<typename Provider>
+        kern_return_t
+            prepare(Provider* provider, bool input, uint32_t length, const uint8_t* bytes) {
             if (length == 0) {
                 return kIOReturnSuccess;
             }
-            if (interface == nullptr || (!input && bytes == nullptr)) {
-                return kIOReturnBadArgument;
-            }
-
-            kern_return_t result = interface->CreateIOBuffer(
-                input ? kIOMemoryDirectionIn : kIOMemoryDirectionOut,
-                length,
-                &descriptor);
-            if (result != kIOReturnSuccess || descriptor == nullptr) {
-                return result;
-            }
-            (void)descriptor->SetLength(length);
-            result = descriptor->CreateMapping(0, 0, 0, length, 0, &map);
-            if (result != kIOReturnSuccess || map == nullptr || map->GetAddress() == 0) {
-                return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
-            }
-            if (!input) {
-                memcpy(
-                    reinterpret_cast<void*>(static_cast<uintptr_t>(map->GetAddress())),
-                    bytes,
-                    length);
-            }
-            return kIOReturnSuccess;
+            return SwifterKitCreateUSBBuffer(provider, input, length, bytes, &descriptor, &map);
         }
 
         const void* bytes() const {
-            if (map == nullptr || map->GetAddress() == 0) {
-                return nullptr;
-            }
-            return reinterpret_cast<const void*>(static_cast<uintptr_t>(map->GetAddress()));
+            return SwifterKitUSBMappedBytes(map);
         }
     };
 
@@ -68,8 +44,10 @@ namespace {
         const TransferBuffer& buffer,
         bool input,
         uint32_t transferred,
+        uint32_t requested,
         OSData** response) {
-        if (response == nullptr || (input && transferred != 0 && buffer.bytes() == nullptr)) {
+        if (response == nullptr || transferred > requested
+            || (input && transferred != 0 && buffer.bytes() == nullptr)) {
             return kIOReturnBadArgument;
         }
 
@@ -92,14 +70,82 @@ namespace {
     }
 }  // namespace
 
+kern_return_t SwifterKitRuntimeService::StartUSB(IOService* provider) {
+    if (provider == nullptr || ivars == nullptr || ivars->usbDevice != nullptr
+        || ivars->usbInterface != nullptr) {
+        return kIOReturnBadArgument;
+    }
+
+    if constexpr (kSwifterKitUSBDeviceProvider) {
+        ivars->usbDevice = OSDynamicCast(IOUSBHostDevice, provider);
+        if (ivars->usbDevice == nullptr) {
+            return kIOReturnBadArgument;
+        }
+        ivars->usbDevice->retain();
+        const kern_return_t result = ivars->usbDevice->Open(this, 0, 0);
+        if (result != kIOReturnSuccess) {
+            OSSafeReleaseNULL(ivars->usbDevice);
+        }
+        return result;
+    } else {
+        ivars->usbInterface = OSDynamicCast(IOUSBHostInterface, provider);
+        if (ivars->usbInterface == nullptr) {
+            return kIOReturnBadArgument;
+        }
+        ivars->usbInterface->retain();
+        const kern_return_t result = ivars->usbInterface->Open(this, 0, nullptr);
+        if (result != kIOReturnSuccess) {
+            OSSafeReleaseNULL(ivars->usbInterface);
+        }
+        return result;
+    }
+}
+
+void SwifterKitRuntimeService::StopUSB() {
+    if (ivars == nullptr || ivars->usbLock == nullptr) {
+        return;
+    }
+
+    // Abort asynchronously: Stop runs on the default queue that delivers the completions, so a
+    // synchronous abort could wait on itself. Each aborted completion releases its own slot.
+    IOUSBHostPipe* pipes[kSwifterKitUSBMaximumPendingTransfers] = {};
+    IOLockLock(ivars->usbLock);
+    for (uint32_t slot = 0; slot < kSwifterKitUSBMaximumPendingTransfers; ++slot) {
+        const SwifterKitUSBPendingTransfer& transfer = ivars->usbTransfers[slot];
+        if (transfer.active && !transfer.completed && transfer.pipe != nullptr) {
+            pipes[slot] = transfer.pipe;
+            pipes[slot]->retain();
+        }
+    }
+    IOLockUnlock(ivars->usbLock);
+    for (IOUSBHostPipe*& pipe : pipes) {
+        if (pipe != nullptr) {
+            (void)pipe->Abort(kIOUSBAbortAsynchronous, kIOReturnAborted, nullptr);
+            OSSafeReleaseNULL(pipe);
+        }
+    }
+
+    if (ivars->usbInterface != nullptr) {
+        (void)ivars->usbInterface->Close(this, 0);
+        OSSafeReleaseNULL(ivars->usbInterface);
+    }
+    if (ivars->usbDevice != nullptr) {
+        (void)ivars->usbDevice->Close(this, 0);
+        OSSafeReleaseNULL(ivars->usbDevice);
+    }
+}
+
 kern_return_t SwifterKitRuntimeService::USBControlTransfer(
     const SwifterKitUSBControlTransferHeader* header,
     const uint8_t* bytes,
     uint32_t payloadLength,
     OSData** response) {
-    if (header == nullptr || ivars == nullptr || ivars->usbInterface == nullptr
-        || header->reserved != 0 || header->length > 65508) {
+    if (header == nullptr || ivars == nullptr || header->reserved != 0
+        || header->length > kSwifterKitUSBMaximumResponsePayload - kTransferCountSize) {
         return kIOReturnBadArgument;
+    }
+    if (ivars->usbInterface == nullptr && ivars->usbDevice == nullptr) {
+        return kIOReturnNotReady;
     }
 
     const bool input = IsInput(header->requestType);
@@ -108,25 +154,40 @@ kern_return_t SwifterKitRuntimeService::USBControlTransfer(
     }
 
     TransferBuffer buffer;
-    kern_return_t result = buffer.prepare(ivars->usbInterface, input, header->length, bytes);
+    kern_return_t result = ivars->usbInterface != nullptr
+                               ? buffer.prepare(ivars->usbInterface, input, header->length, bytes)
+                               : buffer.prepare(ivars->usbDevice, input, header->length, bytes);
     if (result != kIOReturnSuccess) {
         return result;
     }
 
     uint16_t transferred = 0;
-    result = ivars->usbInterface->DeviceRequest(
-        header->requestType,
-        header->request,
-        header->value,
-        header->index,
-        header->length,
-        buffer.descriptor,
-        &transferred,
-        header->timeout);
+    if (ivars->usbInterface != nullptr) {
+        result = ivars->usbInterface->DeviceRequest(
+            header->requestType,
+            header->request,
+            header->value,
+            header->index,
+            header->length,
+            buffer.descriptor,
+            &transferred,
+            header->timeout);
+    } else {
+        result = ivars->usbDevice->DeviceRequest(
+            this,
+            header->requestType,
+            header->request,
+            header->value,
+            header->index,
+            header->length,
+            buffer.descriptor,
+            &transferred,
+            header->timeout);
+    }
     if (result != kIOReturnSuccess) {
         return result;
     }
-    return MakeTransferResponse(buffer, input, transferred, response);
+    return MakeTransferResponse(buffer, input, transferred, header->length, response);
 }
 
 kern_return_t SwifterKitRuntimeService::USBPipeTransfer(
@@ -134,10 +195,13 @@ kern_return_t SwifterKitRuntimeService::USBPipeTransfer(
     const uint8_t* bytes,
     uint32_t payloadLength,
     OSData** response) {
-    if (header == nullptr || ivars == nullptr || ivars->usbInterface == nullptr
-        || header->reserved8 != 0 || header->reserved16 != 0 || header->reserved32 != 0
-        || header->length == 0 || header->length > 65508) {
+    if (header == nullptr || ivars == nullptr || header->reserved8 != 0 || header->reserved16 != 0
+        || header->reserved32 != 0 || header->length == 0
+        || header->length > kSwifterKitUSBMaximumResponsePayload - kTransferCountSize) {
         return kIOReturnBadArgument;
+    }
+    if (ivars->usbInterface == nullptr) {
+        return ivars->usbDevice != nullptr ? kIOReturnUnsupported : kIOReturnNotReady;
     }
 
     const bool input = IsInput(header->endpoint);
@@ -148,7 +212,7 @@ kern_return_t SwifterKitRuntimeService::USBPipeTransfer(
     IOUSBHostPipe* pipe = nullptr;
     kern_return_t result = ivars->usbInterface->CopyPipe(header->endpoint, &pipe);
     if (result != kIOReturnSuccess || pipe == nullptr) {
-        return result;
+        return result == kIOReturnSuccess ? kIOReturnNotFound : result;
     }
 
     TransferBuffer buffer;
@@ -161,12 +225,13 @@ kern_return_t SwifterKitRuntimeService::USBPipeTransfer(
     if (result != kIOReturnSuccess) {
         return result;
     }
-    return MakeTransferResponse(buffer, input, transferred, response);
+    return MakeTransferResponse(buffer, input, transferred, header->length, response);
 }
 
 kern_return_t SwifterKitRuntimeService::USBClearStall(uint8_t endpoint, bool withRequest) {
     if (ivars == nullptr || ivars->usbInterface == nullptr) {
-        return kIOReturnNotReady;
+        return ivars != nullptr && ivars->usbDevice != nullptr ? kIOReturnUnsupported
+                                                               : kIOReturnNotReady;
     }
 
     IOUSBHostPipe* pipe = nullptr;
@@ -180,7 +245,8 @@ kern_return_t SwifterKitRuntimeService::USBClearStall(uint8_t endpoint, bool wit
 
 kern_return_t SwifterKitRuntimeService::USBSelectAlternateSetting(uint8_t alternateSetting) {
     if (ivars == nullptr || ivars->usbInterface == nullptr) {
-        return kIOReturnNotReady;
+        return ivars != nullptr && ivars->usbDevice != nullptr ? kIOReturnUnsupported
+                                                               : kIOReturnNotReady;
     }
     return ivars->usbInterface->SelectAlternateSetting(alternateSetting);
 }

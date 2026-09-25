@@ -64,6 +64,32 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case usbPipeTransfer = 0x0201
   case usbClearStall = 0x0202
   case usbSelectAlternateSetting = 0x0203
+  case usbDeviceSetConfiguration = 0x0210
+  case usbDeviceReset = 0x0211
+  case usbGetDeviceSpeed = 0x0212
+  case usbGetDeviceAddress = 0x0213
+  case usbGetPortStatus = 0x0214
+  case usbGetFrameNumber = 0x0215
+  case usbGetCurrentMicroframe = 0x0216
+  case usbGetReferenceMicroframe = 0x0217
+  case usbCopyDeviceDescriptor = 0x0218
+  case usbCopyConfigurationDescriptor = 0x0219
+  case usbCopyStringDescriptor = 0x021A
+  case usbCopyCapabilityDescriptors = 0x021B
+  case usbCopyDescriptor = 0x021C
+  case usbCopyInterfaces = 0x021D
+  case usbCopyInterfaceDescriptor = 0x021E
+  case usbSetIdlePolicy = 0x021F
+  case usbGetIdlePolicy = 0x0220
+  case usbAbortDeviceRequests = 0x0221
+  case usbPipeAsyncIO = 0x0230
+  case usbPipeAbort = 0x0231
+  case usbPipeSetIdlePolicy = 0x0232
+  case usbPipeGetIdlePolicy = 0x0233
+  case usbPipeGetDescriptors = 0x0234
+  case usbPipeGetSpeed = 0x0235
+  case usbPipeGetDeviceAddress = 0x0236
+  case usbPipeIsochIO = 0x0237
   case hidSubmitInputReport = 0x0300
   case hidGetRuntimeStatistics = 0x0301
   case pciRead = 0x0400
@@ -129,6 +155,8 @@ enum RuntimeOpcode: UInt32, CaseIterable {
 /// Types of events the native extension queues for the Swift host.
 enum RuntimeEventType: UInt32, CaseIterable {
   case interrupt = 0x0100
+  case usbPipeIO = 0x0200
+  case usbPipeIsochIO = 0x0201
   case hidReport = 0x0300
   case serial = 0x0600
   case blockStorage = 0x0700

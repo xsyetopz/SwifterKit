@@ -13,7 +13,14 @@
 #endif
 
 #if SWIFTERKIT_ENABLE_USB
+    #include <DriverKit/IOBufferMemoryDescriptor.h>
+    #include <DriverKit/IOMemoryMap.h>
+    #include <DriverKit/OSAction.h>
+    #include <USBDriverKit/IOUSBHostDevice.h>
     #include <USBDriverKit/IOUSBHostInterface.h>
+    #include <USBDriverKit/IOUSBHostPipe.h>
+
+    #include "SwifterKitRuntimeUSBProtocol.h"
 #endif
 
 #if SWIFTERKIT_ENABLE_PCI
@@ -82,6 +89,30 @@ struct SwifterKitSCSIPendingTask {
     uint64_t requestedTransferCount = 0;
     uint32_t featureRequestCount = 0;
     OSAction* completion = nullptr;
+};
+#endif
+
+#if SWIFTERKIT_ENABLE_USB
+// One outstanding AsyncIO or IsochIO request. The slot owns the pipe, buffers, and action from
+// submission until its completion event is queued; see SwifterKitRuntimeUSBPipes.cpp.
+struct SwifterKitUSBPendingTransfer {
+    uint32_t requestID = 0;
+    uint8_t endpoint = 0;
+    bool active = false;
+    bool isochronous = false;
+    bool completed = false;
+    uint32_t length = 0;
+    uint32_t frameCount = 0;
+    int32_t status = 0;
+    uint32_t bytesTransferred = 0;
+    uint64_t timestamp = 0;
+    uint64_t sequence = 0;
+    OSAction* action = nullptr;
+    IOUSBHostPipe* pipe = nullptr;
+    IOBufferMemoryDescriptor* buffer = nullptr;
+    IOMemoryMap* map = nullptr;
+    IOBufferMemoryDescriptor* frames = nullptr;
+    IOMemoryMap* frameMap = nullptr;
 };
 #endif
 
@@ -179,7 +210,12 @@ struct SwifterKitRuntimeService_IVars {
     bool serialDCD = false;
 #endif
 #if SWIFTERKIT_ENABLE_USB
+    IOLock* usbLock = nullptr;
+    IOUSBHostDevice* usbDevice = nullptr;
     IOUSBHostInterface* usbInterface = nullptr;
+    uint32_t nextUSBRequestID = 1;
+    uint64_t nextUSBCompletionSequence = 0;
+    SwifterKitUSBPendingTransfer usbTransfers[kSwifterKitUSBMaximumPendingTransfers] = {};
 #endif
 #if SWIFTERKIT_ENABLE_PCI
     IOPCIDevice* pciDevice = nullptr;
@@ -211,6 +247,11 @@ static_assert(
     kSwifterKitMaximumQueuedRequiredEvents
     > sizeof(SwifterKitRuntimeService_IVars::blockStorageRequests)
           / sizeof(SwifterKitBlockStoragePendingRequest));
+#endif
+#if SWIFTERKIT_ENABLE_USB
+static_assert(
+    kSwifterKitMaximumQueuedRequiredEvents
+    > sizeof(SwifterKitRuntimeService_IVars::usbTransfers) / sizeof(SwifterKitUSBPendingTransfer));
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
 static_assert(

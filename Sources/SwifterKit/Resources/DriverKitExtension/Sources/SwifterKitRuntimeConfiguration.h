@@ -83,6 +83,9 @@ static constexpr uint32_t kSwifterKitVideoStreamCount = 0;
 #define SWIFTERKIT_ENABLE_INTERRUPTS 0
 #define SWIFTERKIT_ENABLE_MEMORY 0
 
+// True when the USB provider is an IOUSBHostDevice rather than an IOUSBHostInterface.
+static constexpr bool kSwifterKitUSBDeviceProvider = false;
+
 static constexpr uint64_t kSwifterKitSCSIInitiatorIdentifier = 0;
 static constexpr uint64_t kSwifterKitSCSIHighestTargetIdentifier = 0;
 static constexpr uint64_t kSwifterKitSCSIHighestLogicalUnitNumber = 0;
