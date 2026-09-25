@@ -171,8 +171,9 @@ configuration and completion details.
 ## DriverKit coverage
 
 `coverage/driverkit.json` lists every class and member function declared in
-the DriverKit SDK `.iig` headers, with the SDK versions that declare it and how
-SwifterKit handles it:
+the DriverKit SDK `.iig` headers, with the SDK versions that declare it, the
+`introduced` and `deprecated` DriverKit versions when the header's availability
+attribute gives them, and how SwifterKit handles it:
 
 | Status | Meaning |
 | --- | --- |

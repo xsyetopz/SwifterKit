@@ -8510,11 +8510,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,introduced=20.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.0",
           "name" : "CreateSubMemoryDescriptor",
           "sdks" : [
             "24.4",
@@ -8527,11 +8528,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,introduced=20.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.0",
           "name" : "CreateWithMemoryDescriptors",
           "sdks" : [
             "24.4",
@@ -10909,11 +10911,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,introduced=20.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.0",
           "name" : "CreateMemoryDescriptorFromClient",
           "sdks" : [
             "24.4",
@@ -13863,13 +13866,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getReport",
           "sdks" : [
             "24.4",
@@ -13882,13 +13884,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleReport",
           "sdks" : [
             "24.4",
@@ -13901,13 +13902,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setReport",
           "sdks" : [
             "24.4",
@@ -13920,13 +13920,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "CompleteReport",
           "sdks" : [
             "24.4",
@@ -13939,13 +13938,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setProperty",
           "sdks" : [
             "24.4",
@@ -14077,12 +14075,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getX",
           "sdks" : [
             "24.4",
@@ -14095,12 +14093,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getY",
           "sdks" : [
             "24.4",
@@ -14113,12 +14111,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getZ",
           "sdks" : [
             "24.4",
@@ -14131,12 +14129,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getType",
           "sdks" : [
             "24.4",
@@ -14149,12 +14147,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getInRange",
           "sdks" : [
             "24.4",
@@ -14167,12 +14165,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getTouch",
           "sdks" : [
             "24.4",
@@ -14203,12 +14201,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "addElement",
           "sdks" : [
             "24.4",
@@ -14221,12 +14219,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "free",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -14240,12 +14238,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setInRange",
           "sdks" : [
             "24.4",
@@ -14258,12 +14256,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setTouch",
           "sdks" : [
             "24.4",
@@ -14276,12 +14274,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setX",
           "sdks" : [
             "24.4",
@@ -14294,12 +14292,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setY",
           "sdks" : [
             "24.4",
@@ -14312,12 +14310,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setZ",
           "sdks" : [
             "24.4",
@@ -14344,12 +14342,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getScaledFixedValue",
           "sdks" : [
             "24.4",
@@ -14362,12 +14360,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getCollectionType",
           "sdks" : [
             "24.4",
@@ -14380,12 +14378,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getCookie",
           "sdks" : [
             "24.4",
@@ -14398,12 +14396,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getType",
           "sdks" : [
             "24.4",
@@ -14416,12 +14414,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "commit",
           "sdks" : [
             "24.4",
@@ -14434,12 +14432,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "conformsTo",
           "sdks" : [
             "24.4",
@@ -14452,12 +14450,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getFlags",
           "sdks" : [
             "24.4",
@@ -14470,12 +14468,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getLogicalMax",
           "sdks" : [
             "24.4",
@@ -14488,12 +14486,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getLogicalMin",
           "sdks" : [
             "24.4",
@@ -14506,12 +14504,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getPhysicalMax",
           "sdks" : [
             "24.4",
@@ -14524,12 +14522,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getPhysicalMin",
           "sdks" : [
             "24.4",
@@ -14542,12 +14540,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getReportCount",
           "sdks" : [
             "24.4",
@@ -14560,12 +14558,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getReportID",
           "sdks" : [
             "24.4",
@@ -14578,12 +14576,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getReportSize",
           "sdks" : [
             "24.4",
@@ -14596,12 +14594,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getScaledValue",
           "sdks" : [
             "24.4",
@@ -14614,12 +14612,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getUnit",
           "sdks" : [
             "24.4",
@@ -14632,12 +14630,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getUnitExponent",
           "sdks" : [
             "24.4",
@@ -14650,12 +14648,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getUsage",
           "sdks" : [
             "24.4",
@@ -14668,12 +14666,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getUsagePage",
           "sdks" : [
             "24.4",
@@ -14686,12 +14684,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getValue",
           "sdks" : [
             "24.4",
@@ -14704,12 +14702,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getTimeStamp",
           "sdks" : [
             "24.4",
@@ -14722,12 +14720,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setDataValue",
           "sdks" : [
             "24.4",
@@ -14740,12 +14738,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setValue",
           "sdks" : [
             "24.4",
@@ -14772,12 +14770,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "init",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -14791,13 +14789,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "SetLEDState",
           "sdks" : [
             "24.4",
@@ -14810,12 +14807,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "SetProperties",
           "sdks" : [
             "24.4",
@@ -14828,12 +14825,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "Start",
           "sdks" : [
             "24.4",
@@ -14846,12 +14843,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "Stop",
           "sdks" : [
             "24.4",
@@ -14864,13 +14861,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchAbsolutePointerEvent",
           "sdks" : [
             "24.4",
@@ -14883,13 +14879,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchDigitizerStylusEvent",
           "sdks" : [
             "24.4",
@@ -14902,13 +14897,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchDigitizerTouchEvent",
           "sdks" : [
             "24.4",
@@ -14921,13 +14915,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchKeyboardEvent",
           "sdks" : [
             "24.4",
@@ -14940,13 +14933,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchRelativePointerEvent",
           "sdks" : [
             "24.4",
@@ -14959,13 +14951,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchRelativeScrollWheelEvent",
           "sdks" : [
             "24.4",
@@ -14978,13 +14969,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "handleCopyMatchingEvent",
           "sdks" : [
             "24.4",
@@ -14997,13 +14987,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "SetLED",
           "sdks" : [
             "24.4",
@@ -15016,13 +15005,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchEvent",
           "sdks" : [
             "24.4",
@@ -15035,12 +15023,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "free",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -15373,12 +15361,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "init",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -15392,12 +15380,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "AddReportToPool",
           "sdks" : [
             "24.4",
@@ -15410,12 +15398,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Close",
           "sdks" : [
             "24.4",
@@ -15428,12 +15416,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "GetReport",
           "sdks" : [
             "24.4",
@@ -15446,12 +15434,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Open",
           "sdks" : [
             "24.4",
@@ -15464,12 +15452,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "SetReport",
           "sdks" : [
             "24.4",
@@ -15482,13 +15470,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "commitElements",
           "sdks" : [
             "24.4",
@@ -15501,13 +15488,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "ReportAvailable",
           "sdks" : [
             "24.4",
@@ -15520,12 +15506,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "free",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -15539,13 +15525,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "processReport",
           "sdks" : [
             "24.4",
@@ -15712,13 +15697,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "newReportDescriptor",
           "note" : "referenced by the generated runtime",
           "sdks" : [
@@ -15732,13 +15716,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "newDeviceDescription",
           "note" : "referenced by the generated runtime",
           "sdks" : [
@@ -15752,13 +15735,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleStart",
           "note" : "referenced by the generated runtime",
           "sdks" : [
@@ -15772,12 +15754,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Start",
           "note" : "referenced by the generated runtime",
           "sdks" : [
@@ -15805,13 +15787,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "copyKeyboardEvent",
           "sdks" : [
             "24.4",
@@ -15824,12 +15805,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "init",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -15843,13 +15824,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "parseDigitizerElement",
           "sdks" : [
             "24.4",
@@ -15862,13 +15842,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "parseElement",
           "sdks" : [
             "24.4",
@@ -15881,13 +15860,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "parseElements",
           "sdks" : [
             "24.4",
@@ -15900,13 +15878,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "parseGameControllerElement",
           "sdks" : [
             "24.4",
@@ -15919,13 +15896,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "parseKeyboardElement",
           "sdks" : [
             "24.4",
@@ -15938,13 +15914,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "parseLEDElement",
           "sdks" : [
             "24.4",
@@ -15957,13 +15932,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "parsePointerElement",
           "sdks" : [
             "24.4",
@@ -15976,13 +15950,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=20.3)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.3",
           "name" : "parseProximityElement",
           "sdks" : [
             "24.4",
@@ -15995,13 +15968,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "parseRemainingElement",
           "sdks" : [
             "24.4",
@@ -16014,13 +15986,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "parseScrollElement",
           "sdks" : [
             "24.4",
@@ -16033,13 +16004,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "postProcessElements",
           "sdks" : [
             "24.4",
@@ -16070,12 +16040,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "SetProperties",
           "sdks" : [
             "24.4",
@@ -16088,12 +16058,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Start",
           "sdks" : [
             "24.4",
@@ -16106,12 +16076,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "handleCopyMatchingEvent",
           "sdks" : [
             "24.4",
@@ -16160,12 +16130,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "SetLED",
           "sdks" : [
             "24.4",
@@ -16214,12 +16184,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "free",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -16233,13 +16203,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleAbsolutePointerReport",
           "sdks" : [
             "24.4",
@@ -16252,13 +16221,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleDigitizerReport",
           "sdks" : [
             "24.4",
@@ -16271,13 +16239,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "handleGameControllerReport",
           "sdks" : [
             "24.4",
@@ -16290,13 +16257,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleKeyboardReport",
           "sdks" : [
             "24.4",
@@ -16309,13 +16275,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=20.3)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.3",
           "name" : "handleProximityReport",
           "sdks" : [
             "24.4",
@@ -16328,13 +16293,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleRelativePointerReport",
           "sdks" : [
             "24.4",
@@ -16347,13 +16311,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleReport",
           "sdks" : [
             "24.4",
@@ -16366,13 +16329,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleScrollReport",
           "sdks" : [
             "24.4",
@@ -16615,13 +16577,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "conformsTo",
           "sdks" : [
             "24.4",
@@ -16634,13 +16595,12 @@
         {
           "access" : "private",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "createReportPool",
           "note" : "private member",
           "sdks" : [
@@ -16654,13 +16614,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleStart",
           "sdks" : [
             "24.4",
@@ -16673,12 +16632,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "init",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -16692,12 +16651,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "SetLEDState",
           "sdks" : [
             "24.4",
@@ -16710,12 +16669,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=20.4)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.4",
           "name" : "SetProperties",
           "sdks" : [
             "24.4",
@@ -16728,12 +16687,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Start",
           "sdks" : [
             "24.4",
@@ -16746,12 +16705,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Stop",
           "sdks" : [
             "24.4",
@@ -16764,13 +16723,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchDigitizerStylusEvent",
           "sdks" : [
             "24.4",
@@ -16783,13 +16741,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchDigitizerTouchEvent",
           "sdks" : [
             "24.4",
@@ -16802,15 +16759,13 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=22.0,",
-            "deprecated=23.0,",
-            "replacement=\"dispatchExtendedGameControllerEventWithOptionalButtons\")))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "deprecated" : "23.0",
+          "introduced" : "22.0",
           "name" : "dispatchExtendedGameControllerEvent",
           "sdks" : [
             "24.4",
@@ -16823,13 +16778,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=23.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "23.0",
           "name" : "dispatchExtendedGameControllerEventWithOptionalButtons",
           "sdks" : [
             "24.4",
@@ -16842,13 +16796,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "dispatchStandardGameControllerEvent",
           "sdks" : [
             "24.4",
@@ -16861,13 +16814,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCAL",
-            "__attribute__((availability(driverkit,",
-            "introduced=21.0)))"
+            "LOCAL"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "21.0",
           "name" : "processReport",
           "sdks" : [
             "24.4",
@@ -16881,13 +16833,12 @@
           "access" : "private",
           "annotations" : [
             "LOCAL",
-            "TYPE(IOHIDInterface::ReportAvailable)",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "TYPE(IOHIDInterface::ReportAvailable)"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "ReportAvailable",
           "note" : "private member",
           "sdks" : [
@@ -16901,13 +16852,12 @@
         {
           "access" : "private",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "dispatchEvent",
           "note" : "private member",
           "sdks" : [
@@ -16921,12 +16871,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "free",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -16940,13 +16890,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleReport",
           "sdks" : [
             "24.4",
@@ -16991,12 +16940,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "newReportDescriptor",
           "sdks" : [
             "24.4",
@@ -17009,12 +16958,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "newDeviceDescription",
           "sdks" : [
             "24.4",
@@ -17045,12 +16994,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "handleStart",
           "sdks" : [
             "24.4",
@@ -17063,12 +17012,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "init",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -17100,12 +17049,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Start",
           "sdks" : [
             "24.4",
@@ -17118,12 +17067,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "Stop",
           "sdks" : [
             "24.4",
@@ -17154,12 +17103,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getReport",
           "sdks" : [
             "24.4",
@@ -17172,13 +17121,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "getReport",
           "sdks" : [
             "24.4",
@@ -17191,13 +17139,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "initInputReport",
           "sdks" : [
             "24.4",
@@ -17228,13 +17175,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setIdle",
           "sdks" : [
             "24.4",
@@ -17247,13 +17193,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setIdlePolicy",
           "sdks" : [
             "24.4",
@@ -17266,13 +17211,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setProtocol",
           "sdks" : [
             "24.4",
@@ -17285,12 +17229,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setReport",
           "sdks" : [
             "24.4",
@@ -17303,13 +17247,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "TYPE(IOUSBHostPipe::CompleteAsyncIO)",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "TYPE(IOUSBHostPipe::CompleteAsyncIO)"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "CompleteInputReport",
           "sdks" : [
             "24.4",
@@ -17322,13 +17265,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "TYPE(IOUSBHostPipe::CompleteAsyncIO)",
-            "__attribute__((availability(driverkit,",
-            "introduced=20.0)))"
+            "TYPE(IOUSBHostPipe::CompleteAsyncIO)"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.0",
           "name" : "CompleteOutputReport",
           "sdks" : [
             "24.4",
@@ -17341,13 +17283,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "TYPE(IOUSBHostDevice::CompleteAsyncDeviceRequest)",
-            "__attribute__((availability(driverkit,",
-            "introduced=20.0)))"
+            "TYPE(IOUSBHostDevice::CompleteAsyncDeviceRequest)"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "20.0",
           "name" : "CompleteOutputRequest",
           "sdks" : [
             "24.4",
@@ -17378,13 +17319,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "TYPE(IOTimerDispatchSource::TimerOccurred)",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "TYPE(IOTimerDispatchSource::TimerOccurred)"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "TimerOccurred",
           "sdks" : [
             "24.4",
@@ -17397,13 +17337,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "cancelInputReportRetry",
           "sdks" : [
             "24.4",
@@ -17416,12 +17355,12 @@
         {
           "access" : "public",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "free",
           "note" : "OSObject lifecycle hook; the generated runtime owns object lifetime",
           "sdks" : [
@@ -17435,13 +17374,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "reset",
           "sdks" : [
             "24.4",
@@ -17472,13 +17410,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "LOCALONLY",
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+            "LOCALONLY"
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "scheduleInputReportRetry",
           "sdks" : [
             "24.4",
@@ -17491,12 +17428,12 @@
         {
           "access" : "protected",
           "annotations" : [
-            "__attribute__((availability(driverkit,",
-            "introduced=19.0)))"
+
           ],
           "conditions" : [
 
           ],
+          "introduced" : "19.0",
           "name" : "setProperty",
           "sdks" : [
             "24.4",

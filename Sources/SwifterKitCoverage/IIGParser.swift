@@ -23,6 +23,10 @@ struct IIGMethod: Equatable {
   let annotations: [String]
   /// Preprocessor conditions enclosing the declaration.
   let conditions: [String]
+  /// The DriverKit version from the declaration's availability attribute, if any.
+  var introduced: String?
+  /// The DriverKit version that deprecated the declaration, if any.
+  var deprecated: String?
 }
 
 /// Extracts classes and member functions from `.iig` header text.
@@ -239,7 +243,9 @@ enum IIGParser {
       guard let close = Self.closingParenthesis(in: text, from: open) else { return nil }
       let returnTokens = prefix.split(separator: " ").dropLast().map(String.init)
       let parameters = String(text[text.index(after: open)..<close])
-      let trailing = String(text[text.index(after: close)...])
+      let (trailing, availability) = Self.availability(
+        in: String(text[text.index(after: close)...])
+      )
       let isStatic = returnTokens.contains("static")
       let returnType = returnTokens.filter { $0 != "virtual" && $0 != "static" }.joined(
         separator: " "
@@ -253,8 +259,28 @@ enum IIGParser {
         access: access,
         isStatic: isStatic,
         annotations: annotations(trailing),
-        conditions: conditions
+        conditions: conditions,
+        introduced: availability["introduced"],
+        deprecated: availability["deprecated"]
       )
+    }
+
+    /// Removes `__attribute__((availability(driverkit, ...)))` and returns its version fields.
+    static func availability(in trailing: String) -> (String, [String: String]) {
+      let marker = "__attribute__((availability("
+      guard let start = trailing.range(of: marker),
+        let end = trailing.range(of: ")))", range: start.upperBound..<trailing.endIndex)
+      else { return (trailing, [:]) }
+      let fields = trailing[start.upperBound..<end.lowerBound].split(separator: ",").map(\.trimmed)
+      var result: [String: String] = [:]
+      if fields.first == "driverkit" {
+        for field in fields.dropFirst() {
+          let pair = field.split(separator: "=", maxSplits: 1).map(\.trimmed)
+          if pair.count == 2 { result[pair[0]] = pair[1] }
+        }
+      }
+      let remaining = trailing[..<start.lowerBound] + " " + trailing[end.upperBound...]
+      return (String(remaining), result)
     }
 
     private static func closingParenthesis(

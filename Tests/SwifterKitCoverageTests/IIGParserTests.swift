@@ -100,6 +100,29 @@ struct IIGParserTests {
   }
 
   @Test
+  func extractsAvailabilityFromAnnotations() throws {
+    let device = try #require(
+      IIGParser.parse(
+        """
+        class IOExample : public IOService
+        {
+        public:
+            virtual kern_return_t getReport(uint32_t type) LOCALONLY
+            __attribute__((availability(driverkit, introduced=19.0)));
+            virtual void dispatch(uint32_t value)
+            __attribute__((availability(driverkit, introduced=22.0, deprecated=23.0,
+              replacement="dispatchNew")));
+            virtual void plain();
+        };
+        """
+      ).first
+    )
+    #expect(device.methods.map(\.annotations) == [["LOCALONLY"], [], []])
+    #expect(device.methods.map(\.introduced) == ["19.0", "22.0", nil])
+    #expect(device.methods.map(\.deprecated) == [nil, "23.0", nil])
+  }
+
+  @Test
   func normalizesParameterNamesArraysAndDefaults() {
     #expect(
       IIGParser.normalizedParameters(

@@ -26,6 +26,10 @@ struct CoverageManifest: Codable, Equatable {
     var access: IIGMethod.Access
     var annotations: [String]
     var conditions: [String]
+    /// The DriverKit version from the header's availability attribute, when it has one.
+    var introduced: String?
+    /// The DriverKit version that deprecated the member, when the header says so.
+    var deprecated: String?
     /// SDK versions that declare this member.
     var sdks: [String]
     var status: CoverageStatus
@@ -65,7 +69,7 @@ struct CoverageManifest: Codable, Equatable {
       byClass[key(entry.framework, entry.name)] = entry
     }
 
-    for surface in surfaces {
+    for surface in surfaces.sorted(by: { compareVersions($0.version, $1.version) }) {
       for declared in surface.classes {
         let classKey = key(declared.framework, declared.declaration.name)
         var entry =
@@ -85,6 +89,12 @@ struct CoverageManifest: Codable, Equatable {
         for method in declared.declaration.methods {
           if let index = entry.methods.firstIndex(where: { $0.signature == method.signature }) {
             entry.methods[index].sdks = Self.adding(surface.version, to: entry.methods[index].sdks)
+            // Surfaces are merged oldest first, so the newest SDK's declaration wins.
+            entry.methods[index].access = method.access
+            entry.methods[index].annotations = method.annotations
+            entry.methods[index].conditions = method.conditions
+            entry.methods[index].introduced = method.introduced
+            entry.methods[index].deprecated = method.deprecated
           } else {
             entry.methods.append(
               Self.newEntry(method, isExtension: entry.isExtension, version: surface.version)
@@ -125,6 +135,8 @@ struct CoverageManifest: Codable, Equatable {
       access: method.access,
       annotations: method.annotations,
       conditions: method.conditions,
+      introduced: method.introduced,
+      deprecated: method.deprecated,
       sdks: [version],
       status: reason == nil ? .gap : .excluded,
       swiftSymbol: nil,
