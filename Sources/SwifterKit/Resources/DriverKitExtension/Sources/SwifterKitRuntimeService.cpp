@@ -118,6 +118,7 @@ void SwifterKitRuntimeService::free() {
 #if SWIFTERKIT_ENABLE_PCI
         ClosePCIProvider(this, ivars);
 #endif
+        OSSafeReleaseNULL(ivars->requiredEvents);
         OSSafeReleaseNULL(ivars->events);
         IOLockFreeZero(ivars->eventLock);
     }

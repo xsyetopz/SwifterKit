@@ -96,9 +96,16 @@ struct SwifterKitMemoryEntry {
 };
 #endif
 
+// Lossy events are notifications Swift may miss; required events carry
+// DriverKit work that Swift must answer. See SwifterKitRuntimeEvents.cpp.
+static constexpr uint32_t kSwifterKitMaximumQueuedLossyEvents = 64;
+static constexpr uint32_t kSwifterKitMaximumQueuedRequiredEvents = 512;
+
 struct SwifterKitRuntimeService_IVars {
     IOLock* eventLock = nullptr;
     OSArray* events = nullptr;
+    OSArray* requiredEvents = nullptr;
+    uint64_t lossyEventDrops = 0;
 #if SWIFTERKIT_ENABLE_HID
     uint64_t hidInputReportAttempts = 0;
     uint64_t hidInputReportSuccesses = 0;
@@ -178,5 +185,26 @@ struct SwifterKitRuntimeService_IVars {
     OSAction* interruptActions[32] = {};
 #endif
 };
+
+// Each tracked request table fills before the required queue does, so tracked
+// requests alone cannot exhaust it; that takes a stalled Swift host plus
+// untracked required notifications such as control changes.
+#if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
+static_assert(
+    kSwifterKitMaximumQueuedRequiredEvents
+    > sizeof(SwifterKitRuntimeService_IVars::scsiTasks) / sizeof(SwifterKitSCSIPendingTask));
+#endif
+#if SWIFTERKIT_ENABLE_BLOCK_STORAGE
+static_assert(
+    kSwifterKitMaximumQueuedRequiredEvents
+    > sizeof(SwifterKitRuntimeService_IVars::blockStorageRequests)
+          / sizeof(SwifterKitBlockStoragePendingRequest));
+#endif
+#if SWIFTERKIT_ENABLE_NETWORKING
+static_assert(
+    kSwifterKitMaximumQueuedRequiredEvents
+    > sizeof(SwifterKitRuntimeService_IVars::networkTransmits)
+          / sizeof(SwifterKitNetworkPendingTransmit));
+#endif
 
 #endif

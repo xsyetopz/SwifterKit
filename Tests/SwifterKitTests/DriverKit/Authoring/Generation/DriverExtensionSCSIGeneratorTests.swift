@@ -49,6 +49,17 @@ struct SCSIGeneratorTests {
     #expect(service.contains("SCSICommand"))
     #expect(service.contains("PCICommand"))
 
+    let scsi = try String(
+      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeSCSI.cpp"),
+      encoding: .utf8
+    )
+    let enqueueFailure = try #require(
+      scsi.range(of: "EnqueueRequiredEvent(kSCSIParallelTaskEvent")?.upperBound
+    )
+    let taskFailure = scsi[enqueueFailure...]
+    #expect(taskFailure.contains("CompleteWithDeliveryFailure(this, completion, request);"))
+    #expect(scsi.contains(": kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE;"))
+
     let project = try String(
       contentsOf: output.appendingPathComponent("SwifterKitRuntime.xcodeproj/project.pbxproj"),
       encoding: .utf8

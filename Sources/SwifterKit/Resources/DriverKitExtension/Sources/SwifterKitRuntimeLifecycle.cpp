@@ -12,7 +12,8 @@ auto SwifterKitRuntimeService::init() -> bool {
     if (ivars == nullptr)
         return false;
     ivars->eventLock = IOLockAlloc();
-    ivars->events = OSArray::withCapacity(64);
+    ivars->events = OSArray::withCapacity(kSwifterKitMaximumQueuedLossyEvents);
+    ivars->requiredEvents = OSArray::withCapacity(kSwifterKitMaximumQueuedRequiredEvents);
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     ivars->scsiLock = IOLockAlloc();
 #endif
@@ -35,6 +36,7 @@ auto SwifterKitRuntimeService::init() -> bool {
     ivars->serialLock = IOLockAlloc();
 #endif
     return ivars->eventLock != nullptr && ivars->events != nullptr
+           && ivars->requiredEvents != nullptr
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
            && ivars->scsiLock != nullptr
 #endif

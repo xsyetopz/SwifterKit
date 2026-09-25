@@ -69,15 +69,18 @@ namespace {
         return kIOReturnSuccess;
     }
 
-    void RemovePendingRequest(SwifterKitRuntimeService_IVars* state, uint32_t requestID) {
+    bool RemovePendingRequest(SwifterKitRuntimeService_IVars* state, uint32_t requestID) {
+        bool removed = false;
         IOLockLock(state->blockStorageLock);
         for (auto& entry : state->blockStorageRequests) {
             if (entry.active && entry.requestID == requestID) {
                 entry = {};
+                removed = true;
                 break;
             }
         }
         IOLockUnlock(state->blockStorageLock);
+        return removed;
     }
 
     kern_return_t QueueRequest(
@@ -93,10 +96,20 @@ namespace {
             return result;
         }
         result = service->EnqueueRequiredEvent(kSwifterKitEventBlockStorage, event, eventLength);
-        if (result != kIOReturnSuccess) {
-            RemovePendingRequest(state, requestID);
+        if (result == kIOReturnSuccess) {
+            return kIOReturnSuccess;
         }
-        return result;
+        // The request was accepted and tracked, so answer it exactly once here
+        // with the enqueue failure instead of leaving it outstanding. When
+        // StopBlockStorage already took the entry, it has completed the request.
+        if (RemovePendingRequest(state, requestID)) {
+            if (isIO) {
+                service->CompleteIO(requestID, 0, result);
+            } else {
+                service->Complete(requestID, result);
+            }
+        }
+        return kIOReturnSuccess;
     }
 
     kern_return_t

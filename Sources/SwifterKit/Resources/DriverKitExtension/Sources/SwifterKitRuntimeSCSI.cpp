@@ -48,10 +48,23 @@ namespace {
             return kIOReturnBadArgument;
         }
         const kern_return_t result = EnqueueManagement(service, kind, target, logicalUnit, taskTag);
-        if (result == kIOReturnSuccess) {
-            *response = kSwifterKitSCSITaskManagementResponse;
-        }
+        *response = result == kIOReturnSuccess
+                        ? kSwifterKitSCSITaskManagementResponse
+                        : kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE;
         return result;
+    }
+
+    void CompleteWithDeliveryFailure(
+        SwifterKitRuntimeService* service,
+        OSAction* completion,
+        const SCSIUserParallelTask& request) {
+        SCSIUserParallelResponse response = {};
+        response.version = kScsiUserParallelTaskResponseCurrentVersion1;
+        response.fTargetID = request.fTargetID;
+        response.fControllerTaskIdentifier = request.fControllerTaskIdentifier;
+        response.fCompletionStatus = kSCSITaskStatus_No_Status;
+        response.fServiceResponse = kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE;
+        service->ParallelTaskCompletion(completion, response);
     }
 }  // namespace
 
@@ -247,10 +260,13 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
             }
         }
         IOLockUnlock(ivars->scsiLock);
+        // The task was accepted, so answer it through its completion with a
+        // delivery failure, as StopSCSI does. When StopSCSI already took the
+        // entry, it has completed the task.
         if (removed) {
+            CompleteWithDeliveryFailure(this, completion, request);
             completion->release();
         }
-        return result;
     }
     *response = kSCSIServiceResponse_Request_In_Process;
     return kIOReturnSuccess;
