@@ -25747,13 +25747,14 @@
 
           ],
           "name" : "ClientCrashed",
+          "note" : "IOService override that the system invokes on the IOPCIDevice provider when a client driver process crashes, to recover the device; a client never calls it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ClientCrashed(IOService*, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25764,13 +25765,15 @@
 
           ],
           "name" : "ConfigureInterrupts",
+          "note" : "Called once while starting when PCIDeviceConfiguration.interrupts is set, after the provider opens and before interrupt sources are created",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ConfigureInterrupts(uint32_t, uint32_t, uint32_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "PCIInterruptConfiguration"
         },
         {
           "access" : "public",
@@ -25787,7 +25790,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t EnablePCIPowerManagement(uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciEnablePowerManagement"
         },
         {
           "access" : "public",
@@ -25798,14 +25802,14 @@
 
           ],
           "name" : "FindPCICapability",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t FindPCICapability(uint32_t, uint64_t, uint64_t*)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciFindCapability"
         },
         {
           "access" : "public",
@@ -25816,14 +25820,15 @@
 
           ],
           "name" : "GetBARInfo",
-          "note" : "referenced by the generated runtime",
+          "note" : "Also called by the runtime to bound aperture accesses by BAR size",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetBARInfo(uint8_t, uint8_t*, uint64_t*, uint8_t*)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciBaseAddressInfo"
         },
         {
           "access" : "public",
@@ -25834,14 +25839,14 @@
 
           ],
           "name" : "GetBusDeviceFunction",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetBusDeviceFunction(uint8_t*, uint8_t*, uint8_t*)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciLocation"
         },
         {
           "access" : "public",
@@ -25858,7 +25863,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetLinkSpeed(IOPCILinkSpeed*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciLinkSpeed"
         },
         {
           "access" : "public",
@@ -25875,7 +25881,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t HasPCIPowerManagement(uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciHasPowerManagement"
         },
         {
           "access" : "public",
@@ -25910,7 +25917,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t Reset(IOOptionBits, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciReset"
         },
         {
           "access" : "public",
@@ -25927,7 +25935,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RestoreDeviceState(IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRestoreDeviceState"
         },
         {
           "access" : "public",
@@ -25944,7 +25953,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SaveDeviceState(IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciSaveDeviceState"
         },
         {
           "access" : "public",
@@ -25961,7 +25971,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetASPMState(IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciSetASPMState"
         },
         {
           "access" : "public",
@@ -25978,7 +25989,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetLinkSpeed(IOPCILinkSpeed, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciSetLinkSpeed"
         },
         {
           "access" : "public",
@@ -25989,13 +26001,15 @@
 
           ],
           "name" : "SetProperties",
+          "note" : "Typed for the Boolean IOPMPCIConfigSpaceVolatile, IOPMPCISleepLinkDisable, and IOPMPCISleepReset keys; the SDK does not document value types for the other settable keys",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciSetProperties"
         },
         {
           "access" : "public",
@@ -26024,14 +26038,14 @@
 
           ],
           "name" : "ConfigurationRead16",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void ConfigurationRead16(uint64_t, uint16_t*)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26042,14 +26056,14 @@
 
           ],
           "name" : "ConfigurationRead32",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void ConfigurationRead32(uint64_t, uint32_t*)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26060,14 +26074,14 @@
 
           ],
           "name" : "ConfigurationRead8",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void ConfigurationRead8(uint64_t, uint8_t*)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26078,14 +26092,14 @@
 
           ],
           "name" : "ConfigurationWrite16",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void ConfigurationWrite16(uint64_t, uint16_t)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26096,14 +26110,14 @@
 
           ],
           "name" : "ConfigurationWrite32",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void ConfigurationWrite32(uint64_t, uint32_t)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26114,14 +26128,14 @@
 
           ],
           "name" : "ConfigurationWrite8",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void ConfigurationWrite8(uint64_t, uint8_t)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26132,13 +26146,15 @@
 
           ],
           "name" : "MemoryRead16",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead16(uint8_t, uint64_t, uint16_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26149,13 +26165,15 @@
 
           ],
           "name" : "MemoryRead16",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead16(uint8_t, uint64_t, uint16_t*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26166,13 +26184,15 @@
 
           ],
           "name" : "MemoryRead32",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead32(uint8_t, uint64_t, uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26183,13 +26203,15 @@
 
           ],
           "name" : "MemoryRead32",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead32(uint8_t, uint64_t, uint32_t*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26200,13 +26222,15 @@
 
           ],
           "name" : "MemoryRead64",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead64(uint8_t, uint64_t, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26217,13 +26241,15 @@
 
           ],
           "name" : "MemoryRead64",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead64(uint8_t, uint64_t, uint64_t*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26234,13 +26260,15 @@
 
           ],
           "name" : "MemoryRead8",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead8(uint8_t, uint64_t, uint8_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26251,13 +26279,15 @@
 
           ],
           "name" : "MemoryRead8",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryRead8(uint8_t, uint64_t, uint8_t*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciRead"
         },
         {
           "access" : "public",
@@ -26268,13 +26298,15 @@
 
           ],
           "name" : "MemoryWrite16",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite16(uint8_t, uint64_t, uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26285,13 +26317,15 @@
 
           ],
           "name" : "MemoryWrite16",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite16(uint8_t, uint64_t, uint16_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26302,13 +26336,15 @@
 
           ],
           "name" : "MemoryWrite32",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite32(uint8_t, uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26319,13 +26355,15 @@
 
           ],
           "name" : "MemoryWrite32",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite32(uint8_t, uint64_t, uint32_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26336,13 +26374,15 @@
 
           ],
           "name" : "MemoryWrite64",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite64(uint8_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26353,13 +26393,15 @@
 
           ],
           "name" : "MemoryWrite64",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite64(uint8_t, uint64_t, uint64_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26370,13 +26412,15 @@
 
           ],
           "name" : "MemoryWrite8",
+          "note" : "Called for aperture accesses with empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite8(uint8_t, uint64_t, uint8_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
@@ -26387,13 +26431,15 @@
 
           ],
           "name" : "MemoryWrite8",
+          "note" : "Called for aperture accesses with non-empty PCIAccessOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void MemoryWrite8(uint8_t, uint64_t, uint8_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "pciWrite"
         },
         {
           "access" : "public",
