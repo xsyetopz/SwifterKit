@@ -22,6 +22,10 @@ enum RuntimeSchemaHeader {
       constant("uint32_t", "kSwifterKitMessageFlag" + nativeName($0), hex($0.rawValue, digits: 1))
     }
     lines.append("")
+    lines += RuntimeSelector.allCases.map {
+      constant("uint64_t", "kSwifterKitSelector" + nativeName($0), "\($0.rawValue)")
+    }
+    lines.append("")
     lines += RuntimeCapability.allCases.map {
       constant("uint64_t", "kSwifterKitCapability" + nativeName($0), hex($0.rawValue, digits: 1))
     }

@@ -13,12 +13,15 @@ public:
     virtual kern_return_t Start(IOService* provider) override;
     virtual kern_return_t Stop(IOService* provider) override;
     virtual kern_return_t NewUserClient(uint32_t type, IOUserClient** userClient) override;
+    virtual kern_return_t ClientCrashed(IOService* client, uint64_t options) override;
 
     kern_return_t CopyNextEvent(OSData** event) LOCALONLY;
     kern_return_t EnqueueEvent(uint32_t type, const void* payload, uint32_t payloadLength)
         LOCALONLY;
     kern_return_t EnqueueRequiredEvent(uint32_t type, const void* payload, uint32_t payloadLength)
         LOCALONLY;
+    kern_return_t AttachEventClient(IOService* client) LOCALONLY;
+    void DetachEventClient(IOService* client) LOCALONLY;
 };
 
 #endif

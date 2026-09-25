@@ -17,6 +17,9 @@ static constexpr uint32_t kSwifterKitRuntimeHandshakeResponseSize = 16;
 
 static constexpr uint32_t kSwifterKitMessageFlagExpectsResponse = 0x1;
 
+static constexpr uint64_t kSwifterKitSelectorTransact = 0;
+static constexpr uint64_t kSwifterKitSelectorEventNotification = 1;
+
 static constexpr uint64_t kSwifterKitCapabilityMemory = 0x1;
 static constexpr uint64_t kSwifterKitCapabilityInterrupts = 0x2;
 static constexpr uint64_t kSwifterKitCapabilityUSB = 0x4;

@@ -9,6 +9,21 @@
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
 
+namespace {
+    // The caller holds networkLock.
+    void ReturnPendingTransmits(SwifterKitRuntimeService_IVars* state) {
+        if (state->networkPool == nullptr)
+            return;
+        for (auto& pending : state->networkTransmits) {
+            if (pending.packet != nullptr) {
+                (void)state->networkPool->deallocatePacket(pending.packet);
+                OSSafeReleaseNULL(pending.packet);
+                pending.requestID = 0;
+            }
+        }
+    }
+}  // namespace
+
 kern_return_t SwifterKitRuntimeService::StartNetwork() {
     if (ivars == nullptr || ivars->networkPool != nullptr)
         return kIOReturnNotReady;
@@ -85,6 +100,16 @@ kern_return_t SwifterKitRuntimeService::StartNetwork() {
     return result;
 }
 
+// Returns transmits Swift has not completed to the pool, the same outcome as a
+// failed completion. The host that received them is gone.
+void SwifterKitRuntimeService::AbortNetworkTransmits() {
+    if (ivars == nullptr || ivars->networkLock == nullptr)
+        return;
+    IOLockLock(ivars->networkLock);
+    ReturnPendingTransmits(ivars);
+    IOLockUnlock(ivars->networkLock);
+}
+
 void SwifterKitRuntimeService::StopNetwork() {
     if (ivars == nullptr)
         return;
@@ -99,13 +124,7 @@ void SwifterKitRuntimeService::StopNetwork() {
             (void)ivars->networkRxCompletion->setEnable(false);
         if (ivars->networkRxSubmission != nullptr)
             (void)ivars->networkRxSubmission->setEnable(false);
-        for (auto& pending : ivars->networkTransmits) {
-            if (pending.packet != nullptr) {
-                (void)ivars->networkPool->deallocatePacket(pending.packet);
-                OSSafeReleaseNULL(pending.packet);
-                pending.requestID = 0;
-            }
-        }
+        ReturnPendingTransmits(ivars);
         IOLockUnlock(ivars->networkLock);
     }
     OSSafeReleaseNULL(ivars->networkTxAction);

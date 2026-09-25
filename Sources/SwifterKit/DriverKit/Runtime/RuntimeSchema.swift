@@ -29,6 +29,14 @@ enum RuntimeSchema {
 /// Flags that modify runtime message handling.
 enum RuntimeMessageFlag: UInt32, CaseIterable { case expectsResponse = 0x1 }
 
+/// IOKit external-method selectors the runtime user client accepts.
+enum RuntimeSelector: UInt32, CaseIterable {
+  /// A synchronous runtime message exchange through `IOConnectCallStructMethod`.
+  case transact = 0
+  /// An asynchronous registration whose completion the extension signals when events are pending.
+  case eventNotification = 1
+}
+
 /// Capability bits advertised by the native extension during the handshake.
 enum RuntimeCapability: UInt64, CaseIterable {
   case memory = 0x1

@@ -45,3 +45,11 @@ auto SwifterKitRuntimeService::NewUserClient_Impl(uint32_t type, IOUserClient** 
     }
     return kIOReturnSuccess;
 }
+
+// Host exit and IOServiceClose reach the runtime client as Stop, which detaches
+// it. This covers a registered client that DriverKit reports as crashed instead.
+auto SwifterKitRuntimeService::ClientCrashed_Impl(IOService* client, uint64_t options)
+    -> kern_return_t {
+    DetachEventClient(client);
+    return ClientCrashed(client, options, SUPERDISPATCH);
+}

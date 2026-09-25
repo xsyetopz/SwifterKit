@@ -9329,13 +9329,14 @@
 
           ],
           "name" : "ClientCrashed",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ClientCrashed(IOService*, uint64_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -10973,13 +10974,14 @@
 
           ],
           "name" : "AsyncCompletion",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void AsyncCompletion(OSAction*, IOReturn, const IOUserClientAsyncArgumentsArray, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "private",

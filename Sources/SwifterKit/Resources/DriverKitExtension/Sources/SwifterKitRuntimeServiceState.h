@@ -38,6 +38,8 @@
     #include <NetworkingDriverKit/NetworkingDriverKit.h>
 #endif
 
+class SwifterKitRuntimeUserClient;
+
 #if SWIFTERKIT_ENABLE_AUDIO
 class SwifterKitRuntimeAudioDevice;
 #endif
@@ -106,6 +108,10 @@ struct SwifterKitRuntimeService_IVars {
     OSArray* events = nullptr;
     OSArray* requiredEvents = nullptr;
     uint64_t lossyEventDrops = 0;
+    // The registered host's user client (retained) and whether an enqueue must
+    // notify it. Both change only under eventLock; see SwifterKitRuntimeEvents.cpp.
+    SwifterKitRuntimeUserClient* eventClient = nullptr;
+    bool eventNotificationArmed = false;
 #if SWIFTERKIT_ENABLE_HID
     uint64_t hidInputReportAttempts = 0;
     uint64_t hidInputReportSuccesses = 0;

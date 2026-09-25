@@ -3,6 +3,7 @@
 #include <DriverKit/IOLib.h>
 #include <DriverKit/IOReturn.h>
 #include <DriverKit/IOUserClient.h>
+#include <DriverKit/OSAction.h>
 #include <DriverKit/OSArray.h>
 #include <DriverKit/OSData.h>
 #include <DriverKit/OSDictionary.h>
@@ -409,22 +410,88 @@ namespace {
 
 struct SwifterKitRuntimeUserClient_IVars {
     SwifterKitRuntimeService* service = nullptr;
+    // The host's event-notification completion, retained. actionLock guards it
+    // because the service sends notifications from its own queues.
+    IOLock* actionLock = nullptr;
+    OSAction* eventAction = nullptr;
 };
+
+namespace {
+    // Swaps the retained notification action and releases the previous one.
+    void ReplaceEventAction(SwifterKitRuntimeUserClient_IVars* state, OSAction* action) {
+        if (action != nullptr) {
+            action->retain();
+        }
+        IOLockLock(state->actionLock);
+        const OSAction* previous = state->eventAction;
+        state->eventAction = action;
+        IOLockUnlock(state->actionLock);
+        OSSafeReleaseNULL(previous);
+    }
+
+    // Registers the caller's completion as the service's event notification.
+    // ExternalMethod and Stop share this client's default queue, so a
+    // registration cannot race Stop's detach.
+    kern_return_t RegisterEventNotification(
+        SwifterKitRuntimeUserClient* client,
+        SwifterKitRuntimeUserClient_IVars* state,
+        const IOUserClientMethodArguments* arguments) {
+        if (state == nullptr || state->service == nullptr || state->actionLock == nullptr) {
+            return kIOReturnNotReady;
+        }
+        if (arguments->completion == nullptr || arguments->scalarInputCount != 0
+            || arguments->structureInput != nullptr
+            || arguments->structureInputDescriptor != nullptr || arguments->scalarOutputCount != 0
+            || arguments->structureOutputDescriptor != nullptr) {
+            return kIOReturnBadArgument;
+        }
+        ReplaceEventAction(state, arguments->completion);
+        const kern_return_t result = state->service->AttachEventClient(client);
+        if (result != kIOReturnSuccess) {
+            ReplaceEventAction(state, nullptr);
+        }
+        return result;
+    }
+}  // namespace
 
 auto SwifterKitRuntimeUserClient::init() -> bool {
     if (!super::init()) {
         return false;
     }
     ivars = IONewZero(SwifterKitRuntimeUserClient_IVars, 1);
-    return ivars != nullptr;
+    if (ivars == nullptr) {
+        return false;
+    }
+    ivars->actionLock = IOLockAlloc();
+    return ivars->actionLock != nullptr;
 }
 
 void SwifterKitRuntimeUserClient::free() {
     if (ivars != nullptr) {
+        OSSafeReleaseNULL(ivars->eventAction);
+        IOLockFreeZero(ivars->actionLock);
         OSSafeReleaseNULL(ivars->service);
     }
     IOSafeDeleteNULL(ivars, SwifterKitRuntimeUserClient_IVars, 1);
     super::free();
+}
+
+void SwifterKitRuntimeUserClient::NotifyEventsPending() {
+    if (ivars == nullptr || ivars->actionLock == nullptr) {
+        return;
+    }
+    IOLockLock(ivars->actionLock);
+    OSAction* action = ivars->eventAction;
+    if (action != nullptr) {
+        action->retain();
+    }
+    IOLockUnlock(ivars->actionLock);
+    if (action == nullptr) {
+        return;
+    }
+    const IOUserClientAsyncArgumentsArray noArguments = {};
+    AsyncCompletion(action, kIOReturnSuccess, noArguments, 0);
+    action->release();
 }
 
 auto SwifterKitRuntimeUserClient::Start_Impl(IOService* provider) -> kern_return_t {
@@ -472,6 +539,13 @@ auto SwifterKitRuntimeUserClient::Start_Impl(IOService* provider) -> kern_return
 
 auto SwifterKitRuntimeUserClient::Stop_Impl(IOService* provider) -> kern_return_t {
     if (ivars != nullptr) {
+        // Detaching answers the requests this host can no longer complete.
+        if (ivars->service != nullptr) {
+            ivars->service->DetachEventClient(this);
+        }
+        if (ivars->actionLock != nullptr) {
+            ReplaceEventAction(ivars, nullptr);
+        }
         OSSafeReleaseNULL(ivars->service);
     }
     return Stop(provider, SUPERDISPATCH);
@@ -483,7 +557,10 @@ auto SwifterKitRuntimeUserClient::ExternalMethod(
     const IOUserClientMethodDispatch*,
     OSObject*,
     void*) -> kern_return_t {
-    if (selector != kTransactSelector || arguments == nullptr
+    if (selector == kSwifterKitSelectorEventNotification && arguments != nullptr) {
+        return RegisterEventNotification(this, ivars, arguments);
+    }
+    if (selector != kSwifterKitSelectorTransact || arguments == nullptr
         || arguments->structureInput == nullptr || arguments->scalarInputCount != 0
         || arguments->scalarOutputCount != 0) {
         return kIOReturnBadArgument;

@@ -277,6 +277,7 @@ extension DriverExtensionGenerator {
       ? """
           kern_return_t StartNetwork() LOCALONLY;
           void StopNetwork() LOCALONLY;
+          void AbortNetworkTransmits() LOCALONLY;
           kern_return_t NetworkCommand(
               uint32_t opcode,
               const uint8_t* payload,
@@ -453,6 +454,7 @@ extension DriverExtensionGenerator {
           virtual void free() override;
       \(lifecycle)
           virtual kern_return_t NewUserClient(uint32_t type, IOUserClient** userClient) override;
+          virtual kern_return_t ClientCrashed(IOService* client, uint64_t options) override;
 
           kern_return_t CopyNextEvent(OSData** event) LOCALONLY;
           kern_return_t EnqueueEvent(
@@ -463,6 +465,8 @@ extension DriverExtensionGenerator {
               uint32_t type,
               const void* payload,
               uint32_t payloadLength) LOCALONLY;
+          kern_return_t AttachEventClient(IOService* client) LOCALONLY;
+          void DetachEventClient(IOService* client) LOCALONLY;
       \(memoryMethods)
       \(audioMethods)
       \(videoMethods)

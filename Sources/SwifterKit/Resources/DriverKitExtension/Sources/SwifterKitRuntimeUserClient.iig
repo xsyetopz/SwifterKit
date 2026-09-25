@@ -17,6 +17,8 @@ public:
         const IOUserClientMethodDispatch* dispatch,
         OSObject* target,
         void* reference) override;
+
+    void NotifyEventsPending() LOCALONLY;
 };
 
 #endif

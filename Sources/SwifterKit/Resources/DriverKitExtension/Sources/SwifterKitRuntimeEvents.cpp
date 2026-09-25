@@ -4,6 +4,7 @@
 #include "SwifterKitRuntimeProtocol.h"
 #include "SwifterKitRuntimeService.h"
 #include "SwifterKitRuntimeServiceState.h"
+#include "SwifterKitRuntimeUserClient.h"
 
 // Event queue contract:
 // - Lossy events (notifications Swift may miss) and required events (requests
@@ -18,14 +19,51 @@
 //   event is answered by its call site with a defined failure status.
 // - Both arrays are allocated at their full capacity in init(), so appending
 //   under eventLock never allocates.
+//
+// Notification contract (no lost wakeup, no notification storm):
+// - A host registers once through kSwifterKitSelectorEventNotification. Its user
+//   client keeps the OSAction; the service keeps the user client in eventClient.
+// - eventNotificationArmed changes only under eventLock. A poll that finds both
+//   queues empty arms it. An enqueue that succeeds while it is armed clears it and,
+//   after dropping eventLock, sends exactly one AsyncCompletion. Registration arms
+//   it, or notifies at once when either queue already holds an event.
+// - So after the host's last empty poll, the first queued event sends one
+//   notification, and later events send none until the host drains to empty
+//   again. The host must register before its first drain.
+// - A second registration replaces the previous client and action. When the
+//   registered client stops (IOServiceClose or host exit), crashes, or the service
+//   stops, DetachEventClient releases it, empties both queues, and then answers
+//   every tracked request. Emptying first means a request
+//   queued concurrently is still answered; at worst its stale event reaches the
+//   next host, whose completion then fails with kIOReturnNotFound.
+// - Requests that arrive while no host is registered wait in the queues for the
+//   next host, as they do before the first host connects.
 
 namespace {
     // A poll response carries the runtime header, the event type, and the payload.
     constexpr uint32_t kMaximumEventPayloadLength =
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);
 
+    // Takes the registered client for one notification when the flag is armed.
+    // The caller holds eventLock and sends the notification after dropping it.
+    SwifterKitRuntimeUserClient* TakeNotificationTarget(SwifterKitRuntimeService_IVars* state) {
+        if (!state->eventNotificationArmed || state->eventClient == nullptr) {
+            return nullptr;
+        }
+        state->eventNotificationArmed = false;
+        state->eventClient->retain();
+        return state->eventClient;
+    }
+
+    void SendNotification(SwifterKitRuntimeUserClient* client) {
+        if (client != nullptr) {
+            client->NotifyEventsPending();
+            client->release();
+        }
+    }
+
     kern_return_t EnqueueInto(
-        const SwifterKitRuntimeService_IVars* state,
+        SwifterKitRuntimeService_IVars* state,
         OSArray* queue,
         uint32_t capacity,
         uint32_t type,
@@ -47,8 +85,10 @@ namespace {
         IOLockLock(state->eventLock);
         const bool hasSpace = queue->getCount() < capacity;
         const bool added = hasSpace && queue->setObject(event);
+        SwifterKitRuntimeUserClient* target = added ? TakeNotificationTarget(state) : nullptr;
         IOLockUnlock(state->eventLock);
         event->release();
+        SendNotification(target);
         return added ? kIOReturnSuccess : kIOReturnNoSpace;
     }
 
@@ -65,6 +105,65 @@ namespace {
     }
 }  // namespace
 
+auto SwifterKitRuntimeService::AttachEventClient(IOService* client) -> kern_return_t {
+    auto* userClient = OSDynamicCast(SwifterKitRuntimeUserClient, client);
+    if (userClient == nullptr || ivars == nullptr || ivars->eventLock == nullptr
+        || ivars->events == nullptr || ivars->requiredEvents == nullptr) {
+        return kIOReturnBadArgument;
+    }
+
+    userClient->retain();
+    IOLockLock(ivars->eventLock);
+    const SwifterKitRuntimeUserClient* previous = ivars->eventClient;
+    ivars->eventClient = userClient;
+    ivars->eventNotificationArmed = true;
+    const bool pending = ivars->requiredEvents->getCount() != 0 || ivars->events->getCount() != 0;
+    SwifterKitRuntimeUserClient* target = pending ? TakeNotificationTarget(ivars) : nullptr;
+    IOLockUnlock(ivars->eventLock);
+    OSSafeReleaseNULL(previous);
+    SendNotification(target);
+    return kIOReturnSuccess;
+}
+
+void SwifterKitRuntimeService::DetachEventClient(IOService* client) {
+    if (ivars == nullptr || ivars->eventLock == nullptr) {
+        return;
+    }
+
+    IOLockLock(ivars->eventLock);
+    const SwifterKitRuntimeUserClient* detached = ivars->eventClient;
+    if (detached == nullptr || (client != nullptr && client != detached)) {
+        IOLockUnlock(ivars->eventLock);
+        return;
+    }
+    ivars->eventClient = nullptr;
+    ivars->eventNotificationArmed = false;
+    if (ivars->requiredEvents != nullptr) {
+        ivars->requiredEvents->flushCollection();
+    }
+    if (ivars->events != nullptr) {
+        ivars->events->flushCollection();
+    }
+    IOLockUnlock(ivars->eventLock);
+    detached->release();
+
+    // Answer the tracked DriverKit requests the departed host can no longer
+    // complete, through the paths the service uses when it stops. Family locks
+    // are taken after eventLock is released; NetworkTxPacketAvailable holds
+    // networkLock while it enqueues, so the reverse order could deadlock.
+    // Serial, HID, MIDI, interrupt, audio, video, and SCSI peripheral events
+    // leave no DriverKit request outstanding, so those families answer nothing.
+#if SWIFTERKIT_ENABLE_BLOCK_STORAGE
+    StopBlockStorage();
+#endif
+#if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
+    StopSCSI();
+#endif
+#if SWIFTERKIT_ENABLE_NETWORKING
+    AbortNetworkTransmits();
+#endif
+}
+
 auto SwifterKitRuntimeService::CopyNextEvent(OSData** event) -> kern_return_t {
     if (event == nullptr || ivars == nullptr || ivars->eventLock == nullptr
         || ivars->events == nullptr || ivars->requiredEvents == nullptr) {
@@ -75,6 +174,9 @@ auto SwifterKitRuntimeService::CopyNextEvent(OSData** event) -> kern_return_t {
     *event = TakeFirst(ivars->requiredEvents);
     if (*event == nullptr) {
         *event = TakeFirst(ivars->events);
+    }
+    if (*event == nullptr) {
+        ivars->eventNotificationArmed = true;
     }
     IOLockUnlock(ivars->eventLock);
     return kIOReturnSuccess;

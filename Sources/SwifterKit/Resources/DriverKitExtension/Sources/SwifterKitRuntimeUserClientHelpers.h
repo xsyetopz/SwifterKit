@@ -2,8 +2,6 @@
 #define SwifterKitRuntimeUserClientHelpers_h
 
 namespace {
-    constexpr uint64_t kTransactSelector = 0;
-
     // The extension speaks one version, so every negotiated connection uses the maximum.
     static_assert(
         kSwifterKitRuntimeVersionMinimum == kSwifterKitRuntimeVersionMaximum,
