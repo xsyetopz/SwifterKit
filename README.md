@@ -150,7 +150,7 @@ supports only output reports. Rejected report types return
 | --- | --- | --- |
 | HID | `HIDDeviceConfiguration` | Input reports; allowlisted output and feature events |
 | USB | `USBDeviceConfiguration` | Control transfers, endpoint I/O, stall clearing, alternate settings |
-| PCI | `PCIDeviceConfiguration` | Configuration space, BAR access, device location, capability search |
+| PCI | `PCIDeviceConfiguration`, `PCIInterruptConfiguration` | Configuration space, bounded BAR access with access options, device location, capability search, MSI/MSI-X allocation, reset, state save/restore, power management, link speed, ASPM, sleep properties |
 | Serial | `SerialPortConfiguration` | Queue I/O, modem state, receive errors, UART events |
 | Block storage | `BlockStorageDeviceConfiguration` | Eject, synchronize, unmap, read/write requests and completions |
 | MIDI | `MIDIDeviceConfiguration` | Endpoint topology, Universal MIDI Packet sends, destination events |

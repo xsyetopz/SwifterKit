@@ -12,6 +12,10 @@ SwifterKit records user-visible changes in this file.
   extension's bundle identifier. Before this, only audio extensions checked it.
   Video extensions, which carry `allow-any-userclient-access`, accepted any
   process. Add the entitlement to every host application.
+- **Breaking:** `pciRead` and `pciWrite` take `options: PCIAccessOptions`
+  instead of a raw `UInt32`, and reject unknown option bits and any option for
+  configuration space. `PCIRuntimeError` gains `invalidAccessOptions`,
+  `invalidOptions`, and `emptyPropertyUpdate`.
 
 ### Fixed
 
@@ -27,6 +31,21 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- PCI device control: `pciReset(type:options:)`, `pciSaveDeviceState(options:)`,
+  `pciRestoreDeviceState()`, `pciHasPowerManagement(support:)`,
+  `pciEnablePowerManagement(state:)`, `pciLinkSpeed()`,
+  `pciSetLinkSpeed(_:retrain:)`, `pciSetASPMState(_:)`, and
+  `pciSetProperties(_:)`, with typed options and states, runtime opcodes
+  `0x0410`-`0x0418`, and native validation of every value.
+- `PCIDeviceConfiguration.interrupts` takes a `PCIInterruptConfiguration` that
+  allocates MSI, MSI-X, or legacy vectors through
+  `IOPCIDevice::ConfigureInterrupts` before the extension creates its interrupt
+  sources. The generator and the extension reject vector counts above the
+  type's limit and source indices at or above the required vector count.
+  `PCIInterruptType(interruptTypeFlags:)` classifies `interruptType(index:)`.
+- The extension bounds every PCI aperture access by the BAR size `GetBARInfo`
+  reports and rejects expansion-ROM aperture accesses. PCIDriverKit coverage
+  in `coverage/driverkit.json` has no remaining gaps.
 - `coverage/driverkit.json` records every class and member function declared
   by the DriverKit 24.4, 25.5, and 27.0 SDK headers and how SwifterKit covers
   it. The `SwifterKitCoverage` tool updates, summarizes, and checks the manifest,
