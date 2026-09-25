@@ -7279,7 +7279,7 @@
             "27.0"
           ],
           "signature" : "bool IsDataAvailable()",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7315,7 +7315,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t CanEnqueueData(uint32_t)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7333,7 +7333,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t CanEnqueueData(uint32_t, uint32_t)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7459,7 +7459,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t Dequeue(IODataQueueClientDequeueEntryBlock)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7477,7 +7477,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t DequeueWithCoalesce(bool*, IODataQueueClientDequeueEntryBlock)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7495,7 +7495,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t Enqueue(uint32_t, IODataQueueClientEnqueueEntryBlock)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7513,7 +7513,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t EnqueueWithCoalesce(uint32_t, bool*, IODataQueueClientEnqueueEntryBlock)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7531,7 +7531,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t Peek(IODataQueueClientDequeueEntryBlock)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7567,7 +7567,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetDataServicedHandler(OSAction*)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7603,7 +7603,7 @@
             "27.0"
           ],
           "signature" : "size_t GetDataQueueEntryHeaderSize()",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "private",
@@ -7657,7 +7657,7 @@
             "27.0"
           ],
           "signature" : "void SendDataAvailable()",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -7675,7 +7675,7 @@
             "27.0"
           ],
           "signature" : "void SendDataServiced()",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -8572,7 +8572,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t CreateSubMemoryDescriptor(uint64_t, uint64_t, uint64_t, IOMemoryDescriptor*, IOMemoryDescriptor**)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -8591,7 +8591,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t CreateWithMemoryDescriptors(uint64_t, uint32_t, IOMemoryDescriptor*const[32], IOMemoryDescriptor**)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -11076,7 +11076,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyClientMemoryForType(uint64_t, uint64_t*, IOMemoryDescriptor**)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -11095,7 +11095,7 @@
             "27.0"
           ],
           "signature" : "kern_return_t CreateMemoryDescriptorFromClient(uint64_t, uint32_t, const IOAddressSegment[32], IOMemoryDescriptor**)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
