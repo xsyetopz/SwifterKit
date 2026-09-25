@@ -3,10 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct SCSIPeripheralGeneratorTests {
-  @Test(arguments: SCSIPeripheralDeviceType.allCases) func generatesPeripheralRuntime(
-    type: SCSIPeripheralDeviceType
-  ) throws {
+@Suite
+struct SCSIPeripheralGeneratorTests {
+  @Test(arguments: SCSIPeripheralDeviceType.allCases)
+  func generatesPeripheralRuntime(type: SCSIPeripheralDeviceType) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -82,7 +82,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsAmbiguousAndDetachedConfiguration() {
+  @Test
+  func rejectsAmbiguousAndDetachedConfiguration() {
     let root = FileManager.default.temporaryDirectory
     let controller = SCSIControllerConfiguration(
       initiatorIdentifier: 7,
@@ -117,7 +118,8 @@ import Testing
     }
   }
 
-  @Test func rejectsDeploymentTargetBeforeSCSIPeripheralsDriverKit() {
+  @Test
+  func rejectsDeploymentTargetBeforeSCSIPeripheralsDriverKit() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "com.example.scsi-peripheral",
       providerClass: "IOService",
@@ -142,9 +144,10 @@ import Testing
     }
   }
 
-  private func buildGeneratedExtension(at directory: URL, derivedData: URL) throws -> (
-    status: Int32, output: String
-  ) {
+  private func buildGeneratedExtension(
+    at directory: URL,
+    derivedData: URL
+  ) throws -> (status: Int32, output: String) {
     let process = Process()
     let output = Pipe()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")

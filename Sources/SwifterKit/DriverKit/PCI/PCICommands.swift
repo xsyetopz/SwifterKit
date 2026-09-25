@@ -81,9 +81,11 @@ extension DriverCommand {
     )
   }
 
-  private static func validatePCI(space: PCIRegisterSpace, offset: UInt64, width: PCIAccessWidth)
-    throws
-  {
+  private static func validatePCI(
+    space: PCIRegisterSpace,
+    offset: UInt64,
+    width: PCIAccessWidth
+  ) throws {
     if case .configuration = space {
       guard width != .quadWord else { throw PCIRuntimeError.invalidConfigurationWidth }
       guard offset <= 4_096 - UInt64(width.rawValue) else {
@@ -164,9 +166,10 @@ extension DriverContext {
   }
 
   /// Finds the next matching PCI capability offset.
-  public func pciFindCapability(identifier: UInt32, startingAt offset: UInt64 = 0) async throws
-    -> UInt64
-  {
+  public func pciFindCapability(
+    identifier: UInt32,
+    startingAt offset: UInt64 = 0
+  ) async throws -> UInt64 {
     let payload = try await execute(.pciFindCapability(identifier: identifier, startingAt: offset))
     guard payload.count == 8 else { throw PCIRuntimeError.invalidResponse }
     return try payload.readRuntimeInteger(at: 0)

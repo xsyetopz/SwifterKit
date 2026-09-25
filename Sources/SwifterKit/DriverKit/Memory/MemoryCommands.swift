@@ -45,9 +45,11 @@ extension DriverCommand {
   }
 
   /// Reads bytes from a mapped native buffer.
-  public static func readMemory(_ handle: DriverMemoryHandle, offset: UInt64, length: UInt32) throws
-    -> Self
-  {
+  public static func readMemory(
+    _ handle: DriverMemoryHandle,
+    offset: UInt64,
+    length: UInt32
+  ) throws -> Self {
     guard length > 0 else { throw DriverMemoryError.invalidSize }
     guard length <= maximumMemoryTransferLength else { throw DriverMemoryError.transferTooLarge }
     return try accessCommand(
@@ -60,9 +62,11 @@ extension DriverCommand {
   }
 
   /// Writes bytes into a mapped native buffer.
-  public static func writeMemory(_ handle: DriverMemoryHandle, offset: UInt64, bytes: [UInt8])
-    throws -> Self
-  {
+  public static func writeMemory(
+    _ handle: DriverMemoryHandle,
+    offset: UInt64,
+    bytes: [UInt8]
+  ) throws -> Self {
     guard !bytes.isEmpty else { throw DriverMemoryError.invalidSize }
     guard bytes.count <= maximumMemoryTransferLength else {
       throw DriverMemoryError.transferTooLarge
@@ -198,9 +202,13 @@ extension DriverContext {
   }
 
   /// Reads bytes from a mapped native buffer.
-  public func readMemory(_ handle: DriverMemoryHandle, offset: UInt64, length: UInt32) async throws
-    -> [UInt8]
-  { Array(try await execute(.readMemory(handle, offset: offset, length: length))) }
+  public func readMemory(
+    _ handle: DriverMemoryHandle,
+    offset: UInt64,
+    length: UInt32
+  ) async throws -> [UInt8] {
+    Array(try await execute(.readMemory(handle, offset: offset, length: length)))
+  }
 
   /// Writes bytes into a mapped native buffer.
   public func writeMemory(_ handle: DriverMemoryHandle, offset: UInt64, bytes: [UInt8]) async throws

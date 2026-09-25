@@ -31,7 +31,8 @@ public actor DriverHost<Driver: SwiftDriver> {
   }
 
   /// Discovers the generated extension, negotiates capabilities, and starts driver behavior.
-  @discardableResult public func start() async throws -> DriverService {
+  @discardableResult
+  public func start() async throws -> DriverService {
     guard state == .stopped else {
       throw DriverHostError.invalidState(expected: .stopped, actual: state)
     }
@@ -71,7 +72,8 @@ public actor DriverHost<Driver: SwiftDriver> {
   /// Processes one queued runtime event.
   ///
   /// Returns false when the queue is currently empty.
-  @discardableResult public func processNextEvent() async throws -> Bool {
+  @discardableResult
+  public func processNextEvent() async throws -> Bool {
     guard state == .running, let runtime, let context else {
       throw DriverHostError.invalidState(expected: .running, actual: state)
     }
@@ -95,7 +97,8 @@ public actor DriverHost<Driver: SwiftDriver> {
   }
 
   /// Processes events until cancellation or explicit shutdown using a clock duration.
-  @available(macOS 13.0, *) public func runEvents(idlePollInterval: Duration) async throws {
+  @available(macOS 13.0, *)
+  public func runEvents(idlePollInterval: Duration) async throws {
     while state == .running {
       try Task.checkCancellation()
       if try await !processNextEvent() { try await Task.sleep(for: idlePollInterval) }

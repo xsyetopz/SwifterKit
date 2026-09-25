@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverClientTests {
-  @Test func discoversAndOpensThroughInjectedTransport() async throws {
+@Suite
+struct DriverClientTests {
+  @Test
+  func discoversAndOpensThroughInjectedTransport() async throws {
     let service = DriverService(id: 10, name: "Mock")
     let response = DriverResponse(scalarOutput: [99], structureOutput: Data([0xAA]))
     let connection = MockConnection(response: response)

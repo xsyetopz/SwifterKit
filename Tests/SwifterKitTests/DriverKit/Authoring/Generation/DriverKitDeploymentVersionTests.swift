@@ -2,8 +2,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverKitDeploymentVersionTests {
-  @Test func parsesAndComparesVersions() throws {
+@Suite
+struct DriverKitDeploymentVersionTests {
+  @Test
+  func parsesAndComparesVersions() throws {
     let v19 = try #require(DriverKitDeploymentVersion("19"))
     let v20 = try #require(DriverKitDeploymentVersion("20.0"))
     let v20Point4 = try #require(DriverKitDeploymentVersion("20.4"))

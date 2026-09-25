@@ -69,9 +69,11 @@ extension DriverCommand {
     )
   }
 
-  private static func audioTransferPayload(index: UInt32, byteOffset: UInt64, length: UInt32)
-    -> Data
-  {
+  private static func audioTransferPayload(
+    index: UInt32,
+    byteOffset: UInt64,
+    length: UInt32
+  ) -> Data {
     var payload = Data(capacity: 24)
     payload.appendRuntimeInteger(index)
     payload.appendRuntimeInteger(UInt32(0))

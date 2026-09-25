@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct VideoControlCommandsTests {
-  @Test func encodesTypedControlCommands() throws {
+@Suite
+struct VideoControlCommandsTests {
+  @Test
+  func encodesTypedControlCommands() throws {
     let get = DriverCommand.videoGetControl(identifier: 9, as: .scalar)
     #expect(get.opcode == 0x0C07)
     #expect(get.payload == Data([9, 0, 0, 0, 3, 0, 0, 0]))
@@ -16,7 +18,8 @@ import Testing
     #expect(set.payload.prefix(16) == Data([9, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0]))
   }
 
-  @Test func decodesEveryControlValueRepresentation() throws {
+  @Test
+  func decodesEveryControlValueRepresentation() throws {
     #expect(try decode(kind: 1, values: [1]) == .boolean(true))
     #expect(try decode(kind: 7, values: [1]) == .direction(true))
     #expect(try decode(kind: 2, values: [Float(-6).bitPattern]) == .decibels(-6))
@@ -26,7 +29,8 @@ import Testing
     #expect(try decode(kind: 6, values: [Float(-0.25).bitPattern]) == .stereoPan(-0.25))
   }
 
-  @Test func encodesBoundedStringCustomProperties() throws {
+  @Test
+  func encodesBoundedStringCustomProperties() throws {
     let get = try DriverCommand.videoGetCustomProperty(identifier: 2, qualifier: "Mode")
     #expect(get.opcode == 0x0C09)
     #expect(get.payload.count == 20)
@@ -40,7 +44,8 @@ import Testing
     #expect(set.payload.suffix(10) == Data("ModeStudio".utf8))
   }
 
-  @Test func decodesHostControlAndCustomPropertyEvents() throws {
+  @Test
+  func decodesHostControlAndCustomPropertyEvents() throws {
     var control = Data()
     control.appendRuntimeInteger(UInt32(4))
     control.appendRuntimeInteger(UInt32(9))
@@ -66,7 +71,8 @@ import Testing
     )
   }
 
-  @Test func rejectsMalformedControlAndPropertyValues() {
+  @Test
+  func rejectsMalformedControlAndPropertyValues() {
     #expect(throws: VideoRuntimeError.invalidControlValue) {
       try DriverCommand.videoSetControl(identifier: 1, value: .selector([]))
     }

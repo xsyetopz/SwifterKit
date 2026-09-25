@@ -51,9 +51,10 @@ extension DriverCommand {
   }
 
   /// Enqueues a completed output entry for the host.
-  public static func videoEnqueueOutput(streamIndex: UInt32, entry: VideoBufferQueueEntry) throws
-    -> Self
-  {
+  public static func videoEnqueueOutput(
+    streamIndex: UInt32,
+    entry: VideoBufferQueueEntry
+  ) throws -> Self {
     guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
     guard entry.bufferIndex < 32 else { throw VideoRuntimeError.invalidBufferIndex }
     var payload = Data(capacity: 36)

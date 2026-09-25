@@ -2,8 +2,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverServiceTests {
-  @Test func identityUsesRegistryIdentifier() {
+@Suite
+struct DriverServiceTests {
+  @Test
+  func identityUsesRegistryIdentifier() {
     let service = DriverService(
       id: 42,
       name: "Example",

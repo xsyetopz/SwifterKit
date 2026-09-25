@@ -115,9 +115,9 @@ extension DriverExtensionGenerator {
     }
   }
 
-  static func scsiPeripheralSuperclassInclude(_ configuration: SCSIPeripheralConfiguration?)
-    -> String?
-  {
+  static func scsiPeripheralSuperclassInclude(
+    _ configuration: SCSIPeripheralConfiguration?
+  ) -> String? {
     guard let type = configuration?.deviceType else { return nil }
     let suffix = String(format: "%02d", type.rawValue)
     return "#include <SCSIPeripheralsDriverKit/IOUserSCSIPeripheralDeviceType\(suffix).iig>"

@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct AudioGeneratorTests {
-  @Test func generatesAudioRuntime() throws {
+@Suite
+struct AudioGeneratorTests {
+  @Test
+  func generatesAudioRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     let output = root.appendingPathComponent("AudioDriver")
@@ -88,7 +90,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func generatesUSBBackedAudioRuntime() throws {
+  @Test
+  func generatesUSBBackedAudioRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     let output = root.appendingPathComponent("USBAudioDriver")
@@ -111,7 +114,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsMissingInvalidOldAndConflictingConfiguration() {
+  @Test
+  func rejectsMissingInvalidOldAndConflictingConfiguration() {
     let root = FileManager.default.temporaryDirectory
     let missing = DriverConfiguration(
       bundleIdentifier: "com.example.audio",
@@ -218,9 +222,10 @@ import Testing
     }
   }
 
-  private func buildGeneratedExtension(at directory: URL, derivedData: URL) throws -> (
-    status: Int32, output: String
-  ) {
+  private func buildGeneratedExtension(
+    at directory: URL,
+    derivedData: URL
+  ) throws -> (status: Int32, output: String) {
     let process = Process()
     let output = Pipe()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")

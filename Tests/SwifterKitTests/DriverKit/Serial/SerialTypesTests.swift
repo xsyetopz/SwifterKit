@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct SerialTypesTests {
-  @Test func encodesReceiveAndTransmitCommands() throws {
+@Suite
+struct SerialTypesTests {
+  @Test
+  func encodesReceiveAndTransmitCommands() throws {
     let receive = try DriverCommand.serialEnqueueReceive([1, 2, 3])
     let transmit = try DriverCommand.serialDequeueTransmit(maximumLength: 512)
 
@@ -16,7 +18,8 @@ import Testing
     #expect(try transmit.payload.readRuntimeInteger(at: 0) as UInt32 == 512)
   }
 
-  @Test func rejectsInvalidTransferLengths() {
+  @Test
+  func rejectsInvalidTransferLengths() {
     #expect(throws: SerialRuntimeError.emptyReceiveData) {
       try DriverCommand.serialEnqueueReceive([])
     }
@@ -28,7 +31,8 @@ import Testing
     }
   }
 
-  @Test func encodesModemStatusAndReceiveErrors() {
+  @Test
+  func encodesModemStatusAndReceiveErrors() {
     let modem = DriverCommand.serialSetModemStatus(
       SerialModemStatus(clearToSend: true, ringIndicator: true)
     )
@@ -40,7 +44,8 @@ import Testing
     #expect(errors.payload == Data([9, 0, 0, 0]))
   }
 
-  @Test func decodesUARTAndFlowControlEvents() throws {
+  @Test
+  func decodesUARTAndFlowControlEvents() throws {
     var uart = Data(repeating: 0, count: 16)
     uart.replaceSubrange(0..<4, with: littleEndian(UInt32(7)))
     uart.replaceSubrange(4..<8, with: littleEndian(UInt32(115_200)))
@@ -66,7 +71,8 @@ import Testing
     )
   }
 
-  @Test func decodesControlEventsAndRejectsMalformedPayloads() throws {
+  @Test
+  func decodesControlEventsAndRejectsMalformedPayloads() throws {
     #expect(try event(kind: 1, value: 0).serial() == .activate)
     #expect(try event(kind: 5, value: 3).serial() == .resetFIFO(transmit: true, receive: true))
     #expect(

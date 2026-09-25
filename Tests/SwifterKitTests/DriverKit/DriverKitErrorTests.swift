@@ -2,8 +2,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverKitErrorTests {
-  @Test func descriptionIncludesContext() {
+@Suite
+struct DriverKitErrorTests {
+  @Test
+  func descriptionIncludesContext() {
     let error = DriverKitError(kind: .ioReturn(-1), operation: "IOServiceOpen", serviceID: 42)
 
     #expect(error.description.contains("IOServiceOpen"))
@@ -11,7 +13,8 @@ import Testing
     #expect(error.description.contains("42"))
   }
 
-  @Test func errorsCompareByAllFields() {
+  @Test
+  func errorsCompareByAllFields() {
     let first = DriverKitError(kind: .sessionClosed, operation: "call", serviceID: 1)
     let second = DriverKitError(kind: .sessionClosed, operation: "call", serviceID: 1)
     let different = DriverKitError(kind: .sessionClosed, operation: "call", serviceID: 2)

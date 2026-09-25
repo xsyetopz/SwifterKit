@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct VideoTypesTests {
-  @Test func encodesBufferAndQueueCommands() throws {
+@Suite
+struct VideoTypesTests {
+  @Test
+  func encodesBufferAndQueueCommands() throws {
     let write = try DriverCommand.videoWriteBuffer(
       streamIndex: 1,
       bufferIndex: 2,
@@ -32,7 +34,8 @@ import Testing
     #expect(enqueue.payload.count == 36)
   }
 
-  @Test func decodesQueueEntryAndLifecycle() throws {
+  @Test
+  func decodesQueueEntryAndLifecycle() throws {
     var entry = Data()
     for value: UInt32 in [3, 4, 100, 8, 12, 0, 0, 0] { entry.appendRuntimeInteger(value) }
     let decoded = try VideoBufferQueueEntry(runtimePayload: entry)
@@ -47,7 +50,8 @@ import Testing
     #expect(try VideoEvent(runtimePayload: event) == .sampleRateChanged(60))
   }
 
-  @Test func decodesHostStreamEvents() throws {
+  @Test
+  func decodesHostStreamEvents() throws {
     var state = Data()
     state.appendRuntimeInteger(UInt32(9))
     state.appendRuntimeInteger(UInt32(2))
@@ -84,7 +88,8 @@ import Testing
     #expect(try VideoEvent(runtimePayload: notification) == .streamInputAvailable(index: 3))
   }
 
-  @Test func rejectsInvalidTransfersAndPayloads() {
+  @Test
+  func rejectsInvalidTransfersAndPayloads() {
     #expect(throws: VideoRuntimeError.invalidStreamIndex) {
       try DriverCommand.videoReadBuffer(streamIndex: 8, bufferIndex: 0, length: 1)
     }

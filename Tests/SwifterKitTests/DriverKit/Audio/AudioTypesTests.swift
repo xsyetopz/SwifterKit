@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct AudioTypesTests {
-  @Test func configuresRawFormatsAndTopology() {
+@Suite
+struct AudioTypesTests {
+  @Test
+  func configuresRawFormatsAndTopology() {
     let format = AudioStreamFormat.linearPCM(sampleRate: 48_000, channels: 2)
     let stream = AudioStreamConfiguration(direction: .output, name: "Output", formats: [format])
     let device = AudioDeviceConfiguration(
@@ -25,7 +27,8 @@ import Testing
     #expect(device.streams[0].direction == .output)
   }
 
-  @Test func encodesStreamTimestampAndRateCommands() throws {
+  @Test
+  func encodesStreamTimestampAndRateCommands() throws {
     let read = try DriverCommand.audioReadStream(index: 2, byteOffset: 64, length: 4)
     #expect(read.opcode == 0x0A00)
     #expect(read.requiredCapabilities == .audio)
@@ -43,7 +46,8 @@ import Testing
     #expect(DriverCommand.audioRequestSampleRate(48_000).opcode == 0x0A04)
   }
 
-  @Test func decodesIOStateAndLifecycleEvents() throws {
+  @Test
+  func decodesIOStateAndLifecycleEvents() throws {
     var state = Data()
     state.appendRuntimeInteger(UInt64(7))
     state.appendRuntimeInteger(UInt32(1))
@@ -65,7 +69,8 @@ import Testing
     #expect(try DriverEvent(type: 1).audio() == nil)
   }
 
-  @Test func rejectsInvalidTransfersAndPayloads() {
+  @Test
+  func rejectsInvalidTransfersAndPayloads() {
     #expect(throws: AudioRuntimeError.invalidStreamIndex) {
       try DriverCommand.audioReadStream(index: 8, byteOffset: 0, length: 1)
     }

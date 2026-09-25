@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct SCSIPeripheralTypesTests {
-  @Test func mapsTransferConstraintsToRegistryKeys() {
+@Suite
+struct SCSIPeripheralTypesTests {
+  @Test
+  func mapsTransferConstraintsToRegistryKeys() {
     let constraints = SCSIPeripheralTransferConstraints(
       maximumBlockCountRead: 32,
       maximumSegmentCountWrite: 8,
@@ -18,7 +20,8 @@ import Testing
     )
   }
 
-  @Test func encodesReadAndWriteCommands() throws {
+  @Test
+  func encodesReadAndWriteCommands() throws {
     let read = try SCSIPeripheralCommand(
       timeoutMilliseconds: 2_000,
       commandDescriptorBlock: [0x12],
@@ -48,7 +51,8 @@ import Testing
     #expect(Array(writeCommand.payload.suffix(3)) == [1, 2, 3])
   }
 
-  @Test func decodesDataAndSenseResponse() throws {
+  @Test
+  func decodesDataAndSenseResponse() throws {
     var payload = Data()
     payload.appendRuntimeInteger(UInt32(2))
     payload.appendRuntimeInteger(UInt32(2))
@@ -66,7 +70,8 @@ import Testing
     #expect(response.senseData == [0x70, 5])
   }
 
-  @Test func validatesDirectionLengthsAndResponses() {
+  @Test
+  func validatesDirectionLengthsAndResponses() {
     #expect(throws: SCSIPeripheralRuntimeError.invalidCommand) {
       try SCSIPeripheralCommand(
         timeoutMilliseconds: 1,
@@ -89,7 +94,8 @@ import Testing
     }
   }
 
-  @Test func exposesServiceControlOpcodes() {
+  @Test
+  func exposesServiceControlOpcodes() {
     #expect(DriverCommand.suspendSCSIPeripheralServices.opcode == 0x0B11)
     #expect(DriverCommand.resumeSCSIPeripheralServices.opcode == 0x0B12)
     #expect(DriverCommand.resetSCSIPeripheral.opcode == 0x0B13)

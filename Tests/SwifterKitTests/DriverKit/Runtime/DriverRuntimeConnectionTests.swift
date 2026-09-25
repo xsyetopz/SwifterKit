@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverRuntimeConnectionTests {
-  @Test func negotiatesCapabilitiesAndExecutesPing() async throws {
+@Suite
+struct DriverRuntimeConnectionTests {
+  @Test
+  func negotiatesCapabilitiesAndExecutesPing() async throws {
     let backend = RuntimeMockConnection(capabilities: [.usb, .memory])
     let runtime = try await makeRuntime(backend: backend, requiring: [.usb])
 
@@ -15,7 +17,8 @@ import Testing
     #expect(await runtime.capabilities == [.usb, .memory])
   }
 
-  @Test func rejectsMissingRequiredCapabilities() async {
+  @Test
+  func rejectsMissingRequiredCapabilities() async {
     let backend = RuntimeMockConnection(capabilities: [.hid])
 
     await #expect(throws: DriverRuntimeError.missingCapabilities(required: .usb, available: .hid)) {
@@ -23,7 +26,8 @@ import Testing
     }
   }
 
-  @Test func rejectsCommandWithMissingCapabilityBeforeTransport() async throws {
+  @Test
+  func rejectsCommandWithMissingCapabilityBeforeTransport() async throws {
     let backend = RuntimeMockConnection(capabilities: [.usb])
     let runtime = try await makeRuntime(backend: backend)
     let callsBeforeCommand = await backend.callCount
@@ -34,7 +38,8 @@ import Testing
     #expect(await backend.callCount == callsBeforeCommand)
   }
 
-  @Test func readsTypedHIDRuntimeStatistics() async throws {
+  @Test
+  func readsTypedHIDRuntimeStatistics() async throws {
     let backend = RuntimeMockConnection(capabilities: [.hid])
     let runtime = try await makeRuntime(backend: backend, requiring: .hid)
     let context = await DriverContext(runtime: runtime)
@@ -49,7 +54,8 @@ import Testing
     )
   }
 
-  @Test func returnsQueuedEventThenNil() async throws {
+  @Test
+  func returnsQueuedEventThenNil() async throws {
     let event = DriverEvent(type: 7, payload: [8, 9])
     let backend = RuntimeMockConnection(capabilities: [], events: [event])
     let runtime = try await makeRuntime(backend: backend)
@@ -58,13 +64,15 @@ import Testing
     #expect(try await runtime.nextEvent() == nil)
   }
 
-  @Test func rejectsMismatchedRequestIdentifier() async {
+  @Test
+  func rejectsMismatchedRequestIdentifier() async {
     let backend = RuntimeMockConnection(capabilities: [], corruptResponseID: true)
 
     await #expect(throws: DriverRuntimeError.self) { try await makeRuntime(backend: backend) }
   }
 
-  @Test func closeIsIdempotentAndPreventsTransactions() async throws {
+  @Test
+  func closeIsIdempotentAndPreventsTransactions() async throws {
     let backend = RuntimeMockConnection(capabilities: [])
     let runtime = try await makeRuntime(backend: backend)
 
@@ -75,7 +83,8 @@ import Testing
     await #expect(throws: DriverRuntimeError.closed) { try await runtime.execute(.ping()) }
   }
 
-  @Test func rejectsResponseLimitSmallerThanHandshake() async {
+  @Test
+  func rejectsResponseLimitSmallerThanHandshake() async {
     let backend = RuntimeMockConnection(capabilities: [])
 
     await #expect(throws: DriverRuntimeError.invalidMaximumResponseSize) {
@@ -154,9 +163,11 @@ private actor RuntimeMockConnection: DriverConnection {
 
   func close() { closeCount += 1 }
 
-  private func response(kind: RuntimeMessageKind, requestID: UInt64, payload: Data) throws
-    -> DriverResponse
-  {
+  private func response(
+    kind: RuntimeMessageKind,
+    requestID: UInt64,
+    payload: Data
+  ) throws -> DriverResponse {
     DriverResponse(
       structureOutput: try RuntimeMessage(
         kind: kind,

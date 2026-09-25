@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct NetworkingGeneratorTests {
-  @Test func generatesNetworkingRuntime() throws {
+@Suite
+struct NetworkingGeneratorTests {
+  @Test
+  func generatesNetworkingRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     let output = root.appendingPathComponent("EthernetDriver")
@@ -53,7 +55,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func generatesUSBBackedNetworkingRuntime() throws {
+  @Test
+  func generatesUSBBackedNetworkingRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     let output = root.appendingPathComponent("USBEthernetDriver")
@@ -80,7 +83,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsMissingInvalidOldAndConflictingConfiguration() {
+  @Test
+  func rejectsMissingInvalidOldAndConflictingConfiguration() {
     let root = FileManager.default.temporaryDirectory
     let missing = DriverConfiguration(
       bundleIdentifier: "com.example.net",
@@ -146,9 +150,10 @@ import Testing
     }
   }
 
-  private func buildGeneratedExtension(at directory: URL, derivedData: URL) throws -> (
-    status: Int32, output: String
-  ) {
+  private func buildGeneratedExtension(
+    at directory: URL,
+    derivedData: URL
+  ) throws -> (status: Int32, output: String) {
     let process = Process()
     let output = Pipe()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")

@@ -30,9 +30,11 @@ extension DriverCommand {
   }
 
   /// Creates a synchronous device-to-host USB pipe-transfer command.
-  public static func usbPipeRead(endpoint: UInt8, length: Int, timeout: UInt32 = 5_000) throws
-    -> Self
-  {
+  public static func usbPipeRead(
+    endpoint: UInt8,
+    length: Int,
+    timeout: UInt32 = 5_000
+  ) throws -> Self {
     guard USBTransferDirection(encodedByte: endpoint) == .in else {
       throw USBRuntimeError.directionMismatch
     }
@@ -40,9 +42,11 @@ extension DriverCommand {
   }
 
   /// Creates a synchronous host-to-device USB pipe-transfer command.
-  public static func usbPipeWrite(endpoint: UInt8, data: [UInt8], timeout: UInt32 = 5_000) throws
-    -> Self
-  {
+  public static func usbPipeWrite(
+    endpoint: UInt8,
+    data: [UInt8],
+    timeout: UInt32 = 5_000
+  ) throws -> Self {
     guard USBTransferDirection(encodedByte: endpoint) == .out else {
       throw USBRuntimeError.directionMismatch
     }
@@ -69,9 +73,12 @@ extension DriverCommand {
     )
   }
 
-  private static func usbPipeTransfer(endpoint: UInt8, length: Int, data: [UInt8], timeout: UInt32)
-    throws -> Self
-  {
+  private static func usbPipeTransfer(
+    endpoint: UInt8,
+    length: Int,
+    data: [UInt8],
+    timeout: UInt32
+  ) throws -> Self {
     let direction = USBTransferDirection(encodedByte: endpoint)
     guard length > 0 else { throw USBRuntimeError.emptyTransfer }
     try validateUSBTransfer(direction: direction, length: length, data: data)
@@ -123,9 +130,11 @@ extension DriverContext {
   }
 
   /// Reads from a bulk or interrupt IN endpoint.
-  public func usbRead(endpoint: UInt8, length: Int, timeout: UInt32 = 5_000) async throws
-    -> USBTransferResult
-  {
+  public func usbRead(
+    endpoint: UInt8,
+    length: Int,
+    timeout: UInt32 = 5_000
+  ) async throws -> USBTransferResult {
     let response = try await execute(
       .usbPipeRead(endpoint: endpoint, length: length, timeout: timeout)
     )
@@ -133,9 +142,11 @@ extension DriverContext {
   }
 
   /// Writes to a bulk or interrupt OUT endpoint.
-  public func usbWrite(endpoint: UInt8, data: [UInt8], timeout: UInt32 = 5_000) async throws
-    -> USBTransferResult
-  {
+  public func usbWrite(
+    endpoint: UInt8,
+    data: [UInt8],
+    timeout: UInt32 = 5_000
+  ) async throws -> USBTransferResult {
     let response = try await execute(
       .usbPipeWrite(endpoint: endpoint, data: data, timeout: timeout)
     )

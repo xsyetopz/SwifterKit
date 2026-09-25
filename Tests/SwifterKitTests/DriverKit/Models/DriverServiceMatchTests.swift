@@ -2,8 +2,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverServiceMatchTests {
-  @Test func preservesCriteria() {
+@Suite
+struct DriverServiceMatchTests {
+  @Test
+  func preservesCriteria() {
     let match = DriverServiceMatch(
       serviceClass: "IOUserService",
       name: "Example",

@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverCallTests {
-  @Test func requestPreservesRawInputsAndCapacities() {
+@Suite
+struct DriverCallTests {
+  @Test
+  func requestPreservesRawInputsAndCapacities() {
     let request = DriverRequest(
       selector: 7,
       scalarInput: [1, 2],
@@ -20,14 +22,16 @@ import Testing
     #expect(request.structureOutputCapacity == 8)
   }
 
-  @Test func requestClampsNegativeCapacities() {
+  @Test
+  func requestClampsNegativeCapacities() {
     let request = DriverRequest(selector: 0, scalarOutputCapacity: -1, structureOutputCapacity: -2)
 
     #expect(request.scalarOutputCapacity == 0)
     #expect(request.structureOutputCapacity == 0)
   }
 
-  @Test func responsePreservesRawOutputs() {
+  @Test
+  func responsePreservesRawOutputs() {
     let response = DriverResponse(scalarOutput: [5], structureOutput: Data([6]))
 
     #expect(response.scalarOutput == [5])

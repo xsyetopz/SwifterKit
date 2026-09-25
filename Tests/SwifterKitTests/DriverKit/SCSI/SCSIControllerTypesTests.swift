@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct SCSIControllerTypesTests {
-  @Test func decodesParallelTask() throws {
+@Suite
+struct SCSIControllerTypesTests {
+  @Test
+  func decodesParallelTask() throws {
     var payload = Data()
     payload.appendRuntimeInteger(UInt32(9))
     payload.appendRuntimeInteger(UInt32(2))
@@ -39,7 +41,8 @@ import Testing
     #expect(task.featureRequests == [.attemptNegotiation, .clearNegotiation])
   }
 
-  @Test func encodesCompletion() throws {
+  @Test
+  func encodesCompletion() throws {
     let completion = try SCSIParallelTaskCompletion(
       requestID: 11,
       taskStatus: .checkCondition,
@@ -60,7 +63,8 @@ import Testing
     #expect(Array(command.payload.suffix(3)) == [0x70, 0, 5])
   }
 
-  @Test func decodesManagementCallbacks() throws {
+  @Test
+  func decodesManagementCallbacks() throws {
     #expect(try management(kind: 1, target: 4).scsiController() == .initializeTarget(4))
     #expect(
       try management(kind: 2, target: 4, logicalUnit: 7, taskTag: 8).scsiController()
@@ -72,7 +76,8 @@ import Testing
     )
   }
 
-  @Test func rejectsMalformedPayloadsAndOversizedCompletion() throws {
+  @Test
+  func rejectsMalformedPayloadsAndOversizedCompletion() throws {
     #expect(try DriverEvent(type: 0x0100).scsiController() == nil)
     #expect(throws: SCSIControllerRuntimeError.invalidPayload) {
       try DriverEvent(type: 0x0B00, payload: [0]).scsiController()

@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct RuntimeProtocolTests {
-  @Test func roundTripsCompleteMessage() throws {
+@Suite
+struct RuntimeProtocolTests {
+  @Test
+  func roundTripsCompleteMessage() throws {
     let message = RuntimeMessage(
       kind: .command,
       requestID: 42,
@@ -18,20 +20,23 @@ import Testing
     #expect(try message.encoded().count == RuntimeMessage.headerSize + 3)
   }
 
-  @Test func rejectsTruncatedHeader() {
+  @Test
+  func rejectsTruncatedHeader() {
     #expect(throws: RuntimeProtocolError.truncatedHeader) {
       try RuntimeMessage(decoding: Data(repeating: 0, count: RuntimeMessage.headerSize - 1))
     }
   }
 
-  @Test func rejectsInvalidMagic() throws {
+  @Test
+  func rejectsInvalidMagic() throws {
     var encoded = try RuntimeMessage(kind: .handshake, requestID: 0).encoded()
     encoded[0] = 0
 
     #expect(throws: RuntimeProtocolError.invalidMagic) { try RuntimeMessage(decoding: encoded) }
   }
 
-  @Test func rejectsUnsupportedVersion() throws {
+  @Test
+  func rejectsUnsupportedVersion() throws {
     var encoded = try RuntimeMessage(kind: .handshake, requestID: 0).encoded()
     encoded[4] = 2
 
@@ -40,7 +45,8 @@ import Testing
     }
   }
 
-  @Test func rejectsUnknownMessageKind() throws {
+  @Test
+  func rejectsUnknownMessageKind() throws {
     var encoded = try RuntimeMessage(kind: .handshake, requestID: 0).encoded()
     encoded[6] = 0xFF
     encoded[7] = 0xFF
@@ -50,7 +56,8 @@ import Testing
     }
   }
 
-  @Test func rejectsMismatchedPayloadLength() throws {
+  @Test
+  func rejectsMismatchedPayloadLength() throws {
     var encoded = try RuntimeMessage(kind: .command, requestID: 1, payload: Data([1])).encoded()
     encoded[16] = 2
 

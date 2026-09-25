@@ -2,8 +2,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverConfigurationTests {
-  @Test func separatesProviderMatchingFromRuntimeDiscovery() {
+@Suite
+struct DriverConfigurationTests {
+  @Test
+  func separatesProviderMatchingFromRuntimeDiscovery() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOUSBHostInterface",

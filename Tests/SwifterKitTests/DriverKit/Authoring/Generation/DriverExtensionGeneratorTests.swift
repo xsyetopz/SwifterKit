@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverExtensionGeneratorTests {
-  @Test func generatesConfiguredNativeRuntime() throws {
+@Suite
+struct DriverExtensionGeneratorTests {
+  @Test
+  func generatesConfiguredNativeRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -84,7 +86,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func generatesUSBInterfaceRuntime() throws {
+  @Test
+  func generatesUSBInterfaceRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -132,7 +135,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func generatesCombinedHIDAndUSBRuntime() throws {
+  @Test
+  func generatesCombinedHIDAndUSBRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -171,7 +175,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func generatesPCIMemoryRuntime() throws {
+  @Test
+  func generatesPCIMemoryRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -222,7 +227,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsPCIWithoutMatchingMetadata() {
+  @Test
+  func rejectsPCIWithoutMatchingMetadata() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOPCIDevice",
@@ -237,7 +243,8 @@ import Testing
     }
   }
 
-  @Test func generatesCombinedHIDAndPCIRuntime() throws {
+  @Test
+  func generatesCombinedHIDAndPCIRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -269,7 +276,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func generatesInterruptRuntime() throws {
+  @Test
+  func generatesInterruptRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -311,7 +319,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsInvalidInterruptConfiguration() {
+  @Test
+  func rejectsInvalidInterruptConfiguration() {
     let duplicate = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOPCIDevice",
@@ -366,7 +375,8 @@ import Testing
     }
   }
 
-  @Test func generatesMemoryRuntime() throws {
+  @Test
+  func generatesMemoryRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -409,7 +419,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsInvalidMemoryConfiguration() {
+  @Test
+  func rejectsInvalidMemoryConfiguration() {
     let missing = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOUserResources",
@@ -453,9 +464,10 @@ import Testing
     }
   }
 
-  private func buildGeneratedExtension(at directory: URL, derivedData: URL) throws -> (
-    status: Int32, output: String
-  ) {
+  private func buildGeneratedExtension(
+    at directory: URL,
+    derivedData: URL
+  ) throws -> (status: Int32, output: String) {
     let process = Process()
     let output = Pipe()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")

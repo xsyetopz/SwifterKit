@@ -88,9 +88,11 @@ extension DriverCommand {
   }
 
   /// Writes a string custom property for one qualifier.
-  public static func audioSetCustomProperty(identifier: UInt32, qualifier: String, value: String)
-    throws -> Self
-  {
+  public static func audioSetCustomProperty(
+    identifier: UInt32,
+    qualifier: String,
+    value: String
+  ) throws -> Self {
     try audioCustomPropertyCommand(
       opcode: 0x0A08,
       identifier: identifier,
@@ -128,9 +130,10 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads one control using the requested value representation.
-  public func audioControl(identifier: UInt32, as kind: AudioControlValueKind) async throws
-    -> AudioControlValue
-  {
+  public func audioControl(
+    identifier: UInt32,
+    as kind: AudioControlValueKind
+  ) async throws -> AudioControlValue {
     try AudioControlValue(
       runtimePayload: await execute(.audioGetControl(identifier: identifier, as: kind))
     )
@@ -153,9 +156,11 @@ extension DriverContext {
   }
 
   /// Writes a string custom property for one qualifier.
-  public func audioSetCustomProperty(identifier: UInt32, qualifier: String, value: String)
-    async throws
-  {
+  public func audioSetCustomProperty(
+    identifier: UInt32,
+    qualifier: String,
+    value: String
+  ) async throws {
     _ = try await execute(
       .audioSetCustomProperty(identifier: identifier, qualifier: qualifier, value: value)
     )

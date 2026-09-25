@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct MIDITypesTests {
-  @Test func encodesSourceSendCommand() throws {
+@Suite
+struct MIDITypesTests {
+  @Test
+  func encodesSourceSendCommand() throws {
     let command = try DriverCommand.midiSend(sourceIndex: 2, words: [0x2090_3C7F, 0x4080_3C00])
 
     #expect(command.opcode == 0x0800)
@@ -14,7 +16,8 @@ import Testing
     #expect(try command.payload.readRuntimeInteger(at: 8) as UInt32 == 0x2090_3C7F)
   }
 
-  @Test func rejectsEmptyAndOversizedSends() {
+  @Test
+  func rejectsEmptyAndOversizedSends() {
     #expect(throws: MIDIRuntimeError.emptyPacketData) {
       try DriverCommand.midiSend(sourceIndex: 0, words: [])
     }
@@ -23,7 +26,8 @@ import Testing
     }
   }
 
-  @Test func decodesLifecycleAndDestinationEvents() throws {
+  @Test
+  func decodesLifecycleAndDestinationEvents() throws {
     #expect(try event(kind: 1).midi() == .startIO)
     #expect(try event(kind: 2).midi() == .stopIO)
 
@@ -36,7 +40,8 @@ import Testing
     )
   }
 
-  @Test func rejectsMalformedAndForeignEvents() throws {
+  @Test
+  func rejectsMalformedAndForeignEvents() throws {
     #expect(try DriverEvent(type: 0x0100).midi() == nil)
     #expect(throws: MIDIRuntimeError.invalidPayload) {
       try DriverEvent(type: 0x0800, payload: [1]).midi()

@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverExtensionProjectTests {
-  @Test func selectsExactFrameworksForCapabilities() {
+@Suite
+struct DriverExtensionProjectTests {
+  @Test
+  func selectsExactFrameworksForCapabilities() {
     let cases: [(RuntimeCapabilities, Set<String>)] = [
       (.hid, ["HIDDriverKit.framework"]), (.usb, ["USBDriverKit.framework"]),
       (.pci, ["PCIDriverKit.framework"]), (.serial, ["SerialDriverKit.framework"]),
@@ -31,7 +33,8 @@ import Testing
     }
   }
 
-  @Test func selectsEachSCSIFrameworkFromItsConfiguration() {
+  @Test
+  func selectsEachSCSIFrameworkFromItsConfiguration() {
     let controller = configuration(
       capabilities: .scsi,
       scsiController: SCSIControllerConfiguration(
@@ -56,7 +59,8 @@ import Testing
     )
   }
 
-  @Test func rendersCombinedFrameworkUnion() throws {
+  @Test
+  func rendersCombinedFrameworkUnion() throws {
     let configuration = configuration(
       capabilities: [.hid, .usb, .interrupts, .memory],
       scsiController: SCSIControllerConfiguration(
@@ -85,7 +89,8 @@ import Testing
     ] { #expect(!rendered.contains(framework)) }
   }
 
-  @Test func generatedHIDProjectContainsNoUnrelatedFamilyFrameworks() throws {
+  @Test
+  func generatedHIDProjectContainsNoUnrelatedFamilyFrameworks() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -132,7 +137,8 @@ import Testing
     ] { #expect(!linkedLibraries.output.contains("\(unrelated).framework")) }
   }
 
-  @Test func rejectsUnexpectedOrIncompleteTemplateFrameworkRecords() {
+  @Test
+  func rejectsUnexpectedOrIncompleteTemplateFrameworkRecords() {
     let configuration = configuration(capabilities: .hid)
     let validTemplate = projectTemplate()
     let incomplete = validTemplate.replacingOccurrences(
@@ -226,9 +232,11 @@ import Testing
     )
   }
 
-  private func run(executable: String, arguments: [String], currentDirectory: URL? = nil) throws
-    -> (status: Int32, output: String)
-  {
+  private func run(
+    executable: String,
+    arguments: [String],
+    currentDirectory: URL? = nil
+  ) throws -> (status: Int32, output: String) {
     let process = Process()
     let output = Pipe()
     process.executableURL = URL(fileURLWithPath: executable)

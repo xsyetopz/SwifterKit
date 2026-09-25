@@ -100,9 +100,11 @@ public struct AudioStreamFormat: Sendable, Hashable {
   }
 
   /// Creates an interleaved, native-endian signed linear PCM format.
-  public static func linearPCM(sampleRate: Double, channels: UInt32, bitsPerChannel: UInt32 = 16)
-    -> Self
-  {
+  public static func linearPCM(
+    sampleRate: Double,
+    channels: UInt32,
+    bitsPerChannel: UInt32 = 16
+  ) -> Self {
     let bytesPerSample = (bitsPerChannel + 7) / 8
     let bytesPerFrame = bytesPerSample * channels
     return Self(

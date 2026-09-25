@@ -375,9 +375,10 @@ public enum DriverExtensionGenerator {
     try writePropertyList(info, to: destination)
   }
 
-  private static func writeEntitlements(configuration: DriverConfiguration, to destination: URL)
-    throws
-  {
+  private static func writeEntitlements(
+    configuration: DriverConfiguration,
+    to destination: URL
+  ) throws {
     var entitlements: [String: Any] = ["com.apple.developer.driverkit": true]
     if configuration.capabilities.contains(.hid) {
       entitlements["com.apple.developer.driverkit.family.hid.device"] = true

@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverExtensionSerialGeneratorTests {
-  @Test func generatesSerialRuntime() throws {
+@Suite
+struct DriverExtensionSerialGeneratorTests {
+  @Test
+  func generatesSerialRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -59,7 +61,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func generatesUSBBackedSerialRuntime() throws {
+  @Test
+  func generatesUSBBackedSerialRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -91,7 +94,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsMissingInvalidAndConflictingSerialMetadata() {
+  @Test
+  func rejectsMissingInvalidAndConflictingSerialMetadata() {
     let root = FileManager.default.temporaryDirectory
     let missing = DriverConfiguration(
       bundleIdentifier: "com.example.serial",
@@ -133,9 +137,10 @@ import Testing
     }
   }
 
-  private func buildGeneratedExtension(at directory: URL, derivedData: URL) throws -> (
-    status: Int32, output: String
-  ) {
+  private func buildGeneratedExtension(
+    at directory: URL,
+    derivedData: URL
+  ) throws -> (status: Int32, output: String) {
     let process = Process()
     let output = Pipe()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")

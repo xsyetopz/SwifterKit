@@ -2,25 +2,30 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct SwiftDriverTests {
-  @Test func contextAcceptsNegotiatedCapability() throws {
+@Suite
+struct SwiftDriverTests {
+  @Test
+  func contextAcceptsNegotiatedCapability() throws {
     let context = DriverContext(capabilities: [.usb, .interrupts])
     try context.require(.usb)
   }
 
-  @Test func contextRejectsMissingCapability() {
+  @Test
+  func contextRejectsMissingCapability() {
     let context = DriverContext(capabilities: [.usb])
 
     #expect(throws: DriverContextError.unsupportedCapability(.pci)) { try context.require(.pci) }
   }
 
-  @Test func detachedContextRejectsExecution() async {
+  @Test
+  func detachedContextRejectsExecution() async {
     let context = DriverContext(capabilities: [])
 
     await #expect(throws: DriverContextError.notConnected) { try await context.execute(.ping()) }
   }
 
-  @Test func driverCanBeDefinedUsingSwiftOnly() async throws {
+  @Test
+  func driverCanBeDefinedUsingSwiftOnly() async throws {
     let driver = ExampleDriver()
     let context = DriverContext(capabilities: [.hid])
 

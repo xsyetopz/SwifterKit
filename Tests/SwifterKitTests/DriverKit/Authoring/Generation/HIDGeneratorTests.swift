@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct HIDGeneratorTests {
-  @Test func generatesHostReportAllowlist() throws {
+@Suite
+struct HIDGeneratorTests {
+  @Test
+  func generatesHostReportAllowlist() throws {
     let defaultHeader = DriverExtensionGenerator.runtimeConfigurationHeader(
       configuration(acceptedHostReportTypes: .all)
     )
@@ -34,7 +36,8 @@ import Testing
     #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
-  @Test func rejectsUnknownHostReportBits() {
+  @Test
+  func rejectsUnknownHostReportBits() {
     let configuration = configuration(
       acceptedHostReportTypes: HIDHostReportTypes(rawValue: 1 << 10)
     )
@@ -47,7 +50,8 @@ import Testing
     }
   }
 
-  @Test func nativeGuardRejectsBeforeReadingOrEnqueueing() throws {
+  @Test
+  func nativeGuardRejectsBeforeReadingOrEnqueueing() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -109,9 +113,10 @@ import Testing
     )
   }
 
-  private func buildGeneratedExtension(at directory: URL, derivedData: URL) throws -> (
-    status: Int32, output: String
-  ) {
+  private func buildGeneratedExtension(
+    at directory: URL,
+    derivedData: URL
+  ) throws -> (status: Int32, output: String) {
     let process = Process()
     let output = Pipe()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")

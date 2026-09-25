@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct NetworkingTypesTests {
-  @Test func encodesReceiveCompletionAndLinkCommands() throws {
+@Suite
+struct NetworkingTypesTests {
+  @Test
+  func encodesReceiveCompletionAndLinkCommands() throws {
     let receive = try DriverCommand.ethernetReceive(frame: Data([1, 2, 3]), linkHeaderLength: 14)
     #expect(receive.opcode == 0x0900)
     #expect(receive.requiredCapabilities == .networking)
@@ -19,7 +21,8 @@ import Testing
     #expect(link.payload == Data([3, 0, 0, 0, 48, 0, 0, 0]))
   }
 
-  @Test func decodesTransmitAndControlEvents() throws {
+  @Test
+  func decodesTransmitAndControlEvents() throws {
     let transmit = DriverEvent(
       type: 0x0900,
       payload: [2, 0, 0, 0, 9, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1, 2, 3]
@@ -48,7 +51,8 @@ import Testing
     #expect(try multicast.ethernet() == .multicastAddresses([EthernetAddress(1, 2, 3, 4, 5, 6)]))
   }
 
-  @Test func rejectsInvalidCommandsAndEvents() throws {
+  @Test
+  func rejectsInvalidCommandsAndEvents() throws {
     #expect(throws: EthernetRuntimeError.emptyFrame) {
       try DriverCommand.ethernetReceive(frame: Data())
     }
@@ -63,7 +67,8 @@ import Testing
     #expect(try DriverEvent(type: 1, payload: []).ethernet() == nil)
   }
 
-  @Test func configurationPreservesRawMediaAndAddress() {
+  @Test
+  func configurationPreservesRawMediaAndAddress() {
     let config = EthernetDeviceConfiguration(
       hardwareAddress: EthernetAddress(2, 3, 4, 5, 6, 7),
       media: [.automatic, .base10GT],

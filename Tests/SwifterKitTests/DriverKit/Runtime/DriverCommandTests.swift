@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverCommandTests {
-  @Test func encodesOpcodeCapabilitiesAndPayload() throws {
+@Suite
+struct DriverCommandTests {
+  @Test
+  func encodesOpcodeCapabilitiesAndPayload() throws {
     let command = DriverCommand(
       opcode: 42,
       requiredCapabilities: [.usb, .memory],
@@ -22,7 +24,8 @@ import Testing
     #expect(encoded.dropFirst(16) == Data([1, 2]))
   }
 
-  @Test func integerReaderRejectsTruncatedValue() {
+  @Test
+  func integerReaderRejectsTruncatedValue() {
     #expect(throws: RuntimeProtocolError.truncatedPayload) {
       let _: UInt64 = try Data([1]).readRuntimeInteger(at: 0)
     }

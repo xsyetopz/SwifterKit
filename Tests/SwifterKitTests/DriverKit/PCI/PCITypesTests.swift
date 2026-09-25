@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct PCITypesTests {
-  @Test func createsPrimaryDeviceMatching() {
+@Suite
+struct PCITypesTests {
+  @Test
+  func createsPrimaryDeviceMatching() {
     let configuration = PCIDeviceConfiguration(vendorID: 0x1011, deviceIDs: [0x0026, 0x0078])
 
     #expect(
@@ -12,7 +14,8 @@ import Testing
     )
   }
 
-  @Test func encodesConfigurationRead() throws {
+  @Test
+  func encodesConfigurationRead() throws {
     let command = try DriverCommand.pciRead(space: .configuration, offset: 4, width: .doubleWord)
 
     #expect(command.opcode == 0x0400)
@@ -23,7 +26,8 @@ import Testing
     #expect(command.payload[22] == 0)
   }
 
-  @Test func encodesMemoryWrite() throws {
+  @Test
+  func encodesMemoryWrite() throws {
     let command = try DriverCommand.pciWrite(
       space: .memory(index: 3),
       offset: 8,
@@ -39,7 +43,8 @@ import Testing
     #expect(command.payload[22] == 1)
   }
 
-  @Test func rejectsInvalidWidthAndAlignment() {
+  @Test
+  func rejectsInvalidWidthAndAlignment() {
     #expect(throws: PCIRuntimeError.invalidConfigurationWidth) {
       try DriverCommand.pciRead(space: .configuration, offset: 0, width: .quadWord)
     }
@@ -57,7 +62,8 @@ import Testing
     }
   }
 
-  @Test func decodesBARAndLocationResponses() throws {
+  @Test
+  func decodesBARAndLocationResponses() throws {
     var bar = Data([2, 4, 0, 0])
     bar.appendRuntimeInteger(UInt64(4_096))
 

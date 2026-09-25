@@ -3,13 +3,16 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct InterruptTypesTests {
-  @Test func configuresNativeTimebaseFlag() {
+@Suite
+struct InterruptTypesTests {
+  @Test
+  func configuresNativeTimebaseFlag() {
     #expect(InterruptSourceConfiguration(index: 3).nativeIndex == 3)
     #expect(InterruptSourceConfiguration(index: 7, clock: .continuous).nativeIndex == 0x0001_0007)
   }
 
-  @Test func encodesEnableAndQueries() throws {
+  @Test
+  func encodesEnableAndQueries() throws {
     let enable = try DriverCommand.setInterruptEnabled(index: 4, enabled: true)
     #expect(enable.opcode == 0x0100)
     #expect(enable.requiredCapabilities == .interrupts)
@@ -19,13 +22,15 @@ import Testing
     #expect(try DriverCommand.lastInterrupt(index: 4).maximumResponseSize == 40)
   }
 
-  @Test func rejectsOutOfRangeSource() {
+  @Test
+  func rejectsOutOfRangeSource() {
     #expect(throws: InterruptRuntimeError.invalidSourceIndex) {
       try DriverCommand.setInterruptEnabled(index: 65_536, enabled: true)
     }
   }
 
-  @Test func decodesEventAndSnapshot() throws {
+  @Test
+  func decodesEventAndSnapshot() throws {
     var eventPayload = Data()
     eventPayload.appendRuntimeInteger(UInt32(2))
     eventPayload.appendRuntimeInteger(UInt32(0))
@@ -44,7 +49,8 @@ import Testing
     )
   }
 
-  @Test func rejectsMalformedPayloads() {
+  @Test
+  func rejectsMalformedPayloads() {
     #expect(throws: InterruptRuntimeError.invalidPayload) {
       try DriverEvent(type: 0x0100, payload: [0]).interrupt()
     }

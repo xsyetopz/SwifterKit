@@ -3,13 +3,16 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct USBTypesTests {
-  @Test func decodesTransferDirections() {
+@Suite
+struct USBTypesTests {
+  @Test
+  func decodesTransferDirections() {
     #expect(USBTransferDirection(encodedByte: 0x02) == .out)
     #expect(USBTransferDirection(encodedByte: 0x82) == .in)
   }
 
-  @Test func encodesControlTransfer() throws {
+  @Test
+  func encodesControlTransfer() throws {
     let request = USBControlRequest(
       requestType: USBRequestType.out | USBRequestType.vendor | USBRequestType.interface,
       request: 7,
@@ -27,7 +30,8 @@ import Testing
     #expect(try command.payload.readRuntimeInteger(at: 8) as UInt32 == 99)
   }
 
-  @Test func enforcesControlDirectionAndLength() {
+  @Test
+  func enforcesControlDirectionAndLength() {
     let input = USBControlRequest(
       requestType: USBRequestType.in,
       request: USBRequest.getDescriptor,
@@ -43,7 +47,8 @@ import Testing
     }
   }
 
-  @Test func validatesEndpointDirection() {
+  @Test
+  func validatesEndpointDirection() {
     #expect(throws: USBRuntimeError.directionMismatch) {
       try DriverCommand.usbPipeRead(endpoint: 0x02, length: 4)
     }
@@ -55,7 +60,8 @@ import Testing
     }
   }
 
-  @Test func buildsCompleteUSBMatchingDictionary() {
+  @Test
+  func buildsCompleteUSBMatchingDictionary() {
     let configuration = USBDeviceConfiguration(
       vendorID: 0x1234,
       productIDs: [0x5678],
@@ -79,7 +85,8 @@ import Testing
     #expect(configuration.matchingProperties["bInterfaceProtocol"] == .unsignedInteger(5))
   }
 
-  @Test func decodesTransferResults() throws {
+  @Test
+  func decodesTransferResults() throws {
     var payload = Data()
     payload.appendRuntimeInteger(UInt32(3))
     payload.append(contentsOf: [4, 5, 6])

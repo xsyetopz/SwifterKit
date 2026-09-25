@@ -2,8 +2,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverSessionTests {
-  @Test func closeIsIdempotentAndPreventsFurtherCalls() async throws {
+@Suite
+struct DriverSessionTests {
+  @Test
+  func closeIsIdempotentAndPreventsFurtherCalls() async throws {
     let connection = CountingConnection()
     let session = DriverSession(
       service: DriverService(id: 11, name: "Mock"),

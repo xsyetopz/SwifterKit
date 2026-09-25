@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct BlockStorageTypesTests {
-  @Test func encodesCompletionCommands() throws {
+@Suite
+struct BlockStorageTypesTests {
+  @Test
+  func encodesCompletionCommands() throws {
     let normal = DriverCommand.completeBlockStorageRequest(
       requestID: 7,
       status: BlockStorageCompletionStatus(rawValue: -3)
@@ -19,7 +21,8 @@ import Testing
     #expect(try io.payload.readRuntimeInteger(at: 8) as UInt64 == 4_096)
   }
 
-  @Test func decodesReadAndWriteRequests() throws {
+  @Test
+  func decodesReadAndWriteRequests() throws {
     let read = DriverEvent(type: 0x0700, payload: ioPayload(kind: 4))
     let write = DriverEvent(type: 0x0700, payload: ioPayload(kind: 5))
     let expected = BlockStorageIORequest(
@@ -35,7 +38,8 @@ import Testing
     #expect(try write.blockStorage() == .write(expected))
   }
 
-  @Test func decodesControlRequests() throws {
+  @Test
+  func decodesControlRequests() throws {
     #expect(try event(kind: 1, requestID: 3).blockStorage() == .eject(requestID: 3))
 
     var synchronize = Data(event(kind: 2, requestID: 4).payload)
@@ -57,7 +61,8 @@ import Testing
     )
   }
 
-  @Test func rejectsMalformedAndForeignEvents() throws {
+  @Test
+  func rejectsMalformedAndForeignEvents() throws {
     #expect(try DriverEvent(type: 0x0100).blockStorage() == nil)
     #expect(throws: BlockStorageRuntimeError.invalidPayload) {
       try DriverEvent(type: 0x0700, payload: [1]).blockStorage()

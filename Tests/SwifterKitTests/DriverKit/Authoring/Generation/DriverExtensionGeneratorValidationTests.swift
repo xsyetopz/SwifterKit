@@ -2,8 +2,10 @@ import Foundation
 import SwifterKit
 import Testing
 
-@Suite struct DriverExtensionGeneratorValidationTests {
-  @Test func refusesExistingDestination() throws {
+@Suite
+struct DriverExtensionGeneratorValidationTests {
+  @Test
+  func refusesExistingDestination() throws {
     let output = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
       isDirectory: true
@@ -16,7 +18,8 @@ import Testing
     }
   }
 
-  @Test func rejectsReservedPersonalityKey() {
+  @Test
+  func rejectsReservedPersonalityKey() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOUserResources",
@@ -32,7 +35,8 @@ import Testing
     }
   }
 
-  @Test func rejectsInvalidBundleIdentifier() {
+  @Test
+  func rejectsInvalidBundleIdentifier() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "invalid",
       providerClass: "IOUserResources",
@@ -47,7 +51,8 @@ import Testing
     }
   }
 
-  @Test func rejectsCapabilitiesWithoutNativeImplementation() {
+  @Test
+  func rejectsCapabilitiesWithoutNativeImplementation() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOUSBHostInterface",
@@ -66,7 +71,8 @@ import Testing
     }
   }
 
-  @Test func rejectsUSBWithoutMatchingMetadata() {
+  @Test
+  func rejectsUSBWithoutMatchingMetadata() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOUSBHostInterface",
@@ -81,7 +87,8 @@ import Testing
     }
   }
 
-  @Test func rejectsHIDWithoutDeviceMetadata() {
+  @Test
+  func rejectsHIDWithoutDeviceMetadata() {
     let configuration = DriverConfiguration(
       bundleIdentifier: "com.example.driver",
       providerClass: "IOUserResources",

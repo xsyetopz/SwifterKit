@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct DriverHostTests {
-  @Test func startsProcessesEventAndStops() async throws {
+@Suite
+struct DriverHostTests {
+  @Test
+  func startsProcessesEventAndStops() async throws {
     let recorder = HostRecorder()
     let connection = HostConnection(
       capabilities: [.hid],
@@ -29,7 +31,8 @@ import Testing
     #expect(await connection.closeCount == 1)
   }
 
-  @Test func handlesNanosecondValuesOutsideDurationRange() async throws {
+  @Test
+  func handlesNanosecondValuesOutsideDurationRange() async throws {
     let connection = HostConnection(capabilities: [.hid])
     let client = DriverClient(
       transport: HostTransport(
@@ -47,7 +50,8 @@ import Testing
     await host.stop()
   }
 
-  @Test func runsWithDurationRepresentableNanoseconds() async throws {
+  @Test
+  func runsWithDurationRepresentableNanoseconds() async throws {
     let connection = HostConnection(capabilities: [.hid])
     let client = DriverClient(
       transport: HostTransport(
@@ -65,7 +69,8 @@ import Testing
     await host.stop()
   }
 
-  @Test func restoresStoppedStateWhenServiceIsMissing() async {
+  @Test
+  func restoresStoppedStateWhenServiceIsMissing() async {
     let client = DriverClient(transport: EmptyHostTransport())
     let host = DriverHost(driver: HostedDriver(recorder: HostRecorder()), client: client)
 
@@ -73,7 +78,8 @@ import Testing
     #expect(await host.state == .stopped)
   }
 
-  @Test func rejectsSecondStartWhileRunning() async throws {
+  @Test
+  func rejectsSecondStartWhileRunning() async throws {
     let connection = HostConnection(capabilities: [.hid])
     let client = DriverClient(
       transport: HostTransport(
@@ -188,9 +194,11 @@ private actor HostConnection: DriverConnection {
 
   func close() { closeCount += 1 }
 
-  private func response(kind: RuntimeMessageKind, requestID: UInt64, payload: Data) throws
-    -> DriverResponse
-  {
+  private func response(
+    kind: RuntimeMessageKind,
+    requestID: UInt64,
+    payload: Data
+  ) throws -> DriverResponse {
     DriverResponse(
       structureOutput: try RuntimeMessage(kind: kind, requestID: requestID, payload: payload)
         .encoded()

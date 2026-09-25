@@ -91,9 +91,11 @@ extension DriverCommand {
   }
 
   /// Writes a string custom property for one qualifier.
-  public static func videoSetCustomProperty(identifier: UInt32, qualifier: String, value: String)
-    throws -> Self
-  {
+  public static func videoSetCustomProperty(
+    identifier: UInt32,
+    qualifier: String,
+    value: String
+  ) throws -> Self {
     try videoCustomPropertyCommand(
       opcode: 0x0C0A,
       identifier: identifier,
@@ -131,9 +133,10 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads one control using the requested value representation.
-  public func videoControl(identifier: UInt32, as kind: VideoControlValueKind) async throws
-    -> VideoControlValue
-  {
+  public func videoControl(
+    identifier: UInt32,
+    as kind: VideoControlValueKind
+  ) async throws -> VideoControlValue {
     try VideoControlValue(
       runtimePayload: await execute(.videoGetControl(identifier: identifier, as: kind))
     )
@@ -156,9 +159,11 @@ extension DriverContext {
   }
 
   /// Writes a string custom property for one qualifier.
-  public func videoSetCustomProperty(identifier: UInt32, qualifier: String, value: String)
-    async throws
-  {
+  public func videoSetCustomProperty(
+    identifier: UInt32,
+    qualifier: String,
+    value: String
+  ) async throws {
     _ = try await execute(
       .videoSetCustomProperty(identifier: identifier, qualifier: qualifier, value: value)
     )

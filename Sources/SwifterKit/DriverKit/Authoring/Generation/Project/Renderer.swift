@@ -65,9 +65,11 @@ enum DriverExtensionProject {
     return rendered
   }
 
-  private static func replacing(_ source: String, with replacement: String, in value: String) throws
-    -> String
-  {
+  private static func replacing(
+    _ source: String,
+    with replacement: String,
+    in value: String
+  ) throws -> String {
     guard value.contains(source) else {
       throw DriverExtensionGenerationError.templateInvariant("project.pbxproj")
     }

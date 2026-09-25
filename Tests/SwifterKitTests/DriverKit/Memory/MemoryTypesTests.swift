@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct MemoryTypesTests {
-  @Test func encodesAllocationAndAccess() throws {
+@Suite
+struct MemoryTypesTests {
+  @Test
+  func encodesAllocationAndAccess() throws {
     let allocate = try DriverCommand.allocateMemory(
       capacity: 4_096,
       length: 128,
@@ -25,7 +27,8 @@ import Testing
     #expect(Array(write.payload.suffix(3)) == [1, 2, 3])
   }
 
-  @Test func validatesAllocationAndTransfers() {
+  @Test
+  func validatesAllocationAndTransfers() {
     #expect(throws: DriverMemoryError.invalidSize) { try DriverCommand.allocateMemory(capacity: 0) }
     #expect(throws: DriverMemoryError.invalidSize) {
       try DriverCommand.allocateMemory(capacity: 4, length: 5)
@@ -48,7 +51,8 @@ import Testing
     }
   }
 
-  @Test func decodesInfoAndDMASegments() throws {
+  @Test
+  func decodesInfoAndDMASegments() throws {
     var info = Data()
     info.appendRuntimeInteger(UInt64(7))
     info.appendRuntimeInteger(UInt64(4_096))
@@ -86,7 +90,8 @@ import Testing
     )
   }
 
-  @Test func rejectsMalformedNativeResults() {
+  @Test
+  func rejectsMalformedNativeResults() {
     #expect(throws: DriverMemoryError.invalidPayload) {
       try DriverMemoryInfo(runtimePayload: Data(repeating: 0, count: 31))
     }

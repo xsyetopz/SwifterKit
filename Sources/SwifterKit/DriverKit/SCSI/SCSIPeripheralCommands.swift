@@ -53,9 +53,11 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Sends a custom CDB and returns copied data and sense bytes.
-  public func sendSCSIPeripheralCommand(_ command: SCSIPeripheralCommand) async throws
-    -> SCSIPeripheralResponse
-  { try SCSIPeripheralResponse(runtimePayload: await execute(.sendSCSIPeripheralCommand(command))) }
+  public func sendSCSIPeripheralCommand(
+    _ command: SCSIPeripheralCommand
+  ) async throws -> SCSIPeripheralResponse {
+    try SCSIPeripheralResponse(runtimePayload: await execute(.sendSCSIPeripheralCommand(command)))
+  }
 
   /// Suspends framework services to gain exclusive peripheral access.
   public func suspendSCSIPeripheralServices() async throws {

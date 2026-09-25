@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct HIDTypesTests {
-  @Test func configuresAcceptedHostReportTypes() {
+@Suite
+struct HIDTypesTests {
+  @Test
+  func configuresAcceptedHostReportTypes() {
     #expect(HIDHostReportTypes.all == [.output, .feature])
     #expect(HIDHostReportTypes.output.rawValue == 1)
     #expect(HIDHostReportTypes.feature.rawValue == 2)
@@ -24,20 +26,23 @@ import Testing
     #expect(outputOnly.acceptedHostReportTypes == .output)
   }
 
-  @Test func roundTripsRuntimeReportPayload() throws {
+  @Test
+  func roundTripsRuntimeReportPayload() throws {
     let report = HIDReport(bytes: [1, 2, 3], type: .output, options: 7, timestamp: 42)
 
     #expect(try HIDReport(runtimePayload: report.encodedRuntimePayload()) == report)
   }
 
-  @Test func rejectsMalformedRuntimeReportPayload() throws {
+  @Test
+  func rejectsMalformedRuntimeReportPayload() throws {
     var payload = try HIDReport(bytes: [1], type: .feature).encodedRuntimePayload()
     payload.removeLast()
 
     #expect(throws: HIDRuntimeError.invalidReportPayload) { try HIDReport(runtimePayload: payload) }
   }
 
-  @Test func commandRequiresHIDAndInputDirection() throws {
+  @Test
+  func commandRequiresHIDAndInputDirection() throws {
     let command = try DriverCommand.submitHIDInputReport(HIDReport(bytes: [9, 8], type: .input))
 
     #expect(command.opcode == 0x0300)
@@ -50,7 +55,8 @@ import Testing
     }
   }
 
-  @Test func decodesRuntimeStatisticsAndConfiguresCommand() throws {
+  @Test
+  func decodesRuntimeStatisticsAndConfiguresCommand() throws {
     var payload = Data()
     payload.appendRuntimeInteger(UInt64(12))
     payload.appendRuntimeInteger(UInt64(10))
@@ -68,13 +74,15 @@ import Testing
     #expect(DriverCommand.hidRuntimeStatistics.requiredCapabilities == .hid)
   }
 
-  @Test func rejectsMalformedRuntimeStatistics() {
+  @Test
+  func rejectsMalformedRuntimeStatistics() {
     #expect(throws: HIDRuntimeError.invalidStatisticsPayload) {
       try HIDRuntimeStatistics(runtimePayload: Data([1]))
     }
   }
 
-  @Test func decodesOnlyHIDEvents() throws {
+  @Test
+  func decodesOnlyHIDEvents() throws {
     let report = HIDReport(bytes: [5], type: .output)
     let event = DriverEvent(type: 0x0300, payload: Array(try report.encodedRuntimePayload()))
 

@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct AudioControlTypesTests {
-  @Test func preservesControlMetadataAndConfigurations() {
+@Suite
+struct AudioControlTypesTests {
+  @Test
+  func preservesControlMetadataAndConfigurations() {
     let metadata = AudioControlMetadata(
       identifier: 7,
       name: "Output Mute",
@@ -38,7 +40,8 @@ import Testing
     #expect(device.customProperties == [property])
   }
 
-  @Test func exposesDriverKitFourCharacterCodes() {
+  @Test
+  func exposesDriverKitFourCharacterCodes() {
     #expect(AudioObjectScope.global.rawValue == 0x676C_6F62)
     #expect(AudioObjectScope.input.rawValue == 0x696E_7074)
     #expect(AudioControlClass.volume.rawValue == 0x766C_6D65)

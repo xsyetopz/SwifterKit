@@ -3,8 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-@Suite struct VideoControlTypesTests {
-  @Test func preservesControlMetadataAndConfigurations() {
+@Suite
+struct VideoControlTypesTests {
+  @Test
+  func preservesControlMetadataAndConfigurations() {
     let metadata = VideoControlMetadata(
       identifier: 7,
       name: "Output Mute",
@@ -50,7 +52,8 @@ import Testing
     #expect(device.customProperties == [property])
   }
 
-  @Test func exposesDriverKitFourCharacterCodes() {
+  @Test
+  func exposesDriverKitFourCharacterCodes() {
     #expect(VideoObjectScope.global.rawValue == 0x676C_6F62)
     #expect(VideoObjectScope.input.rawValue == 0x696E_7074)
     #expect(VideoControlClass.volume.rawValue == 0x766C_6D65)

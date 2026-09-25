@@ -38,9 +38,10 @@ actor IOKitDriverConnection: DriverConnection {
     )
   }
 
-  nonisolated private static func invoke(connection: io_connect_t, request: DriverRequest)
-    -> IOKitMethodOutput
-  {
+  nonisolated private static func invoke(
+    connection: io_connect_t,
+    request: DriverRequest
+  ) -> IOKitMethodOutput {
     var scalarOutput = [UInt64](repeating: 0, count: request.scalarOutputCapacity)
     var scalarOutputCount = UInt32(request.scalarOutputCapacity)
     var structureOutput = [UInt8](repeating: 0, count: request.structureOutputCapacity)
