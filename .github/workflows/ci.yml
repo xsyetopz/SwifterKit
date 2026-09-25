@@ -42,6 +42,11 @@ jobs:
       - name: Build release package
         run: swift build -c release -Xswiftc -warnings-as-errors
 
+      - name: Check DriverKit coverage manifest
+        run: |
+          swift run SwifterKitCoverage check --manifest coverage/driverkit.json \
+            --sdk "$(xcrun --sdk driverkit --show-sdk-path)"
+
   linux:
     name: Swift 6.1 / Linux
     runs-on: ubuntu-latest

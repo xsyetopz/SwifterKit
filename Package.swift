@@ -21,6 +21,17 @@ let package = Package(
       name: "SwifterKit",
       resources: [.copy("Resources/DriverKitExtension")],
       linkerSettings: [.linkedFramework("IOKit", .when(platforms: [.macOS]))]
+    ), .executableTarget(name: "SwifterKitCoverage"),
+    .testTarget(
+      name: "SwifterKitCoverageTests",
+      dependencies: ["SwifterKitCoverage"],
+      swiftSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))],
+      linkerSettings: [
+        .unsafeFlags(
+          ["-F", testingFrameworks, "-Xlinker", "-rpath", "-Xlinker", testingRuntime],
+          .when(platforms: [.macOS])
+        )
+      ]
     ),
     .testTarget(
       name: "SwifterKitTests",

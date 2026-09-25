@@ -33,6 +33,10 @@ driverkit_settings="$(xcrun --sdk driverkit --show-sdk-path)/SDKSettings.json"
 driverkit_target="$(plutil -extract SupportedTargets.driverkit.MinimumDeploymentTarget raw -o - "$driverkit_settings")"
 export SWIFTERKIT_DRIVERKIT_TARGET="$driverkit_target"
 
+# Every class and member the selected SDK declares must be recorded in the coverage manifest.
+swift run SwifterKitCoverage check --manifest coverage/driverkit.json \
+	--sdk "$(xcrun --sdk driverkit --show-sdk-path)"
+
 derived_data="${RUNNER_TEMP:-.build}/SwifterKitDriverKitDerived"
 xcodebuild -quiet \
 	-project "$native_project" \

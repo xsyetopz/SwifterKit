@@ -168,6 +168,42 @@ requires different superclasses or providers.
 See [Capability APIs](Sources/SwifterKit/SwifterKit.docc/Capabilities.md) for
 configuration and completion details.
 
+## DriverKit coverage
+
+`coverage/driverkit.json` lists every class and member function declared in
+the DriverKit SDK `.iig` headers, with the SDK versions that declare it and how
+SwifterKit handles it:
+
+| Status | Meaning |
+| --- | --- |
+| `gap` | Not yet reachable from Swift |
+| `generated` | Called or overridden by the generated extension runtime |
+| `swift-api` | Exposed through the typed Swift API named in `swiftSymbol` |
+| `fast-path` | Declarable through the native fast path |
+| `excluded` | Out of scope, with the reason in `note` |
+
+Members start as gaps. The tool excludes private members, private `EXTENDS`
+class extensions, `init`/`free` lifecycle hooks, and declarations compiled only
+for the kernel or under `#if 0` or private conditions. `generated` entries were
+inferred from the runtime naming the class and the member, and overloaded names
+were left as gaps; confirm an entry before relying on it.
+
+Print the current counts per framework:
+
+```sh
+swift run SwifterKitCoverage summary --manifest coverage/driverkit.json
+```
+
+CI checks the manifest against the DriverKit SDK in each job and fails when the
+SDK declares a member the manifest does not list, or when a `generated`,
+`swift-api`, `fast-path`, or `excluded` entry lacks supporting source or a
+note. After installing a new SDK, record its surface:
+
+```sh
+swift run SwifterKitCoverage update --manifest coverage/driverkit.json \
+  --sdk "$(xcrun --sdk driverkit --show-sdk-path)"
+```
+
 ## Native boundary
 
 `DriverExtensionGenerator` copies a single packaged native source tree from

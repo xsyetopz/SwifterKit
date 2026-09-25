@@ -4,6 +4,13 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `coverage/driverkit.json` records every class and member function declared
+  by the DriverKit 24.4, 25.5, and 27.0 SDK headers and how SwifterKit covers
+  it. The `SwifterKitCoverage` tool updates, summarizes, and checks the manifest,
+  and CI fails when the selected SDK declares a member the manifest omits.
+
 ### Changed
 
 - The package manifest now requires Swift 6.1 (Xcode 16.3) instead of 6.2, and
