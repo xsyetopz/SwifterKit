@@ -130,6 +130,7 @@ extension DriverExtensionGenerator {
       static constexpr uint32_t kSwifterKitInterruptSourceCount =
           \(configuration.interruptSources.count);
       \(pciInterruptDeclarations(configuration))
+      \(reportingDeclarations(configuration.reporting))
 
       static constexpr uint8_t kSwifterKitHIDReportDescriptor[] = {\(descriptor)};
       static constexpr uint32_t kSwifterKitHIDReportDescriptorLength =
@@ -460,6 +461,7 @@ extension DriverExtensionGenerator {
           kern_return_t AttachEventClient(IOService* client) LOCALONLY;
           void DetachEventClient(IOService* client) LOCALONLY;
       \(serviceControlMethods)
+      \(reportingMethods)
       \(memoryMethods)
       \(audioMethods)
       \(videoMethods)

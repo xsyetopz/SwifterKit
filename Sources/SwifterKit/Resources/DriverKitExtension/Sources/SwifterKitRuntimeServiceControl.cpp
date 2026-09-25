@@ -253,6 +253,9 @@ kern_return_t SwifterKitRuntimeService::ServiceCommand(
         case SwifterKitRuntimeOpcode::WatchSystemState:
         case SwifterKitRuntimeOpcode::WatchCancel:
             return WatchCommand(opcode, payload, payloadLength, response);
+        case SwifterKitRuntimeOpcode::ReporterUpdate:
+        case SwifterKitRuntimeOpcode::ReporterRead:
+            return ReporterCommand(opcode, payload, payloadLength, response);
         default:
             return ServiceSystemCommand(opcode, payload, payloadLength, response);
     }

@@ -64,6 +64,22 @@ public:
         OSData** response) LOCALONLY;
     void StopTimers() LOCALONLY;
     void StopWatches() LOCALONLY;
+    virtual IOReturn ConfigureReport(OSData* channels, uint32_t action, uint32_t* outCount)
+        override;
+    virtual IOReturn UpdateReport(
+        OSData* channels,
+        uint32_t action,
+        uint32_t* outElementCount,
+        uint64_t offset,
+        uint64_t capacity,
+        IOMemoryDescriptor* buffer) override;
+    kern_return_t StartReporting() LOCALONLY;
+    void StopReporting() LOCALONLY;
+    kern_return_t ReporterCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
 };
 
 #endif

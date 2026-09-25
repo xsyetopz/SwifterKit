@@ -113,6 +113,7 @@ void SwifterKitRuntimeService::free() {
         StopPower();
         StopTimers();
         StopWatches();
+        StopReporting();
         IOLockFreeZero(ivars->dispatchLock);
         OSSafeReleaseNULL(ivars->eventClient);
         OSSafeReleaseNULL(ivars->requiredEvents);
@@ -127,6 +128,14 @@ void SwifterKitRuntimeService::free() {
 auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t {
     kern_return_t result = Start(provider, SUPERDISPATCH);
     if (result != kIOReturnSuccess) {
+        return result;
+    }
+
+    // Reporters publish their legend first; if a later step fails, free() releases them.
+    result = StartReporting();
+    if (result != kIOReturnSuccess) {
+        StopReporting();
+        Stop(provider, SUPERDISPATCH);
         return result;
     }
 
@@ -345,6 +354,7 @@ auto SwifterKitRuntimeService::Stop_Impl(IOService* provider) -> kern_return_t {
     StopPower();
     StopTimers();
     StopWatches();
+    StopReporting();
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     StopSCSI();
 #endif

@@ -175,6 +175,8 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case watchServices = 0x0E10
   case watchSystemState = 0x0E11
   case watchCancel = 0x0E12
+  case reporterUpdate = 0x0E20
+  case reporterRead = 0x0E21
 }
 
 /// Types of events the native extension queues for the Swift host.

@@ -36,6 +36,9 @@ public enum DriverExtensionGenerationError: Error, Sendable, Equatable {
   case invalidInterruptConfiguration
   /// Native memory-pool limits are absent or invalid.
   case invalidMemoryConfiguration
+  /// Reporters are absent or exceed ``ReportingLimits``, a name is empty, too long, or contains
+  /// NUL, channel IDs are zero or repeat, or a state or histogram layout is invalid.
+  case invalidReportingConfiguration
   /// Capability metadata was supplied without enabling its capability.
   case capabilityConfigurationMismatch(RuntimeCapabilities)
   /// Matching properties attempted to replace generator-owned metadata.

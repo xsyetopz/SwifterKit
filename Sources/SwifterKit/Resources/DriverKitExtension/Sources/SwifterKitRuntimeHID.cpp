@@ -127,6 +127,10 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
     if (!super::handleStart(provider)) {
         return false;
     }
+    if (StartReporting() != kIOReturnSuccess) {
+        StopReporting();
+        return false;
+    }
     bool opened = true;
     #if SWIFTERKIT_ENABLE_USB
     opened = OpenUSBProvider(this, provider, ivars) == kIOReturnSuccess;

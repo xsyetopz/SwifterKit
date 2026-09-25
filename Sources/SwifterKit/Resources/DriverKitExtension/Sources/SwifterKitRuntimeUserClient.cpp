@@ -72,6 +72,8 @@ namespace {
             case SwifterKitRuntimeOpcode::WatchServices:
             case SwifterKitRuntimeOpcode::WatchSystemState:
             case SwifterKitRuntimeOpcode::WatchCancel:
+            case SwifterKitRuntimeOpcode::ReporterUpdate:
+            case SwifterKitRuntimeOpcode::ReporterRead:
                 if (service == nullptr) {
                     return kIOReturnNotReady;
                 }

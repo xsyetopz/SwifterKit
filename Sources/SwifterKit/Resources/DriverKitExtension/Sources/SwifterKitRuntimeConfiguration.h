@@ -154,6 +154,34 @@ static constexpr bool kSwifterKitPCIConfigureInterrupts = false;
 static constexpr uint32_t kSwifterKitPCIInterruptType = 0;
 static constexpr uint32_t kSwifterKitPCIInterruptRequiredVectors = 0;
 static constexpr uint32_t kSwifterKitPCIInterruptRequestedVectors = 0;
+struct SwifterKitReportChannelConfiguration {
+    uint64_t identifier;
+    const char* name;
+};
+struct SwifterKitHistogramSegmentConfiguration {
+    uint32_t baseBucketWidth;
+    uint32_t scale;
+    uint32_t bucketCount;
+};
+struct SwifterKitReporterConfiguration {
+    uint32_t kind;
+    uint16_t categories;
+    uint64_t unit;
+    const char* group;
+    const char* subgroup;
+    uint32_t channelStart;
+    uint32_t channelCount;
+    uint32_t stateStart;
+    uint32_t stateCount;
+    uint32_t segmentStart;
+    uint32_t segmentCount;
+};
+static constexpr SwifterKitReportChannelConfiguration kSwifterKitReportChannels[1] = {};
+static constexpr uint64_t kSwifterKitReportStates[1] = {0};
+static constexpr SwifterKitHistogramSegmentConfiguration kSwifterKitHistogramSegments[1] = {};
+static constexpr SwifterKitReporterConfiguration kSwifterKitReporters[1] = {};
+static constexpr uint32_t kSwifterKitReporterCount = 0;
+static constexpr bool kSwifterKitReportLegendPublic = false;
 
 static constexpr uint8_t kSwifterKitHIDReportDescriptor[] = {0};
 static constexpr uint32_t kSwifterKitHIDReportDescriptorLength = 0;

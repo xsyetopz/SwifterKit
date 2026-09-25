@@ -216,6 +216,9 @@ public enum DriverExtensionGenerator {
     } else if configuration.memoryPool != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.memory)
     }
+    if let reporting = configuration.reporting, !reporting.isValid {
+      throw DriverExtensionGenerationError.invalidReportingConfiguration
+    }
     if configuration.capabilities.contains(.blockStorage), deploymentVersion < .v21 {
       throw DriverExtensionGenerationError.invalidBlockStorageConfiguration
     }

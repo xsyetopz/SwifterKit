@@ -8,6 +8,7 @@
 
 #include "SwifterKitRuntimeConfiguration.h"
 #include "SwifterKitRuntimeDispatchProtocol.h"
+#include "SwifterKitRuntimeReportingProtocol.h"
 
 #if SWIFTERKIT_ENABLE_SERIAL
     #include <DriverKit/IOBufferMemoryDescriptor.h>
@@ -49,6 +50,7 @@
 #endif
 
 class IODispatchSource;
+class IOReporter;
 class IOService;
 class SwifterKitRuntimeUserClient;
 
@@ -186,6 +188,10 @@ struct SwifterKitRuntimeService_IVars {
     uint32_t nextWatchID = 1;
     SwifterKitTimerSlot timers[kSwifterKitMaximumTimers] = {};
     SwifterKitServiceWatch watches[kSwifterKitMaximumServiceWatches] = {};
+    // The configured reporters, created in StartReporting and released in StopReporting; the
+    // array holds the same reporters for configureAllReports. Both change under dispatchLock.
+    OSArray* reporterSet = nullptr;
+    IOReporter* reporters[kSwifterKitMaximumReporters] = {};
 #if SWIFTERKIT_ENABLE_HID
     uint64_t hidInputReportAttempts = 0;
     uint64_t hidInputReportSuccesses = 0;

@@ -37,6 +37,8 @@ public struct DriverConfiguration: Sendable, Hashable {
   public let interruptSources: [InterruptSourceConfiguration]
   /// Native memory-pool limits when raw memory operations are enabled.
   public let memoryPool: MemoryPoolConfiguration?
+  /// IOReporting channels the generated service publishes, if any.
+  public let reporting: ReportingConfiguration?
 
   /// Creates driver metadata consumed by the extension generator.
   public init(
@@ -56,7 +58,8 @@ public struct DriverConfiguration: Sendable, Hashable {
     scsiController: SCSIControllerConfiguration? = nil,
     scsiPeripheral: SCSIPeripheralConfiguration? = nil,
     interruptSources: [InterruptSourceConfiguration] = [],
-    memoryPool: MemoryPoolConfiguration? = nil
+    memoryPool: MemoryPoolConfiguration? = nil,
+    reporting: ReportingConfiguration? = nil
   ) {
     self.bundleIdentifier = bundleIdentifier
     self.providerClass = providerClass
@@ -75,6 +78,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     self.scsiPeripheral = scsiPeripheral
     self.interruptSources = interruptSources
     self.memoryPool = memoryPool
+    self.reporting = reporting
   }
 
   /// The criteria used to discover this generated extension.

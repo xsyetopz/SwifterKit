@@ -162,6 +162,8 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     WatchServices = 0x0E10,
     WatchSystemState = 0x0E11,
     WatchCancel = 0x0E12,
+    ReporterUpdate = 0x0E20,
+    ReporterRead = 0x0E21,
 };
 
 static constexpr uint32_t kSwifterKitEventInterrupt = 0x0100;
