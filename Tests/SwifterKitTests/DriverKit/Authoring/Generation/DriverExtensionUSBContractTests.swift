@@ -79,6 +79,22 @@ struct DriverExtensionUSBContractTests {
   }
 
   @Test
+  func everyUSBCommandRetriesRejectedCompletions() throws {
+    try withGeneratedExtension { output in
+      let usb = try source("SwifterKitRuntimeUSB.cpp", in: output)
+      for method in [
+        "USBControlTransfer(", "USBPipeTransfer(", "USBClearStall(", "USBSelectAlternateSetting(",
+      ] {
+        let body = try #require(usb.range(of: "SwifterKitRuntimeService::" + method))
+        let next = usb.range(of: "\n}\n", range: body.upperBound..<usb.endIndex)?.lowerBound
+        #expect(usb[body.upperBound..<(next ?? usb.endIndex)].contains("DeliverUSBCompletions();"))
+      }
+      let device = try source("SwifterKitRuntimeUSBDevice.cpp", in: output)
+      #expect(device.contains("DeliverUSBCompletions();"))
+    }
+  }
+
+  @Test
   func abortsNeverWaitOnTheCompletionQueue() throws {
     try withGeneratedExtension { output in
       for name in [

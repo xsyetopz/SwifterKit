@@ -140,6 +140,8 @@ kern_return_t SwifterKitRuntimeService::USBControlTransfer(
     const uint8_t* bytes,
     uint32_t payloadLength,
     OSData** response) {
+    // Retry completions that the required queue rejected earlier.
+    DeliverUSBCompletions();
     if (header == nullptr || ivars == nullptr || header->reserved != 0
         || header->length > kSwifterKitUSBMaximumResponsePayload - kTransferCountSize) {
         return kIOReturnBadArgument;
@@ -195,6 +197,8 @@ kern_return_t SwifterKitRuntimeService::USBPipeTransfer(
     const uint8_t* bytes,
     uint32_t payloadLength,
     OSData** response) {
+    // Retry completions that the required queue rejected earlier.
+    DeliverUSBCompletions();
     if (header == nullptr || ivars == nullptr || header->reserved8 != 0 || header->reserved16 != 0
         || header->reserved32 != 0 || header->length == 0
         || header->length > kSwifterKitUSBMaximumResponsePayload - kTransferCountSize) {
@@ -229,6 +233,8 @@ kern_return_t SwifterKitRuntimeService::USBPipeTransfer(
 }
 
 kern_return_t SwifterKitRuntimeService::USBClearStall(uint8_t endpoint, bool withRequest) {
+    // Retry completions that the required queue rejected earlier.
+    DeliverUSBCompletions();
     if (ivars == nullptr || ivars->usbInterface == nullptr) {
         return ivars != nullptr && ivars->usbDevice != nullptr ? kIOReturnUnsupported
                                                                : kIOReturnNotReady;
@@ -244,6 +250,8 @@ kern_return_t SwifterKitRuntimeService::USBClearStall(uint8_t endpoint, bool wit
 }
 
 kern_return_t SwifterKitRuntimeService::USBSelectAlternateSetting(uint8_t alternateSetting) {
+    // Retry completions that the required queue rejected earlier.
+    DeliverUSBCompletions();
     if (ivars == nullptr || ivars->usbInterface == nullptr) {
         return ivars != nullptr && ivars->usbDevice != nullptr ? kIOReturnUnsupported
                                                                : kIOReturnNotReady;
