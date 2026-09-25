@@ -157,6 +157,11 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     ServiceCreateSystemStateItem = 0x0D31,
     ServiceSetSystemStateItem = 0x0D32,
     ServiceSendCoreAnalyticsEvent = 0x0D33,
+    TimerStart = 0x0E00,
+    TimerCancel = 0x0E01,
+    WatchServices = 0x0E10,
+    WatchSystemState = 0x0E11,
+    WatchCancel = 0x0E12,
 };
 
 static constexpr uint32_t kSwifterKitEventInterrupt = 0x0100;
@@ -172,5 +177,8 @@ static constexpr uint32_t kSwifterKitEventSCSIParallelTask = 0x0B00;
 static constexpr uint32_t kSwifterKitEventSCSIManagement = 0x0B01;
 static constexpr uint32_t kSwifterKitEventVideo = 0x0C00;
 static constexpr uint32_t kSwifterKitEventServicePowerState = 0x0D00;
+static constexpr uint32_t kSwifterKitEventTimer = 0x0E00;
+static constexpr uint32_t kSwifterKitEventWatchServices = 0x0E10;
+static constexpr uint32_t kSwifterKitEventWatchSystemState = 0x0E11;
 
 #endif

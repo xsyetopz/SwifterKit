@@ -170,6 +170,11 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case serviceCreateSystemStateItem = 0x0D31
   case serviceSetSystemStateItem = 0x0D32
   case serviceSendCoreAnalyticsEvent = 0x0D33
+  case timerStart = 0x0E00
+  case timerCancel = 0x0E01
+  case watchServices = 0x0E10
+  case watchSystemState = 0x0E11
+  case watchCancel = 0x0E12
 }
 
 /// Types of events the native extension queues for the Swift host.
@@ -187,4 +192,7 @@ enum RuntimeEventType: UInt32, CaseIterable {
   case scsiManagement = 0x0B01
   case video = 0x0C00
   case servicePowerState = 0x0D00
+  case timer = 0x0E00
+  case watchServices = 0x0E10
+  case watchSystemState = 0x0E11
 }

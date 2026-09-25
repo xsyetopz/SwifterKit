@@ -246,6 +246,13 @@ kern_return_t SwifterKitRuntimeService::ServiceCommand(
                        ? BytesResponse(&registryEntryID, sizeof(registryEntryID), response)
                        : result;
         }
+        case SwifterKitRuntimeOpcode::TimerStart:
+        case SwifterKitRuntimeOpcode::TimerCancel:
+            return TimerCommand(opcode, payload, payloadLength, response);
+        case SwifterKitRuntimeOpcode::WatchServices:
+        case SwifterKitRuntimeOpcode::WatchSystemState:
+        case SwifterKitRuntimeOpcode::WatchCancel:
+            return WatchCommand(opcode, payload, payloadLength, response);
         default:
             return ServiceSystemCommand(opcode, payload, payloadLength, response);
     }

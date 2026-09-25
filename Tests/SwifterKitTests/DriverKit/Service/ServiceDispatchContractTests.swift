@@ -1,0 +1,197 @@
+import Foundation
+import Testing
+
+@testable import SwifterKit
+
+@Suite
+struct ServiceDispatchContractTests {
+  @Test
+  func nativeLimitsMatchSwift() throws {
+    try withGeneratedExtension { output in
+      let header = try source("SwifterKitRuntimeDispatchProtocol.h", in: output)
+      #expect(header.contains("kSwifterKitMaximumTimers = \(ServiceTimerLimits.maximumTimers);"))
+      let minimum = grouped(ServiceTimerLimits.minimumIntervalNanoseconds)
+      let maximum = grouped(ServiceTimerLimits.maximumNanoseconds)
+      #expect(header.contains("kSwifterKitTimerMinimumIntervalNanoseconds = \(minimum)ULL;"))
+      #expect(header.contains("kSwifterKitTimerMaximumNanoseconds = \(maximum)ULL;"))
+      #expect(
+        header.contains("kSwifterKitMaximumServiceWatches = \(ServiceWatchLimits.maximumWatches);")
+      )
+      #expect(
+        header.contains(
+          "kSwifterKitMaximumWatchedStateItems = \(ServiceWatchLimits.maximumStateItems);"
+        )
+      )
+      for kind in [ServiceMatchNotification.Kind.terminated, .matched] {
+        let name = String(describing: kind)
+        #expect(
+          header.contains("\(name.prefix(1).uppercased() + name.dropFirst()) = \(kind.rawValue),")
+        )
+      }
+      for size in [
+        "SwifterKitTimerStart) == 24", "SwifterKitDispatchIdentifier) == 8",
+        "SwifterKitTimerEvent) == 24", "SwifterKitServiceWatchEvent) == 32",
+        "SwifterKitSystemStateEvent) == 16",
+      ] { #expect(header.contains("static_assert(sizeof(\(size));")) }
+    }
+  }
+
+  @Test
+  func everyDispatchOpcodeRoutesWithoutACapability() throws {
+    try withGeneratedExtension { output in
+      let userClient = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      let group = try section(
+        of: userClient,
+        from: "case SwifterKitRuntimeOpcode::ServiceSetProperties:",
+        to: "service->ServiceCommand("
+      )
+      let control = try source("SwifterKitRuntimeServiceControl.cpp", in: output)
+      let opcodes = RuntimeOpcode.allCases.filter { $0.rawValue & 0xFF00 == 0x0E00 }
+      #expect(opcodes.count == 5)
+      for opcode in opcodes {
+        let name = String(describing: opcode)
+        let native =
+          "case SwifterKitRuntimeOpcode::\(name.prefix(1).uppercased() + name.dropFirst()):"
+        #expect(group.contains(native))
+        #expect(control.contains(native))
+      }
+      #expect(!group.contains("#if"))
+      #expect(control.contains("return TimerCommand(opcode, payload, payloadLength, response);"))
+      #expect(control.contains("return WatchCommand(opcode, payload, payloadLength, response);"))
+    }
+  }
+
+  @Test
+  func serviceDeclaresDispatchHandlers() throws {
+    try withGeneratedExtension { output in
+      let service = try source("SwifterKitRuntimeService.iig", in: output)
+      #expect(service.contains("#include <DriverKit/IOServiceNotificationDispatchSource.iig>"))
+      #expect(service.contains("#include <DriverKit/IOServiceStateNotificationDispatchSource.iig>"))
+      #expect(service.contains("TYPE(IOTimerDispatchSource::TimerOccurred);"))
+      #expect(
+        service.contains("TYPE(IOServiceNotificationDispatchSource::ServiceNotificationReady);")
+      )
+      #expect(
+        service.contains("TYPE(IOServiceStateNotificationDispatchSource::StateNotificationReady);")
+      )
+      for method in ["TimerCommand(", "WatchCommand(", "StopTimers()", "StopWatches()"] {
+        #expect(service.contains(method))
+      }
+    }
+  }
+
+  @Test
+  func timersValidateAndIdentifyEveryFiring() throws {
+    try withGeneratedExtension { output in
+      let timers = try source("SwifterKitRuntimeTimers.cpp", in: output)
+      #expect(timers.contains("request.delay <= kSwifterKitTimerMaximumNanoseconds"))
+      #expect(timers.contains("request.leeway <= kSwifterKitTimerMaximumNanoseconds"))
+      #expect(timers.contains("request.interval >= kSwifterKitTimerMinimumIntervalNanoseconds"))
+      #expect(timers.contains("payloadLength != sizeof(request)"))
+      #expect(timers.contains("result = kIOReturnNoResources;"))
+      // The action carries the timer ID, and a firing for a freed slot is dropped.
+      #expect(timers.contains("SwifterKitSetActionIdentifier(action, timerID);"))
+      #expect(timers.contains("SwifterKitTimerSlot* slot = FindTimer(ivars, timerID);"))
+      // Missed periods are skipped rather than delivered as a burst.
+      #expect(timers.contains("((now - slot->deadline) / slot->interval + 1) * slot->interval"))
+      #expect(timers.contains("EnqueueEvent(kSwifterKitEventTimer, &event, sizeof(event));"))
+      #expect(timers.contains("WakeAtTime(kIOTimerClockUptimeRaw, deadline, request.leeway)"))
+
+      let sources = try source("SwifterKitRuntimeDispatchSources.h", in: output)
+      #expect(sources.contains("SwifterKitEnableSource(IODispatchSource* source)"))
+      #expect(sources.contains("return words[1] == 0 ? words[0] : 0;"))
+    }
+  }
+
+  @Test
+  func watchesValidateAndReportWhatADextMayObserve() throws {
+    try withGeneratedExtension { output in
+      let watches = try source("SwifterKitRuntimeServiceWatches.cpp", in: output)
+      #expect(watches.contains("(*matching)->getObject(kIOProviderClassKey)"))
+      #expect(watches.contains("(*items)->getCount() <= kSwifterKitMaximumWatchedStateItems"))
+      #expect(watches.contains("SwifterKitIsPropertyName("))
+      #expect(watches.contains("IOServiceNotificationDispatchSource::Create(matching, 0, queue"))
+      #expect(watches.contains("CopySystemStateNotificationService(&watch.stateService)"))
+      #expect(watches.contains("source->DeliverNotifications(^("))
+      #expect(watches.contains("service->GetRegistryEntryID(&registryEntryID)"))
+      // The source re-arms before its items are read.
+      let begin = try #require(watches.range(of: "source->StateNotificationBegin()")?.lowerBound)
+      let copy = try #require(watches.range(of: "->StateNotificationItemCopy(name")?.lowerBound)
+      #expect(begin < copy)
+      #expect(
+        watches.contains("SwifterKitEncodeProperty(value, event, kMaximumEventPayloadLength)")
+      )
+    }
+  }
+
+  @Test
+  func hostDepartureAndStopCancelTimersAndWatches() throws {
+    try withGeneratedExtension { output in
+      let events = try source("SwifterKitRuntimeEvents.cpp", in: output)
+      let detach = try section(
+        of: events,
+        from: "void SwifterKitRuntimeService::DetachEventClient",
+        to: "auto SwifterKitRuntimeService::CopyNextEvent"
+      )
+      let unlock = try #require(
+        detach.range(of: "IOLockUnlock(ivars->eventLock);\n    detached")?.lowerBound
+      )
+      let stop = try #require(detach.range(of: "StopTimers();")?.lowerBound)
+      #expect(unlock < stop)
+      #expect(detach.contains("StopWatches();"))
+
+      let service = try source("SwifterKitRuntimeService.cpp", in: output)
+      let stopImpl = try section(
+        of: service,
+        from: "auto SwifterKitRuntimeService::Stop_Impl",
+        to: "return Stop(provider, SUPERDISPATCH);"
+      )
+      #expect(stopImpl.contains("StopTimers();") && stopImpl.contains("StopWatches();"))
+      let lifecycle = try source("SwifterKitRuntimeLifecycle.cpp", in: output)
+      #expect(lifecycle.contains("ivars->dispatchLock = IOLockAlloc();"))
+    }
+  }
+
+  private func grouped(_ value: UInt64) -> String {
+    let digits = Array(String(value))
+    var result = ""
+    for (index, digit) in digits.enumerated() {
+      if index > 0, (digits.count - index).isMultiple(of: 3) { result += "'" }
+      result.append(digit)
+    }
+    return result
+  }
+
+  private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      UUID().uuidString,
+      isDirectory: true
+    )
+    defer { try? FileManager.default.removeItem(at: root) }
+    let output = root.appendingPathComponent("DispatchDriver", isDirectory: true)
+    try DriverExtensionGenerator.generate(
+      configuration: DriverConfiguration(
+        bundleIdentifier: "com.example.contract-dispatch",
+        providerClass: "IOUserResources",
+        matchingProperties: ["IOResourceMatch": .string("IOKit")],
+        capabilities: []
+      ),
+      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0"),
+      at: output
+    )
+    try body(output)
+  }
+
+  private func source(_ name: String, in output: URL) throws -> String {
+    try String(
+      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
+      encoding: .utf8
+    )
+  }
+
+  private func section(of text: String, from start: String, to end: String) throws -> Substring {
+    let lower = try #require(text.range(of: start)?.lowerBound)
+    let upper = try #require(text.range(of: end, range: lower..<text.endIndex)?.lowerBound)
+    return text[lower..<upper]
+  }
+}

@@ -67,6 +67,11 @@ namespace {
             case SwifterKitRuntimeOpcode::ServiceCreateSystemStateItem:
             case SwifterKitRuntimeOpcode::ServiceSetSystemStateItem:
             case SwifterKitRuntimeOpcode::ServiceSendCoreAnalyticsEvent:
+            case SwifterKitRuntimeOpcode::TimerStart:
+            case SwifterKitRuntimeOpcode::TimerCancel:
+            case SwifterKitRuntimeOpcode::WatchServices:
+            case SwifterKitRuntimeOpcode::WatchSystemState:
+            case SwifterKitRuntimeOpcode::WatchCancel:
                 if (service == nullptr) {
                     return kIOReturnNotReady;
                 }

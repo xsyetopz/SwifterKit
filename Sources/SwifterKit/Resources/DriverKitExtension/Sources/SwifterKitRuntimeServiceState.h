@@ -7,6 +7,7 @@
 #include <DriverKit/OSArray.h>
 
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeDispatchProtocol.h"
 
 #if SWIFTERKIT_ENABLE_SERIAL
     #include <DriverKit/IOBufferMemoryDescriptor.h>
@@ -47,7 +48,31 @@
     #include <NetworkingDriverKit/NetworkingDriverKit.h>
 #endif
 
+class IODispatchSource;
+class IOService;
 class SwifterKitRuntimeUserClient;
+
+// A timer Swift started; see SwifterKitRuntimeTimers.cpp. A zero timerID marks a free slot.
+struct SwifterKitTimerSlot {
+    uint32_t timerID = 0;
+    uint64_t interval = 0;
+    uint64_t leeway = 0;
+    uint64_t deadline = 0;
+    uint64_t fireCount = 0;
+    IOTimerDispatchSource* source = nullptr;
+    OSAction* action = nullptr;
+};
+
+// A service-matching or system-state watch; see SwifterKitRuntimeServiceWatches.cpp. A zero
+// watchID marks a free slot. stateService and items are set only for system-state watches.
+struct SwifterKitServiceWatch {
+    uint32_t watchID = 0;
+    uint64_t sequence = 0;
+    IODispatchSource* source = nullptr;
+    OSAction* action = nullptr;
+    IOService* stateService = nullptr;
+    OSArray* items = nullptr;
+};
 
 #if SWIFTERKIT_ENABLE_AUDIO
 class SwifterKitRuntimeAudioDevice;
@@ -155,6 +180,12 @@ struct SwifterKitRuntimeService_IVars {
     uint64_t powerDeadline = 0;
     IOTimerDispatchSource* powerTimer = nullptr;
     OSAction* powerTimerAction = nullptr;
+    // Swift's timers and watches. Slots and identifiers change only under dispatchLock.
+    IOLock* dispatchLock = nullptr;
+    uint32_t nextTimerID = 1;
+    uint32_t nextWatchID = 1;
+    SwifterKitTimerSlot timers[kSwifterKitMaximumTimers] = {};
+    SwifterKitServiceWatch watches[kSwifterKitMaximumServiceWatches] = {};
 #if SWIFTERKIT_ENABLE_HID
     uint64_t hidInputReportAttempts = 0;
     uint64_t hidInputReportSuccesses = 0;

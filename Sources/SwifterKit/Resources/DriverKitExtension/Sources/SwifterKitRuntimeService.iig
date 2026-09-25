@@ -4,6 +4,8 @@
 #include <Availability.h>
 
 #include <DriverKit/IOService.iig>
+#include <DriverKit/IOServiceNotificationDispatchSource.iig>
+#include <DriverKit/IOServiceStateNotificationDispatchSource.iig>
 #include <DriverKit/IOTimerDispatchSource.iig>
 #include <DriverKit/OSData.iig>
 
@@ -44,6 +46,24 @@ public:
         const uint8_t* payload,
         uint32_t payloadLength,
         OSData** response) LOCALONLY;
+    virtual void TimerFired(OSAction* action, uint64_t time)
+        TYPE(IOTimerDispatchSource::TimerOccurred);
+    virtual void ServicesChanged(OSAction* action)
+        TYPE(IOServiceNotificationDispatchSource::ServiceNotificationReady);
+    virtual void SystemStateChanged(OSAction* action)
+        TYPE(IOServiceStateNotificationDispatchSource::StateNotificationReady);
+    kern_return_t TimerCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
+    kern_return_t WatchCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
+    void StopTimers() LOCALONLY;
+    void StopWatches() LOCALONLY;
 };
 
 #endif

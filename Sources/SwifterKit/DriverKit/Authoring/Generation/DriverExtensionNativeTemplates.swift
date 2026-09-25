@@ -429,6 +429,8 @@ extension DriverExtensionGenerator {
 
       #include <Availability.h>
 
+      #include <DriverKit/IOServiceNotificationDispatchSource.iig>
+      #include <DriverKit/IOServiceStateNotificationDispatchSource.iig>
       #include <DriverKit/IOTimerDispatchSource.iig>
       #include <DriverKit/OSData.iig>
       \(superclassInclude)

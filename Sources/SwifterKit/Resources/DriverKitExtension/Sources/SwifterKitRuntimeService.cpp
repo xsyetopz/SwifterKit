@@ -111,6 +111,9 @@ void SwifterKitRuntimeService::free() {
         ClosePCIProvider(this, ivars);
 #endif
         StopPower();
+        StopTimers();
+        StopWatches();
+        IOLockFreeZero(ivars->dispatchLock);
         OSSafeReleaseNULL(ivars->eventClient);
         OSSafeReleaseNULL(ivars->requiredEvents);
         OSSafeReleaseNULL(ivars->events);
@@ -340,6 +343,8 @@ auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t 
 auto SwifterKitRuntimeService::Stop_Impl(IOService* provider) -> kern_return_t {
     DetachEventClient(nullptr);
     StopPower();
+    StopTimers();
+    StopWatches();
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     StopSCSI();
 #endif
