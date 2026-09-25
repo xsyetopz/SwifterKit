@@ -311,6 +311,11 @@ A source release does not need Apple signing. A downstream driver needs
 approved DriverKit entitlements, matching certificates and provisioning
 profiles, a host application, and the target device environment.
 
+The host application needs the `com.apple.developer.driverkit.userclient-access`
+entitlement, and its array must contain the extension's bundle identifier.
+Every generated extension rejects runtime connections from processes without
+it. See [The native DriverKit boundary](Sources/SwifterKit/SwifterKit.docc/NativeBoundary.md#host-access).
+
 [Publishing](docs/publishing.md) covers release tags, GitHub Actions, local `.
 env` files, signed validation, and Apple account requirements.
 

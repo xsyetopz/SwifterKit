@@ -427,10 +427,11 @@ auto SwifterKitRuntimeUserClient::Start_Impl(IOService* provider) -> kern_return
     if (startResult != kIOReturnSuccess) {
         return startResult;
     }
-#if SWIFTERKIT_ENABLE_AUDIO
+    // Every generated runtime requires the client to list this extension in
+    // com.apple.developer.driverkit.userclient-access. An empty identifier never matches.
     OSDictionary* entitlements = nullptr;
     const kern_return_t entitlementResult = CopyClientEntitlements(&entitlements);
-    OSArray* access =
+    const OSArray* access =
         entitlementResult == kIOReturnSuccess && entitlements != nullptr
             ? OSDynamicCast(
                   OSArray,
@@ -440,7 +441,8 @@ auto SwifterKitRuntimeUserClient::Start_Impl(IOService* provider) -> kern_return
     if (access != nullptr)
         for (uint32_t index = 0; index < access->getCount(); ++index) {
             const OSString* identifier = OSDynamicCast(OSString, access->getObject(index));
-            if (identifier != nullptr && identifier->isEqualTo(kSwifterKitBundleIdentifier)) {
+            if (identifier != nullptr && identifier->getLength() != 0
+                && identifier->isEqualTo(kSwifterKitBundleIdentifier)) {
                 authorized = true;
                 break;
             }
@@ -450,7 +452,6 @@ auto SwifterKitRuntimeUserClient::Start_Impl(IOService* provider) -> kern_return
         Stop(provider, SUPERDISPATCH);
         return kIOReturnNotPermitted;
     }
-#endif
     ivars->service = OSDynamicCast(SwifterKitRuntimeService, provider);
     if (ivars->service == nullptr) {
         Stop(provider, SUPERDISPATCH);

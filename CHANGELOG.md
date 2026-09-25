@@ -4,6 +4,27 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** every generated extension now rejects a runtime user-client
+  connection unless the host process has the
+  `com.apple.developer.driverkit.userclient-access` entitlement listing the
+  extension's bundle identifier. Before this, only audio extensions checked it.
+  Video extensions, which carry `allow-any-userclient-access`, accepted any
+  process. Add the entitlement to every host application.
+
+### Fixed
+
+- Required events (block-storage requests, SCSI tasks, Ethernet transmits and
+  controls, and audio and video changes that wait for Swift) now have a
+  512-event queue separate from the 64-event lossy queue. Lossy events cannot
+  use required capacity, and polling returns required events first.
+- When the required queue rejects an event, block-storage requests complete
+  with the enqueue error and SCSI parallel tasks complete with a delivery
+  failure. Before this, block-storage requests and SCSI tasks were returned as
+  errors without a completion, and task-management responses were left unset.
+  The extension counts dropped lossy events.
+
 ### Added
 
 - `coverage/driverkit.json` records every class and member function declared

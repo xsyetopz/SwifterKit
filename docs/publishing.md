@@ -30,6 +30,7 @@ A driver product needs:
 - An Apple Development certificate and its private key.
 - A DriverKit provisioning profile matching the dext App ID, entitlements, team, and certificate.
 - A host application that embeds and activates the dext.
+- The `com.apple.developer.driverkit.userclient-access` entitlement on the host application, listing the dext bundle identifier. The generated extension rejects runtime connections without it, and the host's provisioning profile must grant it.
 - Developer ID signing and notarization credentials for distribution outside the Mac App Store, or the corresponding App Store setup.
 
 Apple references:

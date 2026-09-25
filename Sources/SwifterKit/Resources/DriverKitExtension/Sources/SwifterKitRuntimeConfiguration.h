@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+static constexpr char kSwifterKitBundleIdentifier[] = "";
+
 struct SwifterKitAudioFormatConfiguration {
     double sampleRate;
     uint32_t formatID;
@@ -21,7 +23,6 @@ struct SwifterKitAudioStreamConfiguration {
     uint32_t initialFormatIndex;
     uint32_t ringBufferFrameCapacity;
 };
-static constexpr char kSwifterKitBundleIdentifier[] = "";
 static constexpr char kSwifterKitAudioDeviceUID[] = "";
 static constexpr char kSwifterKitAudioModelUID[] = "";
 static constexpr char kSwifterKitAudioManufacturerUID[] = "";

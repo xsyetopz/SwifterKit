@@ -402,6 +402,9 @@ public enum DriverExtensionGenerator {
     if configuration.capabilities.contains(.networking) {
       entitlements["com.apple.developer.driverkit.family.networking"] = true
     }
+    // Audio and video system daemons open the family user-client types, which
+    // bypass SwifterKitRuntimeUserClient. The runtime client still checks the
+    // host's userclient-access entitlement for this bundle identifier.
     if configuration.capabilities.contains(.audio) {
       entitlements["com.apple.developer.driverkit.family.audio"] = true
       entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] = true

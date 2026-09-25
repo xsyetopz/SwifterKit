@@ -21,6 +21,9 @@ extension DriverExtensionGenerator {
 
       #include <stdint.h>
 
+      static constexpr char kSwifterKitBundleIdentifier[] =
+          \(cString(configuration.bundleIdentifier));
+
       \(audioConfigurationDeclarations(configuration))
       \(videoConfigurationDeclarations(configuration))
       \(scsiConfigurationDeclarations(configuration))

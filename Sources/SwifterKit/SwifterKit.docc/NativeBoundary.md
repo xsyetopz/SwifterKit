@@ -26,6 +26,34 @@ SwifterKit declares the wire protocol's magic value, version range, message size
 
 ``DriverEvent`` has an event type and payload at the transport layer. Decode it with the extension for the capability that owns the event, such as ``DriverEvent/hidReport()``, ``DriverEvent/serial()``, ``DriverEvent/ethernet()``, or ``DriverEvent/video()``. Each decoder returns `nil` for events from other capability families and throws for malformed payloads in its own family.
 
+## Event delivery
+
+The extension queues events in two classes with separate capacity. Required events carry DriverKit work that Swift must answer: block-storage requests, SCSI parallel tasks and task-management notifications, Ethernet transmit packets and control changes, and audio or video control, custom-property, and stream-format changes. Lossy events are notifications such as HID host reports, interrupts, serial and MIDI notifications, and audio or video I/O state; Swift may miss them without leaving a DriverKit request outstanding.
+
+The required queue holds 512 events and the lossy queue holds 64. Lossy traffic never uses required capacity. Each poll returns the oldest required event before any lossy event. Events keep their order within a class, but a required event can overtake an earlier lossy event.
+
+When the lossy queue is full or the event cannot be allocated, the extension drops the event, counts the drop in its service state, and returns `kIOReturnNoSpace` or `kIOReturnNoMemory` to the DriverKit caller when the caller has a result. When the required queue rejects an event, the extension answers the DriverKit request itself and Swift never sees it:
+
+- Block storage completes the request through `Complete` or `CompleteIO` with the enqueue status (`kIOReturnNoSpace`, or `kIOReturnNoMemory` when allocation fails) and zero bytes transferred.
+- An SCSI parallel task completes through its completion action with `kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE` and `kSCSITaskStatus_No_Status`. Task-management requests return that service response and the enqueue error synchronously, and target initialization returns the enqueue error.
+- An Ethernet transmit packet returns to its buffer pool, the same outcome as a failed Swift completion. Ethernet control changes return the enqueue error to NetworkingDriverKit.
+- Audio and video control, custom-property, stream-format, and stream-activity changes return the enqueue error to the framework, which rejects the change.
+
+A request that the extension answers this way has no request identifier for Swift to complete.
+
+## Host access
+
+The generated runtime user client accepts a host process only when that process has the `com.apple.developer.driverkit.userclient-access` entitlement and its array contains the extension's bundle identifier, ``DriverConfiguration/bundleIdentifier``. The extension checks this for every capability, not only audio. Add the entitlement to the host application that connects through ``DriverClient`` or ``DriverHost``:
+
+```xml
+<key>com.apple.developer.driverkit.userclient-access</key>
+<array>
+  <string>com.example.driver</string>
+</array>
+```
+
+Audio and video extensions also carry `com.apple.developer.driverkit.allow-any-userclient-access`, because system audio and video services open the family user clients and do not hold the host application's entitlement. Those family clients bypass the SwifterKit runtime client. The runtime client still requires the host entitlement.
+
 ## Memory and completion ownership
 
 Memory operations use opaque ``DriverMemoryHandle`` values and bounded read/write lengths. DMA preparation returns a ``DriverDMAMapping``; complete the mapping with ``DriverContext/completeMemoryDMA(_:)`` when the device is done.

@@ -60,7 +60,6 @@ extension DriverExtensionGenerator {
 
     guard let audio = configuration.audioDevice else {
       return declarations + """
-        static constexpr char kSwifterKitBundleIdentifier[] = "";
         static constexpr char kSwifterKitAudioDeviceUID[] = "";
         static constexpr char kSwifterKitAudioModelUID[] = "";
         static constexpr char kSwifterKitAudioManufacturerUID[] = "";
@@ -158,8 +157,6 @@ extension DriverExtensionGenerator {
     let sampleRates = audio.sampleRates.map { String($0) }.joined(separator: ", ")
 
     return declarations + """
-      static constexpr char kSwifterKitBundleIdentifier[] =
-          \(cString(configuration.bundleIdentifier));
       static constexpr char kSwifterKitAudioDeviceUID[] = \(cString(audio.deviceUID));
       static constexpr char kSwifterKitAudioModelUID[] = \(cString(audio.modelUID));
       static constexpr char kSwifterKitAudioManufacturerUID[] =
