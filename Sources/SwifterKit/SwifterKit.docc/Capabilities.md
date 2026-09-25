@@ -8,10 +8,10 @@ The Swift package supports macOS 10.15 and later. ``DriverExtensionGenerationOpt
 
 | Capability | Minimum DriverKit target | Earliest host release |
 | --- | ---: | --- |
-| Base runtime, HID, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
+| Base runtime, HID device, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
 | PCI | 19.0 | macOS 11.1 |
 | SCSI controller | 20.4 | macOS 11.3 |
-| Block storage, audio | 21.0 | macOS 12 |
+| Block storage, audio, HID event service | 21.0 | macOS 12 |
 | Networking, SCSI peripheral | 22.0 | macOS 13 |
 | MIDI | 24.0 | macOS 15 |
 | Video | 27.0 | macOS 27 beta |
@@ -25,6 +25,24 @@ Networking uses the DriverKit 22.0 queue-registration API. VideoDriverKit is cur
 Use `.hid` with ``HIDDeviceConfiguration``. Submit input reports with ``DriverContext/submitHIDInputReport(_:)`` and decode host output or feature reports with ``DriverEvent/hidReport()``. Read extension-side delivery evidence with ``DriverContext/hidRuntimeStatistics()``; its counters distinguish attempted, successful, and failed HIDDriverKit submissions.
 
 ``HIDDeviceConfiguration/acceptedHostReportTypes`` defaults to ``HIDHostReportTypes/all``, preserving output and feature report delivery. Use ``HIDHostReportTypes/output`` for an output-only descriptor. The generated extension returns `kIOReturnUnsupported` synchronously for disallowed types before it reads, allocates, or enqueues their payloads, so the Swift host never receives those events.
+
+``HIDDeviceConfiguration/answeredReportTypes`` routes the host's get-report requests of those types to Swift. Decode each with ``DriverEvent/hidGetReportRequest()`` and answer it once with ``DriverContext/completeHIDGetReport(_:bytes:status:)``; at most 16 requests are pending, and requests still pending when the host detaches or the service stops complete with `kIOReturnAborted`. The extension refuses a request with `kIOReturnNotReady` while no host is connected. Properties clients set on the device arrive as ``DriverEvent/hidProperties()``.
+
+### USB HID devices
+
+Use `.hid` and `.usb` with ``USBHIDDeviceConfiguration`` and a ``USBDeviceConfiguration`` whose provider class is ``USBDeviceConfiguration/interfaceProviderClass``. The generated service derives from `IOUserUSBHostHIDDevice`, which reads the interface's HID descriptor and pipes. ``USBHIDDeviceConfiguration/reportDescriptor`` replaces the device's descriptor, ``USBHIDDeviceConfiguration/deviceProperties`` overrides device-description properties, and ``USBHIDDeviceConfiguration/acceptedHostReportTypes`` and ``USBHIDDeviceConfiguration/answeredReportTypes`` route those host set- and get-report types to Swift instead of the device. With ``USBHIDDeviceConfiguration/deliversInputReports``, the device's input reports also arrive as ``DriverEvent/hidInputReport()``.
+
+Swift controls the device with ``DriverContext/hidDeviceReport(type:reportID:length:options:timeout:)``, ``DriverContext/setHIDDeviceProtocol(_:)``, ``DriverContext/setHIDDeviceIdle(milliseconds:)``, ``DriverContext/setHIDDeviceIdlePolicy(_:milliseconds:)``, and ``DriverContext/resetHIDDevice()``, and can still inject reports with ``DriverContext/submitHIDInputReport(_:)``. The superclass owns the interface, so SwifterKit's USB transfer commands report `kIOReturnNotReady`.
+
+### HID event services
+
+Use `.hid` with ``HIDEventServiceConfiguration``, set ``DriverConfiguration/providerClass`` to ``HIDEventServiceConfiguration/providerClass``, and target DriverKit 21.0 or later. The service matches an existing `IOHIDInterface` by ``HIDUsagePair`` values, vendor, and product. ``HIDEventServiceClass/eventService`` derives from `IOUserHIDEventService` and leaves every event to Swift. ``HIDEventServiceClass/eventDriver(categories:)`` derives from `IOUserHIDEventDriver`, whose element parser turns the listed ``HIDEventDriverCategories`` into events; ``DriverContext/setHIDEventDriverCategories(_:)`` pauses or resumes those categories at run time.
+
+``HIDEventServiceConfiguration/delivery`` forwards each input report as ``DriverEvent/hidInputReport()`` and the element values it updated as ``DriverEvent/hidElementValues()``. The host's LED changes arrive as ``DriverEvent/hidLEDState()`` and its property sets as ``DriverEvent/hidProperties()``.
+
+Read the interface's element tree with ``DriverContext/hidElements()``, one value with ``DriverContext/hidElementValue(cookie:options:scale:)``, and write values with ``DriverContext/setHIDElementValue(_:cookie:)`` or ``DriverContext/setHIDElementData(_:cookie:)`` before committing them with ``DriverContext/commitHIDElement(cookie:direction:)`` or ``DriverContext/commitHIDElements(cookies:direction:)``. ``DriverContext/hidInterfaceReport(type:reportID:length:options:)``, ``DriverContext/setHIDInterfaceReport(_:type:reportID:options:)``, and ``DriverContext/processHIDInterfaceReport(_:type:reportID:timestamp:)`` reach the interface's reports directly.
+
+Dispatch events with ``DriverContext/dispatchHIDKeyboardEvent(usagePage:usage:value:options:repeats:timestamp:)``, ``DriverContext/dispatchHIDRelativePointerEvent(dx:dy:buttons:options:accelerates:timestamp:)``, ``DriverContext/dispatchHIDAbsolutePointerEvent(x:y:buttons:options:accelerates:timestamp:)``, ``DriverContext/dispatchHIDScrollEvent(dx:dy:dz:options:accelerates:timestamp:)``, ``DriverContext/dispatchHIDStylusEvent(_:timestamp:)``, ``DriverContext/dispatchHIDTouchEvent(_:timestamp:)``, ``DriverContext/dispatchHIDDigitizerCollection(_:timestamp:)``, ``DriverContext/dispatchHIDGameControllerEvent(_:options:timestamp:)``, and ``DriverContext/dispatchHIDExtendedGameControllerEvent(_:buttons:options:timestamp:)``. Coordinates and controls are `Double` values carried as 16.16 `IOFixed`; a zero timestamp takes the current time. The extended controller needs DriverKit 23.0 on the running system and otherwise reports `kIOReturnUnsupported`. Element access and dispatches are serialized with the superclass's report handling.
 
 ### USB and PCI
 

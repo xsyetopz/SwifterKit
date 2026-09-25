@@ -41,10 +41,10 @@ narrowest DriverKit target required by its capabilities.
 
 | Generated capability | Minimum DriverKit target | Host availability |
 | --- | ---: | --- |
-| Base runtime, HID, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
+| Base runtime, HID device, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
 | PCI | 19.0 | macOS 11.1 |
 | SCSI controller | 20.4 | macOS 11.3 |
-| Block storage, audio | 21.0 | macOS 12 |
+| Block storage, audio, HID event service | 21.0 | macOS 12 |
 | Networking, SCSI peripheral | 22.0 | macOS 13 |
 | MIDI | 24.0 | macOS 15 |
 | Video | 27.0 | macOS 27 beta |
