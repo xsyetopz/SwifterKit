@@ -28037,7 +28037,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBBOSDescriptor* CopyCapabilityDescriptors()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbCapabilityDescriptors"
         },
         {
           "access" : "public",
@@ -28054,7 +28055,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBConfigurationDescriptor* CopyConfigurationDescriptor(IOService*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbConfigurationDescriptor"
         },
         {
           "access" : "public",
@@ -28071,7 +28073,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBConfigurationDescriptor* CopyConfigurationDescriptor(uint8_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbConfigurationDescriptor"
         },
         {
           "access" : "public",
@@ -28088,7 +28091,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBConfigurationDescriptor* CopyConfigurationDescriptorWithValue(uint8_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbConfigurationDescriptor"
         },
         {
           "access" : "public",
@@ -28105,7 +28109,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBDeviceDescriptor* CopyDeviceDescriptor()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbDeviceDescriptor"
         },
         {
           "access" : "public",
@@ -28122,7 +28127,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBStringDescriptor* CopyStringDescriptor(uint8_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbStringDescriptor"
         },
         {
           "access" : "public",
@@ -28139,7 +28145,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBStringDescriptor* CopyStringDescriptor(uint8_t, uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbStringDescriptor"
         },
         {
           "access" : "public",
@@ -28156,7 +28163,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AbortDeviceRequests(IOService*, IOOptionBits, IOReturn)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbAbortDeviceRequests"
         },
         {
           "access" : "public",
@@ -28167,6 +28175,7 @@
 
           ],
           "name" : "AsyncDeviceRequest",
+          "note" : "follow-up: the synchronous usbControlTransfer covers default-endpoint requests",
           "sdks" : [
             "24.4",
             "25.5",
@@ -28184,13 +28193,14 @@
 
           ],
           "name" : "Close",
+          "note" : "the runtime closes an IOUSBHostDevice provider when it stops",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Close(IOService*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -28207,7 +28217,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyDescriptor(uint8_t, uint16_t*, uint8_t, uint16_t, uint8_t, uint8_t, uint8_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbDescriptor"
         },
         {
           "access" : "public",
@@ -28224,7 +28235,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyInterface(uintptr_t, IOUSBHostInterface**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbInterfaces"
         },
         {
           "access" : "public",
@@ -28235,13 +28247,14 @@
 
           ],
           "name" : "CreateIOBuffer",
+          "note" : "allocates control-transfer buffers for an IOUSBHostDevice provider",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateIOBuffer(IOOptionBits, uint64_t, IOBufferMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -28258,7 +28271,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CreateInterfaceIterator(uintptr_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbInterfaces"
         },
         {
           "access" : "public",
@@ -28274,7 +28288,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CurrentMicroframe(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbCurrentMicroframe"
         },
         {
           "access" : "public",
@@ -28291,7 +28306,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t DestroyInterfaceIterator(uintptr_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbInterfaces"
         },
         {
           "access" : "public",
@@ -28308,7 +28324,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t DeviceRequest(IOService*, uint8_t, uint8_t, uint16_t, uint16_t, uint16_t, IOMemoryDescriptor*, uint16_t*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbControlTransfer"
         },
         {
           "access" : "public",
@@ -28325,7 +28342,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetAddress(uint8_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbDeviceAddress"
         },
         {
           "access" : "public",
@@ -28342,7 +28360,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetFrameNumber(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbFrameNumber"
         },
         {
           "access" : "public",
@@ -28359,7 +28378,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetPortStatus(uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbPortStatus"
         },
         {
           "access" : "public",
@@ -28376,7 +28396,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetSpeed(uint8_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbDeviceSpeed"
         },
         {
           "access" : "public",
@@ -28387,13 +28408,14 @@
 
           ],
           "name" : "Open",
+          "note" : "the runtime opens an IOUSBHostDevice provider when it starts",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Open(IOService*, IOOptionBits, uintptr_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -28409,7 +28431,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t ReferenceMicroframe(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbReferenceMicroframe"
         },
         {
           "access" : "public",
@@ -28426,7 +28449,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t Reset()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbResetDevice"
         },
         {
           "access" : "public",
@@ -28443,7 +28467,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetConfiguration(uint8_t, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbSetConfiguration"
         },
         {
           "access" : "public",
@@ -28454,6 +28479,7 @@
 
           ],
           "name" : "CompleteAsyncDeviceRequest",
+          "note" : "follow-up: the synchronous usbControlTransfer covers default-endpoint requests",
           "sdks" : [
             "24.4",
             "25.5",
@@ -28523,7 +28549,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBConfigurationDescriptor* CopyConfigurationDescriptor()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbConfigurationDescriptor"
         },
         {
           "access" : "public",
@@ -28540,7 +28567,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBInterfaceDescriptor* GetInterfaceDescriptor(const IOUSBConfigurationDescriptor*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbInterfaceDescriptor"
         },
         {
           "access" : "public",
@@ -28557,7 +28585,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBStringDescriptor* CopyStringDescriptor(uint8_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbStringDescriptor"
         },
         {
           "access" : "public",
@@ -28574,7 +28603,8 @@
             "27.0"
           ],
           "signature" : "const IOUSBStringDescriptor* CopyStringDescriptor(uint8_t, uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbStringDescriptor"
         },
         {
           "access" : "public",
@@ -28591,7 +28621,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AbortDeviceRequests(IOOptionBits, IOReturn)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbAbortDeviceRequests"
         },
         {
           "access" : "public",
@@ -28602,6 +28633,7 @@
 
           ],
           "name" : "AsyncDeviceRequest",
+          "note" : "follow-up: the synchronous usbControlTransfer covers default-endpoint requests",
           "sdks" : [
             "24.4",
             "25.5",
@@ -28637,13 +28669,14 @@
 
           ],
           "name" : "CopyDevice",
+          "note" : "serves device queries such as usbDeviceDescriptor from an interface provider",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopyDevice(IOUSBHostDevice**)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -28695,7 +28728,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CurrentMicroframe(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbCurrentMicroframe"
         },
         {
           "access" : "public",
@@ -28706,14 +28740,14 @@
 
           ],
           "name" : "DeviceRequest",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DeviceRequest(uint8_t, uint8_t, uint16_t, uint16_t, uint16_t, IOMemoryDescriptor*, uint16_t*, uint32_t)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbControlTransfer"
         },
         {
           "access" : "public",
@@ -28730,7 +28764,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetFrameNumber(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbFrameNumber"
         },
         {
           "access" : "public",
@@ -28747,7 +28782,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetIdlePolicy(uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbIdlePolicy"
         },
         {
           "access" : "public",
@@ -28764,7 +28800,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetPortStatus(uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbPortStatus"
         },
         {
           "access" : "public",
@@ -28798,7 +28835,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t ReferenceMicroframe(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbReferenceMicroframe"
         },
         {
           "access" : "public",
@@ -28809,14 +28847,14 @@
 
           ],
           "name" : "SelectAlternateSetting",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SelectAlternateSetting(uint8_t)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbSelectAlternateSetting"
         },
         {
           "access" : "public",
@@ -28833,7 +28871,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetIdlePolicy(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbSetIdlePolicy"
         }
       ],
       "name" : "IOUSBHostInterface",
@@ -28896,7 +28935,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t Abort(IOOptionBits, kern_return_t, IOService*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbAbortPipe"
         },
         {
           "access" : "public",
@@ -28907,6 +28947,7 @@
 
           ],
           "name" : "AdjustPipe",
+          "note" : "follow-up: needs a typed endpoint-policy request",
           "sdks" : [
             "24.4",
             "25.5",
@@ -28930,7 +28971,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AsyncIO(IOMemoryDescriptor*, uint32_t, OSAction*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbEnqueueRead"
         },
         {
           "access" : "public",
@@ -28941,6 +28983,7 @@
 
           ],
           "name" : "AsyncIOBundled",
+          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
@@ -28958,14 +29001,14 @@
 
           ],
           "name" : "ClearStall",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ClearStall(bool)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbClearStall"
         },
         {
           "access" : "public",
@@ -28976,6 +29019,7 @@
 
           ],
           "name" : "CreateMemoryDescriptorRing",
+          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
@@ -28999,7 +29043,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetDescriptors(IOUSBStandardEndpointDescriptors*, IOUSBGetEndpointDescriptorOptions)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbPipeDescriptors"
         },
         {
           "access" : "public",
@@ -29016,7 +29061,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetDeviceAddress(uint8_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbPipeDeviceAddress"
         },
         {
           "access" : "public",
@@ -29033,7 +29079,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetIdlePolicy(uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbPipeIdlePolicy"
         },
         {
           "access" : "public",
@@ -29050,7 +29097,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetSpeed(uint8_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbPipeSpeed"
         },
         {
           "access" : "public",
@@ -29061,14 +29109,14 @@
 
           ],
           "name" : "IO",
-          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t IO(IOMemoryDescriptor*, uint32_t, uint32_t*, uint32_t)",
-          "status" : "generated"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbRead"
         },
         {
           "access" : "public",
@@ -29085,7 +29133,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t IsochIO(IOMemoryDescriptor*, IOMemoryDescriptor*, uint64_t, OSAction*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbEnqueueIsochronousRead"
         },
         {
           "access" : "public",
@@ -29102,7 +29151,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetIdlePolicy(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbSetPipeIdlePolicy"
         },
         {
           "access" : "public",
@@ -29113,6 +29163,7 @@
 
           ],
           "name" : "SetMemoryDescriptor",
+          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
@@ -29136,7 +29187,8 @@
             "27.0"
           ],
           "signature" : "void CompleteAsyncIO(OSAction*, IOReturn, uint32_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "USBPipeIOCompletion"
         },
         {
           "access" : "public",
@@ -29147,6 +29199,7 @@
 
           ],
           "name" : "CompleteAsyncIOBundled",
+          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
@@ -29170,7 +29223,8 @@
             "27.0"
           ],
           "signature" : "void CompleteAsyncIsochIO(OSAction*, IOReturn)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "USBIsochronousCompletion"
         }
       ],
       "name" : "IOUSBHostPipe",

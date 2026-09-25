@@ -64,6 +64,22 @@ SwifterKit records user-visible changes in this file.
 - The extension bounds every PCI aperture access by the BAR size `GetBARInfo`
   reports. PCIDriverKit coverage in `coverage/driverkit.json` has no remaining
   gaps.
+- USB drivers can match a whole device: set `providerClass` to
+  `USBDeviceConfiguration.deviceProviderClass` (`IOUSBHostDevice`) and leave the
+  configuration and interface matching fields unset. A device driver selects a
+  configuration, lists interfaces, resets the device, and sends control
+  transfers on the default endpoint.
+- USB device and interface queries: device, configuration, string, BOS, and
+  arbitrary descriptors parsed into typed values; speed, address, port status,
+  frame and microframe numbers; interface idle policy; and asynchronous abort
+  of default-endpoint requests. A descriptor larger than one runtime message
+  throws `USBDescriptorError.tooLarge(length:)` instead of being truncated.
+- Asynchronous USB pipe I/O: `usbEnqueueRead`, `usbEnqueueWrite`,
+  `usbEnqueueIsochronousRead`, and `usbEnqueueIsochronousWrite` return a
+  request identifier, and `DriverEvent.usb()` decodes the completion with its
+  `IOReturn` status, byte counts, timestamps, and data. Up to 32 transfers can
+  be outstanding. Completions use the required event queue.
+- USB pipe abort, idle policy, endpoint descriptors, speed, and device address.
 - `coverage/driverkit.json` records every class and member function declared
   by the DriverKit 24.4, 25.5, and 27.0 SDK headers and how SwifterKit covers
   it. The `SwifterKitCoverage` tool updates, summarizes, and checks the manifest,

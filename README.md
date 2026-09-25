@@ -149,7 +149,7 @@ supports only output reports. Rejected report types return
 | Capability | Configuration | Swift operations |
 | --- | --- | --- |
 | HID | `HIDDeviceConfiguration` | Input reports; allowlisted output and feature events |
-| USB | `USBDeviceConfiguration` | Control transfers, endpoint I/O, stall clearing, alternate settings |
+| USB | `USBDeviceConfiguration` | Interface or device providers; control transfers, synchronous and asynchronous endpoint I/O, isochronous I/O, descriptors, configuration, frame numbers, idle policy, aborts |
 | PCI | `PCIDeviceConfiguration`, `PCIInterruptConfiguration` | Configuration space, bounded BAR access with access options, device location, capability search, MSI/MSI-X allocation, reset, state save/restore, power management, link speed, ASPM, sleep properties |
 | Serial | `SerialPortConfiguration` | Queue I/O, modem state, receive errors, UART events |
 | Block storage | `BlockStorageDeviceConfiguration` | Eject, synchronize, unmap, read/write requests and completions |

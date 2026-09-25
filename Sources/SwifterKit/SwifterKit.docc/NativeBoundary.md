@@ -6,7 +6,7 @@ SwifterKit separates Swift driver behavior from the native extension required by
 
 ``DriverConfiguration`` contains the bundle identifier, provider class, IOKit matching properties, and ``RuntimeCapabilities``. It can also carry metadata for one or more supported capability layers, such as ``USBDeviceConfiguration``, ``PCIDeviceConfiguration``, ``AudioDeviceConfiguration``, or ``MemoryPoolConfiguration``.
 
-The generator validates combinations that the native runtime supports. A declared capability needs its matching configuration object when required, and some capability combinations are mutually exclusive. For example, USB matching requires `IOUSBHostInterface` as the provider class, and PCI matching requires `IOPCIDevice`.
+The generator validates combinations that the native runtime supports. A declared capability needs its matching configuration object when required, and some capability combinations are mutually exclusive. For example, USB matching requires `IOUSBHostInterface` or `IOUSBHostDevice` as the provider class, and PCI matching requires `IOPCIDevice`.
 
 HID host-report acceptance is static capability policy owned by ``HIDDeviceConfiguration/acceptedHostReportTypes``. The generator writes that typed allowlist into the native runtime configuration. The extension checks it synchronously in `setReport` and returns `kIOReturnUnsupported` for a disallowed type before reading or forwarding the report payload.
 
@@ -28,7 +28,7 @@ SwifterKit declares the wire protocol's magic value, version range, message size
 
 ## Event delivery
 
-The extension queues events in two classes with separate capacity. Required events carry DriverKit work that Swift must answer: block-storage requests, SCSI parallel tasks and task-management notifications, Ethernet transmit packets and control changes, and audio or video control, custom-property, and stream-format changes. Lossy events are notifications such as HID host reports, interrupts, serial and MIDI notifications, and audio or video I/O state; Swift may miss them without leaving a DriverKit request outstanding.
+The extension queues events in two classes with separate capacity. Required events carry DriverKit work that Swift must answer or a result Swift must see: block-storage requests, SCSI parallel tasks and task-management notifications, Ethernet transmit packets and control changes, audio or video control, custom-property, and stream-format changes, and USB pipe completions. Lossy events are notifications such as HID host reports, interrupts, serial and MIDI notifications, and audio or video I/O state; Swift may miss them without leaving a DriverKit request outstanding.
 
 An event, including its type and the runtime message header, must fit in one runtime message; a larger event is rejected when it is queued, not when Swift takes it. The required queue holds 512 events and the lossy queue holds 64. Lossy traffic never uses required capacity. Each request for an event returns the oldest required event before any lossy event. Events keep their order within a class, but a required event can overtake an earlier lossy event.
 
@@ -60,6 +60,8 @@ When the lossy queue is full or the event cannot be allocated, the extension dro
 - Audio and video control, custom-property, stream-format, and stream-activity changes return the enqueue error to the framework, which rejects the change.
 
 A request that the extension answers this way has no request identifier for Swift to complete.
+
+A USB pipe completion has no DriverKit request to answer. When the required queue rejects one, the extension keeps the transfer's slot, its result, and its data, so the request identifier is not reused and a full table refuses new transfers. It retries delivery, oldest completion first, on every later USB command and completion.
 
 ## Host access
 
