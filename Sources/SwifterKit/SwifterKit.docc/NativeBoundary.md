@@ -30,11 +30,31 @@ SwifterKit declares the wire protocol's magic value, version range, message size
 
 The extension queues events in two classes with separate capacity. Required events carry DriverKit work that Swift must answer: block-storage requests, SCSI parallel tasks and task-management notifications, Ethernet transmit packets and control changes, and audio or video control, custom-property, and stream-format changes. Lossy events are notifications such as HID host reports, interrupts, serial and MIDI notifications, and audio or video I/O state; Swift may miss them without leaving a DriverKit request outstanding.
 
-An event, including its type and the runtime message header, must fit in one runtime message; a larger event is rejected when it is queued, not when Swift polls it. The required queue holds 512 events and the lossy queue holds 64. Lossy traffic never uses required capacity. Each poll returns the oldest required event before any lossy event. Events keep their order within a class, but a required event can overtake an earlier lossy event.
+An event, including its type and the runtime message header, must fit in one runtime message; a larger event is rejected when it is queued, not when Swift takes it. The required queue holds 512 events and the lossy queue holds 64. Lossy traffic never uses required capacity. Each request for an event returns the oldest required event before any lossy event. Events keep their order within a class, but a required event can overtake an earlier lossy event.
+
+### Notifications instead of polling
+
+``DriverRuntimeConnection/events()`` registers the host with an asynchronous external method (`IOConnectCallAsyncStructMethod`) before it returns. The extension keeps the host's completion and signals it through `AsyncCompletion` when events are pending. ``DriverEventSequence`` then takes events until the queue is empty and waits for the next signal; ``DriverHost/runEvents()`` iterates that sequence.
+
+The extension keeps an armed flag, changed only under its event lock, so no event is left waiting and no event triggers more than one signal:
+
+- A request that finds both queues empty arms the flag.
+- Queuing an event while the flag is armed clears it and sends one signal after the lock is released. Events queued while the host is still taking events send nothing; the host finds them before its queue is empty.
+- Registering arms the flag, or signals at once when events are already queued.
+
+The host's connection buffers at most one signal, so signals that arrive while the host is busy coalesce into one more pass over the queue. A second registration replaces the first, and the earlier ``DriverEventSequence`` ends.
+
+When the registered host goes away, the extension answers the requests that host can no longer complete. Closing the connection, host process exit, a DriverKit client-crash report for the runtime client, and stopping the extension's service all detach the host. Detaching empties both queues and then answers tracked requests the same way the service does when it stops:
+
+- Block-storage requests complete with `kIOReturnAborted` and zero bytes transferred.
+- SCSI parallel tasks complete with `kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE`.
+- Ethernet transmit packets return to their buffer pool.
+
+HID, serial, MIDI, interrupt, audio, video, and SCSI peripheral events leave no DriverKit request waiting for Swift, so those families have nothing to answer. Events queued while no host is registered wait for the next host, as they do before the first host connects. A request queued while a host detaches can leave a stale event for the next host, whose completion for it then fails.
 
 When the lossy queue is full or the event cannot be allocated, the extension drops the event, counts the drop in its service state, and returns `kIOReturnNoSpace` or `kIOReturnNoMemory` to the DriverKit caller when the caller has a result. When the required queue rejects an event, the extension answers the DriverKit request itself and Swift never sees it:
 
-- Block storage completes the request through `Complete` or `CompleteIO` with the enqueue status (`kIOReturnNoSpace`, `kIOReturnNoMemory` when allocation fails, or `kIOReturnBadArgument` when the event would not fit in one poll response) and zero bytes transferred.
+- Block storage completes the request through `Complete` or `CompleteIO` with the enqueue status (`kIOReturnNoSpace`, `kIOReturnNoMemory` when allocation fails, or `kIOReturnBadArgument` when the event would not fit in one runtime message) and zero bytes transferred.
 - An SCSI parallel task completes through its completion action with `kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE` and `kSCSITaskStatus_No_Status`. Task-management requests return that service response and the enqueue error synchronously, and target initialization returns the enqueue error.
 - An Ethernet transmit packet returns to its buffer pool, the same outcome as a failed Swift completion. Ethernet control changes return the enqueue error to NetworkingDriverKit.
 - Audio and video control, custom-property, stream-format, and stream-activity changes return the enqueue error to the framework, which rejects the change.

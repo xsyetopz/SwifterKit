@@ -23,6 +23,7 @@ The package includes APIs for HID, USB, PCI, serial, block storage, MIDI, Ethern
 - ``DriverContext``
 - ``DriverEvent``
 - ``DriverHost``
+- ``DriverEventSequence``
 - ``DriverExtensionGenerator``
 
 ### Service access

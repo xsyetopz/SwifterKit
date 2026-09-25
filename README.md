@@ -213,7 +213,8 @@ native glue to the generator.
 
 The generated extension and the Swift host exchange versioned runtime messages.
 Swift receives typed values, opaque memory handles, and bounded payloads rather
-than DriverKit objects or native pointers. Ethernet, block-storage, SCSI, and
+than DriverKit objects or native pointers. The extension notifies the host when
+events are queued, and `DriverHost.runEvents()` delivers them without polling. Ethernet, block-storage, SCSI, and
 other completion-based APIs require Swift to return the matching request
 identifier after transport work finishes.
 
@@ -259,13 +260,15 @@ compile-checked but unexecuted in CI:
 
 - IOKit service discovery and user-client opening through `kIOMasterPortDefault`;
 - Swift concurrency back-deployment during the driver lifecycle and event loop;
+- event notifications through `IOConnectCallAsyncStructMethod`, the IOKit
+  notification port, and the extension's `AsyncCompletion` calls;
 - generated extension activation, runtime negotiation, and device I/O on a
   macOS 10.15 host; and
 - signed entitlement, provisioning, and hardware behavior.
 
-Unit tests force the legacy nanosecond sleep fallback and the modern
-duration-based branch independently. IOKit port selection depends on the
-running operating system and needs a macOS 10.15 host for runtime coverage.
+Unit tests model the extension's event notifications with mock connections.
+IOKit port selection depends on the running operating system and needs a macOS
+10.15 host for runtime coverage.
 
 For a smaller Swift-only cycle:
 

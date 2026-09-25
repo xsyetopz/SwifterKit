@@ -66,6 +66,17 @@ The generator validates capability metadata before writing files. For example, `
 
 Use ``DriverHost`` with a connected runtime to deliver startup, events, and shutdown to a ``SwiftDriver`` implementation. The host serializes lifecycle state and exposes its state through ``DriverHost/state``.
 
+```swift
+let host = DriverHost(driver: ExampleHIDDriver())
+try await host.start()
+let delivery = Task { try await host.runEvents() }
+// ...
+await host.stop()
+try await delivery.value
+```
+
+``DriverHost/runEvents()`` passes each event to ``SwiftDriver/handle(event:context:)``. The extension notifies the host when events are queued, so the host does not poll while the queue is empty. The method returns after ``DriverHost/stop()`` and throws `CancellationError` when its task is cancelled. To run your own loop instead, iterate ``DriverRuntimeConnection/events()``.
+
 The host application must have the `com.apple.developer.driverkit.userclient-access` entitlement, and its array must contain the extension's bundle identifier. The generated extension rejects a runtime connection from any process without it. See <doc:NativeBoundary#Host-access>.
 
 For direct access to another DriverKit service rather than a generated SwifterKit extension, use ``DriverClient`` to enumerate services and open a ``DriverSession``. ``DriverSession/call(_:)`` sends a raw ``DriverRequest`` through that service's user client.

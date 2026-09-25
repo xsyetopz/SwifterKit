@@ -6,6 +6,21 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** event delivery is push-based. The extension notifies the host
+  through an asynchronous external method when events are queued, and the host
+  drains the queue until it is empty. `DriverHost.runEvents()` replaces
+  `runEvents(idlePollNanoseconds:)`, `runEvents(idlePollInterval:)`, and
+  `processNextEvent()`, which are removed. `DriverRuntimeConnection.events()`
+  returns the events as a `DriverEventSequence`, and
+  `DriverRuntimeConnection.nextEvent()` is no longer public.
+- **Breaking:** `DriverConnection` requires `notifications(selector:)`, which
+  registers an asynchronous external method and returns its completions as an
+  `AsyncStream`. `DriverSession.notifications(selector:)` forwards to it.
+- When the registered host closes its connection or exits, the extension empties
+  its event queues and answers the requests that host can no longer complete:
+  block-storage requests complete with `kIOReturnAborted`, SCSI parallel tasks
+  complete with a delivery failure, and Ethernet transmits return to their pool.
+
 - **Breaking:** every generated extension now rejects a runtime user-client
   connection unless the host process has the
   `com.apple.developer.driverkit.userclient-access` entitlement listing the
