@@ -35,7 +35,7 @@
 //   stops, DetachEventClient releases it, empties both queues, and then answers
 //   every tracked request. Emptying first means a request
 //   queued concurrently is still answered; at worst its stale event reaches the
-//   next host, whose completion then fails with kIOReturnNotFound.
+//   next host, whose completion for it then fails.
 // - Requests that arrive while no host is registered wait in the queues for the
 //   next host, as they do before the first host connects.
 

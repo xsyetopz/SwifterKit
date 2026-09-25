@@ -137,6 +137,20 @@ struct DriverEventSequenceTests {
   }
 
   @Test
+  func closeDuringDrainEndsTheSequence() async throws {
+    let source = EventSourceConnection(events: [Self.first])
+    let runtime = try await makeRuntime(source)
+    let events = try await runtime.events()
+    var iterator = events.makeAsyncIterator()
+    #expect(try await iterator.next() == Self.first)
+
+    // The connection closes after the runtime sent the poll but before the transport answered.
+    await source.failNextPollAsClosed()
+    #expect(try await iterator.next() == nil)
+    await runtime.close()
+  }
+
+  @Test
   func secondRegistrationEndsTheFirstSequence() async throws {
     let source = EventSourceConnection()
     let runtime = try await makeRuntime(source)

@@ -39,15 +39,22 @@ public struct DriverEventSequence: AsyncSequence, Sendable {
     public mutating func next() async throws -> DriverEvent? {
       while true {
         try Task.checkCancellation()
-        do {
-          if let event = try await runtime.nextEvent() { return event }
-        } catch DriverRuntimeError.closed { return nil }
+        do { if let event = try await runtime.nextEvent() { return event } } catch let error
+          where Self.isClosed(error)
+        { return nil }
         // The empty poll armed the extension; the next queued event sends a notification.
         guard await notifications.next() != nil else {
           try Task.checkCancellation()
           return nil
         }
       }
+    }
+
+    /// Whether `error` reports a connection that closed, possibly while a request was in flight.
+    private static func isClosed(_ error: any Error) -> Bool {
+      if let error = error as? DriverRuntimeError { return error == .closed }
+      if let error = error as? DriverKitError { return error.kind == .sessionClosed }
+      return false
     }
   }
 }

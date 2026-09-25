@@ -42,7 +42,7 @@ The extension keeps an armed flag, changed only under its event lock, so no even
 - Queuing an event while the flag is armed clears it and sends one signal after the lock is released. Events queued while the host is still taking events send nothing; the host finds them before its queue is empty.
 - Registering arms the flag, or signals at once when events are already queued.
 
-The host's connection buffers at most one signal, so signals that arrive while the host is busy coalesce into one more pass over the queue. A second registration replaces the first, and the earlier ``DriverEventSequence`` ends.
+The host's connection buffers at most one signal, so signals that arrive while the host is busy coalesce into one more pass over the queue. A second registration replaces the first, and the earlier ``DriverEventSequence`` ends. When the second registration comes from a different connection, the first connection is no longer the registered host: closing it answers nothing, and requests it already took but never completed stay outstanding until the service stops.
 
 When the registered host goes away, the extension answers the requests that host can no longer complete. Closing the connection, host process exit, a DriverKit client-crash report for the runtime client, and stopping the extension's service all detach the host. Detaching empties both queues and then answers tracked requests the same way the service does when it stops:
 

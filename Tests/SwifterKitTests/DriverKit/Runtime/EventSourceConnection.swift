@@ -14,6 +14,7 @@ actor EventSourceConnection: DriverConnection {
   private var continuation: AsyncStream<Void>.Continuation?
   /// Events the next empty poll queues after it arms, before it answers.
   private var afterEmptyPoll: [DriverEvent] = []
+  private var failNextPoll = false
   private(set) var pollCount = 0
   private(set) var emptyPollCount = 0
   private(set) var notificationsSent = 0
@@ -36,6 +37,9 @@ actor EventSourceConnection: DriverConnection {
 
   /// Queues `events` during the next empty poll, after it arms and before it answers.
   func enqueueAfterNextEmptyPoll(_ events: [DriverEvent]) { afterEmptyPoll = events }
+
+  /// Makes the next poll fail as a connection closed while the request was in flight.
+  func failNextPollAsClosed() { failNextPoll = true }
 
   /// Sends a notification regardless of the armed flag.
   func signal() { continuation?.yield() }
@@ -87,6 +91,10 @@ actor EventSourceConnection: DriverConnection {
 
   private func poll(requestID: UInt64) throws -> DriverResponse {
     pollCount += 1
+    if failNextPoll {
+      failNextPoll = false
+      throw DriverKitError(kind: .sessionClosed, operation: "IOConnectCallMethod")
+    }
     guard !queue.isEmpty else {
       emptyPollCount += 1
       armed = true
