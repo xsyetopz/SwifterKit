@@ -3,7 +3,7 @@
   import Foundation
   @preconcurrency import IOKit
 
-  private var defaultIOKitMainPort: mach_port_t {
+  var defaultIOKitMainPort: mach_port_t {
     if #available(macOS 12.0, *) { kIOMainPortDefault } else { kIOMasterPortDefault }
   }
 

@@ -74,39 +74,20 @@ public actor DriverHost<Driver: SwiftDriver> {
     }
   }
 
-  /// Processes one queued runtime event.
+  /// Delivers the extension's events to the driver until the host stops or the task is cancelled.
   ///
-  /// Returns false when the queue is currently empty.
-  @discardableResult
-  public func processNextEvent() async throws -> Bool {
+  /// The host registers for event notifications, takes queued events until the queue is empty,
+  /// passes each one to ``SwiftDriver/handle(event:context:)``, and then waits for the extension
+  /// to report more events. It does not poll while the queue is empty.
+  ///
+  /// The method returns after ``stop()`` closes the connection and throws `CancellationError` when
+  /// its task is cancelled. An error thrown by the driver's handler ends delivery and propagates.
+  public func runEvents() async throws {
     guard state == .running, let runtime, let context else {
       throw DriverHostError.invalidState(expected: .running, actual: state)
     }
-    guard let event = try await runtime.nextEvent() else { return false }
-    try await driver.handle(event: event, context: context)
-    return true
-  }
-
-  /// Processes events until cancellation or explicit shutdown.
-  public func runEvents(idlePollNanoseconds: UInt64 = 10_000_000) async throws {
-    while state == .running {
-      try Task.checkCancellation()
-      if try await !processNextEvent() {
-        if #available(macOS 13.0, *), idlePollNanoseconds <= Int64.max {
-          try await Task.sleep(for: .nanoseconds(Int64(idlePollNanoseconds)))
-        } else {
-          try await Task.sleep(nanoseconds: idlePollNanoseconds)
-        }
-      }
-    }
-  }
-
-  /// Processes events until cancellation or explicit shutdown using a clock duration.
-  @available(macOS 13.0, *)
-  public func runEvents(idlePollInterval: Duration) async throws {
-    while state == .running {
-      try Task.checkCancellation()
-      if try await !processNextEvent() { try await Task.sleep(for: idlePollInterval) }
+    for try await event in try await runtime.events() {
+      try await driver.handle(event: event, context: context)
     }
   }
 

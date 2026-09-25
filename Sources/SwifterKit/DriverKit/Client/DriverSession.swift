@@ -22,6 +22,20 @@ public actor DriverSession {
     return try await connection.call(request)
   }
 
+  /// Registers for asynchronous completions of one external method.
+  ///
+  /// See ``DriverConnection/notifications(selector:)``. Closing the session finishes the stream.
+  public func notifications(selector: UInt32) async throws -> AsyncStream<Void> {
+    guard let connection else {
+      throw DriverKitError(
+        kind: .sessionClosed,
+        operation: "IOConnectCallAsyncStructMethod",
+        serviceID: service.id
+      )
+    }
+    return try await connection.notifications(selector: selector)
+  }
+
   /// Closes the session idempotently.
   public func close() async {
     guard let connection else { return }

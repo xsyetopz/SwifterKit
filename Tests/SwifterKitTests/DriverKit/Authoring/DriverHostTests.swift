@@ -6,9 +6,9 @@ import Testing
 @Suite
 struct DriverHostTests {
   @Test
-  func startsProcessesEventAndStops() async throws {
+  func startsDeliversPushedEventsAndStops() async throws {
     let recorder = HostRecorder()
-    let connection = HostConnection(
+    let connection = EventSourceConnection(
       capabilities: [.hid],
       events: [DriverEvent(type: 5, payload: [6])]
     )
@@ -18,22 +18,32 @@ struct DriverHostTests {
 
     #expect(try await host.start() == service)
     #expect(await host.state == .running)
-    #expect(try await host.processNextEvent())
-    #expect(try await !host.processNextEvent())
+    let delivery = Task { try await host.runEvents() }
+    #expect(await eventually { await recorder.events.count == 1 })
+    #expect(await eventually { await connection.emptyPollCount >= 1 })
+    await connection.enqueue(DriverEvent(type: 7, payload: [8]))
+    #expect(await eventually { await recorder.events.count == 2 })
 
     await host.stop()
     await host.stop()
+    try await delivery.value
 
     #expect(await host.state == .stopped)
     #expect(await recorder.started)
-    #expect(await recorder.events == [DriverEvent(type: 5, payload: [6])])
+    #expect(
+      await recorder.events == [
+        DriverEvent(type: 5, payload: [6]), DriverEvent(type: 7, payload: [8]),
+      ]
+    )
     #expect(await recorder.stopped)
     #expect(await connection.closeCount == 1)
+    #expect(await connection.registrationCount == 1)
+    #expect(await connection.notificationsSent == 2)
   }
 
   @Test
-  func handlesNanosecondValuesOutsideDurationRange() async throws {
-    let connection = HostConnection(capabilities: [.hid])
+  func cancellingEventDeliveryThrowsCancellationError() async throws {
+    let connection = EventSourceConnection(capabilities: [.hid])
     let client = DriverClient(
       transport: HostTransport(
         service: DriverService(id: 2, name: "Hosted"),
@@ -43,30 +53,27 @@ struct DriverHostTests {
     let host = DriverHost(driver: HostedDriver(recorder: HostRecorder()), client: client)
 
     try await host.start()
-    let loop = Task { try await host.runEvents(idlePollNanoseconds: .max) }
-    #expect(await waitForEmptyPoll(connection))
-    loop.cancel()
-    await #expect(throws: CancellationError.self) { try await loop.value }
+    let delivery = Task { try await host.runEvents() }
+    #expect(await eventually { await connection.emptyPollCount >= 1 })
+    delivery.cancel()
+    await #expect(throws: CancellationError.self) { try await delivery.value }
+    #expect(await host.state == .running)
     await host.stop()
   }
 
   @Test
-  func runsWithDurationRepresentableNanoseconds() async throws {
-    let connection = HostConnection(capabilities: [.hid])
+  func rejectsEventDeliveryWhenStopped() async {
     let client = DriverClient(
       transport: HostTransport(
         service: DriverService(id: 3, name: "Hosted"),
-        connection: connection
+        connection: EventSourceConnection(capabilities: [.hid])
       )
     )
     let host = DriverHost(driver: HostedDriver(recorder: HostRecorder()), client: client)
 
-    try await host.start()
-    let loop = Task { try await host.runEvents(idlePollNanoseconds: 1) }
-    #expect(await waitForEmptyPoll(connection))
-    loop.cancel()
-    await #expect(throws: CancellationError.self) { try await loop.value }
-    await host.stop()
+    await #expect(throws: DriverHostError.invalidState(expected: .running, actual: .stopped)) {
+      try await host.runEvents()
+    }
   }
 
   @Test
@@ -80,7 +87,7 @@ struct DriverHostTests {
 
   @Test
   func rejectsSecondStartWhileRunning() async throws {
-    let connection = HostConnection(capabilities: [.hid])
+    let connection = EventSourceConnection(capabilities: [.hid])
     let client = DriverClient(
       transport: HostTransport(
         service: DriverService(id: 1, name: "Hosted"),
@@ -93,14 +100,6 @@ struct DriverHostTests {
     await #expect(throws: DriverHostError.self) { try await host.start() }
     await host.stop()
   }
-}
-
-private func waitForEmptyPoll(_ connection: HostConnection) async -> Bool {
-  for _ in 0..<1_000 {
-    if await connection.emptyPollCount > 0 { return true }
-    await Task.yield()
-  }
-  return false
 }
 
 private struct HostedDriver: SwiftDriver {
@@ -139,9 +138,9 @@ private actor HostRecorder {
 
 private actor HostTransport: DriverTransport {
   let service: DriverService
-  let connection: HostConnection
+  let connection: EventSourceConnection
 
-  init(service: DriverService, connection: HostConnection) {
+  init(service: DriverService, connection: EventSourceConnection) {
     self.service = service
     self.connection = connection
   }
@@ -156,55 +155,5 @@ private actor EmptyHostTransport: DriverTransport {
 
   func open(_ service: DriverService, type: UInt32) throws -> any DriverConnection {
     throw DriverHostError.serviceNotFound(DriverServiceMatch(serviceClass: "Missing"))
-  }
-}
-
-private actor HostConnection: DriverConnection {
-  let capabilities: RuntimeCapabilities
-  var events: [DriverEvent]
-  var closeCount = 0
-  var emptyPollCount = 0
-
-  init(capabilities: RuntimeCapabilities, events: [DriverEvent] = []) {
-    self.capabilities = capabilities
-    self.events = events
-  }
-
-  func call(_ request: DriverRequest) throws -> DriverResponse {
-    let message = try RuntimeMessage(decoding: request.structureInput)
-    switch message.kind {
-    case .handshake:
-      let acceptance = RuntimeHandshakeAcceptance(version: .current, capabilities: capabilities)
-      return try response(
-        kind: .response,
-        requestID: message.requestID,
-        payload: acceptance.encoded()
-      )
-    case .command:
-      let opcode: UInt32 = try message.payload.readRuntimeInteger(at: 0)
-      if opcode == RuntimeOpcode.pollEvent.rawValue, events.isEmpty { emptyPollCount += 1 }
-      guard opcode == RuntimeOpcode.pollEvent.rawValue, !events.isEmpty else {
-        return try response(kind: .response, requestID: message.requestID, payload: Data())
-      }
-      let event = events.removeFirst()
-      var payload = Data()
-      payload.appendRuntimeInteger(event.type)
-      payload.append(contentsOf: event.payload)
-      return try response(kind: .event, requestID: message.requestID, payload: payload)
-    case .response, .event, .error: throw RuntimeProtocolError.unknownMessageKind
-    }
-  }
-
-  func close() { closeCount += 1 }
-
-  private func response(
-    kind: RuntimeMessageKind,
-    requestID: UInt64,
-    payload: Data
-  ) throws -> DriverResponse {
-    DriverResponse(
-      structureOutput: try RuntimeMessage(kind: kind, requestID: requestID, payload: payload)
-        .encoded()
-    )
   }
 }

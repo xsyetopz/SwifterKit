@@ -19,6 +19,7 @@ struct DriverSessionTests {
     await #expect(throws: DriverKitError.self) {
       try await session.call(DriverRequest(selector: 0))
     }
+    await #expect(throws: DriverKitError.self) { try await session.notifications(selector: 1) }
   }
 }
 
@@ -26,6 +27,8 @@ private actor CountingConnection: DriverConnection {
   var closeCount = 0
 
   func call(_ request: DriverRequest) -> DriverResponse { DriverResponse() }
+
+  func notifications(selector: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
 
   func close() { closeCount += 1 }
 }

@@ -5,13 +5,53 @@
   actor IOKitDriverConnection: DriverConnection {
     private var connection: io_connect_t
     private let serviceID: UInt64
+    /// Created by the first registration; releasing it tears the port down.
+    private var notificationPort: IOKitNotificationPort?
 
     init(connection: io_connect_t, serviceID: UInt64) {
       self.connection = connection
       self.serviceID = serviceID
     }
 
+    // The service closes first, so the extension sends nothing more, and the stored notification
+    // port is destroyed after this body runs.
     deinit { if connection != 0 { IOServiceClose(connection) } }
+
+    func notifications(selector: UInt32) throws -> AsyncStream<Void> {
+      let operation = "IOConnectCallAsyncStructMethod"
+      guard connection != 0 else {
+        throw DriverKitError(kind: .sessionClosed, operation: operation, serviceID: serviceID)
+      }
+      if notificationPort == nil { notificationPort = IOKitNotificationPort() }
+      guard let port = notificationPort else {
+        throw DriverKitError(
+          kind: .ioReturn(kIOReturnNoResources),
+          operation: "IONotificationPortCreate",
+          serviceID: serviceID
+        )
+      }
+      let (stream, continuation) = AsyncStream.makeStream(
+        of: Void.self,
+        bufferingPolicy: .bufferingNewest(1)
+      )
+      var reference = port.register(continuation)
+      let result = IOConnectCallAsyncStructMethod(
+        connection,
+        selector,
+        port.machPort,
+        &reference,
+        UInt32(reference.count),
+        nil,
+        0,
+        nil,
+        nil
+      )
+      guard result == kIOReturnSuccess else {
+        continuation.finish()
+        throw DriverKitError(kind: .ioReturn(result), operation: operation, serviceID: serviceID)
+      }
+      return stream
+    }
 
     func call(_ request: DriverRequest) throws -> DriverResponse {
       guard connection != 0 else {
@@ -77,9 +117,11 @@
     }
 
     func close() {
-      guard connection != 0 else { return }
-      IOServiceClose(connection)
-      connection = 0
+      if connection != 0 {
+        IOServiceClose(connection)
+        connection = 0
+      }
+      notificationPort = nil
     }
 
     private func validate(_ request: DriverRequest) throws {

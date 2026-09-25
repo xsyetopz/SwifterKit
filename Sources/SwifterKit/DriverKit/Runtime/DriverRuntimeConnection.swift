@@ -57,10 +57,25 @@ public actor DriverRuntimeConnection {
     return response.payload
   }
 
-  /// Polls one queued event from the internal runtime.
+  /// Registers for event notifications and returns the extension's events as they arrive.
   ///
-  /// A nil result means no event was queued when the extension handled the request.
-  public func nextEvent() async throws -> DriverEvent? {
+  /// Registration happens before this method returns, so no event queued afterward goes
+  /// unnoticed. See ``DriverEventSequence`` for how the sequence drains, waits, and ends.
+  /// Calling this method again replaces the registration; the earlier sequence ends once its
+  /// queue is empty.
+  public func events() async throws -> DriverEventSequence {
+    guard let session else { throw DriverRuntimeError.closed }
+    let notifications = try await session.notifications(
+      selector: RuntimeSelector.eventNotification.rawValue
+    )
+    return DriverEventSequence(runtime: self, notifications: notifications)
+  }
+
+  /// Takes one queued event from the internal runtime.
+  ///
+  /// A nil result means no event was queued when the extension handled the request. The
+  /// extension then notifies the registered host when the next event is queued.
+  func nextEvent() async throws -> DriverEvent? {
     let response = try await transact(
       kind: .command,
       flags: .expectsResponse,
@@ -128,7 +143,7 @@ public actor DriverRuntimeConnection {
     )
     let rawResponse = try await session.call(
       DriverRequest(
-        selector: 0,
+        selector: RuntimeSelector.transact.rawValue,
         structureInput: request.encoded(),
         structureOutputCapacity: responseCapacity
       )

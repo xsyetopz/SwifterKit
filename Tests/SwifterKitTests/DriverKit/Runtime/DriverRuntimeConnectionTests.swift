@@ -225,6 +225,8 @@ private actor RuntimeMockConnection: DriverConnection {
     }
   }
 
+  func notifications(selector: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
+
   func close() { closeCount += 1 }
 
   private func response(

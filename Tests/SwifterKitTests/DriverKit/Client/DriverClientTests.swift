@@ -23,6 +23,9 @@ struct DriverClientTests {
     #expect(received == response)
     #expect(await transport.lastOpenType == 3)
     #expect(await connection.lastRequest?.selector == 4)
+
+    _ = try await session.notifications(selector: 5)
+    #expect(await connection.lastNotificationSelector == 5)
   }
 }
 
@@ -47,6 +50,7 @@ private actor MockTransport: DriverTransport {
 private actor MockConnection: DriverConnection {
   let response: DriverResponse
   var lastRequest: DriverRequest?
+  var lastNotificationSelector: UInt32?
   var isClosed = false
 
   init(response: DriverResponse) { self.response = response }
@@ -54,6 +58,11 @@ private actor MockConnection: DriverConnection {
   func call(_ request: DriverRequest) throws -> DriverResponse {
     lastRequest = request
     return response
+  }
+
+  func notifications(selector: UInt32) -> AsyncStream<Void> {
+    lastNotificationSelector = selector
+    return AsyncStream { $0.finish() }
   }
 
   func close() { isClosed = true }
