@@ -69,6 +69,10 @@ static constexpr SwifterKitVideoStreamConfiguration kSwifterKitVideoStreams[1] =
 static constexpr uint32_t kSwifterKitVideoStreamCount = 0;
 
 #define SWIFTERKIT_ENABLE_HID 0
+#define SWIFTERKIT_HID_DEVICE 0
+#define SWIFTERKIT_HID_USB_DEVICE 0
+#define SWIFTERKIT_HID_EVENT_SERVICE 0
+#define SWIFTERKIT_HID_EVENT_DRIVER 0
 #define SWIFTERKIT_ENABLE_NETWORKING 0
 #define SWIFTERKIT_ENABLE_AUDIO 0
 #define SWIFTERKIT_ENABLE_VIDEO 0
@@ -199,5 +203,11 @@ static constexpr uint32_t kSwifterKitHIDPrimaryUsage = 0;
 static constexpr uint32_t kSwifterKitHIDHostReportOutput = 1U << 0U;
 static constexpr uint32_t kSwifterKitHIDHostReportFeature = 1U << 1U;
 static constexpr uint32_t kSwifterKitHIDAcceptedHostReportTypes = 3;
+static constexpr uint32_t kSwifterKitHIDAnsweredReportTypes = 0;
+static constexpr uint8_t kSwifterKitHIDDeviceProperties[] = {0};
+static constexpr uint32_t kSwifterKitHIDDevicePropertiesLength = 0;
+static constexpr bool kSwifterKitHIDDeliversDeviceInputReports = false;
+static constexpr uint32_t kSwifterKitHIDEventDelivery = 0;
+static constexpr uint32_t kSwifterKitHIDEventDriverCategories = 0;
 
 #endif

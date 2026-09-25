@@ -6,15 +6,20 @@
 #include "SwifterKitRuntimeService.h"
 #include "SwifterKitRuntimeServiceState.h"
 
-#if SWIFTERKIT_ENABLE_HID
+#if SWIFTERKIT_HID_DEVICE
     #include <DriverKit/IOBufferMemoryDescriptor.h>
     #include <DriverKit/IOMemoryMap.h>
     #include <HIDDriverKit/IOHIDDeviceKeys.h>
+
+    #include "SwifterKitRuntimeServiceProperties.h"
 #endif
 
-#if SWIFTERKIT_ENABLE_HID
+// The IOUserHIDDevice and IOUserUSBHostHIDDevice (IOHIDDevice) side of the runtime. Event
+// services live in SwifterKitRuntimeHIDEvents.cpp.
+#if SWIFTERKIT_HID_DEVICE
 namespace {
-    #if SWIFTERKIT_ENABLE_USB
+    // An IOUserUSBHostHIDDevice opens its interface itself, so the runtime leaves it alone.
+    #if SWIFTERKIT_ENABLE_USB && !SWIFTERKIT_HID_USB_DEVICE
     kern_return_t OpenUSBProvider(
         SwifterKitRuntimeService* service,
         IOService* provider,
@@ -59,7 +64,7 @@ namespace {
     }
     #endif
 
-    void SetNumber(OSDictionary* dictionary, const char* key, uint32_t value) {
+    [[maybe_unused]] void SetNumber(OSDictionary* dictionary, const char* key, uint32_t value) {
         OSNumber* number = OSNumber::withNumber(value, 32);
         if (number != nullptr) {
             OSDictionarySetValue(dictionary, key, number);
@@ -67,7 +72,7 @@ namespace {
         }
     }
 
-    void SetString(OSDictionary* dictionary, const char* key, const char* value) {
+    [[maybe_unused]] void SetString(OSDictionary* dictionary, const char* key, const char* value) {
         OSString* string = OSString::withCString(value);
         if (string != nullptr) {
             OSDictionarySetValue(dictionary, key, string);
@@ -75,7 +80,7 @@ namespace {
         }
     }
 
-    void AddPrimaryUsagePair(OSDictionary* description) {
+    [[maybe_unused]] void AddPrimaryUsagePair(OSDictionary* description) {
         OSArray* pairs = OSArray::withCapacity(1);
         OSDictionary* pair = OSDictionary::withCapacity(2);
         if (pairs != nullptr && pair != nullptr) {
@@ -132,7 +137,7 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
         return false;
     }
     bool opened = true;
-    #if SWIFTERKIT_ENABLE_USB
+    #if SWIFTERKIT_ENABLE_USB && !SWIFTERKIT_HID_USB_DEVICE
     opened = OpenUSBProvider(this, provider, ivars) == kIOReturnSuccess;
     #elif SWIFTERKIT_ENABLE_PCI
     opened = OpenPCIProvider(this, provider, ivars) == kIOReturnSuccess;
@@ -142,7 +147,7 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
     }
     #if SWIFTERKIT_ENABLE_MEMORY
     if (StartMemory(provider) != kIOReturnSuccess) {
-        #if SWIFTERKIT_ENABLE_USB
+        #if SWIFTERKIT_ENABLE_USB && !SWIFTERKIT_HID_USB_DEVICE
         CloseUSBProvider(this, ivars);
         #endif
         #if SWIFTERKIT_ENABLE_PCI
@@ -156,7 +161,7 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
         #if SWIFTERKIT_ENABLE_MEMORY
         StopMemory();
         #endif
-        #if SWIFTERKIT_ENABLE_USB
+        #if SWIFTERKIT_ENABLE_USB && !SWIFTERKIT_HID_USB_DEVICE
         CloseUSBProvider(this, ivars);
         #endif
         #if SWIFTERKIT_ENABLE_PCI
@@ -169,6 +174,32 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
 }
 
 OSDictionary* SwifterKitRuntimeService::newDeviceDescription() {
+    #if SWIFTERKIT_HID_USB_DEVICE
+    // The superclass reads the interface's descriptors; configured properties override them.
+    OSDictionary* description = super::newDeviceDescription();
+    if (description == nullptr || kSwifterKitHIDDevicePropertiesLength == 0) {
+        return description;
+    }
+    OSObject* decoded = nullptr;
+    if (SwifterKitDecodeProperty(
+            kSwifterKitHIDDeviceProperties,
+            kSwifterKitHIDDevicePropertiesLength,
+            &decoded)
+        == kIOReturnSuccess) {
+        const OSDictionary* overrides = OSDynamicCast(OSDictionary, decoded);
+        if (overrides != nullptr) {
+            overrides->iterateObjects(^bool(OSObject* key, OSObject* value) {
+              const OSString* name = OSDynamicCast(OSString, key);
+              if (name != nullptr) {
+                  description->setObject(name, value);
+              }
+              return true;
+            });
+        }
+    }
+    OSSafeReleaseNULL(decoded);
+    return description;
+    #else
     OSDictionary* description = OSDictionary::withCapacity(14);
     if (description == nullptr) {
         return nullptr;
@@ -189,11 +220,16 @@ OSDictionary* SwifterKitRuntimeService::newDeviceDescription() {
     SetNumber(description, kIOHIDPrimaryUsageKey, kSwifterKitHIDPrimaryUsage);
     AddPrimaryUsagePair(description);
     return description;
+    #endif
 }
 
 OSData* SwifterKitRuntimeService::newReportDescriptor() {
     if (kSwifterKitHIDReportDescriptorLength == 0) {
+    #if SWIFTERKIT_HID_USB_DEVICE
+        return super::newReportDescriptor();
+    #else
         return nullptr;
+    #endif
     }
     return OSData::withBytes(kSwifterKitHIDReportDescriptor, kSwifterKitHIDReportDescriptorLength);
 }
@@ -235,7 +271,8 @@ kern_return_t SwifterKitRuntimeService::SubmitHIDInputReport(
             reinterpret_cast<void*>(static_cast<uintptr_t>(map->GetAddress())),
             bytes,
             header->reportLength);
-        result = handleReport(
+        // The superclass delivers the report, so a USB HID device does not echo it to Swift.
+        result = super::handleReport(
             header->timestamp,
             buffer,
             header->reportLength,
@@ -278,10 +315,14 @@ kern_return_t SwifterKitRuntimeService::setReport(
     IOMemoryDescriptor* report,
     IOHIDReportType reportType,
     IOOptionBits options,
-    uint32_t,
-    OSAction*) {
+    [[maybe_unused]] uint32_t completionTimeout,
+    [[maybe_unused]] OSAction* action) {
     if (!AcceptsHostReportType(reportType)) {
+    #if SWIFTERKIT_HID_USB_DEVICE
+        return super::setReport(report, reportType, options, completionTimeout, action);
+    #else
         return kIOReturnUnsupported;
+    #endif
     }
     if (report == nullptr || ivars == nullptr || ivars->events == nullptr
         || ivars->eventLock == nullptr) {
@@ -319,4 +360,37 @@ kern_return_t SwifterKitRuntimeService::setReport(
     payload->release();
     return result;
 }
+
+    #if SWIFTERKIT_HID_USB_DEVICE
+// Delivers the device's input reports to Swift as hidInputReport events when configured, then
+// lets the superclass hand them to HID clients.
+kern_return_t SwifterKitRuntimeService::handleReport(
+    uint64_t timestamp,
+    IOMemoryDescriptor* report,
+    uint32_t reportLength,
+    IOHIDReportType reportType,
+    IOOptionBits options) {
+    if (kSwifterKitHIDDeliversDeviceInputReports && report != nullptr && reportLength != 0
+        && reportLength <= kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize
+                               - sizeof(uint32_t) - sizeof(SwifterKitHIDReportHeader)) {
+        const SwifterKitHIDReportHeader header = {
+            .timestamp = timestamp,
+            .reportType = static_cast<uint32_t>(reportType),
+            .options = static_cast<uint32_t>(options),
+            .reportLength = reportLength,
+            .reserved = 0,
+        };
+        OSData* payload = OSData::withCapacity(sizeof(header) + reportLength);
+        if (payload != nullptr && payload->appendBytes(&header, sizeof(header))
+            && CopyDescriptorBytes(report, reportLength, payload) == kIOReturnSuccess) {
+            (void)EnqueueEvent(
+                kSwifterKitEventHIDInputReport,
+                payload->getBytesNoCopy(),
+                static_cast<uint32_t>(payload->getLength()));
+        }
+        OSSafeReleaseNULL(payload);
+    }
+    return super::handleReport(timestamp, report, reportLength, reportType, options);
+}
+    #endif
 #endif

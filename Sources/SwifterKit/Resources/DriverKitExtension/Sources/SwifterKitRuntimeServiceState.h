@@ -31,6 +31,10 @@
     #include <PCIDriverKit/IOPCIDevice.h>
 #endif
 
+#if SWIFTERKIT_ENABLE_HID
+    #include "SwifterKitRuntimeHIDProtocol.h"
+#endif
+
 #if SWIFTERKIT_ENABLE_MEMORY
     #include <DriverKit/IOBufferMemoryDescriptor.h>
     #include <DriverKit/IODMACommand.h>
@@ -50,6 +54,8 @@
 #endif
 
 class IODispatchSource;
+class IOHIDInterface;
+class IOMemoryDescriptor;
 class IOReporter;
 class IOService;
 class SwifterKitRuntimeUserClient;
@@ -158,6 +164,17 @@ struct SwifterKitMemoryEntry {
 };
 #endif
 
+#if SWIFTERKIT_ENABLE_HID
+// A host get-report request Swift answers; see SwifterKitRuntimeHIDRequests.cpp. A zero
+// requestID marks a free slot.
+struct SwifterKitHIDPendingReport {
+    uint32_t requestID = 0;
+    uint32_t capacity = 0;
+    OSAction* action = nullptr;
+    IOMemoryDescriptor* report = nullptr;
+};
+#endif
+
 // Lossy events are notifications Swift may miss; required events carry
 // DriverKit work that Swift must answer. See SwifterKitRuntimeEvents.cpp.
 static constexpr uint32_t kSwifterKitMaximumQueuedLossyEvents = 64;
@@ -196,6 +213,14 @@ struct SwifterKitRuntimeService_IVars {
     uint64_t hidInputReportAttempts = 0;
     uint64_t hidInputReportSuccesses = 0;
     uint64_t hidInputReportFailures = 0;
+    // Serializes element access and event dispatch between the service queue and Swift's
+    // commands, and guards the pending get-report table. Recursive because handleReport runs
+    // inside processReport.
+    IORecursiveLock* hidLock = nullptr;
+    IOHIDInterface* hidInterface = nullptr;
+    uint32_t hidEventDriverHandling = 0;
+    uint32_t nextHIDRequestID = 1;
+    SwifterKitHIDPendingReport hidRequests[kSwifterKitHIDMaximumPendingReports] = {};
 #endif
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     IOLock* scsiLock = nullptr;
@@ -296,6 +321,9 @@ static_assert(
     kSwifterKitMaximumQueuedRequiredEvents
     > sizeof(SwifterKitRuntimeService_IVars::blockStorageRequests)
           / sizeof(SwifterKitBlockStoragePendingRequest));
+#endif
+#if SWIFTERKIT_ENABLE_HID
+static_assert(kSwifterKitMaximumQueuedRequiredEvents > kSwifterKitHIDMaximumPendingReports);
 #endif
 #if SWIFTERKIT_ENABLE_USB
 static_assert(

@@ -66,6 +66,29 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- HID event services: `HIDEventServiceConfiguration` generates an
+  `IOUserHIDEventService` or `IOUserHIDEventDriver` that matches an
+  `IOHIDInterface` (DriverKit 21.0 or later). Input reports and updated element
+  values arrive as `DriverEvent.hidInputReport()` and `hidElementValues()`, LED
+  and property changes as `hidLEDState()` and `hidProperties()`. Typed
+  `dispatchHID*` calls cover keyboard, relative and absolute pointer, scroll,
+  stylus, touch, digitizer-collection, and standard and extended game-controller
+  events; `HIDEventDriverCategories` choose what Apple's element parser handles.
+- HID elements: `hidElements()` reads the interface's element tree, and
+  `hidElementValue`, `setHIDElementValue`, `setHIDElementData`,
+  `commitHIDElement`, `commitHIDElements`, and `hidElementConforms` use it;
+  `hidInterfaceReport`, `setHIDInterfaceReport`, and `processHIDInterfaceReport`
+  reach the interface's reports.
+- USB HID devices: `USBHIDDeviceConfiguration` generates an
+  `IOUserUSBHostHIDDevice` on a USB HID interface with optional report
+  descriptor and device-property overrides, host report routing to Swift, and
+  `hidDeviceReport`, `setHIDDeviceProtocol`, `setHIDDeviceIdle`,
+  `setHIDDeviceIdlePolicy`, and `resetHIDDevice`.
+- HID devices answer host get-report requests from Swift:
+  `answeredReportTypes` routes them as `DriverEvent.hidGetReportRequest()`, and
+  `completeHIDGetReport(_:bytes:status:)` completes each once. Pending requests
+  complete with `kIOReturnAborted` when the host detaches or the service stops.
+
 - Extension timers, with no capability flag, on runtime opcodes
   `0x0E00`-`0x0E01`: `startTimer(afterNanoseconds:repeatingEveryNanoseconds:leewayNanoseconds:)`
   creates and arms an `IOTimerDispatchSource`, one-shot or repeating with a

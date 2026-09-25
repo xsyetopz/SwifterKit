@@ -39,6 +39,10 @@ auto SwifterKitRuntimeService::init() -> bool {
 #if SWIFTERKIT_ENABLE_USB
     ivars->usbLock = IOLockAlloc();
 #endif
+#if SWIFTERKIT_ENABLE_HID
+    ivars->hidLock = IORecursiveLockAlloc();
+    ivars->hidEventDriverHandling = kSwifterKitHIDEventDriverCategories;
+#endif
     return ivars->eventLock != nullptr && ivars->events != nullptr
            && ivars->requiredEvents != nullptr && ivars->dispatchLock != nullptr
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
@@ -64,6 +68,9 @@ auto SwifterKitRuntimeService::init() -> bool {
 #endif
 #if SWIFTERKIT_ENABLE_USB
            && ivars->usbLock != nullptr
+#endif
+#if SWIFTERKIT_ENABLE_HID
+           && ivars->hidLock != nullptr
 #endif
         ;
 }

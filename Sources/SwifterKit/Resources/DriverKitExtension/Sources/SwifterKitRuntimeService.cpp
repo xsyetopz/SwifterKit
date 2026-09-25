@@ -110,6 +110,10 @@ void SwifterKitRuntimeService::free() {
 #if SWIFTERKIT_ENABLE_PCI
         ClosePCIProvider(this, ivars);
 #endif
+#if SWIFTERKIT_ENABLE_HID
+        StopHID();
+        IORecursiveLockFreeZero(ivars->hidLock);
+#endif
         StopPower();
         StopTimers();
         StopWatches();
@@ -351,6 +355,9 @@ auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t 
 
 auto SwifterKitRuntimeService::Stop_Impl(IOService* provider) -> kern_return_t {
     DetachEventClient(nullptr);
+#if SWIFTERKIT_ENABLE_HID
+    StopHID();
+#endif
     StopPower();
     StopTimers();
     StopWatches();

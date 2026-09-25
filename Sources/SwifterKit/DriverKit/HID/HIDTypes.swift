@@ -134,6 +134,9 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
   public let primaryUsage: UInt32
   /// Host-to-device report types accepted by the generated runtime.
   public let acceptedHostReportTypes: HIDHostReportTypes
+  /// Host get-report types Swift answers through
+  /// ``DriverContext/completeHIDGetReport(_:bytes:status:)``.
+  public let answeredReportTypes: HIDGetReportTypes
 
   /// Creates virtual HID device metadata.
   public init(
@@ -149,7 +152,8 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
     serialNumber: String,
     primaryUsagePage: UInt32,
     primaryUsage: UInt32,
-    acceptedHostReportTypes: HIDHostReportTypes = .all
+    acceptedHostReportTypes: HIDHostReportTypes = .all,
+    answeredReportTypes: HIDGetReportTypes = []
   ) {
     self.reportDescriptor = reportDescriptor
     self.transport = transport
@@ -164,6 +168,7 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
     self.primaryUsagePage = primaryUsagePage
     self.primaryUsage = primaryUsage
     self.acceptedHostReportTypes = acceptedHostReportTypes
+    self.answeredReportTypes = answeredReportTypes
   }
 }
 
@@ -179,4 +184,18 @@ public enum HIDRuntimeError: Error, Sendable, Equatable {
   case invalidReportType
   /// The native runtime returned a malformed report payload.
   case invalidReportPayload
+  /// A report length is zero or does not fit one runtime message.
+  case invalidReportLength
+  /// A report identifier does not fit in 8 bits, or options overlap the report-identifier byte.
+  case invalidReportID
+  /// A value does not fit the field that carries it, such as a 16.16 fixed-point number.
+  case valueOutOfRange
+  /// A list is empty or holds more items than one runtime message accepts.
+  case invalidItemCount
+  /// A cookie is zero or repeats.
+  case invalidCookie
+  /// The native runtime returned a malformed element payload.
+  case invalidElementPayload
+  /// The native runtime returned a malformed HID event.
+  case invalidEventPayload
 }

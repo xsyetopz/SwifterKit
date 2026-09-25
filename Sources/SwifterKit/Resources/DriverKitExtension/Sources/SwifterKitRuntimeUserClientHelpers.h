@@ -172,6 +172,35 @@ namespace {
     }
 #endif
 
+#if SWIFTERKIT_ENABLE_HID
+    kern_return_t HandleHIDCommand(
+        SwifterKitRuntimeService* service,
+        IOUserClientMethodArguments* arguments,
+        uint64_t requestID,
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength) {
+        if (service == nullptr) {
+            return kIOReturnNotReady;
+        }
+        OSData* response = nullptr;
+        const kern_return_t result = service->HIDCommand(opcode, payload, payloadLength, &response);
+        if (result != kIOReturnSuccess) {
+            OSSafeReleaseNULL(response);
+            return result;
+        }
+        if (response != nullptr) {
+            return RespondWithData(result, response, arguments, requestID);
+        }
+        return BuildResponse(
+            arguments,
+            SwifterKitRuntimeMessageKind::Response,
+            requestID,
+            nullptr,
+            0);
+    }
+#endif
+
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER || SWIFTERKIT_ENABLE_SCSI_PERIPHERAL
     kern_return_t HandleSCSICommand(
         SwifterKitRuntimeService* service,

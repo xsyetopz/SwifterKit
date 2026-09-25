@@ -13,6 +13,10 @@ public struct DriverConfiguration: Sendable, Hashable {
   public let capabilities: RuntimeCapabilities
   /// Virtual HID metadata when the generated runtime provides HIDDriverKit behavior.
   public let hidDevice: HIDDeviceConfiguration?
+  /// Event-service metadata when the runtime matches an `IOHIDInterface` and dispatches events.
+  public let hidEventService: HIDEventServiceConfiguration?
+  /// USB HID metadata when the runtime derives from `IOUserUSBHostHIDDevice`.
+  public let usbHIDDevice: USBHIDDeviceConfiguration?
   /// USB hardware matching when the generated runtime provides USBDriverKit behavior.
   public let usbDevice: USBDeviceConfiguration?
   /// PCI matching when the generated runtime provides PCIDriverKit behavior.
@@ -47,6 +51,8 @@ public struct DriverConfiguration: Sendable, Hashable {
     matchingProperties: [String: DriverProperty] = [:],
     capabilities: RuntimeCapabilities,
     hidDevice: HIDDeviceConfiguration? = nil,
+    hidEventService: HIDEventServiceConfiguration? = nil,
+    usbHIDDevice: USBHIDDeviceConfiguration? = nil,
     usbDevice: USBDeviceConfiguration? = nil,
     pciDevice: PCIDeviceConfiguration? = nil,
     serialPort: SerialPortConfiguration? = nil,
@@ -66,6 +72,8 @@ public struct DriverConfiguration: Sendable, Hashable {
     self.matchingProperties = matchingProperties
     self.capabilities = capabilities
     self.hidDevice = hidDevice
+    self.hidEventService = hidEventService
+    self.usbHIDDevice = usbHIDDevice
     self.usbDevice = usbDevice
     self.pciDevice = pciDevice
     self.serialPort = serialPort

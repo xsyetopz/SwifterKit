@@ -456,8 +456,47 @@ namespace {
 #else
                 return kIOReturnUnsupported;
 #endif
-            case SwifterKitRuntimeOpcode::HIDGetRuntimeStatistics:
+            case SwifterKitRuntimeOpcode::HIDCompleteGetReport:
+            case SwifterKitRuntimeOpcode::HIDCopyElements:
+            case SwifterKitRuntimeOpcode::HIDGetElementValue:
+            case SwifterKitRuntimeOpcode::HIDSetElementValue:
+            case SwifterKitRuntimeOpcode::HIDCommitElement:
+            case SwifterKitRuntimeOpcode::HIDCommitElements:
+            case SwifterKitRuntimeOpcode::HIDElementConformsTo:
+            case SwifterKitRuntimeOpcode::HIDInterfaceGetReport:
+            case SwifterKitRuntimeOpcode::HIDInterfaceSetReport:
+            case SwifterKitRuntimeOpcode::HIDInterfaceProcessReport:
+            case SwifterKitRuntimeOpcode::HIDDispatchKeyboard:
+            case SwifterKitRuntimeOpcode::HIDDispatchRelativePointer:
+            case SwifterKitRuntimeOpcode::HIDDispatchAbsolutePointer:
+            case SwifterKitRuntimeOpcode::HIDDispatchScroll:
+            case SwifterKitRuntimeOpcode::HIDDispatchDigitizerStylus:
+            case SwifterKitRuntimeOpcode::HIDDispatchDigitizerTouches:
+            case SwifterKitRuntimeOpcode::HIDDispatchDigitizerCollection:
+            case SwifterKitRuntimeOpcode::HIDDispatchGameController:
+            case SwifterKitRuntimeOpcode::HIDDispatchExtendedGameController:
+            case SwifterKitRuntimeOpcode::HIDSetLED:
+            case SwifterKitRuntimeOpcode::HIDSetLEDState:
+            case SwifterKitRuntimeOpcode::HIDServiceConformsTo:
+            case SwifterKitRuntimeOpcode::HIDSetEventDriverCategories:
+            case SwifterKitRuntimeOpcode::HIDDeviceGetReport:
+            case SwifterKitRuntimeOpcode::HIDDeviceSetProtocol:
+            case SwifterKitRuntimeOpcode::HIDDeviceSetIdle:
+            case SwifterKitRuntimeOpcode::HIDDeviceSetIdlePolicy:
+            case SwifterKitRuntimeOpcode::HIDDeviceReset:
 #if SWIFTERKIT_ENABLE_HID
+                return HandleHIDCommand(
+                    service,
+                    arguments,
+                    request->requestID,
+                    command->opcode,
+                    commandPayload,
+                    commandPayloadLength);
+#else
+                return kIOReturnUnsupported;
+#endif
+            case SwifterKitRuntimeOpcode::HIDGetRuntimeStatistics:
+#if SWIFTERKIT_HID_DEVICE
                 if (service == nullptr || commandPayloadLength != 0) {
                     return kIOReturnBadArgument;
                 }
@@ -478,7 +517,7 @@ namespace {
                 return kIOReturnUnsupported;
 #endif
             case SwifterKitRuntimeOpcode::HIDSubmitInputReport:
-#if SWIFTERKIT_ENABLE_HID
+#if SWIFTERKIT_HID_DEVICE
                 if (commandPayloadLength < sizeof(SwifterKitHIDReportHeader)) {
                     return kIOReturnBadArgument;
                 }

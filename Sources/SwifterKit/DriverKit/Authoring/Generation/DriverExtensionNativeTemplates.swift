@@ -2,8 +2,6 @@ import Foundation
 
 extension DriverExtensionGenerator {
   static func runtimeConfigurationHeader(_ configuration: DriverConfiguration) -> String {
-    let hid = configuration.hidDevice
-    let descriptor = hid?.reportDescriptor.map(String.init).joined(separator: ", ") ?? "0"
     let interruptsEnabled = configuration.capabilities.contains(.interrupts) ? 1 : 0
     let encodedInterruptIndices = interruptIndices(configuration)
     let memory = configuration.memoryPool
@@ -28,7 +26,8 @@ extension DriverExtensionGenerator {
       \(videoConfigurationDeclarations(configuration))
       \(scsiConfigurationDeclarations(configuration))
 
-      #define SWIFTERKIT_ENABLE_HID \(hid == nil ? 0 : 1)
+      #define SWIFTERKIT_ENABLE_HID \(configuration.capabilities.contains(.hid) ? 1 : 0)
+      \(hidConfigurationDeclarations(configuration))
       #define SWIFTERKIT_ENABLE_NETWORKING \(ethernet == nil ? 0 : 1)
       #define SWIFTERKIT_ENABLE_AUDIO \(audio == nil ? 0 : 1)
       #define SWIFTERKIT_ENABLE_VIDEO \(video == nil ? 0 : 1)
@@ -132,27 +131,6 @@ extension DriverExtensionGenerator {
       \(pciInterruptDeclarations(configuration))
       \(reportingDeclarations(configuration.reporting))
 
-      static constexpr uint8_t kSwifterKitHIDReportDescriptor[] = {\(descriptor)};
-      static constexpr uint32_t kSwifterKitHIDReportDescriptorLength =
-          \(hid?.reportDescriptor.count ?? 0);
-      static constexpr char kSwifterKitHIDTransport[] = \(cString(hid?.transport ?? "Virtual"));
-      static constexpr uint32_t kSwifterKitHIDVendorID = \(hid?.vendorID ?? 0);
-      static constexpr uint32_t kSwifterKitHIDProductID = \(hid?.productID ?? 0);
-      static constexpr uint32_t kSwifterKitHIDVersionNumber = \(hid?.versionNumber ?? 1);
-      static constexpr uint32_t kSwifterKitHIDCountryCode = \(hid?.countryCode ?? 0);
-      static constexpr uint32_t kSwifterKitHIDLocationID = \(hid?.locationID ?? 0);
-      static constexpr char kSwifterKitHIDManufacturer[] =
-          \(cString(hid?.manufacturer ?? "SwifterKit"));
-      static constexpr char kSwifterKitHIDProduct[] =
-          \(cString(hid?.product ?? "SwifterKit Runtime"));
-      static constexpr char kSwifterKitHIDSerialNumber[] =
-          \(cString(hid?.serialNumber ?? "SwifterKit"));
-      static constexpr uint32_t kSwifterKitHIDPrimaryUsagePage = \(hid?.primaryUsagePage ?? 0);
-      static constexpr uint32_t kSwifterKitHIDPrimaryUsage = \(hid?.primaryUsage ?? 0);
-      static constexpr uint32_t kSwifterKitHIDHostReportOutput = 1U << 0U;
-      static constexpr uint32_t kSwifterKitHIDHostReportFeature = 1U << 1U;
-      static constexpr uint32_t kSwifterKitHIDAcceptedHostReportTypes =
-          \(hid?.acceptedHostReportTypes.rawValue ?? 0);
 
       #endif
       """
@@ -179,7 +157,8 @@ extension DriverExtensionGenerator {
   }
 
   static func serviceInterface(_ configuration: DriverConfiguration) -> String {
-    let hid = configuration.capabilities.contains(.hid)
+    let hidMode = HIDRuntimeMode(configuration)
+    let hid = hidMode != .none
     let usb = configuration.capabilities.contains(.usb)
     let pci = configuration.capabilities.contains(.pci)
     let serial = configuration.capabilities.contains(.serial)
@@ -194,9 +173,8 @@ extension DriverExtensionGenerator {
     let interrupts = configuration.capabilities.contains(.interrupts)
     let memory = configuration.capabilities.contains(.memory)
     let superclass =
-      hid
-      ? "IOUserHIDDevice"
-      : serial
+      hidMode.superclass
+      ?? (serial
         ? "IOUserSerial"
         : blockStorage
           ? "IOUserBlockStorageDevice"
@@ -209,11 +187,10 @@ extension DriverExtensionGenerator {
                 : video
                   ? "IOUserVideoDriver"
                   : scsiController
-                    ? "IOUserSCSIParallelInterfaceController" : scsiPeripheralClass ?? "IOService"
+                    ? "IOUserSCSIParallelInterfaceController" : scsiPeripheralClass ?? "IOService")
     let superclassInclude =
-      hid
-      ? "#include <HIDDriverKit/IOUserHIDDevice.iig>"
-      : serial
+      hidSuperclassInclude(hidMode)
+      ?? (serial
         ? "#include <SerialDriverKit/IOUserSerial.iig>"
         : blockStorage
           ? "#include <BlockStorageDeviceDriverKit/IOUserBlockStorageDevice.iig>"
@@ -227,7 +204,7 @@ extension DriverExtensionGenerator {
                   ? "#include <VideoDriverKit/IOUserVideoDriver.iig>"
                   : scsiController
                     ? "#include <SCSIControllerDriverKit/IOUserSCSIParallelInterfaceController.iig>"
-                    : scsiPeripheralInclude ?? "#include <DriverKit/IOService.iig>"
+                    : scsiPeripheralInclude ?? "#include <DriverKit/IOService.iig>")
     let lifecycle =
       hid
       ? """
@@ -403,26 +380,7 @@ extension DriverExtensionGenerator {
               uint64_t time) TYPE(IOInterruptDispatchSource::InterruptOccurred);
       """ : ""
     let interruptInclude = interrupts ? "#include <DriverKit/IOInterruptDispatchSource.iig>" : ""
-    let hidMethods =
-      hid
-      ? """
-          kern_return_t SubmitHIDInputReport(
-              const SwifterKitHIDReportHeader* header,
-              const uint8_t* bytes) LOCALONLY;
-          kern_return_t CopyHIDRuntimeStatistics(
-              SwifterKitHIDRuntimeStatistics* statistics) LOCALONLY;
-
-      protected:
-          virtual bool handleStart(IOService* provider) LOCALONLY override;
-          virtual OSDictionary* newDeviceDescription() LOCALONLY override;
-          virtual OSData* newReportDescriptor() LOCALONLY override;
-          virtual kern_return_t setReport(
-              IOMemoryDescriptor* report,
-              IOHIDReportType reportType,
-              IOOptionBits options,
-              uint32_t completionTimeout,
-              OSAction* action) LOCALONLY override;
-      """ : ""
+    let hidMethods = hidServiceMethods(hidMode)
 
     return """
       #ifndef SwifterKitRuntimeService_h

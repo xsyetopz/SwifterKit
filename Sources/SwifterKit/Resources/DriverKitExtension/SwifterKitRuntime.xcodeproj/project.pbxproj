@@ -62,6 +62,10 @@
 		0D001F112AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001F122AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig */; };
 		0D001EC12AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EC22AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp */; };
 		0D001E412AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E422AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp */; };
+		0D001E432AAAAAAA00000001 /* SwifterKitRuntimeHIDRequests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E442AAAAAAA00000001 /* SwifterKitRuntimeHIDRequests.cpp */; };
+		0D001E452AAAAAAA00000001 /* SwifterKitRuntimeHIDEvents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E462AAAAAAA00000001 /* SwifterKitRuntimeHIDEvents.cpp */; };
+		0D001E472AAAAAAA00000001 /* SwifterKitRuntimeHIDElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E482AAAAAAA00000001 /* SwifterKitRuntimeHIDElements.cpp */; };
+		0D001E492AAAAAAA00000001 /* SwifterKitRuntimeHIDDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E4A2AAAAAAA00000001 /* SwifterKitRuntimeHIDDispatch.cpp */; };
 		0D001D612AAAAAAA00000001 /* NetworkingDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001D622AAAAAAA00000001 /* NetworkingDriverKit.framework */; };
 		0D001E512AAAAAAA00000001 /* AudioDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001E522AAAAAAA00000001 /* AudioDriverKit.framework */; };
 		0D001CC12AAAAAAA00000001 /* HIDDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CC22AAAAAAA00000001 /* HIDDriverKit.framework */; };
@@ -129,6 +133,10 @@
 		0D001F122AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioCustomProperty.iig; sourceTree = "<group>"; };
 		0D001EC22AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioControlCallbacks.cpp; sourceTree = "<group>"; };
 		0D001E422AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeHID.cpp; sourceTree = "<group>"; };
+		0D001E442AAAAAAA00000001 /* SwifterKitRuntimeHIDRequests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeHIDRequests.cpp; sourceTree = "<group>"; };
+		0D001E462AAAAAAA00000001 /* SwifterKitRuntimeHIDEvents.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeHIDEvents.cpp; sourceTree = "<group>"; };
+		0D001E482AAAAAAA00000001 /* SwifterKitRuntimeHIDElements.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeHIDElements.cpp; sourceTree = "<group>"; };
+		0D001E4A2AAAAAAA00000001 /* SwifterKitRuntimeHIDDispatch.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeHIDDispatch.cpp; sourceTree = "<group>"; };
 		0D001BBA2AAAAAAA00000001 /* SwifterKitRuntimeProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeProtocol.h; sourceTree = "<group>"; };
 		0D001BFE2AAAAAAA00000001 /* SwifterKitRuntimeSchema.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeSchema.h; sourceTree = "<group>"; };
 		0D001BFC2AAAAAAA00000001 /* SwifterKitRuntimeUserClientHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeUserClientHelpers.h; sourceTree = "<group>"; };
@@ -234,6 +242,10 @@
 				0D001F122AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig */,
 				0D001EC22AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp */,
 				0D001E422AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp */,
+				0D001E442AAAAAAA00000001 /* SwifterKitRuntimeHIDRequests.cpp */,
+				0D001E462AAAAAAA00000001 /* SwifterKitRuntimeHIDEvents.cpp */,
+				0D001E482AAAAAAA00000001 /* SwifterKitRuntimeHIDElements.cpp */,
+				0D001E4A2AAAAAAA00000001 /* SwifterKitRuntimeHIDDispatch.cpp */,
 				0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */,
 				0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */,
 				0D001BBA2AAAAAAA00000001 /* SwifterKitRuntimeProtocol.h */,
@@ -355,6 +367,10 @@
 				0D001F112AAAAAAA00000001 /* SwifterKitRuntimeAudioCustomProperty.iig in Sources */,
 				0D001EC12AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp in Sources */,
 				0D001E412AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp in Sources */,
+				0D001E432AAAAAAA00000001 /* SwifterKitRuntimeHIDRequests.cpp in Sources */,
+				0D001E452AAAAAAA00000001 /* SwifterKitRuntimeHIDEvents.cpp in Sources */,
+				0D001E472AAAAAAA00000001 /* SwifterKitRuntimeHIDElements.cpp in Sources */,
+				0D001E492AAAAAAA00000001 /* SwifterKitRuntimeHIDDispatch.cpp in Sources */,
 				0D0020012AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp in Sources */,
 				0D0020112AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp in Sources */,
 			);

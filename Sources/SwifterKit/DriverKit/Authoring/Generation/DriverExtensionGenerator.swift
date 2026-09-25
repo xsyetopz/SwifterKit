@@ -101,13 +101,7 @@ public enum DriverExtensionGenerator {
     guard unsupported.isEmpty else {
       throw DriverExtensionGenerationError.unsupportedCapabilities(unsupported)
     }
-    if configuration.capabilities.contains(.hid) {
-      guard let hid = configuration.hidDevice, isValid(hid: hid) else {
-        throw DriverExtensionGenerationError.invalidHIDConfiguration
-      }
-    } else if configuration.hidDevice != nil {
-      throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.hid)
-    }
+    try validateHID(configuration, deploymentVersion: deploymentVersion)
     if configuration.capabilities.contains(.usb) {
       guard isValidUSB(configuration) else {
         throw DriverExtensionGenerationError.invalidUSBConfiguration
@@ -231,6 +225,7 @@ public enum DriverExtensionGenerator {
       "IOProviderClass", "IOTTYBaseName", "IOTTYSuffix", "IOUserClass", "IOUserServerName",
       "UserClientProperties",
     ]
+    reservedKeys.formUnion(hidReservedKeys(configuration))
     if let usb = configuration.usbDevice { reservedKeys.formUnion(usb.matchingProperties.keys) }
     if let pci = configuration.pciDevice { reservedKeys.formUnion(pci.matchingProperties.keys) }
     if let reserved = configuration.matchingProperties.keys.first(where: reservedKeys.contains) {
@@ -303,24 +298,15 @@ public enum DriverExtensionGenerator {
       }
   }
 
-  private static func isValid(hid: HIDDeviceConfiguration) -> Bool {
-    let strings = [hid.transport, hid.manufacturer, hid.product, hid.serialNumber]
-    return !hid.reportDescriptor.isEmpty && hid.reportDescriptor.count <= 65_488
-      && hid.acceptedHostReportTypes.subtracting(.all).isEmpty
-      && strings.allSatisfy { !$0.isEmpty && !$0.contains("\0") }
-  }
-
   private static func writeInfo(
     configuration: DriverConfiguration,
     options: DriverExtensionGenerationOptions,
     to destination: URL
   ) throws {
-    let isHID = configuration.capabilities.contains(.hid)
     var personality: [String: Any] = [
       "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)",
       "CFBundleIdentifierKernel": configuration.capabilities.contains(.blockStorage)
-        ? "com.apple.iokit.IOStorageFamily" : "com.apple.kpi.iokit",
-      "IOClass": isHID ? "AppleUserHIDDevice" : "IOUserService",
+        ? "com.apple.iokit.IOStorageFamily" : "com.apple.kpi.iokit", "IOClass": "IOUserService",
       "IOMatchCategory": "$(PRODUCT_BUNDLE_IDENTIFIER)",
       "IOProviderClass": configuration.providerClass,
       "IOUserClass": DriverConfiguration.runtimeServiceClass,
@@ -344,10 +330,7 @@ public enum DriverExtensionGenerator {
         "IOClass": "IOUserUserClient", "IOUserClass": "IOUserVideoDriverUserClient",
       ]
     }
-    if let hid = configuration.hidDevice {
-      personality["PrimaryUsagePage"] = hid.primaryUsagePage
-      personality["PrimaryUsage"] = hid.primaryUsage
-    }
+    addHIDPersonality(configuration, to: &personality)
     if let usb = configuration.usbDevice {
       for (key, value) in usb.matchingProperties { personality[key] = value.foundationValue }
     }
