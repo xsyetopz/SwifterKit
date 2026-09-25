@@ -166,8 +166,10 @@ void SwifterKitRuntimeService::DetachEventClient(IOService* client) {
     // complete, through the paths the service uses when it stops. Family locks
     // are taken after eventLock is released; NetworkTxPacketAvailable holds
     // networkLock while it enqueues, so the reverse order could deadlock.
-    // Serial, HID, MIDI, interrupt, audio, video, and SCSI peripheral events
-    // leave no DriverKit request outstanding, so those families answer nothing.
+    // A pending power change is acknowledged. Serial, HID, MIDI, interrupt, audio,
+    // video, and SCSI peripheral events leave no DriverKit request outstanding, so
+    // those families answer nothing.
+    (void)AnswerPowerState(0);
 #if SWIFTERKIT_ENABLE_BLOCK_STORAGE
     StopBlockStorage();
 #endif

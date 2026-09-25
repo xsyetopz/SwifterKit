@@ -429,6 +429,7 @@ extension DriverExtensionGenerator {
 
       #include <Availability.h>
 
+      #include <DriverKit/IOTimerDispatchSource.iig>
       #include <DriverKit/OSData.iig>
       \(superclassInclude)
       \(interruptInclude)
@@ -456,6 +457,7 @@ extension DriverExtensionGenerator {
               uint32_t payloadLength) LOCALONLY;
           kern_return_t AttachEventClient(IOService* client) LOCALONLY;
           void DetachEventClient(IOService* client) LOCALONLY;
+      \(serviceControlMethods)
       \(memoryMethods)
       \(audioMethods)
       \(videoMethods)

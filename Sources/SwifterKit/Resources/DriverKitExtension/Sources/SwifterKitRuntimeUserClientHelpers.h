@@ -114,12 +114,9 @@ namespace {
         return result;
     }
 
-#if SWIFTERKIT_ENABLE_USB || SWIFTERKIT_ENABLE_PCI || SWIFTERKIT_ENABLE_INTERRUPTS     \
-    || SWIFTERKIT_ENABLE_MEMORY || SWIFTERKIT_ENABLE_SERIAL || SWIFTERKIT_ENABLE_AUDIO \
-    || SWIFTERKIT_ENABLE_SCSI_PERIPHERAL || SWIFTERKIT_ENABLE_VIDEO
     kern_return_t RespondWithData(
         kern_return_t result,
-        OSData* data,
+        const OSData* data,
         IOUserClientMethodArguments* arguments,
         uint64_t requestID) {
         if (result != kIOReturnSuccess) {
@@ -139,8 +136,6 @@ namespace {
         data->release();
         return result;
     }
-
-#endif
 
 #if SWIFTERKIT_ENABLE_AUDIO || SWIFTERKIT_ENABLE_VIDEO
     kern_return_t HandleMediaCommand(

@@ -4,6 +4,7 @@
 #include <Availability.h>
 
 #include <DriverKit/IOService.iig>
+#include <DriverKit/IOTimerDispatchSource.iig>
 #include <DriverKit/OSData.iig>
 
 class SwifterKitRuntimeService : public IOService {
@@ -22,6 +23,27 @@ public:
         LOCALONLY;
     kern_return_t AttachEventClient(IOService* client) LOCALONLY;
     void DetachEventClient(IOService* client) LOCALONLY;
+
+    virtual kern_return_t SetPowerState(uint32_t powerFlags) override;
+    virtual void PowerStateTimerOccurred(OSAction* action, uint64_t time)
+        TYPE(IOTimerDispatchSource::TimerOccurred);
+    kern_return_t AnswerPowerState(uint32_t requestID) LOCALONLY;
+    void StopPower() LOCALONLY;
+    kern_return_t ServiceCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
+    kern_return_t ServiceSystemCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
+    kern_return_t ServicePowerCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
 };
 
 #endif

@@ -137,6 +137,26 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     VideoSetControl = 0x0C08,
     VideoGetCustomProperty = 0x0C09,
     VideoSetCustomProperty = 0x0C0A,
+    ServiceSetProperties = 0x0D00,
+    ServiceCopyProperties = 0x0D01,
+    ServiceRemoveProperty = 0x0D02,
+    ServiceSearchProperty = 0x0D03,
+    ServiceCopyProviderProperties = 0x0D04,
+    ServiceCopyName = 0x0D05,
+    ServiceGetRegistryEntryID = 0x0D06,
+    ServiceChangePowerState = 0x0D10,
+    ServiceSetPowerOverride = 0x0D11,
+    ServiceCreatePMAssertion = 0x0D12,
+    ServiceReleasePMAssertion = 0x0D13,
+    ServiceCompletePowerState = 0x0D14,
+    ServiceAdjustBusy = 0x0D20,
+    ServiceGetBusyState = 0x0D21,
+    ServiceRequireMaxBusStall = 0x0D22,
+    ServiceTerminate = 0x0D23,
+    ServiceCopySystemStateItem = 0x0D30,
+    ServiceCreateSystemStateItem = 0x0D31,
+    ServiceSetSystemStateItem = 0x0D32,
+    ServiceSendCoreAnalyticsEvent = 0x0D33,
 };
 
 static constexpr uint32_t kSwifterKitEventInterrupt = 0x0100;
@@ -151,5 +171,6 @@ static constexpr uint32_t kSwifterKitEventAudio = 0x0A00;
 static constexpr uint32_t kSwifterKitEventSCSIParallelTask = 0x0B00;
 static constexpr uint32_t kSwifterKitEventSCSIManagement = 0x0B01;
 static constexpr uint32_t kSwifterKitEventVideo = 0x0C00;
+static constexpr uint32_t kSwifterKitEventServicePowerState = 0x0D00;
 
 #endif

@@ -44,6 +44,9 @@
 		0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */; };
 		0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */; };
 		0D001D712AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */; };
+		0D00E0112AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0122AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp */; };
+		0D00E0212AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0222AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp */; };
+		0D00E0312AAAAAAA00000001 /* SwifterKitRuntimeServicePower.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0322AAAAAAA00000001 /* SwifterKitRuntimeServicePower.cpp */; };
 		0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */; };
 		0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */; };
 		0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */; };
@@ -104,6 +107,9 @@
 		0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkSetup.cpp; sourceTree = "<group>"; };
 		0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkPackets.cpp; sourceTree = "<group>"; };
 		0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeLifecycle.cpp; sourceTree = "<group>"; };
+		0D00E0122AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeServiceProperties.cpp; sourceTree = "<group>"; };
+		0D00E0222AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeServiceControl.cpp; sourceTree = "<group>"; };
+		0D00E0322AAAAAAA00000001 /* SwifterKitRuntimeServicePower.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeServicePower.cpp; sourceTree = "<group>"; };
 		0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeClients.cpp; sourceTree = "<group>"; };
 		0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioDevice.iig; sourceTree = "<group>"; };
 		0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioDevice.cpp; sourceTree = "<group>"; };
@@ -191,6 +197,9 @@
 				0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */,
 				0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */,
 				0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */,
+				0D00E0122AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp */,
+				0D00E0222AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp */,
+				0D00E0322AAAAAAA00000001 /* SwifterKitRuntimeServicePower.cpp */,
 				0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */,
 				0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */,
 				0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */,
@@ -304,6 +313,9 @@
 				0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */,
 				0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */,
 				0D001D712AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp in Sources */,
+				0D00E0112AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp in Sources */,
+				0D00E0212AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp in Sources */,
+				0D00E0312AAAAAAA00000001 /* SwifterKitRuntimeServicePower.cpp in Sources */,
 				0D001D312AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp in Sources */,
 				0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */,
 				0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */,

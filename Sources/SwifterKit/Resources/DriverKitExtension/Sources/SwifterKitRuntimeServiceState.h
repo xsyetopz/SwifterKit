@@ -2,6 +2,8 @@
 #define SwifterKitRuntimeServiceState_h
 
 #include <DriverKit/IOLib.h>
+#include <DriverKit/IOTimerDispatchSource.h>
+#include <DriverKit/OSAction.h>
 #include <DriverKit/OSArray.h>
 
 #include "SwifterKitRuntimeConfiguration.h"
@@ -143,6 +145,16 @@ struct SwifterKitRuntimeService_IVars {
     // notify it. Both change only under eventLock; see SwifterKitRuntimeEvents.cpp.
     SwifterKitRuntimeUserClient* eventClient = nullptr;
     bool eventNotificationArmed = false;
+    // The unacknowledged SetPowerState request, guarded by eventLock, and its timeout timer,
+    // used only on the default queue. See SwifterKitRuntimeServicePower.cpp.
+    bool powerPending = false;
+    bool powerStopped = false;
+    uint32_t powerRequestID = 0;
+    uint32_t nextPowerRequestID = 1;
+    uint32_t powerFlags = 0;
+    uint64_t powerDeadline = 0;
+    IOTimerDispatchSource* powerTimer = nullptr;
+    OSAction* powerTimerAction = nullptr;
 #if SWIFTERKIT_ENABLE_HID
     uint64_t hidInputReportAttempts = 0;
     uint64_t hidInputReportSuccesses = 0;

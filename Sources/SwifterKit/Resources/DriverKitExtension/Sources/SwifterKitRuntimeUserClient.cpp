@@ -47,6 +47,50 @@ namespace {
                     arguments,
                     request->requestID,
                     commandPayloadLength);
+            case SwifterKitRuntimeOpcode::ServiceSetProperties:
+            case SwifterKitRuntimeOpcode::ServiceCopyProperties:
+            case SwifterKitRuntimeOpcode::ServiceRemoveProperty:
+            case SwifterKitRuntimeOpcode::ServiceSearchProperty:
+            case SwifterKitRuntimeOpcode::ServiceCopyProviderProperties:
+            case SwifterKitRuntimeOpcode::ServiceCopyName:
+            case SwifterKitRuntimeOpcode::ServiceGetRegistryEntryID:
+            case SwifterKitRuntimeOpcode::ServiceChangePowerState:
+            case SwifterKitRuntimeOpcode::ServiceSetPowerOverride:
+            case SwifterKitRuntimeOpcode::ServiceCreatePMAssertion:
+            case SwifterKitRuntimeOpcode::ServiceReleasePMAssertion:
+            case SwifterKitRuntimeOpcode::ServiceCompletePowerState:
+            case SwifterKitRuntimeOpcode::ServiceAdjustBusy:
+            case SwifterKitRuntimeOpcode::ServiceGetBusyState:
+            case SwifterKitRuntimeOpcode::ServiceRequireMaxBusStall:
+            case SwifterKitRuntimeOpcode::ServiceTerminate:
+            case SwifterKitRuntimeOpcode::ServiceCopySystemStateItem:
+            case SwifterKitRuntimeOpcode::ServiceCreateSystemStateItem:
+            case SwifterKitRuntimeOpcode::ServiceSetSystemStateItem:
+            case SwifterKitRuntimeOpcode::ServiceSendCoreAnalyticsEvent:
+                if (service == nullptr) {
+                    return kIOReturnNotReady;
+                }
+                {
+                    OSData* response = nullptr;
+                    const kern_return_t result = service->ServiceCommand(
+                        command->opcode,
+                        commandPayload,
+                        commandPayloadLength,
+                        &response);
+                    if (result != kIOReturnSuccess) {
+                        OSSafeReleaseNULL(response);
+                        return result;
+                    }
+                    if (response == nullptr) {
+                        return BuildResponse(
+                            arguments,
+                            SwifterKitRuntimeMessageKind::Response,
+                            request->requestID,
+                            nullptr,
+                            0);
+                    }
+                    return RespondWithData(result, response, arguments, request->requestID);
+                }
             case SwifterKitRuntimeOpcode::InterruptSetEnabled:
             case SwifterKitRuntimeOpcode::InterruptGetType:
             case SwifterKitRuntimeOpcode::InterruptGetLast:

@@ -150,6 +150,26 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case videoSetControl = 0x0C08
   case videoGetCustomProperty = 0x0C09
   case videoSetCustomProperty = 0x0C0A
+  case serviceSetProperties = 0x0D00
+  case serviceCopyProperties = 0x0D01
+  case serviceRemoveProperty = 0x0D02
+  case serviceSearchProperty = 0x0D03
+  case serviceCopyProviderProperties = 0x0D04
+  case serviceCopyName = 0x0D05
+  case serviceGetRegistryEntryID = 0x0D06
+  case serviceChangePowerState = 0x0D10
+  case serviceSetPowerOverride = 0x0D11
+  case serviceCreatePMAssertion = 0x0D12
+  case serviceReleasePMAssertion = 0x0D13
+  case serviceCompletePowerState = 0x0D14
+  case serviceAdjustBusy = 0x0D20
+  case serviceGetBusyState = 0x0D21
+  case serviceRequireMaxBusStall = 0x0D22
+  case serviceTerminate = 0x0D23
+  case serviceCopySystemStateItem = 0x0D30
+  case serviceCreateSystemStateItem = 0x0D31
+  case serviceSetSystemStateItem = 0x0D32
+  case serviceSendCoreAnalyticsEvent = 0x0D33
 }
 
 /// Types of events the native extension queues for the Swift host.
@@ -166,4 +186,5 @@ enum RuntimeEventType: UInt32, CaseIterable {
   case scsiParallelTask = 0x0B00
   case scsiManagement = 0x0B01
   case video = 0x0C00
+  case servicePowerState = 0x0D00
 }
