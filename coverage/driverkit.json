@@ -9090,13 +9090,15 @@
 
           ],
           "name" : "GetProvider",
+          "note" : "Swift reads the provider through providerProperties and searchServiceProperty with .parents; a provider object pointer has no Swift meaning",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOService* GetProvider() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "providerProperties"
         },
         {
           "access" : "public",
@@ -9107,13 +9109,15 @@
 
           ],
           "name" : "CreateKernelClassMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreateKernelClassMatchingDictionary(OSString*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9124,13 +9128,15 @@
 
           ],
           "name" : "CreateKernelClassMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreateKernelClassMatchingDictionary(const char*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9141,13 +9147,15 @@
 
           ],
           "name" : "CreateNameMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreateNameMatchingDictionary(OSString*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9158,13 +9166,15 @@
 
           ],
           "name" : "CreateNameMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreateNameMatchingDictionary(const char*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9175,13 +9185,15 @@
 
           ],
           "name" : "CreatePropertyMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreatePropertyMatchingDictionary(const char*, OSObjectPtr, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9192,13 +9204,15 @@
 
           ],
           "name" : "CreatePropertyMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreatePropertyMatchingDictionary(const char*, const char*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9209,13 +9223,15 @@
 
           ],
           "name" : "CreateUserClassMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreateUserClassMatchingDictionary(OSString*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9226,13 +9242,15 @@
 
           ],
           "name" : "CreateUserClassMatchingDictionary",
+          "note" : "Matching dictionaries are built at generation time: DriverConfiguration.matchingProperties and the family configurations write IOKitPersonalities, and hosts find services with DriverServiceMatch, so Swift drivers never assemble an OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* CreateUserClassMatchingDictionary(const char*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverServiceMatch"
         },
         {
           "access" : "public",
@@ -9285,7 +9303,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AdjustBusy(int32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "adjustBusy"
         },
         {
           "access" : "public",
@@ -9297,11 +9316,12 @@
 
           ],
           "name" : "CallPlatformFunction",
+          "note" : "calls platform-expert functions whose names and parameter dictionaries are defined per platform; no public function exists for third-party dexts",
           "sdks" : [
             "27.0"
           ],
           "signature" : "kern_return_t CallPlatformFunction(OSString*, bool, OSDictionary*, OSDictionary**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -9318,7 +9338,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t ChangePowerState(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "changePowerState"
         },
         {
           "access" : "public",
@@ -9371,7 +9392,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyName(OSString**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "serviceName"
         },
         {
           "access" : "public",
@@ -9388,7 +9410,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyProperties(OSDictionary**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "serviceProperties"
         },
         {
           "access" : "public",
@@ -9405,7 +9428,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyProviderProperties(OSArray*, OSArray**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "providerProperties"
         },
         {
           "access" : "public",
@@ -9416,13 +9440,15 @@
 
           ],
           "name" : "CopySystemStateNotificationService",
+          "note" : "the runtime copies the system state notification service for each system state item operation; Swift never holds the IOService",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopySystemStateNotificationService(IOService**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "systemStateItem"
         },
         {
           "access" : "public",
@@ -9439,7 +9465,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CoreAnalyticsSendEvent(uint64_t, OSString*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "sendCoreAnalyticsEvent"
         },
         {
           "access" : "public",
@@ -9468,13 +9495,14 @@
 
           ],
           "name" : "CreateDefaultDispatchQueue",
+          "note" : "IOService::init() calls it to make the default queue, and the generated runtime's init() chains to super::init()",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateDefaultDispatchQueue(IODispatchQueue**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -9485,12 +9513,14 @@
 
           ],
           "name" : "CreatePMAssertion",
+          "note" : "guarded to DriverKit 25.5 and later SDKs; older builds report kIOReturnUnsupported",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreatePMAssertion(uint32_t, uint64_t*, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "createPMAssertion"
         },
         {
           "access" : "public",
@@ -9507,7 +9537,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetBusyState(uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "busyState"
         },
         {
           "access" : "public",
@@ -9524,7 +9555,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetRegistryEntryID(uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "registryEntryID"
         },
         {
           "access" : "public",
@@ -9535,13 +9567,14 @@
 
           ],
           "name" : "JoinPMTree",
+          "note" : "only services made with Create() are outside the power management tree; the generated service is matched on its provider and always joins it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t JoinPMTree()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -9588,12 +9621,14 @@
 
           ],
           "name" : "ReleasePMAssertion",
+          "note" : "guarded to DriverKit 25.5 and later SDKs; older builds report kIOReturnUnsupported",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ReleasePMAssertion(uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "releasePMAssertion"
         },
         {
           "access" : "public",
@@ -9610,7 +9645,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveProperty(OSString*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "removeServiceProperty"
         },
         {
           "access" : "public",
@@ -9627,7 +9663,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RequireMaxBusStall(uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "requireMaxBusStall"
         },
         {
           "access" : "public",
@@ -9644,7 +9681,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SearchProperty(const IOPropertyName, const IORegistryPlaneName, uint64_t, OSContainer**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "searchServiceProperty"
         },
         {
           "access" : "public",
@@ -9673,13 +9711,14 @@
 
           ],
           "name" : "SetDispatchQueue",
+          "note" : "the generated runtime owns every dispatch queue and runs its methods on the default queue; Swift work runs on Swift concurrency",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDispatchQueue(const IODispatchQueueName, IODispatchQueue*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -9714,7 +9753,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPowerOverride(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setPowerOverride"
         },
         {
           "access" : "public",
@@ -9725,13 +9765,15 @@
 
           ],
           "name" : "SetPowerState",
+          "note" : "the generated service overrides it and forwards each change as a required servicePowerState event; completePowerState, a 10-second timeout, host departure, or Stop acknowledges it by passing the call to super",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetPowerState(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ServicePowerStateRequest"
         },
         {
           "access" : "public",
@@ -9748,7 +9790,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setServiceProperties"
         },
         {
           "access" : "public",
@@ -9777,13 +9820,15 @@
 
           ],
           "name" : "StateNotificationItemCopy",
+          "note" : "called on the service from CopySystemStateNotificationService",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t StateNotificationItemCopy(OSString*, OSDictionary**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "systemStateItem"
         },
         {
           "access" : "public",
@@ -9794,13 +9839,15 @@
 
           ],
           "name" : "StateNotificationItemCreate",
+          "note" : "called on the service from CopySystemStateNotificationService",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t StateNotificationItemCreate(OSString*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "createSystemStateItem"
         },
         {
           "access" : "public",
@@ -9811,13 +9858,15 @@
 
           ],
           "name" : "StateNotificationItemSet",
+          "note" : "called on the service from CopySystemStateNotificationService",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t StateNotificationItemSet(OSString*, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setSystemStateItem"
         },
         {
           "access" : "public",
@@ -9846,13 +9895,15 @@
 
           ],
           "name" : "StringFromReturn",
+          "note" : "a failed runtime call reaches Swift as DriverKitError with kind .ioReturn(code), which carries the IOReturn that StringFromReturn would describe",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t StringFromReturn(IOReturn, OSString**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverKitError"
         },
         {
           "access" : "public",
@@ -9863,13 +9914,15 @@
 
           ],
           "name" : "Terminate",
+          "note" : "the header describes Terminate for services made with Create(); the runtime calls it on the matched generated service, which the dext's own IOUserServer owns",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Terminate(uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "terminateService"
         },
         {
           "access" : "public",
@@ -9898,13 +9951,14 @@
 
           ],
           "name" : "_ClaimSystemWakeEvent",
+          "note" : "underscore-prefixed internal member with no header documentation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t _ClaimSystemWakeEvent(IOService*, uint64_t, const IOPropertyName, OSContainer*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "private",
@@ -11061,13 +11115,14 @@
 
           ],
           "name" : "Create",
+          "note" : "IOUserServer objects are created by the kernel for each dext process; a dext never creates one",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(const char[64], uint64_t, uint64_t, OSString*, IOUserServer**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11078,11 +11133,12 @@
 
           ],
           "name" : "Exit",
+          "note" : "no reference to the dext's IOUserServer is available to driver code; DriverKit ends the process when its services stop",
           "sdks" : [
             "24.4"
           ],
           "signature" : "kern_return_t Exit(const char[1024])",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11093,12 +11149,13 @@
 
           ],
           "name" : "Exit",
+          "note" : "no reference to the dext's IOUserServer is available to driver code; DriverKit ends the process when its services stop",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Exit(const char[kIOUserServrMaxExitReasonLength])",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11109,11 +11166,12 @@
 
           ],
           "name" : "LoadModule",
+          "note" : "internal to the DriverKit loader; no reference to the dext's IOUserServer is available to driver code",
           "sdks" : [
             "24.4"
           ],
           "signature" : "kern_return_t LoadModule(const char[1024])",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11124,12 +11182,13 @@
 
           ],
           "name" : "LoadModule",
+          "note" : "internal to the DriverKit loader; no reference to the dext's IOUserServer is available to driver code",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t LoadModule(const char[kIOUserServrMaxModulePathLength])",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11140,12 +11199,13 @@
 
           ],
           "name" : "Panic",
+          "note" : "panics the system; no reference to the dext's IOUserServer is available to driver code",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Panic(const char[kIOUserServrMaxPanicReasonLength])",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11156,13 +11216,14 @@
 
           ],
           "name" : "RegisterService",
+          "note" : "the server's override is driven by DriverKit; the generated service calls IOService::RegisterService itself",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RegisterService()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",

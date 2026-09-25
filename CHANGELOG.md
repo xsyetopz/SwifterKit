@@ -56,6 +56,26 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- IOService operations for every generated service, with no capability flag,
+  on runtime opcodes `0x0D00`-`0x0D33`: `setServiceProperties(_:)`,
+  `serviceProperties()`, `removeServiceProperty(named:)`,
+  `searchServiceProperty(named:options:plane:)`, `providerProperties(keys:)`,
+  `serviceName()`, `registryEntryID()`, `changePowerState(_:)`,
+  `setPowerOverride(_:)`, `createPMAssertion(_:synced:)`,
+  `releasePMAssertion(_:)`, `adjustBusy(by:)`, `busyState()`,
+  `requireMaxBusStall(_:)`, `terminateService()`, `systemStateItem(named:)`,
+  `createSystemStateItem(named:value:)`, `setSystemStateItem(named:value:)`,
+  and `sendCoreAnalyticsEvent(named:payload:)`. Registry values use
+  `DriverProperty`, are bounded to one runtime message, and are validated by
+  Swift and the extension; `.real` is rejected and numbers read back as
+  `.unsignedInteger`. `ServiceRuntimeError` reports invalid requests.
+- Every generated service overrides `IOService::SetPowerState` and delivers the
+  change as a `ServicePowerStateRequest` from `DriverEvent.servicePowerState()`.
+  Swift answers with `completePowerState(requestID:)`. The extension
+  acknowledges the change itself after ten seconds, when the host disconnects,
+  when the service stops, or at once when no host is connected.
+- IOService and IOUserServer have no remaining coverage gaps except the
+  IOReporting members `ConfigureReport`, `UpdateReport`, and `SetLegend`.
 - PCI device control: `pciReset(type:options:)`, `pciSaveDeviceState(options:)`,
   `pciRestoreDeviceState()`, `pciHasPowerManagement(support:)`,
   `pciEnablePowerManagement(state:)`, `pciLinkSpeed()`,

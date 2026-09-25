@@ -77,6 +77,18 @@ Use `.memory` with ``MemoryPoolConfiguration``. Allocate ``DriverMemoryHandle`` 
 
 Use `.scsi` with exactly one of ``SCSIControllerConfiguration`` or ``SCSIPeripheralConfiguration``. Controller drivers decode ``DriverEvent/scsiController()`` and complete pending parallel tasks. Peripheral drivers send ``SCSIPeripheralCommand`` values and control their published services.
 
+## Service operations
+
+Every generated extension exposes `IOService` operations on its own service, with no capability flag.
+
+- ``DriverContext/setServiceProperties(_:)``, ``DriverContext/serviceProperties()``, ``DriverContext/removeServiceProperty(named:)``, and ``DriverContext/searchServiceProperty(named:options:plane:)`` work with registry properties as ``DriverProperty`` values. `IOService` rejects property updates unless a family superclass accepts them. DriverKit numbers are unsigned, so numbers read back as ``DriverProperty/unsignedInteger(_:)`` and ``DriverProperty/real(_:)`` cannot be stored. Values nest at most eight levels and must fit one runtime message; Swift and the extension both reject anything else with ``ServiceRuntimeError``.
+- ``DriverContext/providerProperties(keys:)`` returns the supportable properties of each provider towards the registry root. ``DriverContext/serviceName()`` and ``DriverContext/registryEntryID()`` identify the service.
+- ``DriverContext/changePowerState(_:)``, ``DriverContext/setPowerOverride(_:)``, ``DriverContext/createPMAssertion(_:synced:)``, and ``DriverContext/releasePMAssertion(_:)`` drive power management. Assertions need the DriverKit 25.5 SDK or later; builds with an older SDK report `kIOReturnUnsupported`.
+- ``DriverContext/adjustBusy(by:)``, ``DriverContext/busyState()``, ``DriverContext/requireMaxBusStall(_:)``, and ``DriverContext/terminateService()`` control busy state, DMA latency, and termination.
+- ``DriverContext/systemStateItem(named:)``, ``DriverContext/createSystemStateItem(named:value:)``, and ``DriverContext/setSystemStateItem(named:value:)`` use the system state notification service, for example the `com.apple.iokit.pm.*` keys. ``DriverContext/sendCoreAnalyticsEvent(named:payload:)`` posts to CoreAnalytics.
+
+The extension overrides `IOService::SetPowerState`. Decode ``DriverEvent/servicePowerState()``, make the device safe for ``ServicePowerStateRequest/capability``, and answer with ``DriverContext/completePowerState(requestID:)``; DriverKit changes power only after the change is acknowledged. The extension acknowledges on the driver's behalf after ten seconds, when the host disconnects or the service stops, and at once when no host is connected, so a missing or failed Swift handler cannot stall the system. DriverKit's acknowledgement has no status, so every path acknowledges the same way.
+
 ## Related articles
 
 - <doc:GettingStarted>
