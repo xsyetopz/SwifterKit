@@ -67,7 +67,7 @@ struct AudioGeneratorTests {
       encoding: .utf8
     )
     #expect(audioDevice.contains("__atomic_add_fetch"))
-    #expect(!audioDevice.contains("EnqueueEvent(0x0A00"))
+    #expect(!audioDevice.contains("EnqueueEvent(kSwifterKitEventAudio"))
     let audioRuntime = try String(
       contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeAudio.cpp"),
       encoding: .utf8

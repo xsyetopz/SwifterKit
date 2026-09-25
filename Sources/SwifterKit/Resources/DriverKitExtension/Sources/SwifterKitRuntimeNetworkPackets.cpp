@@ -61,7 +61,7 @@ void SwifterKitRuntimeService::NetworkTxPacketAvailable_Impl(OSAction*) {
         bool ready = event != nullptr && event->appendBytes(&header, sizeof(header))
                      && event->appendBytes(bytes, length);
         kern_return_t result = ready ? EnqueueRequiredEvent(
-                                           0x0900,
+                                           kSwifterKitEventNetwork,
                                            event->getBytesNoCopy(),
                                            static_cast<uint32_t>(event->getLength()))
                                      : kIOReturnNoMemory;

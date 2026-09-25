@@ -10,7 +10,7 @@ extension DriverCommand {
     payload.append(linkHeaderLength)
     payload.append(contentsOf: [0, 0, 0])
     payload.append(frame)
-    return Self(opcode: 0x0900, requiredCapabilities: .networking, payload: payload)
+    return Self(opcode: .networkReceive, requiredCapabilities: .networking, payload: payload)
   }
 
   /// Completes an outgoing frame after the hardware transport finishes.
@@ -18,7 +18,11 @@ extension DriverCommand {
     var payload = Data(capacity: 8)
     payload.appendRuntimeInteger(requestID)
     payload.appendRuntimeInteger(status)
-    return Self(opcode: 0x0901, requiredCapabilities: .networking, payload: payload)
+    return Self(
+      opcode: .networkCompleteTransmit,
+      requiredCapabilities: .networking,
+      payload: payload
+    )
   }
 
   /// Reports the physical link state and active media word.
@@ -26,7 +30,7 @@ extension DriverCommand {
     var payload = Data(capacity: 8)
     payload.appendRuntimeInteger(active ? UInt32(3) : UInt32(1))
     payload.appendRuntimeInteger(media.rawValue)
-    return Self(opcode: 0x0902, requiredCapabilities: .networking, payload: payload)
+    return Self(opcode: .networkReportLink, requiredCapabilities: .networking, payload: payload)
   }
 }
 
@@ -50,7 +54,7 @@ extension DriverContext {
 extension DriverEvent {
   /// Decodes a NetworkingDriverKit request, or returns nil for another event family.
   public func ethernet() throws -> EthernetEvent? {
-    guard type == 0x0900 else { return nil }
+    guard type == RuntimeEventType.network.rawValue else { return nil }
     return try EthernetEvent(runtimePayload: Data(payload))
   }
 }

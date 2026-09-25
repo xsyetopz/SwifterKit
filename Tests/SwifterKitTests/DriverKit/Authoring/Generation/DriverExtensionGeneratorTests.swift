@@ -160,11 +160,11 @@ struct DriverExtensionGeneratorTests {
     #expect(service.contains("SubmitHIDInputReport"))
     #expect(service.contains("CopyHIDRuntimeStatistics"))
 
-    let protocolHeader = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeProtocol.h"),
+    let schemaHeader = try String(
+      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeSchema.h"),
       encoding: .utf8
     )
-    #expect(protocolHeader.contains("HIDGetRuntimeStatistics = 0x0301"))
+    #expect(schemaHeader.contains("HIDGetRuntimeStatistics = 0x0301"))
 
     try expectGeneratedExtensionBuilds(
       at: output,

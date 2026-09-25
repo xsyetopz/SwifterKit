@@ -15,8 +15,6 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    constexpr uint32_t kMIDIEventType = 0x0800;
-
     enum class MIDIEventKind : uint32_t {
         StartIO = 1,
         StopIO = 2,
@@ -34,7 +32,7 @@ namespace {
             .wordCount = 0,
             .reserved = 0,
         };
-        return service->EnqueueEvent(kMIDIEventType, &event, sizeof(event));
+        return service->EnqueueEvent(kSwifterKitEventMIDI, &event, sizeof(event));
     }
 }  // namespace
 
@@ -193,7 +191,7 @@ kern_return_t SwifterKitRuntimeService::MIDIReceived(
         return kIOReturnNoMemory;
     }
     const kern_return_t result = EnqueueEvent(
-        kMIDIEventType,
+        kSwifterKitEventMIDI,
         event->getBytesNoCopy(),
         static_cast<uint32_t>(event->getLength()));
     event->release();

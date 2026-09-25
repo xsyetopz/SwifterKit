@@ -14,7 +14,7 @@ extension DriverCommand {
     guard length > 0 else { throw VideoRuntimeError.invalidTransferRange }
     guard length <= 65_464 else { throw VideoRuntimeError.transferTooLarge }
     return Self(
-      opcode: 0x0C00,
+      opcode: .videoReadBuffer,
       requiredCapabilities: .video,
       payload: videoTransferPayload(
         streamIndex: streamIndex,
@@ -47,7 +47,7 @@ extension DriverCommand {
       length: UInt32(bytes.count)
     )
     payload.append(bytes)
-    return Self(opcode: 0x0C01, requiredCapabilities: .video, payload: payload)
+    return Self(opcode: .videoWriteBuffer, requiredCapabilities: .video, payload: payload)
   }
 
   /// Enqueues a completed output entry for the host.
@@ -60,7 +60,7 @@ extension DriverCommand {
     var payload = Data(capacity: 36)
     payload.appendRuntimeInteger(streamIndex)
     payload.append(videoEntryPayload(entry))
-    return Self(opcode: 0x0C02, requiredCapabilities: .video, payload: payload)
+    return Self(opcode: .videoEnqueueOutput, requiredCapabilities: .video, payload: payload)
   }
 
   /// Dequeues an input entry supplied by the host.
@@ -69,7 +69,7 @@ extension DriverCommand {
     var payload = Data(capacity: 4)
     payload.appendRuntimeInteger(streamIndex)
     return Self(
-      opcode: 0x0C03,
+      opcode: .videoDequeueInput,
       requiredCapabilities: .video,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + 32
@@ -81,7 +81,7 @@ extension DriverCommand {
     guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
     var payload = Data(capacity: 4)
     payload.appendRuntimeInteger(streamIndex)
-    return Self(opcode: 0x0C04, requiredCapabilities: .video, payload: payload)
+    return Self(opcode: .videoNotifyOutput, requiredCapabilities: .video, payload: payload)
   }
 
   /// Updates the device timestamp from the hardware clock.
@@ -89,14 +89,14 @@ extension DriverCommand {
     var payload = Data(capacity: 16)
     payload.appendRuntimeInteger(sampleTime)
     payload.appendRuntimeInteger(hostTime)
-    return Self(opcode: 0x0C05, requiredCapabilities: .video, payload: payload)
+    return Self(opcode: .videoUpdateTimestamp, requiredCapabilities: .video, payload: payload)
   }
 
   /// Requests a host-coordinated device sample-rate change.
   public static func videoRequestSampleRate(_ sampleRate: Double) -> Self {
     var payload = Data(capacity: 8)
     payload.appendRuntimeInteger(sampleRate.bitPattern)
-    return Self(opcode: 0x0C06, requiredCapabilities: .video, payload: payload)
+    return Self(opcode: .videoRequestSampleRate, requiredCapabilities: .video, payload: payload)
   }
 
   private static func videoTransferPayload(
@@ -193,7 +193,7 @@ extension DriverContext {
 extension DriverEvent {
   /// Decodes a VideoDriverKit lifecycle event.
   public func video() throws -> VideoEvent? {
-    guard type == 0x0C00 else { return nil }
+    guard type == RuntimeEventType.video.rawValue else { return nil }
     return try VideoEvent(runtimePayload: Data(payload))
   }
 }

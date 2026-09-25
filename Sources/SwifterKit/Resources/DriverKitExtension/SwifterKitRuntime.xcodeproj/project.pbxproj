@@ -114,6 +114,7 @@
 		0D001EC22AAAAAAA00000001 /* SwifterKitRuntimeAudioControlCallbacks.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioControlCallbacks.cpp; sourceTree = "<group>"; };
 		0D001E422AAAAAAA00000001 /* SwifterKitRuntimeHID.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeHID.cpp; sourceTree = "<group>"; };
 		0D001BBA2AAAAAAA00000001 /* SwifterKitRuntimeProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeProtocol.h; sourceTree = "<group>"; };
+		0D001BFE2AAAAAAA00000001 /* SwifterKitRuntimeSchema.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeSchema.h; sourceTree = "<group>"; };
 		0D001BFC2AAAAAAA00000001 /* SwifterKitRuntimeUserClientHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwifterKitRuntimeUserClientHelpers.h; sourceTree = "<group>"; };
 		0D001AAF2AAAAAAA00000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0D001AB02AAAAAAA00000001 /* SwifterKitRuntime.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SwifterKitRuntime.entitlements; sourceTree = "<group>"; };
@@ -212,6 +213,7 @@
 				0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */,
 				0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */,
 				0D001BBA2AAAAAAA00000001 /* SwifterKitRuntimeProtocol.h */,
+				0D001BFE2AAAAAAA00000001 /* SwifterKitRuntimeSchema.h */,
 				0D001BFC2AAAAAAA00000001 /* SwifterKitRuntimeUserClientHelpers.h */,
 			);
 			path = "";

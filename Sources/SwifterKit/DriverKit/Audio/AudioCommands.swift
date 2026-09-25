@@ -8,7 +8,7 @@ extension DriverCommand {
     guard length > 0 else { throw AudioRuntimeError.invalidTransferRange }
     guard length <= 65_472 else { throw AudioRuntimeError.transferTooLarge }
     return Self(
-      opcode: 0x0A00,
+      opcode: .audioReadStream,
       requiredCapabilities: .audio,
       payload: audioTransferPayload(index: index, byteOffset: byteOffset, length: UInt32(length)),
       maximumResponseSize: RuntimeMessage.headerSize + length
@@ -28,7 +28,7 @@ extension DriverCommand {
     )
     payload.append(bytes)
     return Self(
-      opcode: 0x0A01,
+      opcode: .audioWriteStream,
       requiredCapabilities: .audio,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -38,7 +38,7 @@ extension DriverCommand {
   /// Requests the latest lock-free real-time I/O snapshot.
   public static func audioGetIOState() -> Self {
     Self(
-      opcode: 0x0A02,
+      opcode: .audioGetIOState,
       requiredCapabilities: .audio,
       maximumResponseSize: RuntimeMessage.headerSize + 32
     )
@@ -50,7 +50,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(sampleTime)
     payload.appendRuntimeInteger(hostTime)
     return Self(
-      opcode: 0x0A03,
+      opcode: .audioUpdateTimestamp,
       requiredCapabilities: .audio,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -62,7 +62,7 @@ extension DriverCommand {
     var payload = Data(capacity: 8)
     payload.appendRuntimeInteger(sampleRate.bitPattern)
     return Self(
-      opcode: 0x0A04,
+      opcode: .audioRequestSampleRate,
       requiredCapabilities: .audio,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -114,7 +114,7 @@ extension DriverContext {
 extension DriverEvent {
   /// Decodes an AudioDriverKit lifecycle or format event.
   public func audio() throws -> AudioEvent? {
-    guard type == 0x0A00 else { return nil }
+    guard type == RuntimeEventType.audio.rawValue else { return nil }
     return try AudioEvent(runtimePayload: Data(payload))
   }
 }

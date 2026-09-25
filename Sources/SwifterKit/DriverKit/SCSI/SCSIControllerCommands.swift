@@ -17,7 +17,7 @@ extension DriverCommand {
     }
     payload.append(contentsOf: completion.senseData)
     return Self(
-      opcode: 0x0B00,
+      opcode: .scsiCompleteParallelTask,
       requiredCapabilities: .scsi,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -35,9 +35,10 @@ extension DriverContext {
 extension DriverEvent {
   /// Decodes a SCSIControllerDriverKit callback.
   public func scsiController() throws -> SCSIControllerEvent? {
-    switch type {
-    case 0x0B00: return .parallelTask(try SCSIParallelTask(runtimePayload: Data(payload)))
-    case 0x0B01: return try SCSIControllerEvent(managementPayload: Data(payload))
+    switch RuntimeEventType(rawValue: type) {
+    case .scsiParallelTask?:
+      return .parallelTask(try SCSIParallelTask(runtimePayload: Data(payload)))
+    case .scsiManagement?: return try SCSIControllerEvent(managementPayload: Data(payload))
     default: return nil
     }
   }

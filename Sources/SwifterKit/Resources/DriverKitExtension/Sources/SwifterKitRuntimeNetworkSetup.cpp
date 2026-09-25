@@ -132,7 +132,7 @@ kern_return_t SwifterKitRuntimeService::NetworkControlEvent(
         return kIOReturnNoMemory;
     }
     const kern_return_t result = EnqueueRequiredEvent(
-        0x0900,
+        kSwifterKitEventNetwork,
         event->getBytesNoCopy(),
         static_cast<uint32_t>(event->getLength()));
     event->release();

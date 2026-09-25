@@ -9,8 +9,6 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    constexpr uint32_t kSerialEventType = 0x0600;
-
     enum class SerialEventKind : uint32_t {
         Activate = 1,
         Deactivate = 2,
@@ -81,7 +79,7 @@ namespace {
             .byte3 = 0,
             .reserved = 0,
         };
-        return service->EnqueueEvent(kSerialEventType, &event, sizeof(event));
+        return service->EnqueueEvent(kSwifterKitEventSerial, &event, sizeof(event));
     }
 }  // namespace
 

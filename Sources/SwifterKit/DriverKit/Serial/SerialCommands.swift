@@ -6,7 +6,7 @@ extension DriverCommand {
     guard !bytes.isEmpty else { throw SerialRuntimeError.emptyReceiveData }
     guard bytes.count <= 65_496 else { throw SerialRuntimeError.transferTooLarge }
     return Self(
-      opcode: 0x0600,
+      opcode: .serialEnqueueReceive,
       requiredCapabilities: .serial,
       payload: Data(bytes),
       maximumResponseSize: RuntimeMessage.headerSize
@@ -20,7 +20,7 @@ extension DriverCommand {
     var payload = Data(capacity: 4)
     payload.appendRuntimeInteger(UInt32(maximumLength))
     return Self(
-      opcode: 0x0601,
+      opcode: .serialDequeueTransmit,
       requiredCapabilities: .serial,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + maximumLength
@@ -30,7 +30,7 @@ extension DriverCommand {
   /// Updates hardware modem-input signals reported to SerialDriverKit.
   public static func serialSetModemStatus(_ status: SerialModemStatus) -> Self {
     Self(
-      opcode: 0x0602,
+      opcode: .serialSetModemStatus,
       requiredCapabilities: .serial,
       payload: status.runtimePayload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -40,7 +40,7 @@ extension DriverCommand {
   /// Reports receive errors to SerialDriverKit.
   public static func serialReportReceiveErrors(_ errors: SerialReceiveErrors) -> Self {
     Self(
-      opcode: 0x0603,
+      opcode: .serialReportReceiveErrors,
       requiredCapabilities: .serial,
       payload: Data([errors.rawValue, 0, 0, 0]),
       maximumResponseSize: RuntimeMessage.headerSize
@@ -75,7 +75,7 @@ extension DriverEvent {
   ///
   /// Returns nil when the event belongs to another capability family.
   public func serial() throws -> SerialEvent? {
-    guard type == 0x0600 else { return nil }
+    guard type == RuntimeEventType.serial.rawValue else { return nil }
     return try SerialEvent(runtimePayload: Data(payload))
   }
 }

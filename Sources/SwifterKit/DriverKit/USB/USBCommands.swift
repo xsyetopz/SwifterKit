@@ -19,7 +19,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(UInt32(0))
     payload.append(contentsOf: data)
     return Self(
-      opcode: 0x0200,
+      opcode: .usbControlTransfer,
       requiredCapabilities: .usb,
       payload: payload,
       maximumResponseSize: usbMaximumResponseSize(
@@ -56,7 +56,7 @@ extension DriverCommand {
   /// Creates a command that clears an endpoint halt condition.
   public static func usbClearStall(endpoint: UInt8, withRequest: Bool = true) -> Self {
     Self(
-      opcode: 0x0202,
+      opcode: .usbClearStall,
       requiredCapabilities: .usb,
       payload: Data([endpoint, withRequest ? 1 : 0, 0, 0]),
       maximumResponseSize: RuntimeMessage.headerSize
@@ -66,7 +66,7 @@ extension DriverCommand {
   /// Creates a command that selects an interface alternate setting.
   public static func usbSelectAlternateSetting(_ alternateSetting: UInt8) -> Self {
     Self(
-      opcode: 0x0203,
+      opcode: .usbSelectAlternateSetting,
       requiredCapabilities: .usb,
       payload: Data([alternateSetting, 0, 0, 0]),
       maximumResponseSize: RuntimeMessage.headerSize
@@ -93,7 +93,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(UInt32(0))
     payload.append(contentsOf: data)
     return Self(
-      opcode: 0x0201,
+      opcode: .usbPipeTransfer,
       requiredCapabilities: .usb,
       payload: payload,
       maximumResponseSize: usbMaximumResponseSize(direction: direction, length: length)

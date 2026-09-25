@@ -121,7 +121,7 @@ void SwifterKitRuntimeService::InterruptOccurred_Impl(
         .count = count,
         .time = time,
     };
-    (void)EnqueueEvent(0x0100, &event, sizeof(event));
+    (void)EnqueueEvent(kSwifterKitEventInterrupt, &event, sizeof(event));
 }
 
 kern_return_t SwifterKitRuntimeService::InterruptCommand(

@@ -10,8 +10,6 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    constexpr uint32_t kSCSIParallelTaskEvent = 0x0B00;
-    constexpr uint32_t kSCSIManagementEvent = 0x0B01;
     constexpr uint32_t kSCSIInitializeTarget = 1;
     constexpr uint32_t kSCSIAbortTask = 2;
     constexpr uint32_t kSCSIAbortTaskSet = 3;
@@ -36,7 +34,7 @@ namespace {
             .logicalUnit = logicalUnit,
             .taskTag = taskTag,
         };
-        return service->EnqueueRequiredEvent(kSCSIManagementEvent, &event, sizeof(event));
+        return service->EnqueueRequiredEvent(kSwifterKitEventSCSIManagement, &event, sizeof(event));
     }
 
     kern_return_t ForwardManagement(
@@ -237,7 +235,7 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
     IOLockUnlock(ivars->scsiLock);
 
     const kern_return_t result =
-        EnqueueRequiredEvent(kSCSIParallelTaskEvent, &event, sizeof(event));
+        EnqueueRequiredEvent(kSwifterKitEventSCSIParallelTask, &event, sizeof(event));
     if (result != kIOReturnSuccess) {
         bool removed = false;
         IOLockLock(ivars->scsiLock);

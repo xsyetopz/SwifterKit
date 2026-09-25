@@ -58,7 +58,7 @@ void SwifterKitRuntimeService::StopVideo() {
 
 kern_return_t SwifterKitRuntimeService::VideoControlEvent(uint32_t kind, uint64_t value) {
     const SwifterKitVideoEvent event = {kind, 0, value};
-    return EnqueueEvent(0x0C00, &event, sizeof(event));
+    return EnqueueEvent(kSwifterKitEventVideo, &event, sizeof(event));
 }
 
 kern_return_t SwifterKitRuntimeService::VideoControlValueEvent(
@@ -73,7 +73,10 @@ kern_return_t SwifterKitRuntimeService::VideoControlValueEvent(
     const SwifterKitVideoControlEventHeader header = {4, identifier, kind, count, 0};
     memcpy(payload, &header, sizeof(header));
     memcpy(payload + sizeof(header), values, count * sizeof(uint32_t));
-    return EnqueueRequiredEvent(0x0C00, payload, sizeof(header) + count * sizeof(uint32_t));
+    return EnqueueRequiredEvent(
+        kSwifterKitEventVideo,
+        payload,
+        sizeof(header) + count * sizeof(uint32_t));
 }
 
 kern_return_t SwifterKitRuntimeService::VideoCustomPropertyEvent(
@@ -91,7 +94,10 @@ kern_return_t SwifterKitRuntimeService::VideoCustomPropertyEvent(
     memcpy(payload, &header, sizeof(header));
     memcpy(payload + sizeof(header), qualifier, qualifierLength);
     memcpy(payload + sizeof(header) + qualifierLength, value, valueLength);
-    return EnqueueRequiredEvent(0x0C00, payload, sizeof(header) + qualifierLength + valueLength);
+    return EnqueueRequiredEvent(
+        kSwifterKitEventVideo,
+        payload,
+        sizeof(header) + qualifierLength + valueLength);
 }
 
 kern_return_t SwifterKitRuntimeService::VideoStreamEvent(
@@ -104,8 +110,8 @@ kern_return_t SwifterKitRuntimeService::VideoStreamEvent(
         || (kind == 10 && value != 0))
         return kIOReturnBadArgument;
     const SwifterKitVideoEvent event = {kind, streamIndex, value};
-    return required ? EnqueueRequiredEvent(0x0C00, &event, sizeof(event))
-                    : EnqueueEvent(0x0C00, &event, sizeof(event));
+    return required ? EnqueueRequiredEvent(kSwifterKitEventVideo, &event, sizeof(event))
+                    : EnqueueEvent(kSwifterKitEventVideo, &event, sizeof(event));
 }
 
 kern_return_t SwifterKitRuntimeService::VideoStreamFormatEvent(
@@ -126,7 +132,7 @@ kern_return_t SwifterKitRuntimeService::VideoStreamFormatEvent(
         format->mHeight,
         0,
         0};
-    return EnqueueRequiredEvent(0x0C00, &event, sizeof(event));
+    return EnqueueRequiredEvent(kSwifterKitEventVideo, &event, sizeof(event));
 }
 
 kern_return_t SwifterKitRuntimeService::VideoCommand(

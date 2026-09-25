@@ -6,7 +6,7 @@ extension DriverCommand {
     guard !report.bytes.isEmpty else { throw HIDRuntimeError.emptyReport }
     guard report.type == .input else { throw HIDRuntimeError.invalidReportType }
     return Self(
-      opcode: 0x0300,
+      opcode: .hidSubmitInputReport,
       requiredCapabilities: .hid,
       payload: try report.encodedRuntimePayload(),
       maximumResponseSize: RuntimeMessage.headerSize
@@ -15,7 +15,7 @@ extension DriverCommand {
 
   /// Reads extension-side HID input-report delivery counters.
   public static let hidRuntimeStatistics = Self(
-    opcode: 0x0301,
+    opcode: .hidGetRuntimeStatistics,
     requiredCapabilities: .hid,
     maximumResponseSize: RuntimeMessage.headerSize + 24
   )
@@ -38,7 +38,7 @@ extension DriverEvent {
   ///
   /// Returns nil when the event belongs to another capability family.
   public func hidReport() throws -> HIDReport? {
-    guard type == 0x0300 else { return nil }
+    guard type == RuntimeEventType.hidReport.rawValue else { return nil }
     return try HIDReport(runtimePayload: Data(payload))
   }
 }

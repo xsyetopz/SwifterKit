@@ -23,7 +23,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(direction.rawValue)
     payload.appendRuntimeInteger(UInt32(0))
     return Self(
-      opcode: 0x0500,
+      opcode: .memoryAllocate,
       requiredCapabilities: .memory,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + 8
@@ -32,7 +32,7 @@ extension DriverCommand {
 
   /// Releases a native buffer and any prepared DMA mapping.
   public static func releaseMemory(_ handle: DriverMemoryHandle) throws -> Self {
-    try handleCommand(opcode: 0x0501, handle: handle)
+    try handleCommand(opcode: .memoryRelease, handle: handle)
   }
 
   /// Changes the valid-data length without reallocating the buffer.
@@ -41,7 +41,7 @@ extension DriverCommand {
     var payload = Data(capacity: 16)
     payload.appendRuntimeInteger(handle.rawValue)
     payload.appendRuntimeInteger(length)
-    return Self(opcode: 0x0502, requiredCapabilities: .memory, payload: payload)
+    return Self(opcode: .memorySetLength, requiredCapabilities: .memory, payload: payload)
   }
 
   /// Reads bytes from a mapped native buffer.
@@ -53,7 +53,7 @@ extension DriverCommand {
     guard length > 0 else { throw DriverMemoryError.invalidSize }
     guard length <= maximumMemoryTransferLength else { throw DriverMemoryError.transferTooLarge }
     return try accessCommand(
-      opcode: 0x0503,
+      opcode: .memoryRead,
       handle: handle,
       offset: offset,
       length: length,
@@ -72,7 +72,7 @@ extension DriverCommand {
       throw DriverMemoryError.transferTooLarge
     }
     var command = try accessCommand(
-      opcode: 0x0504,
+      opcode: .memoryWrite,
       handle: handle,
       offset: offset,
       length: UInt32(bytes.count),
@@ -92,7 +92,7 @@ extension DriverCommand {
   /// Queries current native buffer metadata.
   public static func memoryInfo(_ handle: DriverMemoryHandle) throws -> Self {
     try handleCommand(
-      opcode: 0x0505,
+      opcode: .memoryGetInfo,
       handle: handle,
       maximumResponseSize: RuntimeMessage.headerSize + 32
     )
@@ -114,7 +114,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(maximumAddressBits)
     payload.appendRuntimeInteger(UInt32(0))
     return Self(
-      opcode: 0x0506,
+      opcode: .memoryPrepareDMA,
       requiredCapabilities: .memory,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + 16 + 32 * 16
@@ -123,11 +123,11 @@ extension DriverCommand {
 
   /// Completes and releases a buffer's prepared DMA mapping.
   public static func completeMemoryDMA(_ handle: DriverMemoryHandle) throws -> Self {
-    try handleCommand(opcode: 0x0507, handle: handle)
+    try handleCommand(opcode: .memoryCompleteDMA, handle: handle)
   }
 
   private static func handleCommand(
-    opcode: UInt32,
+    opcode: RuntimeOpcode,
     handle: DriverMemoryHandle,
     maximumResponseSize: Int = RuntimeMessage.headerSize
   ) throws -> Self {
@@ -143,7 +143,7 @@ extension DriverCommand {
   }
 
   private static func accessCommand(
-    opcode: UInt32,
+    opcode: RuntimeOpcode,
     handle: DriverMemoryHandle,
     offset: UInt64,
     length: UInt32,

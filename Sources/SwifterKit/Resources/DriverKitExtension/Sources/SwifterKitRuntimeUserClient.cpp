@@ -488,16 +488,20 @@ auto SwifterKitRuntimeUserClient::ExternalMethod(
     const auto* bytes = static_cast<const uint8_t*>(arguments->structureInput->getBytesNoCopy());
     const auto* request = reinterpret_cast<const SwifterKitRuntimeHeader*>(bytes);
     if (request == nullptr || request->magic != kSwifterKitRuntimeMagic
-        || request->version != kSwifterKitRuntimeVersion
         || request->payloadLength != inputLength - sizeof(SwifterKitRuntimeHeader)) {
         return kIOReturnBadArgument;
     }
 
+    // A handshake negotiates from its payload range, so only later messages must carry a
+    // version this extension speaks.
     const auto kind = static_cast<SwifterKitRuntimeMessageKind>(request->kind);
+    if (kind != SwifterKitRuntimeMessageKind::Handshake && !IsSupportedVersion(request->version)) {
+        return kIOReturnBadArgument;
+    }
     const uint8_t* payload = bytes + sizeof(SwifterKitRuntimeHeader);
     switch (kind) {
         case SwifterKitRuntimeMessageKind::Handshake:
-            return HandleHandshake(arguments, request);
+            return HandleHandshake(arguments, request, payload);
         case SwifterKitRuntimeMessageKind::Command:
             return HandleCommand(
                 ivars == nullptr ? nullptr : ivars->service,

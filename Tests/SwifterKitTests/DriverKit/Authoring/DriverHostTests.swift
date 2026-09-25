@@ -174,13 +174,16 @@ private actor HostConnection: DriverConnection {
     let message = try RuntimeMessage(decoding: request.structureInput)
     switch message.kind {
     case .handshake:
-      var payload = Data()
-      payload.appendRuntimeInteger(capabilities.rawValue)
-      return try response(kind: .response, requestID: message.requestID, payload: payload)
+      let acceptance = RuntimeHandshakeAcceptance(version: .current, capabilities: capabilities)
+      return try response(
+        kind: .response,
+        requestID: message.requestID,
+        payload: acceptance.encoded()
+      )
     case .command:
       let opcode: UInt32 = try message.payload.readRuntimeInteger(at: 0)
-      if opcode == 1, events.isEmpty { emptyPollCount += 1 }
-      guard opcode == 1, !events.isEmpty else {
+      if opcode == RuntimeOpcode.pollEvent.rawValue, events.isEmpty { emptyPollCount += 1 }
+      guard opcode == RuntimeOpcode.pollEvent.rawValue, !events.isEmpty else {
         return try response(kind: .response, requestID: message.requestID, payload: Data())
       }
       let event = events.removeFirst()

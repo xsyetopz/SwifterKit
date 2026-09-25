@@ -3,10 +3,12 @@ import Foundation
 /// A negotiated connection between Swift driver behavior and the internal DriverKit runtime.
 public actor DriverRuntimeConnection {
   /// The maximum response size accepted by default.
-  public static let defaultMaximumResponseSize = 65_536
+  public static let defaultMaximumResponseSize = RuntimeMessage.maximumSize
 
   /// Capabilities advertised by the connected extension.
   public private(set) var capabilities: RuntimeCapabilities = []
+  /// The protocol version selected by the connected extension during the handshake.
+  public private(set) var protocolVersion: RuntimeProtocolVersion = .current
 
   private var session: DriverSession?
   private var nextRequestID: UInt64 = 1
@@ -23,9 +25,8 @@ public actor DriverRuntimeConnection {
     requiring requiredCapabilities: RuntimeCapabilities = [],
     maximumResponseSize: Int = defaultMaximumResponseSize
   ) async throws -> DriverRuntimeConnection {
-    guard maximumResponseSize >= RuntimeMessage.headerSize + MemoryLayout<UInt64>.size else {
-      throw DriverRuntimeError.invalidMaximumResponseSize
-    }
+    guard maximumResponseSize >= RuntimeMessage.headerSize + RuntimeSchema.handshakeResponseSize
+    else { throw DriverRuntimeError.invalidMaximumResponseSize }
 
     let connection = DriverRuntimeConnection(
       session: session,
@@ -46,7 +47,7 @@ public actor DriverRuntimeConnection {
 
     let response = try await transact(
       kind: .command,
-      flags: [.expectsResponse, .finalFragment],
+      flags: .expectsResponse,
       payload: command.encodedPayload(),
       responseCapacity: min(maximumResponseSize, command.maximumResponseSize)
     )
@@ -62,7 +63,7 @@ public actor DriverRuntimeConnection {
   public func nextEvent() async throws -> DriverEvent? {
     let response = try await transact(
       kind: .command,
-      flags: [.expectsResponse, .finalFragment],
+      flags: .expectsResponse,
       payload: DriverCommand.pollEvent.encodedPayload(),
       responseCapacity: min(maximumResponseSize, DriverCommand.pollEvent.maximumResponseSize)
     )
@@ -86,18 +87,21 @@ public actor DriverRuntimeConnection {
   }
 
   private func negotiate(requiring requiredCapabilities: RuntimeCapabilities) async throws {
+    let offer = RuntimeHandshakeOffer(versions: RuntimeProtocolVersion.supported)
     let response = try await transact(
       kind: .handshake,
-      flags: [.expectsResponse, .finalFragment],
-      payload: Data(),
-      responseCapacity: RuntimeMessage.headerSize + MemoryLayout<UInt64>.size
+      flags: .expectsResponse,
+      payload: offer.encoded(),
+      responseCapacity: RuntimeMessage.headerSize + RuntimeSchema.handshakeResponseSize
     )
-    guard response.kind == .response, response.payload.count == MemoryLayout<UInt64>.size else {
+    guard response.kind == .response else { throw DriverRuntimeError.invalidHandshake }
+
+    let acceptance = try RuntimeHandshakeAcceptance(decoding: response.payload)
+    guard acceptance.version == response.version, offer.versions.contains(acceptance.version) else {
       throw DriverRuntimeError.invalidHandshake
     }
-
-    let advertised: UInt64 = try response.payload.readRuntimeInteger(at: 0)
-    capabilities = RuntimeCapabilities(rawValue: advertised)
+    protocolVersion = acceptance.version
+    capabilities = acceptance.capabilities
     guard capabilities.contains(requiredCapabilities) else {
       throw DriverRuntimeError.missingCapabilities(
         required: requiredCapabilities,
@@ -114,8 +118,14 @@ public actor DriverRuntimeConnection {
   ) async throws -> RuntimeMessage {
     guard let session else { throw DriverRuntimeError.closed }
 
-    let requestID = reserveRequestID()
-    let request = RuntimeMessage(kind: kind, requestID: requestID, flags: flags, payload: payload)
+    // The handshake header carries the newest offered version; later messages use the selected one.
+    let request = RuntimeMessage(
+      version: protocolVersion,
+      kind: kind,
+      requestID: reserveRequestID(),
+      flags: flags,
+      payload: payload
+    )
     let rawResponse = try await session.call(
       DriverRequest(
         selector: 0,
@@ -126,8 +136,14 @@ public actor DriverRuntimeConnection {
     guard rawResponse.scalarOutput.isEmpty else { throw DriverRuntimeError.unexpectedScalarOutput }
 
     let response = try RuntimeMessage(decoding: rawResponse.structureOutput)
-    guard response.requestID == requestID else {
-      throw DriverRuntimeError.requestIDMismatch(expected: requestID, received: response.requestID)
+    guard response.requestID == request.requestID else {
+      throw DriverRuntimeError.requestIDMismatch(
+        expected: request.requestID,
+        received: response.requestID
+      )
+    }
+    guard kind == .handshake || response.version == protocolVersion else {
+      throw RuntimeProtocolError.unsupportedVersion(response.version.rawValue)
     }
     return response
   }

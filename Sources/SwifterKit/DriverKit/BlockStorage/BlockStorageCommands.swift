@@ -10,7 +10,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(requestID)
     payload.appendRuntimeInteger(status.rawValue)
     return Self(
-      opcode: 0x0700,
+      opcode: .blockStorageComplete,
       requiredCapabilities: .blockStorage,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -28,7 +28,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(status.rawValue)
     payload.appendRuntimeInteger(bytesTransferred)
     return Self(
-      opcode: 0x0701,
+      opcode: .blockStorageCompleteIO,
       requiredCapabilities: .blockStorage,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -64,7 +64,7 @@ extension DriverContext {
 extension DriverEvent {
   /// Decodes a BlockStorageDeviceDriverKit request.
   public func blockStorage() throws -> BlockStorageRequest? {
-    guard type == 0x0700 else { return nil }
+    guard type == RuntimeEventType.blockStorage.rawValue else { return nil }
     return try BlockStorageRequest(runtimePayload: Data(payload))
   }
 }

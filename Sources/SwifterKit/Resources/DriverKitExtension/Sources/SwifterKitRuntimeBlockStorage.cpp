@@ -10,8 +10,6 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    constexpr uint32_t kBlockStorageEventType = 0x0700;
-
     enum class BlockStorageRequestKind : uint32_t {
         Eject = 1,
         Synchronize = 2,
@@ -94,7 +92,7 @@ namespace {
         if (result != kIOReturnSuccess) {
             return result;
         }
-        result = service->EnqueueRequiredEvent(kBlockStorageEventType, event, eventLength);
+        result = service->EnqueueRequiredEvent(kSwifterKitEventBlockStorage, event, eventLength);
         if (result != kIOReturnSuccess) {
             RemovePendingRequest(state, requestID);
         }

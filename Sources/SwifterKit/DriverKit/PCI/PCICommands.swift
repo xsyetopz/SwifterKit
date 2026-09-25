@@ -10,7 +10,7 @@ extension DriverCommand {
   ) throws -> Self {
     try validatePCI(space: space, offset: offset, width: width)
     return Self(
-      opcode: 0x0400,
+      opcode: .pciRead,
       requiredCapabilities: .pci,
       payload: pciAccessPayload(
         space: space,
@@ -36,7 +36,7 @@ extension DriverCommand {
       throw PCIRuntimeError.valueOutOfRange
     }
     return Self(
-      opcode: 0x0401,
+      opcode: .pciWrite,
       requiredCapabilities: .pci,
       payload: pciAccessPayload(
         space: space,
@@ -53,7 +53,7 @@ extension DriverCommand {
   public static func pciBaseAddressInfo(index: UInt8) throws -> Self {
     guard index <= 6 else { throw PCIRuntimeError.invalidBARIndex }
     return Self(
-      opcode: 0x0402,
+      opcode: .pciGetBARInfo,
       requiredCapabilities: .pci,
       payload: Data([index, 0, 0, 0]),
       maximumResponseSize: RuntimeMessage.headerSize + 12
@@ -62,7 +62,7 @@ extension DriverCommand {
 
   /// Creates a query for the PCI bus/device/function address.
   public static let pciLocation = Self(
-    opcode: 0x0403,
+    opcode: .pciGetLocation,
     requiredCapabilities: .pci,
     maximumResponseSize: RuntimeMessage.headerSize + 4
   )
@@ -74,7 +74,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(UInt32(0))
     payload.appendRuntimeInteger(offset)
     return Self(
-      opcode: 0x0404,
+      opcode: .pciFindCapability,
       requiredCapabilities: .pci,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + 8

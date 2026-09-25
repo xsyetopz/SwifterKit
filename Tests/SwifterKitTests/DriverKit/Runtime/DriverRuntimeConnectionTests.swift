@@ -15,6 +15,53 @@ struct DriverRuntimeConnectionTests {
 
     #expect(response == payload)
     #expect(await runtime.capabilities == [.usb, .memory])
+    #expect(await runtime.protocolVersion == .current)
+    #expect(
+      await backend.offers == [RuntimeHandshakeOffer(versions: RuntimeProtocolVersion.supported)]
+    )
+    #expect(await backend.requestVersions.allSatisfy { $0 == .current })
+  }
+
+  @Test
+  func rejectsHandshakeSelectingVersionOutsideOffer() async {
+    let unsupported = RuntimeProtocolVersion(rawValue: RuntimeSchema.maximumVersion + 1)
+    let backend = RuntimeMockConnection(
+      capabilities: [],
+      selectedVersion: unsupported,
+      headerVersion: .current
+    )
+
+    await #expect(throws: DriverRuntimeError.invalidHandshake) {
+      try await makeRuntime(backend: backend)
+    }
+  }
+
+  @Test
+  func rejectsHandshakeResponseEncodedWithUnsupportedVersion() async {
+    let unsupported = RuntimeProtocolVersion(rawValue: RuntimeSchema.maximumVersion + 1)
+    let backend = RuntimeMockConnection(capabilities: [], selectedVersion: unsupported)
+
+    await #expect(throws: RuntimeProtocolError.unsupportedVersion(unsupported.rawValue)) {
+      try await makeRuntime(backend: backend)
+    }
+  }
+
+  @Test
+  func rejectsOversizeCommandBeforeTransport() async throws {
+    let backend = RuntimeMockConnection(capabilities: [])
+    let runtime = try await makeRuntime(backend: backend)
+    let callsBeforeCommand = await backend.callCount
+    let largestPayload =
+      RuntimeMessage.maximumSize - RuntimeMessage.headerSize - RuntimeSchema.commandHeaderSize
+
+    await #expect(throws: RuntimeProtocolError.payloadTooLarge) {
+      try await runtime.execute(.ping(Data(count: largestPayload + 1)))
+    }
+    #expect(await backend.callCount == callsBeforeCommand)
+    _ = try await runtime.execute(
+      DriverCommand(opcode: .ping, payload: Data(count: largestPayload))
+    )
+    #expect(await backend.callCount == callsBeforeCommand + 1)
   }
 
   @Test
@@ -109,47 +156,64 @@ struct DriverRuntimeConnectionTests {
 private actor RuntimeMockConnection: DriverConnection {
   let capabilities: RuntimeCapabilities
   let corruptResponseID: Bool
+  let selectedVersion: RuntimeProtocolVersion
+  let headerVersion: RuntimeProtocolVersion?
   var events: [DriverEvent]
   var callCount = 0
   var closeCount = 0
+  var offers: [RuntimeHandshakeOffer] = []
+  var requestVersions: [RuntimeProtocolVersion] = []
 
   init(
     capabilities: RuntimeCapabilities,
     events: [DriverEvent] = [],
-    corruptResponseID: Bool = false
+    corruptResponseID: Bool = false,
+    selectedVersion: RuntimeProtocolVersion = .current,
+    headerVersion: RuntimeProtocolVersion? = nil
   ) {
     self.capabilities = capabilities
     self.events = events
     self.corruptResponseID = corruptResponseID
+    self.selectedVersion = selectedVersion
+    self.headerVersion = headerVersion
   }
 
   func call(_ request: DriverRequest) throws -> DriverResponse {
     callCount += 1
     let message = try RuntimeMessage(decoding: request.structureInput)
     let responseID = corruptResponseID ? message.requestID &+ 1 : message.requestID
+    requestVersions.append(message.version)
 
     switch message.kind {
     case .handshake:
-      var payload = Data()
-      payload.appendRuntimeInteger(capabilities.rawValue)
-      return try response(kind: .response, requestID: responseID, payload: payload)
+      offers.append(try RuntimeHandshakeOffer(decoding: message.payload))
+      let acceptance = RuntimeHandshakeAcceptance(
+        version: selectedVersion,
+        capabilities: capabilities
+      )
+      return try response(
+        kind: .response,
+        version: headerVersion ?? selectedVersion,
+        requestID: responseID,
+        payload: acceptance.encoded()
+      )
     case .command:
       let opcode: UInt32 = try message.payload.readRuntimeInteger(at: 0)
-      if opcode == 0 {
+      if opcode == RuntimeOpcode.ping.rawValue {
         return try response(
           kind: .response,
           requestID: responseID,
           payload: message.payload.dropFirst(16)
         )
       }
-      if opcode == 1, !events.isEmpty {
+      if opcode == RuntimeOpcode.pollEvent.rawValue, !events.isEmpty {
         let event = events.removeFirst()
         var payload = Data()
         payload.appendRuntimeInteger(event.type)
         payload.append(contentsOf: event.payload)
         return try response(kind: .event, requestID: responseID, payload: payload)
       }
-      if opcode == 0x0301 {
+      if opcode == RuntimeOpcode.hidGetRuntimeStatistics.rawValue {
         var payload = Data()
         payload.appendRuntimeInteger(UInt64(8))
         payload.appendRuntimeInteger(UInt64(7))
@@ -165,14 +229,15 @@ private actor RuntimeMockConnection: DriverConnection {
 
   private func response(
     kind: RuntimeMessageKind,
+    version: RuntimeProtocolVersion = .current,
     requestID: UInt64,
     payload: Data
   ) throws -> DriverResponse {
     DriverResponse(
       structureOutput: try RuntimeMessage(
+        version: version,
         kind: kind,
         requestID: requestID,
-        flags: .finalFragment,
         payload: payload
       ).encoded()
     )

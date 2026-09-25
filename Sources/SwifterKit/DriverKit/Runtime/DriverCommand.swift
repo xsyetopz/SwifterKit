@@ -5,13 +5,13 @@ public struct DriverCommand: Sendable, Equatable {
   /// Verifies the command channel and returns the supplied payload unchanged.
   public static func ping(_ payload: Data = Data()) -> Self {
     Self(
-      opcode: 0,
+      opcode: .ping,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + payload.count
     )
   }
 
-  static let pollEvent = Self(opcode: 1)
+  static let pollEvent = Self(opcode: .pollEvent)
 
   /// The operation identifier interpreted by the internal runtime.
   public let opcode: UInt32
@@ -33,6 +33,20 @@ public struct DriverCommand: Sendable, Equatable {
     self.requiredCapabilities = requiredCapabilities
     self.payload = payload
     self.maximumResponseSize = max(RuntimeMessage.headerSize, maximumResponseSize)
+  }
+
+  init(
+    opcode: RuntimeOpcode,
+    requiredCapabilities: RuntimeCapabilities = [],
+    payload: Data = Data(),
+    maximumResponseSize: Int = 4_096
+  ) {
+    self.init(
+      opcode: opcode.rawValue,
+      requiredCapabilities: requiredCapabilities,
+      payload: payload,
+      maximumResponseSize: maximumResponseSize
+    )
   }
 
   func encodedPayload() throws -> Data {

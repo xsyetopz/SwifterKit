@@ -52,7 +52,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(identifier)
     payload.appendRuntimeInteger(kind.rawValue)
     return Self(
-      opcode: 0x0A05,
+      opcode: .audioGetControl,
       requiredCapabilities: .audio,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + 144
@@ -70,7 +70,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(UInt32(0))
     for value in values { payload.appendRuntimeInteger(value) }
     return Self(
-      opcode: 0x0A06,
+      opcode: .audioSetControl,
       requiredCapabilities: .audio,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -80,7 +80,7 @@ extension DriverCommand {
   /// Reads a string custom property for one qualifier.
   public static func audioGetCustomProperty(identifier: UInt32, qualifier: String) throws -> Self {
     try audioCustomPropertyCommand(
-      opcode: 0x0A07,
+      opcode: .audioGetCustomProperty,
       identifier: identifier,
       qualifier: qualifier,
       value: nil
@@ -94,7 +94,7 @@ extension DriverCommand {
     value: String
   ) throws -> Self {
     try audioCustomPropertyCommand(
-      opcode: 0x0A08,
+      opcode: .audioSetCustomProperty,
       identifier: identifier,
       qualifier: qualifier,
       value: value
@@ -102,7 +102,7 @@ extension DriverCommand {
   }
 
   private static func audioCustomPropertyCommand(
-    opcode: UInt32,
+    opcode: RuntimeOpcode,
     identifier: UInt32,
     qualifier: String,
     value: String?

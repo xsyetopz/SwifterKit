@@ -317,7 +317,7 @@ kern_return_t SwifterKitRuntimeService::setReport(
     result = CopyDescriptorBytes(report, header.reportLength, payload);
     if (result == kIOReturnSuccess) {
         result = EnqueueEvent(
-            0x0300,
+            kSwifterKitEventHIDReport,
             payload->getBytesNoCopy(),
             static_cast<uint32_t>(payload->getLength()));
     }

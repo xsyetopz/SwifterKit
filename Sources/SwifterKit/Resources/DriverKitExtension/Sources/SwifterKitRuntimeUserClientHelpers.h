@@ -4,6 +4,17 @@
 namespace {
     constexpr uint64_t kTransactSelector = 0;
 
+    // The extension speaks one version, so every negotiated connection uses the maximum.
+    static_assert(
+        kSwifterKitRuntimeVersionMinimum == kSwifterKitRuntimeVersionMaximum,
+        "BuildResponse writes kSwifterKitRuntimeVersionMaximum; pass the negotiated version "
+        "through BuildResponse before supporting more than one protocol version.");
+
+    bool IsSupportedVersion(uint16_t version) {
+        return version >= kSwifterKitRuntimeVersionMinimum
+               && version <= kSwifterKitRuntimeVersionMaximum;
+    }
+
     kern_return_t BuildResponse(
         IOUserClientMethodArguments* arguments,
         SwifterKitRuntimeMessageKind kind,
@@ -19,7 +30,7 @@ namespace {
 
         const SwifterKitRuntimeHeader header = {
             .magic = kSwifterKitRuntimeMagic,
-            .version = kSwifterKitRuntimeVersion,
+            .version = kSwifterKitRuntimeVersionMaximum,
             .kind = static_cast<uint16_t>(kind),
             .requestID = requestID,
             .payloadLength = payloadLength,
@@ -39,18 +50,37 @@ namespace {
         return kIOReturnSuccess;
     }
 
+    // Selects the highest version in both the host's offered range and the extension's range.
     kern_return_t HandleHandshake(
         IOUserClientMethodArguments* arguments,
-        const SwifterKitRuntimeHeader* request) {
-        if (request->payloadLength != 0) {
+        const SwifterKitRuntimeHeader* request,
+        const uint8_t* payload) {
+        if (request->payloadLength != sizeof(SwifterKitHandshakeRequest)) {
             return kIOReturnBadArgument;
         }
+        const auto* offer = reinterpret_cast<const SwifterKitHandshakeRequest*>(payload);
+        if (offer->reserved != 0 || offer->minimumVersion > offer->maximumVersion) {
+            return kIOReturnBadArgument;
+        }
+        const uint16_t version = offer->maximumVersion < kSwifterKitRuntimeVersionMaximum
+                                     ? offer->maximumVersion
+                                     : kSwifterKitRuntimeVersionMaximum;
+        if (version < offer->minimumVersion || !IsSupportedVersion(version)) {
+            return kIOReturnUnsupported;
+        }
+
+        const SwifterKitHandshakeResponse response = {
+            .version = version,
+            .reserved16 = 0,
+            .reserved32 = 0,
+            .capabilities = kSwifterKitRuntimeCapabilities,
+        };
         return BuildResponse(
             arguments,
             SwifterKitRuntimeMessageKind::Response,
             request->requestID,
-            &kSwifterKitRuntimeCapabilities,
-            sizeof(kSwifterKitRuntimeCapabilities));
+            &response,
+            sizeof(response));
     }
 
     kern_return_t HandlePollEvent(

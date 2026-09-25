@@ -60,7 +60,7 @@ void SwifterKitRuntimeService::StopAudio() {
 
 kern_return_t SwifterKitRuntimeService::AudioControlEvent(uint32_t kind, uint64_t value) {
     const SwifterKitAudioEvent event = {kind, 0, value};
-    return EnqueueEvent(0x0A00, &event, sizeof(event));
+    return EnqueueEvent(kSwifterKitEventAudio, &event, sizeof(event));
 }
 
 kern_return_t SwifterKitRuntimeService::AudioControlValueEvent(
@@ -75,7 +75,10 @@ kern_return_t SwifterKitRuntimeService::AudioControlValueEvent(
     const SwifterKitAudioControlEventHeader header = {4, identifier, kind, count, 0};
     memcpy(payload, &header, sizeof(header));
     memcpy(payload + sizeof(header), values, count * sizeof(uint32_t));
-    return EnqueueRequiredEvent(0x0A00, payload, sizeof(header) + count * sizeof(uint32_t));
+    return EnqueueRequiredEvent(
+        kSwifterKitEventAudio,
+        payload,
+        sizeof(header) + count * sizeof(uint32_t));
 }
 
 kern_return_t SwifterKitRuntimeService::AudioCustomPropertyEvent(
@@ -93,7 +96,10 @@ kern_return_t SwifterKitRuntimeService::AudioCustomPropertyEvent(
     memcpy(payload, &header, sizeof(header));
     memcpy(payload + sizeof(header), qualifier, qualifierLength);
     memcpy(payload + sizeof(header) + qualifierLength, value, valueLength);
-    return EnqueueRequiredEvent(0x0A00, payload, sizeof(header) + qualifierLength + valueLength);
+    return EnqueueRequiredEvent(
+        kSwifterKitEventAudio,
+        payload,
+        sizeof(header) + qualifierLength + valueLength);
 }
 
 kern_return_t SwifterKitRuntimeService::AudioCommand(

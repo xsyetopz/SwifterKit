@@ -14,7 +14,7 @@ extension DriverCommand {
     payload.append(contentsOf: repeatElement(0, count: 6))
     payload.append(contentsOf: command.outboundData)
     return Self(
-      opcode: 0x0B10,
+      opcode: .scsiPeripheralSendCDB,
       requiredCapabilities: .scsi,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + 24 + Int(command.requestedDataLength)
@@ -24,28 +24,28 @@ extension DriverCommand {
 
   /// Suspends framework services to gain exclusive peripheral access.
   public static let suspendSCSIPeripheralServices = Self(
-    opcode: 0x0B11,
+    opcode: .scsiPeripheralSuspendServices,
     requiredCapabilities: .scsi,
     maximumResponseSize: RuntimeMessage.headerSize
   )
 
   /// Resumes framework services after exclusive peripheral access.
   public static let resumeSCSIPeripheralServices = Self(
-    opcode: 0x0B12,
+    opcode: .scsiPeripheralResumeServices,
     requiredCapabilities: .scsi,
     maximumResponseSize: RuntimeMessage.headerSize
   )
 
   /// Requests a peripheral bus reset.
   public static let resetSCSIPeripheral = Self(
-    opcode: 0x0B13,
+    opcode: .scsiPeripheralReset,
     requiredCapabilities: .scsi,
     maximumResponseSize: RuntimeMessage.headerSize + 4
   )
 
   /// Queries the current medium block size.
   public static let scsiPeripheralMediumBlockSize = Self(
-    opcode: 0x0B14,
+    opcode: .scsiPeripheralReportMediumBlockSize,
     requiredCapabilities: .scsi,
     maximumResponseSize: RuntimeMessage.headerSize + 8
   )

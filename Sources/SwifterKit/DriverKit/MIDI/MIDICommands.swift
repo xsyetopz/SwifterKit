@@ -10,7 +10,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(UInt32(words.count))
     for word in words { payload.appendRuntimeInteger(word) }
     return Self(
-      opcode: 0x0800,
+      opcode: .midiSend,
       requiredCapabilities: .midi,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -28,7 +28,7 @@ extension DriverContext {
 extension DriverEvent {
   /// Decodes a MIDIDriverKit lifecycle or destination event.
   public func midi() throws -> MIDIEvent? {
-    guard type == 0x0800 else { return nil }
+    guard type == RuntimeEventType.midi.rawValue else { return nil }
     return try MIDIEvent(runtimePayload: Data(payload))
   }
 }

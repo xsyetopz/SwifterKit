@@ -55,7 +55,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(identifier)
     payload.appendRuntimeInteger(kind.rawValue)
     return Self(
-      opcode: 0x0C07,
+      opcode: .videoGetControl,
       requiredCapabilities: .video,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize + 144
@@ -73,7 +73,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(UInt32(0))
     for value in values { payload.appendRuntimeInteger(value) }
     return Self(
-      opcode: 0x0C08,
+      opcode: .videoSetControl,
       requiredCapabilities: .video,
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -83,7 +83,7 @@ extension DriverCommand {
   /// Reads a string custom property for one qualifier.
   public static func videoGetCustomProperty(identifier: UInt32, qualifier: String) throws -> Self {
     try videoCustomPropertyCommand(
-      opcode: 0x0C09,
+      opcode: .videoGetCustomProperty,
       identifier: identifier,
       qualifier: qualifier,
       value: nil
@@ -97,7 +97,7 @@ extension DriverCommand {
     value: String
   ) throws -> Self {
     try videoCustomPropertyCommand(
-      opcode: 0x0C0A,
+      opcode: .videoSetCustomProperty,
       identifier: identifier,
       qualifier: qualifier,
       value: value
@@ -105,7 +105,7 @@ extension DriverCommand {
   }
 
   private static func videoCustomPropertyCommand(
-    opcode: UInt32,
+    opcode: RuntimeOpcode,
     identifier: UInt32,
     qualifier: String,
     value: String?

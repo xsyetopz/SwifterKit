@@ -4,7 +4,7 @@ extension DriverCommand {
   /// Enables or disables delivery from a configured interrupt source.
   public static func setInterruptEnabled(index: UInt32, enabled: Bool) throws -> Self {
     try interruptCommand(
-      opcode: 0x0100,
+      opcode: .interruptSetEnabled,
       index: index,
       enabled: enabled,
       maximumResponseSize: RuntimeMessage.headerSize
@@ -14,7 +14,7 @@ extension DriverCommand {
   /// Queries the DriverKit interrupt type flags for a configured source.
   public static func interruptType(index: UInt32) throws -> Self {
     try interruptCommand(
-      opcode: 0x0101,
+      opcode: .interruptGetType,
       index: index,
       enabled: false,
       maximumResponseSize: RuntimeMessage.headerSize + 8
@@ -24,7 +24,7 @@ extension DriverCommand {
   /// Queries the most recently observed count and timestamp.
   public static func lastInterrupt(index: UInt32) throws -> Self {
     try interruptCommand(
-      opcode: 0x0102,
+      opcode: .interruptGetLast,
       index: index,
       enabled: false,
       maximumResponseSize: RuntimeMessage.headerSize + 16
@@ -32,7 +32,7 @@ extension DriverCommand {
   }
 
   private static func interruptCommand(
-    opcode: UInt32,
+    opcode: RuntimeOpcode,
     index: UInt32,
     enabled: Bool,
     maximumResponseSize: Int
@@ -75,7 +75,7 @@ extension DriverEvent {
   ///
   /// Returns nil when the event belongs to another capability family.
   public func interrupt() throws -> InterruptEvent? {
-    guard type == 0x0100 else { return nil }
+    guard type == RuntimeEventType.interrupt.rawValue else { return nil }
     return try InterruptEvent(runtimePayload: Data(payload))
   }
 }

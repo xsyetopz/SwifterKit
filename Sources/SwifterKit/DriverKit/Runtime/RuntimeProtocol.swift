@@ -1,21 +1,27 @@
 import Foundation
 
 /// The wire-protocol version shared by the Swift layer and internal extension runtime.
-public struct RuntimeProtocolVersion: Sendable, Hashable, RawRepresentable {
-  /// The first stable SwifterKit runtime protocol.
-  public static let version1 = Self(rawValue: 1)
+public struct RuntimeProtocolVersion: Sendable, Hashable, Comparable, RawRepresentable {
+  /// The protocol that negotiates a version range during the handshake.
+  public static let version2 = Self(rawValue: 2)
+  /// The oldest protocol supported by this package.
+  public static let minimumSupported = Self(rawValue: RuntimeSchema.minimumVersion)
   /// The newest protocol supported by this package.
-  public static let current = version1
+  public static let current = Self(rawValue: RuntimeSchema.maximumVersion)
+  /// Every protocol version this package can negotiate and decode.
+  public static let supported = minimumSupported...current
 
   /// The encoded protocol number.
   public let rawValue: UInt16
 
   /// Creates a protocol version from its encoded number.
   public init(rawValue: UInt16) { self.rawValue = rawValue }
+
+  public static func < (lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
 }
 
 /// Message kinds exchanged with the internal extension runtime.
-public enum RuntimeMessageKind: UInt16, Sendable, Equatable {
+public enum RuntimeMessageKind: UInt16, Sendable, Equatable, CaseIterable {
   /// Negotiates protocol versions and capabilities.
   case handshake = 1
   /// Requests one runtime operation.
@@ -34,12 +40,12 @@ public struct RuntimeMessageFlags: OptionSet, Sendable, Hashable {
   public let rawValue: UInt32
 
   /// The sender expects a response with the same request identifier.
-  public static let expectsResponse = Self(rawValue: 1 << 0)
-  /// The payload is the last fragment in a sequence.
-  public static let finalFragment = Self(rawValue: 1 << 1)
+  public static let expectsResponse = Self(RuntimeMessageFlag.expectsResponse)
 
   /// Creates message flags from encoded bits.
   public init(rawValue: UInt32) { self.rawValue = rawValue }
+
+  init(_ flag: RuntimeMessageFlag) { self.init(rawValue: flag.rawValue) }
 }
 
 /// Capabilities implemented by an internal extension runtime.
@@ -48,40 +54,44 @@ public struct RuntimeCapabilities: OptionSet, Sendable, Hashable {
   public let rawValue: UInt64
 
   /// Raw memory descriptors and mappings.
-  public static let memory = Self(rawValue: 1 << 0)
+  public static let memory = Self(RuntimeCapability.memory)
   /// Interrupt dispatch, timestamp delivery, and enable-state control.
-  public static let interrupts = Self(rawValue: 1 << 1)
+  public static let interrupts = Self(RuntimeCapability.interrupts)
   /// USBDriverKit operations.
-  public static let usb = Self(rawValue: 1 << 2)
+  public static let usb = Self(RuntimeCapability.usb)
   /// HIDDriverKit operations.
-  public static let hid = Self(rawValue: 1 << 3)
+  public static let hid = Self(RuntimeCapability.hid)
   /// PCIDriverKit operations.
-  public static let pci = Self(rawValue: 1 << 4)
+  public static let pci = Self(RuntimeCapability.pci)
   /// SerialDriverKit operations.
-  public static let serial = Self(rawValue: 1 << 5)
+  public static let serial = Self(RuntimeCapability.serial)
   /// NetworkingDriverKit operations.
-  public static let networking = Self(rawValue: 1 << 6)
+  public static let networking = Self(RuntimeCapability.networking)
   /// AudioDriverKit operations.
-  public static let audio = Self(rawValue: 1 << 7)
+  public static let audio = Self(RuntimeCapability.audio)
   /// MIDIDriverKit operations.
-  public static let midi = Self(rawValue: 1 << 8)
+  public static let midi = Self(RuntimeCapability.midi)
   /// Block-storage operations.
-  public static let blockStorage = Self(rawValue: 1 << 9)
+  public static let blockStorage = Self(RuntimeCapability.blockStorage)
   /// SCSI operations.
-  public static let scsi = Self(rawValue: 1 << 10)
+  public static let scsi = Self(RuntimeCapability.scsi)
   /// VideoDriverKit operations.
-  public static let video = Self(rawValue: 1 << 11)
+  public static let video = Self(RuntimeCapability.video)
 
   /// Creates capabilities from encoded bits.
   public init(rawValue: UInt64) { self.rawValue = rawValue }
+
+  init(_ capability: RuntimeCapability) { self.init(rawValue: capability.rawValue) }
 }
 
 /// A versioned message exchanged with the internal DriverKit runtime.
 public struct RuntimeMessage: Sendable, Equatable {
   /// The fixed encoded header size.
-  public static let headerSize = 24
+  public static let headerSize = RuntimeSchema.headerSize
+  /// The largest complete encoded message, header included.
+  public static let maximumSize = RuntimeSchema.maximumMessageSize
 
-  static let magic: UInt32 = 0x5357_4B54
+  static let magic = RuntimeSchema.magic
 
   /// The protocol version used to encode the message.
   public let version: RuntimeProtocolVersion
@@ -110,8 +120,13 @@ public struct RuntimeMessage: Sendable, Equatable {
   }
 
   /// Encodes the fixed little-endian wire representation.
+  ///
+  /// Throws ``RuntimeProtocolError/payloadTooLarge`` when the message would exceed
+  /// ``maximumSize``.
   public func encoded() throws -> Data {
-    guard payload.count <= Int(UInt32.max) else { throw RuntimeProtocolError.payloadTooLarge }
+    guard payload.count <= Self.maximumSize - Self.headerSize else {
+      throw RuntimeProtocolError.payloadTooLarge
+    }
 
     var result = Data(capacity: Self.headerSize + payload.count)
     result.appendRuntimeInteger(Self.magic)
@@ -132,7 +147,7 @@ public struct RuntimeMessage: Sendable, Equatable {
     guard try reader.readUInt32() == Self.magic else { throw RuntimeProtocolError.invalidMagic }
 
     let version = RuntimeProtocolVersion(rawValue: try reader.readUInt16())
-    guard version == .current else {
+    guard RuntimeProtocolVersion.supported.contains(version) else {
       throw RuntimeProtocolError.unsupportedVersion(version.rawValue)
     }
     guard let kind = RuntimeMessageKind(rawValue: try reader.readUInt16()) else {
@@ -168,7 +183,7 @@ public enum RuntimeProtocolError: Error, Sendable, Equatable {
   case unknownMessageKind
   /// The payload length does not match the message.
   case invalidPayloadLength
-  /// The payload is too large for the wire format.
+  /// The message exceeds the protocol's maximum message size.
   case payloadTooLarge
   /// A typed payload value is incomplete.
   case truncatedPayload
