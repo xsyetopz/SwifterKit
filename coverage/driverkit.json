@@ -6820,13 +6820,14 @@
 
           ],
           "name" : "GetAddressRange",
+          "note" : "the runtime reads buffer addresses through the IOMemoryMap it creates with CreateMapping",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetAddressRange(IOAddressSegment*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -6887,13 +6888,14 @@
 
           ],
           "name" : "FromChain",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOCommand* FromChain(queue_chain_t*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -6922,13 +6924,14 @@
 
           ],
           "name" : "CommandChain",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "queue_chain_t* CommandChain()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -6971,13 +6974,14 @@
 
           ],
           "name" : "withQueue",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOCommandPoolPtr withQueue(IODispatchQueue*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -6988,13 +6992,14 @@
 
           ],
           "name" : "getCommand",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOCommandPtr getCommand(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7023,13 +7028,14 @@
 
           ],
           "name" : "initWithQueue",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithQueue(IODispatchQueue*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7040,13 +7046,14 @@
 
           ],
           "name" : "gatedGetCommand",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t gatedGetCommand(LIBKERN_RETURNS_NOT_RETAINED IOCommand**, bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7057,13 +7064,14 @@
 
           ],
           "name" : "gatedReturnCommand",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t gatedReturnCommand(IOCommand*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7092,13 +7100,14 @@
 
           ],
           "name" : "returnCommand",
+          "note" : "command-object pool gated on an IODispatchQueue for dext-side request objects; the runtime tracks outstanding requests in fixed tables under IOLock, and Swift requests are host-side values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void returnCommand(LIBKERN_CONSUMED IOCommand*)",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "IOCommandPool",
@@ -7177,13 +7186,14 @@
 
           ],
           "name" : "GetPreparation",
+          "note" : "the runtime keeps the offset, length, and descriptor it passed to PrepareForDMA in its memory entry",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetPreparation(uint64_t*, uint64_t*, IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7194,13 +7204,14 @@
 
           ],
           "name" : "PerformOperation",
+          "note" : "bounce-buffer copies and zero fills; the runtime reads and writes buffers through its own mapping and prepares DMA without bounce operations",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t PerformOperation(uint64_t, uint64_t, uint64_t, uint64_t, IOMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7261,13 +7272,14 @@
 
           ],
           "name" : "IsDataAvailable",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool IsDataAvailable()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7296,13 +7308,14 @@
 
           ],
           "name" : "CanEnqueueData",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CanEnqueueData(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7313,13 +7326,14 @@
 
           ],
           "name" : "CanEnqueueData",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CanEnqueueData(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7438,13 +7452,14 @@
 
           ],
           "name" : "Dequeue",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Dequeue(IODataQueueClientDequeueEntryBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7455,13 +7470,14 @@
 
           ],
           "name" : "DequeueWithCoalesce",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DequeueWithCoalesce(bool*, IODataQueueClientDequeueEntryBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7472,13 +7488,14 @@
 
           ],
           "name" : "Enqueue",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Enqueue(uint32_t, IODataQueueClientEnqueueEntryBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7489,13 +7506,14 @@
 
           ],
           "name" : "EnqueueWithCoalesce",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t EnqueueWithCoalesce(uint32_t, bool*, IODataQueueClientEnqueueEntryBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7506,13 +7524,14 @@
 
           ],
           "name" : "Peek",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Peek(IODataQueueClientDequeueEntryBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7541,13 +7560,14 @@
 
           ],
           "name" : "SetDataServicedHandler",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDataServicedHandler(OSAction*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7576,13 +7596,14 @@
 
           ],
           "name" : "GetDataQueueEntryHeaderSize",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "size_t GetDataQueueEntryHeaderSize()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "private",
@@ -7629,13 +7650,14 @@
 
           ],
           "name" : "SendDataAvailable",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void SendDataAvailable()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7646,13 +7668,14 @@
 
           ],
           "name" : "SendDataServiced",
+          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void SendDataServiced()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7695,13 +7718,14 @@
 
           ],
           "name" : "OnQueue",
+          "note" : "queue-affinity check; each runtime entry point runs on the queue its contract names",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool OnQueue()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7730,13 +7754,14 @@
 
           ],
           "name" : "GetName",
+          "note" : "the runtime copies queues by name with CopyDispatchQueue and never reads a queue's name",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "const char* GetName()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7783,13 +7808,14 @@
 
           ],
           "name" : "RunAction",
+          "note" : "the runtime's actions run when their dispatch sources or DriverKit invoke them",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RunAction(IODispatchAction)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7800,13 +7826,14 @@
 
           ],
           "name" : "Sleep",
+          "note" : "queue-gated sleep and wakeup; the runtime never parks a queue waiting for Swift and answers pending requests through completions, timeouts, and host detach",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Sleep(void*, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7817,13 +7844,14 @@
 
           ],
           "name" : "SleepWithDeadline",
+          "note" : "queue-gated sleep and wakeup; the runtime never parks a queue waiting for Swift and answers pending requests through completions, timeouts, and host detach",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SleepWithDeadline(void*, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7834,13 +7862,14 @@
 
           ],
           "name" : "SleepWithTimeout",
+          "note" : "queue-gated sleep and wakeup; the runtime never parks a queue waiting for Swift and answers pending requests through completions, timeouts, and host detach",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SleepWithTimeout(void*, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7851,13 +7880,14 @@
 
           ],
           "name" : "Wakeup",
+          "note" : "queue-gated sleep and wakeup; the runtime never parks a queue waiting for Swift and answers pending requests through completions, timeouts, and host detach",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Wakeup(void*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7868,13 +7898,14 @@
 
           ],
           "name" : "WakeupWithOptions",
+          "note" : "queue-gated sleep and wakeup; the runtime never parks a queue waiting for Swift and answers pending requests through completions, timeouts, and host detach",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t WakeupWithOptions(void*, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7885,13 +7916,14 @@
 
           ],
           "name" : "DispatchAsync",
+          "note" : "Swift driver code runs in the host process, where Swift concurrency schedules its work; the runtime runs on the queues DriverKit invokes, guards state with IOLock, and submits no blocks or functions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void DispatchAsync(IODispatchBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7902,13 +7934,14 @@
 
           ],
           "name" : "DispatchAsync_f",
+          "note" : "Swift driver code runs in the host process, where Swift concurrency schedules its work; the runtime runs on the queues DriverKit invokes, guards state with IOLock, and submits no blocks or functions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void DispatchAsync_f(void*, IODispatchFunction)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7919,13 +7952,14 @@
 
           ],
           "name" : "DispatchConcurrent",
+          "note" : "Swift driver code runs in the host process, where Swift concurrency schedules its work; the runtime runs on the queues DriverKit invokes, guards state with IOLock, and submits no blocks or functions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void DispatchConcurrent(IODispatchBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7936,13 +7970,14 @@
 
           ],
           "name" : "DispatchConcurrent_f",
+          "note" : "Swift driver code runs in the host process, where Swift concurrency schedules its work; the runtime runs on the queues DriverKit invokes, guards state with IOLock, and submits no blocks or functions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void DispatchConcurrent_f(void*, IODispatchFunction)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7953,13 +7988,14 @@
 
           ],
           "name" : "DispatchSync",
+          "note" : "Swift driver code runs in the host process, where Swift concurrency schedules its work; the runtime runs on the queues DriverKit invokes, guards state with IOLock, and submits no blocks or functions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void DispatchSync(IODispatchBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7970,13 +8006,14 @@
 
           ],
           "name" : "DispatchSync_f",
+          "note" : "Swift driver code runs in the host process, where Swift concurrency schedules its work; the runtime runs on the queues DriverKit invokes, guards state with IOLock, and submits no blocks or functions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void DispatchSync_f(void*, IODispatchFunction)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -7987,13 +8024,14 @@
 
           ],
           "name" : "Log",
+          "note" : "debug dump of queue state; runtime diagnostics use os_log",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void Log(const char*, IODispatchLogFunction)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8086,13 +8124,14 @@
 
           ],
           "name" : "Cancel",
+          "note" : "timer and watch sources are cancelled through IODispatchSource when Swift cancels them, the host detaches, or the service stops",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Cancel(IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -8103,13 +8142,14 @@
 
           ],
           "name" : "CheckForWork",
+          "note" : "DriverKit calls it to deliver a source's pending work; drivers do not",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CheckForWork(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8120,13 +8160,14 @@
 
           ],
           "name" : "SetEnable",
+          "note" : "shorthand for SetEnableWithCompletion(enable, nullptr), which the runtime calls",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8137,13 +8178,14 @@
 
           ],
           "name" : "SetEnableWithCompletion",
+          "note" : "timer and watch sources are enabled through IODispatchSource",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetEnableWithCompletion(bool, IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -8186,13 +8228,14 @@
 
           ],
           "name" : "addChannel",
+          "note" : "returns kIOReturnUnsupported; a histogram has only the channel passed to with()",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn addChannel(uint64_t, const char*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8209,7 +8252,8 @@
             "27.0"
           ],
           "signature" : "IOReturn overrideBucketValues(unsigned int, uint64_t, int64_t, int64_t, int64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "overrideHistogramBucket"
         },
         {
           "access" : "public",
@@ -8220,13 +8264,15 @@
 
           ],
           "name" : "with",
+          "note" : "created at start for each .histogram reporter with its segments",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSPtr<IOHistogramReporter> with(IOService*, IOReportCategories, uint64_t, const char*, IOReportUnit, int, IOHistogramSegmentConfig*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ReporterConfiguration"
         },
         {
           "access" : "public",
@@ -8237,13 +8283,14 @@
 
           ],
           "name" : "initWith",
+          "note" : "with() allocates and initializes the reporter; the runtime never subclasses reporters",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWith(IOService*, IOReportCategories, uint64_t, const char*, IOReportUnit, int, IOHistogramSegmentConfig*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8260,7 +8307,8 @@
             "27.0"
           ],
           "signature" : "int tallyValue(int64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "tallyReportValue"
         }
       ],
       "name" : "IOHistogramReporter",
@@ -8517,13 +8565,14 @@
           ],
           "introduced" : "20.0",
           "name" : "CreateSubMemoryDescriptor",
+          "note" : "Swift addresses a range of a runtime buffer by offset and length in memoryRead, memoryWrite, and DMA preparation; deferred to the fast-path phase: sharing sub-ranges with the host",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateSubMemoryDescriptor(uint64_t, uint64_t, uint64_t, IOMemoryDescriptor*, IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8535,13 +8584,14 @@
           ],
           "introduced" : "20.0",
           "name" : "CreateWithMemoryDescriptors",
+          "note" : "runtime buffers are single descriptors; deferred to the fast-path phase: chaining host-shared buffers into one I/O",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateWithMemoryDescriptors(uint64_t, uint32_t, IOMemoryDescriptor*const[32], IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8788,13 +8838,14 @@
 
           ],
           "name" : "addLegendEntry",
+          "note" : "the runtime adds entries from its reporters through addReporterLegend",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn addLegendEntry(IOReportLegendEntry*, const char*, const char*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8805,13 +8856,14 @@
 
           ],
           "name" : "addReporterLegend",
+          "note" : "adds each configured reporter with its group and subgroup",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn addReporterLegend(IOReporter*, const char*, const char*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -8822,13 +8874,14 @@
 
           ],
           "name" : "addReporterLegend",
+          "note" : "the static form rewrites the service legend for each reporter; the runtime builds one legend and publishes it once with SetLegend",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn addReporterLegend(IOService*, IOReporter*, const char*, const char*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8839,13 +8892,14 @@
 
           ],
           "name" : "getLegend",
+          "note" : "the built legend is published with SetLegend",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSArray* getLegend()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -8856,13 +8910,14 @@
 
           ],
           "name" : "with",
+          "note" : "builds one legend for every configured reporter",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSPtr<IOReportLegend> with(OSArray*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -8905,13 +8960,15 @@
 
           ],
           "name" : "addChannel",
+          "note" : "adds each configured channel of simple and state reporters",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn addChannel(uint64_t, const char*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ReportChannel"
         },
         {
           "access" : "public",
@@ -8922,13 +8979,14 @@
 
           ],
           "name" : "configureAllReports",
+          "note" : "serves ConfigureReport",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn configureAllReports(OSCollection*, OSData*, IOReportConfigureAction, uint32_t*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -8939,13 +8997,14 @@
 
           ],
           "name" : "configureReport",
+          "note" : "configureAllReports calls it for each reporter",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn configureReport(IOReportChannelList*, IOReportConfigureAction, uint32_t &)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8956,13 +9015,14 @@
 
           ],
           "name" : "updateAllReports",
+          "note" : "serves UpdateReport",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn updateAllReports(OSCollection*, OSData*, IOReportConfigureAction, uint32_t*, uint64_t, uint64_t, IOMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -8973,13 +9033,14 @@
 
           ],
           "name" : "updateReport",
+          "note" : "updateAllReports calls it for each reporter",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn updateReport(IOReportChannelList*, IOReportConfigureAction, uint32_t &, uint8_t*&, size_t &)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -8990,13 +9051,14 @@
 
           ],
           "name" : "createLegend",
+          "note" : "IOReportLegend::addReporterLegend creates each reporter's legend entry",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSPtr<IOReportLegendEntry> createLegend()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -9039,13 +9101,14 @@
 
           ],
           "name" : "ConfigureReport",
+          "note" : "the generated service serves it with IOReporter::configureAllReports, or defers to IOService without reporters",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn ConfigureReport(OSData*, uint32_t, uint32_t*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -9056,13 +9119,15 @@
 
           ],
           "name" : "SetLegend",
+          "note" : "publishes the legend of every configured reporter when the service starts; isLegendPublic sets is_public",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn SetLegend(OSArray*, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ReportingConfiguration"
         },
         {
           "access" : "public",
@@ -9073,13 +9138,14 @@
 
           ],
           "name" : "UpdateReport",
+          "note" : "the generated service serves it with IOReporter::updateAllReports, or defers to IOService without reporters",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn UpdateReport(OSData*, uint32_t, uint32_t*, uint64_t, uint64_t, IOMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -10055,13 +10121,15 @@
 
           ],
           "name" : "Cancel",
+          "note" : "called through IODispatchSource; also when the host detaches or the service stops",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Cancel(IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "cancelWatch"
         },
         {
           "access" : "private",
@@ -10108,13 +10176,15 @@
 
           ],
           "name" : "Create",
+          "note" : "built from a DriverServiceMatch as IOProviderClass, IONameMatch, and IOPropertyMatch",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(OSDictionary*, uint64_t, IODispatchQueue*, IOServiceNotificationDispatchSource**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "watchServices"
         },
         {
           "access" : "public",
@@ -10125,13 +10195,15 @@
 
           ],
           "name" : "DeliverNotifications",
+          "note" : "each matched or terminated service is reported by registry entry ID and name, the parts a dext may keep after the block returns",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DeliverNotifications(IOServiceNotificationBlock)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ServiceMatchNotification"
         },
         {
           "access" : "public",
@@ -10142,13 +10214,14 @@
 
           ],
           "name" : "SetEnableWithCompletion",
+          "note" : "called through IODispatchSource once the watch slot is reserved",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetEnableWithCompletion(bool, IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -10159,13 +10232,14 @@
 
           ],
           "name" : "SetHandler",
+          "note" : "the ServicesChanged action carries its watch ID",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetHandler(OSAction*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "private",
@@ -10244,13 +10318,15 @@
 
           ],
           "name" : "Cancel",
+          "note" : "called through IODispatchSource; also when the host detaches or the service stops",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Cancel(IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "cancelWatch"
         },
         {
           "access" : "public",
@@ -10261,13 +10337,15 @@
 
           ],
           "name" : "Create",
+          "note" : "created on the service from CopySystemStateNotificationService for up to eight item names",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOService*, OSArray*, IODispatchQueue*, IOServiceStateNotificationDispatchSource**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "watchSystemState"
         },
         {
           "access" : "public",
@@ -10278,13 +10356,14 @@
 
           ],
           "name" : "SetEnableWithCompletion",
+          "note" : "called through IODispatchSource once the watch slot is reserved",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetEnableWithCompletion(bool, IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -10295,13 +10374,14 @@
 
           ],
           "name" : "SetHandler",
+          "note" : "the SystemStateChanged action carries its watch ID",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetHandler(OSAction*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -10312,13 +10392,15 @@
 
           ],
           "name" : "StateNotificationBegin",
+          "note" : "re-arms the source before each item is read with StateNotificationItemCopy",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t StateNotificationBegin()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "SystemStateNotification"
         },
         {
           "access" : "private",
@@ -10385,7 +10467,8 @@
             "27.0"
           ],
           "signature" : "IOReturn incrementValue(uint64_t, int64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "incrementReportValue"
         },
         {
           "access" : "public",
@@ -10402,7 +10485,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setValue(uint64_t, int64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setReportValue"
         },
         {
           "access" : "public",
@@ -10413,13 +10497,15 @@
 
           ],
           "name" : "with",
+          "note" : "created at start for each .simple reporter",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSPtr<IOSimpleReporter> with(IOService*, IOReportCategories, IOReportUnit)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ReporterConfiguration"
         },
         {
           "access" : "public",
@@ -10430,13 +10516,14 @@
 
           ],
           "name" : "initWith",
+          "note" : "with() allocates and initializes the reporter; the runtime never subclasses reporters",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWith(IOService*, IOReportCategories, IOReportUnit)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10453,7 +10540,8 @@
             "27.0"
           ],
           "signature" : "int64_t getValue(uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "reportValue"
         }
       ],
       "name" : "IOSimpleReporter",
@@ -10478,13 +10566,15 @@
 
           ],
           "name" : "incrementChannelState",
+          "note" : "adjustReportState with accumulate",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn incrementChannelState(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "adjustReportState"
         },
         {
           "access" : "public",
@@ -10501,7 +10591,8 @@
             "27.0"
           ],
           "signature" : "IOReturn overrideChannelState(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "adjustReportState"
         },
         {
           "access" : "public",
@@ -10518,7 +10609,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setChannelState(uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setReportState"
         },
         {
           "access" : "public",
@@ -10529,13 +10621,14 @@
 
           ],
           "name" : "setChannelState",
+          "note" : "deprecated in the SDK; setChannelState(channel, state) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setChannelState(uint64_t, uint64_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10546,13 +10639,14 @@
 
           ],
           "name" : "setState",
+          "note" : "single-channel shorthand for setChannelState, which the runtime calls with the channel Swift names",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setState(uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10563,13 +10657,14 @@
 
           ],
           "name" : "setState",
+          "note" : "deprecated in the SDK",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setState(uint64_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10580,13 +10675,14 @@
 
           ],
           "name" : "setStateByIndices",
+          "note" : "index form of setChannelState; Swift names channels and states by ID",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setStateByIndices(int, int)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10597,13 +10693,14 @@
 
           ],
           "name" : "setStateByIndices",
+          "note" : "deprecated in the SDK",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setStateByIndices(int, int, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10614,13 +10711,15 @@
 
           ],
           "name" : "setStateID",
+          "note" : "assigns the configured state IDs to every channel at start",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setStateID(uint64_t, int, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ReporterConfiguration"
         },
         {
           "access" : "public",
@@ -10631,13 +10730,15 @@
 
           ],
           "name" : "with",
+          "note" : "created at start for each .state reporter",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSPtr<IOStateReporter> with(IOService*, IOReportCategories, int, IOReportUnit)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "ReporterConfiguration"
         },
         {
           "access" : "public",
@@ -10648,13 +10749,14 @@
 
           ],
           "name" : "initWith",
+          "note" : "with() allocates and initializes the reporter; the runtime never subclasses reporters",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWith(IOService*, IOReportCategories, int, IOReportUnit)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10671,7 +10773,8 @@
             "27.0"
           ],
           "signature" : "uint64_t getStateInTransitions(uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "reportStateStatistics"
         },
         {
           "access" : "public",
@@ -10682,13 +10785,14 @@
 
           ],
           "name" : "getStateLastChannelUpdateTime",
+          "note" : "deprecated in the SDK",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint64_t getStateLastChannelUpdateTime(uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10705,7 +10809,8 @@
             "27.0"
           ],
           "signature" : "uint64_t getStateLastTransitionTime(uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "reportStateStatistics"
         },
         {
           "access" : "public",
@@ -10722,7 +10827,8 @@
             "27.0"
           ],
           "signature" : "uint64_t getStateResidencyTime(uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "reportStateStatistics"
         }
       ],
       "name" : "IOStateReporter",
@@ -10765,13 +10871,15 @@
 
           ],
           "name" : "Cancel",
+          "note" : "also called when a one-shot timer fires, the host detaches, or the service stops",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Cancel(IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "cancelTimer"
         },
         {
           "access" : "private",
@@ -10800,13 +10908,15 @@
 
           ],
           "name" : "Create",
+          "note" : "creates one source per Swift timer on the default queue; the power-state timeout uses one too",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IODispatchQueue*, IOTimerDispatchSource**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "startTimer"
         },
         {
           "access" : "public",
@@ -10817,13 +10927,14 @@
 
           ],
           "name" : "SetEnableWithCompletion",
+          "note" : "every timer source is enabled once its slot is reserved",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetEnableWithCompletion(bool, IODispatchSourceCancelHandler)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -10834,13 +10945,14 @@
 
           ],
           "name" : "SetHandler",
+          "note" : "each timer action carries its timer ID and handles TimerOccurred",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetHandler(OSAction*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -10851,13 +10963,15 @@
 
           ],
           "name" : "WakeAtTime",
+          "note" : "armed with kIOTimerClockUptimeRaw for the delay and leeway, and re-armed after each firing of a repeating timer",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t WakeAtTime(uint64_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "startTimer"
         },
         {
           "access" : "private",
@@ -10955,13 +11069,14 @@
 
           ],
           "name" : "CopyClientMemoryForType",
+          "note" : "deferred to the fast-path phase: mapping extension memory into the host with IOConnectMapMemory is the planned shared-ring transport; runtime messages copy payloads today",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopyClientMemoryForType(uint64_t, uint64_t*, IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -10973,13 +11088,14 @@
           ],
           "introduced" : "20.0",
           "name" : "CreateMemoryDescriptorFromClient",
+          "note" : "deferred to the fast-path phase: wrapping host memory for zero-copy I/O; runtime messages copy payloads today",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateMemoryDescriptorFromClient(uint64_t, uint32_t, const IOAddressSegment[32], IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
