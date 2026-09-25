@@ -75,6 +75,12 @@ struct DriverExtensionRuntimeContractTests {
         events.range(of: "TakeFirst(ivars->events)", range: copy..<events.endIndex)?.lowerBound
       )
       #expect(required < lossy)
+      #expect(
+        events.contains(
+          "kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);"
+        )
+      )
+      #expect(events.contains("payloadLength > kMaximumEventPayloadLength"))
 
       let lossyEnqueue = try section(
         of: events,

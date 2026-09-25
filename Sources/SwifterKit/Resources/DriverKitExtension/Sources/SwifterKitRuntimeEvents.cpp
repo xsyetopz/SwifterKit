@@ -11,6 +11,8 @@
 //   lossy traffic can never consume required capacity.
 // - CopyNextEvent returns every queued required event before any lossy event.
 //   Order is FIFO within each class; it is not preserved across classes.
+// - An event must fit in one poll response (runtime header, type, payload), so
+//   oversize events are rejected here rather than lost when Swift polls them.
 // - A full queue rejects the event with kIOReturnNoSpace. A rejected or
 //   unallocatable lossy event increments lossyEventDrops. A rejected required
 //   event is answered by its call site with a defined failure status.
@@ -18,6 +20,10 @@
 //   under eventLock never allocates.
 
 namespace {
+    // A poll response carries the runtime header, the event type, and the payload.
+    constexpr uint32_t kMaximumEventPayloadLength =
+        kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);
+
     kern_return_t EnqueueInto(
         const SwifterKitRuntimeService_IVars* state,
         OSArray* queue,
@@ -27,7 +33,7 @@ namespace {
         uint32_t payloadLength) {
         if (state == nullptr || state->eventLock == nullptr || queue == nullptr
             || (payloadLength != 0 && payload == nullptr)
-            || payloadLength > kSwifterKitRuntimeMaximumMessageSize - sizeof(type)) {
+            || payloadLength > kMaximumEventPayloadLength) {
             return kIOReturnBadArgument;
         }
 

@@ -25,6 +25,11 @@ struct DriverCommandTests {
   }
 
   @Test
+  func pollAcceptsTheLargestRuntimeMessage() {
+    #expect(DriverCommand.pollEvent.maximumResponseSize == RuntimeMessage.maximumSize)
+  }
+
+  @Test
   func integerReaderRejectsTruncatedValue() {
     #expect(throws: RuntimeProtocolError.truncatedPayload) {
       let _: UInt64 = try Data([1]).readRuntimeInteger(at: 0)

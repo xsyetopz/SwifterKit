@@ -11,7 +11,9 @@ public struct DriverCommand: Sendable, Equatable {
     )
   }
 
-  static let pollEvent = Self(opcode: .pollEvent)
+  /// Polls one event. The extension dequeues the event before replying, so the response
+  /// buffer must hold the largest event it accepts.
+  static let pollEvent = Self(opcode: .pollEvent, maximumResponseSize: RuntimeMessage.maximumSize)
 
   /// The operation identifier interpreted by the internal runtime.
   public let opcode: UInt32

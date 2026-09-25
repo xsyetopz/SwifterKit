@@ -54,7 +54,7 @@ struct SCSIGeneratorTests {
       encoding: .utf8
     )
     let enqueueFailure = try #require(
-      scsi.range(of: "EnqueueRequiredEvent(kSCSIParallelTaskEvent")?.upperBound
+      scsi.range(of: "EnqueueRequiredEvent(kSwifterKitEventSCSIParallelTask")?.upperBound
     )
     let taskFailure = scsi[enqueueFailure...]
     #expect(taskFailure.contains("CompleteWithDeliveryFailure(this, completion, request);"))
