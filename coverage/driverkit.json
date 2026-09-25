@@ -11320,13 +11320,14 @@
 
           ],
           "name" : "EndWait",
+          "note" : "synchronous waiting on an OSAction; the runtime creates and owns every OSAction for its completion and timer callbacks; Swift completions are async functions with no Swift-visible action object",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t EndWait(OSActionWaitToken*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11337,13 +11338,14 @@
 
           ],
           "name" : "SetAbortedHandler",
+          "note" : "OSAction abort hook; the runtime creates and owns every OSAction for its completion and timer callbacks; Swift completions are async functions with no Swift-visible action object",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetAbortedHandler(OSActionAbortedHandler)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11354,13 +11356,14 @@
 
           ],
           "name" : "Wait",
+          "note" : "synchronous waiting on an OSAction; the runtime creates and owns every OSAction for its completion and timer callbacks; Swift completions are async functions with no Swift-visible action object",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Wait(OSActionWaitToken*, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11371,13 +11374,14 @@
 
           ],
           "name" : "WillWait",
+          "note" : "synchronous waiting on an OSAction; the runtime creates and owns every OSAction for its completion and timer callbacks; Swift completions are async functions with no Swift-visible action object",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t WillWait(OSActionWaitToken**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11388,13 +11392,14 @@
 
           ],
           "name" : "Aborted",
+          "note" : "OSAction abort hook; the runtime creates and owns every OSAction for its completion and timer callbacks; Swift completions are async functions with no Swift-visible action object",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void Aborted()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11455,13 +11460,15 @@
 
           ],
           "name" : "withArray",
+          "note" : "Swift arrays of DriverProperty (.array); the runtime builds OSArray",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSArrayPtr withArray(const OSArray*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11490,13 +11497,15 @@
 
           ],
           "name" : "withObjects",
+          "note" : "Swift arrays of DriverProperty (.array); the runtime builds OSArray",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSArrayPtr withObjects(const OSObject**, uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11507,13 +11516,15 @@
 
           ],
           "name" : "getLastObject",
+          "note" : "Swift arrays of DriverProperty (.array); Array.last",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSObject* getLastObject() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11542,13 +11553,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Swift arrays of DriverProperty (.array); DriverProperty is Hashable, so == compares arrays",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSArray*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11559,13 +11572,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Swift arrays of DriverProperty (.array); DriverProperty is Hashable, so == compares values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11576,13 +11591,14 @@
 
           ],
           "name" : "iterateObjects",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool iterateObjects(OSCollectionIterateObjectsBlock) const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -11593,13 +11609,15 @@
 
           ],
           "name" : "merge",
+          "note" : "Swift arrays of DriverProperty (.array); Array.append(contentsOf:)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool merge(const OSArray*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11610,13 +11628,15 @@
 
           ],
           "name" : "replaceObject",
+          "note" : "Swift arrays of DriverProperty (.array); subscript assignment",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool replaceObject(uint32_t, const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11627,13 +11647,14 @@
 
           ],
           "name" : "setObject",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setObject(const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -11644,13 +11665,15 @@
 
           ],
           "name" : "setObject",
+          "note" : "Swift arrays of DriverProperty (.array); Array.insert(_:at:)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setObject(uint32_t, const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11661,13 +11684,14 @@
 
           ],
           "name" : "ensureCapacity",
+          "note" : "container storage capacity; Swift collections manage their own storage and the runtime sizes each OS container from the decoded count",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t ensureCapacity(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11678,13 +11702,14 @@
 
           ],
           "name" : "getCapacity",
+          "note" : "container storage capacity; Swift collections manage their own storage and the runtime sizes each OS container from the decoded count",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t getCapacity() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11713,13 +11738,15 @@
 
           ],
           "name" : "getNextIndexOfObject",
+          "note" : "Swift arrays of DriverProperty (.array); Array.firstIndex(of:) on a slice",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t getNextIndexOfObject(const OSMetaClassBase*, uint32_t) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11730,13 +11757,14 @@
 
           ],
           "name" : "flushCollection",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void flushCollection()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -11815,13 +11843,14 @@
 
           ],
           "name" : "release",
+          "note" : "kOSBooleanTrue and kOSBooleanFalse are shared singletons; reference counting is C++ object-model plumbing, and Swift uses Bool (DriverProperty.boolean)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void release() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11832,13 +11861,14 @@
 
           ],
           "name" : "retain",
+          "note" : "kOSBooleanTrue and kOSBooleanFalse are shared singletons; reference counting is C++ object-model plumbing, and Swift uses Bool (DriverProperty.boolean)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void retain() const",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "OSBoolean",
@@ -11863,13 +11893,14 @@
 
           ],
           "name" : "createFromPath",
+          "note" : "SwifterKit's generator packages no resources into the dext, and Swift driver code runs in the client process, so it reads bundled files through Foundation and sends them as Data in commands; the runtime never maps dext resources",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSBundle* createFromPath(const char*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11880,13 +11911,14 @@
 
           ],
           "name" : "mainBundle",
+          "note" : "SwifterKit's generator packages no resources into the dext, and Swift driver code runs in the client process, so it reads bundled files through Foundation and sends them as Data in commands; the runtime never maps dext resources",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSBundle* mainBundle()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11915,13 +11947,14 @@
 
           ],
           "name" : "loadResource",
+          "note" : "SwifterKit's generator packages no resources into the dext, and Swift driver code runs in the client process, so it reads bundled files through Foundation and sends them as Data in commands; the runtime never maps dext resources",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t loadResource(const char*, uint64_t, size_t, OSMappedFile**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11964,13 +11997,15 @@
 
           ],
           "name" : "copyCollection",
+          "note" : "DriverProperty is a value type, so copying an .array or .dictionary copies it deeply",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSCollectionPtr copyCollection(OSDictionary*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -11981,13 +12016,14 @@
 
           ],
           "name" : "iterateObjects",
+          "note" : "abstract OSCollection base; the OSArray and OSDictionary rows carry the concrete mapping and SwifterKit never handles an untyped collection",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool iterateObjects(OSCollectionIterateObjectsBlock) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -11998,13 +12034,14 @@
 
           ],
           "name" : "ensureCapacity",
+          "note" : "abstract OSCollection base; the OSArray and OSDictionary rows carry the concrete mapping and SwifterKit never handles an untyped collection",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t ensureCapacity(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12015,13 +12052,14 @@
 
           ],
           "name" : "getCapacity",
+          "note" : "abstract OSCollection base; the OSArray and OSDictionary rows carry the concrete mapping and SwifterKit never handles an untyped collection",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t getCapacity() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12032,13 +12070,14 @@
 
           ],
           "name" : "getCount",
+          "note" : "abstract OSCollection base; the OSArray and OSDictionary rows carry the concrete mapping and SwifterKit never handles an untyped collection",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t getCount() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12049,13 +12088,14 @@
 
           ],
           "name" : "flushCollection",
+          "note" : "abstract OSCollection base; the OSArray and OSDictionary rows carry the concrete mapping and SwifterKit never handles an untyped collection",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void flushCollection()",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "OSCollection",
@@ -12113,13 +12153,15 @@
 
           ],
           "name" : "withBytesNoCopy",
+          "note" : "Swift Data (including Data(bytesNoCopy:count:deallocator:)); the runtime copies payload bytes into OSData",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDataPtr withBytesNoCopy(void*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12148,13 +12190,15 @@
 
           ],
           "name" : "withData",
+          "note" : "Swift Data copies; the runtime builds OSData",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDataPtr withData(const OSData*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12165,13 +12209,15 @@
 
           ],
           "name" : "withData",
+          "note" : "Swift Data range subscripts; the runtime builds OSData",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDataPtr withData(const OSData*, size_t, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12182,13 +12228,14 @@
 
           ],
           "name" : "appendBytes",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool appendBytes(const OSData*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12199,13 +12246,14 @@
 
           ],
           "name" : "appendBytes",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool appendBytes(const void*, size_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12216,13 +12264,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Data is Equatable",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSData*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12233,13 +12283,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Data is Equatable",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12250,13 +12302,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "compare Data with Data(string.utf8)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSString*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12267,13 +12321,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Data is Equatable",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const void*, size_t) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12284,13 +12340,14 @@
 
           ],
           "name" : "getBytesNoCopy",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "const void* getBytesNoCopy() const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12301,13 +12358,15 @@
 
           ],
           "name" : "getBytesNoCopy",
+          "note" : "Data range subscripts and withUnsafeBytes",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "const void* getBytesNoCopy(size_t, size_t) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "Data"
         },
         {
           "access" : "public",
@@ -12318,13 +12377,14 @@
 
           ],
           "name" : "getCapacity",
+          "note" : "container storage capacity; Swift collections manage their own storage and the runtime sizes each OS container from the decoded count",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "size_t getCapacity() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12403,13 +12463,15 @@
 
           ],
           "name" : "withDictionary",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); the runtime builds OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionaryPtr withDictionary(const OSDictionary*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12420,13 +12482,15 @@
 
           ],
           "name" : "withObjects",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); the runtime builds OSDictionary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionaryPtr withObjects(const OSObject**, const OSObject**, uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12437,13 +12501,14 @@
 
           ],
           "name" : "getObject",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSObject* getObject(const OSObject*) const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12454,13 +12519,14 @@
 
           ],
           "name" : "getObject",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSObject* getObject(const char*) const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12471,13 +12537,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); DriverProperty is Hashable, so == compares dictionaries",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSDictionary*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12488,13 +12556,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); compare dictionaries filtered to the chosen keys with ==",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSDictionary*, const OSCollection*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12505,13 +12575,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); DriverProperty is Hashable, so == compares values",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12522,13 +12594,15 @@
 
           ],
           "name" : "iterateObjects",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); iterate Dictionary.keys",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool iterateObjects(OSCollectionIterateObjectsBlock) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12539,13 +12613,14 @@
 
           ],
           "name" : "iterateObjects",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool iterateObjects(OSDictionaryIterateObjectsBlock) const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12556,13 +12631,15 @@
 
           ],
           "name" : "merge",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); Dictionary.merge(_:uniquingKeysWith:)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool merge(const OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12573,13 +12650,14 @@
 
           ],
           "name" : "setObject",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setObject(const OSObject*, const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12590,13 +12668,14 @@
 
           ],
           "name" : "setObject",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setObject(const char*, const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12607,13 +12686,14 @@
 
           ],
           "name" : "ensureCapacity",
+          "note" : "container storage capacity; Swift collections manage their own storage and the runtime sizes each OS container from the decoded count",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t ensureCapacity(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12624,13 +12704,14 @@
 
           ],
           "name" : "getCapacity",
+          "note" : "container storage capacity; Swift collections manage their own storage and the runtime sizes each OS container from the decoded count",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t getCapacity() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12659,13 +12740,15 @@
 
           ],
           "name" : "flushCollection",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); Dictionary.removeAll()",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void flushCollection()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12694,13 +12777,15 @@
 
           ],
           "name" : "removeObject",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); Dictionary.removeValue(forKey:)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void removeObject(const OSObject*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12711,13 +12796,15 @@
 
           ],
           "name" : "removeObject",
+          "note" : "Swift [String: DriverProperty] dictionaries (.dictionary); Dictionary.removeValue(forKey:)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void removeObject(const char*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         }
       ],
       "name" : "OSDictionary",
@@ -12760,13 +12847,14 @@
 
           ],
           "name" : "data",
+          "note" : "SwifterKit's generator packages no resources into the dext, and Swift driver code runs in the client process, so it reads bundled files through Foundation and sends them as Data in commands; the runtime never maps dext resources",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "const void* data() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12777,13 +12865,14 @@
 
           ],
           "name" : "createFromPath",
+          "note" : "SwifterKit's generator packages no resources into the dext, and Swift driver code runs in the client process, so it reads bundled files through Foundation and sends them as Data in commands; the runtime never maps dext resources",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t createFromPath(const char*, uint64_t, size_t, OSMappedFile**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12794,13 +12883,14 @@
 
           ],
           "name" : "size",
+          "note" : "SwifterKit's generator packages no resources into the dext, and Swift driver code runs in the client process, so it reads bundled files through Foundation and sends them as Data in commands; the runtime never maps dext resources",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "size_t size() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12843,13 +12933,14 @@
             "__IIG"
           ],
           "name" : "isEqualTo",
+          "note" : "generic C++ object equality; Swift compares DriverProperty, Data and String values directly",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12860,13 +12951,14 @@
             "__IIG"
           ],
           "name" : "getMetaClass",
+          "note" : "C++ runtime type information; Swift distinguishes values by DriverProperty cases",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "const OSMetaClass* getMetaClass() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12877,13 +12969,14 @@
             "__IIG"
           ],
           "name" : "release",
+          "note" : "C++ reference counting; the runtime owns every OSObject's lifetime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void release() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -12894,13 +12987,14 @@
             "__IIG"
           ],
           "name" : "retain",
+          "note" : "C++ reference counting; the runtime owns every OSObject's lifetime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void retain() const",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "OSMetaClassBase",
@@ -12924,13 +13018,15 @@
 
           ],
           "name" : "withNumber",
+          "note" : "parse with UInt64(_:radix:) and pass .unsignedInteger; the runtime builds OSNumber",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSNumberPtr withNumber(const char*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12941,13 +13037,14 @@
 
           ],
           "name" : "withNumber",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSNumberPtr withNumber(uint64_t, size_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -12958,13 +13055,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "DriverProperty is Hashable, so == compares numbers",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12975,13 +13074,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "DriverProperty is Hashable, so == compares numbers",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSNumber*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -12992,13 +13093,14 @@
 
           ],
           "name" : "numberOfBits",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "size_t numberOfBits() const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -13009,13 +13111,15 @@
 
           ],
           "name" : "unsigned16BitValue",
+          "note" : "read .unsignedInteger and narrow with UInt16(truncatingIfNeeded:); Swift writes every number as a 64-bit OSNumber",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint16_t unsigned16BitValue() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -13026,13 +13130,15 @@
 
           ],
           "name" : "unsigned32BitValue",
+          "note" : "read .unsignedInteger and narrow with UInt32(truncatingIfNeeded:); Swift writes every number as a 64-bit OSNumber",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t unsigned32BitValue() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -13043,13 +13149,14 @@
 
           ],
           "name" : "unsigned64BitValue",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint64_t unsigned64BitValue() const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -13060,13 +13167,15 @@
 
           ],
           "name" : "unsigned8BitValue",
+          "note" : "read .unsignedInteger and narrow with UInt8(truncatingIfNeeded:); Swift writes every number as a 64-bit OSNumber",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint8_t unsigned8BitValue() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "DriverProperty"
         },
         {
           "access" : "public",
@@ -13145,13 +13254,14 @@
 
           ],
           "name" : "SetDispatchQueue",
+          "note" : "the runtime runs on the dext's default queue and forwards work to Swift over the runtime connection; Swift code uses Swift concurrency and has no IODispatchQueue",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDispatchQueue(const IODispatchQueueName, IODispatchQueue*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13230,13 +13340,14 @@
 
           ],
           "name" : "getFirstObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSObject* getFirstObject() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13247,13 +13358,14 @@
 
           ],
           "name" : "getLastObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSObject* getLastObject() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13264,13 +13376,14 @@
 
           ],
           "name" : "withCapacity",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSOrderedSetPtr withCapacity(uint32_t, OSOrderBlock)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13299,13 +13412,14 @@
 
           ],
           "name" : "setFirstObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setFirstObject(const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13316,13 +13430,14 @@
 
           ],
           "name" : "setLastObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setLastObject(const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13333,13 +13448,14 @@
 
           ],
           "name" : "setObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setObject(const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13350,13 +13466,14 @@
 
           ],
           "name" : "orderObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "int32_t orderObject(const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13399,13 +13516,14 @@
 
           ],
           "name" : "copyObject",
+          "note" : "DriverKit binary message serialization; the runtime moves properties and payloads with its own tagged encoding (ServicePropertyCoding) and never uses OSSerialization",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSObjectPtr copyObject()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13416,13 +13534,14 @@
 
           ],
           "name" : "createFromBytes",
+          "note" : "DriverKit binary message serialization; the runtime moves properties and payloads with its own tagged encoding (ServicePropertyCoding) and never uses OSSerialization",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSerializationPtr createFromBytes(const void*, size_t, OSSerializationFreeBufferHandler)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13433,11 +13552,12 @@
 
           ],
           "name" : "createFromBytes",
+          "note" : "DriverKit binary message serialization; the runtime moves properties and payloads with its own tagged encoding (ServicePropertyCoding) and never uses OSSerialization",
           "sdks" : [
             "27.0"
           ],
           "signature" : "OSSerializationPtr createFromBytes(const void*, size_t, OSSerializationFreeBufferHandler, OSSerializationPortCopyInHandler)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13448,13 +13568,14 @@
 
           ],
           "name" : "createFromObject",
+          "note" : "DriverKit binary message serialization; the runtime moves properties and payloads with its own tagged encoding (ServicePropertyCoding) and never uses OSSerialization",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSerializationPtr createFromObject(const OSObjectPtr)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13465,11 +13586,12 @@
 
           ],
           "name" : "createFromObject",
+          "note" : "DriverKit binary message serialization; the runtime moves properties and payloads with its own tagged encoding (ServicePropertyCoding) and never uses OSSerialization",
           "sdks" : [
             "27.0"
           ],
           "signature" : "OSSerializationPtr createFromObject(const OSObjectPtr, OSSerializationPortCopyOutHandler)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13480,13 +13602,14 @@
 
           ],
           "name" : "finalizeBuffer",
+          "note" : "DriverKit binary message serialization; the runtime moves properties and payloads with its own tagged encoding (ServicePropertyCoding) and never uses OSSerialization",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "const void* finalizeBuffer(size_t*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13515,13 +13638,14 @@
 
           ],
           "name" : "freeBuffer",
+          "note" : "DriverKit binary message serialization; the runtime moves properties and payloads with its own tagged encoding (ServicePropertyCoding) and never uses OSSerialization",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void freeBuffer(const void*, size_t)",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "OSSerialization",
@@ -13546,13 +13670,14 @@
 
           ],
           "name" : "getAnyObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSObject* getAnyObject() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13563,13 +13688,14 @@
 
           ],
           "name" : "withArray",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSetPtr withArray(const OSArray*, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13580,13 +13706,14 @@
 
           ],
           "name" : "withCapacity",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSetPtr withCapacity(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13597,13 +13724,14 @@
 
           ],
           "name" : "withObjects",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSetPtr withObjects(const OSObject**, uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13614,13 +13742,14 @@
 
           ],
           "name" : "containsObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool containsObject(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13649,13 +13778,14 @@
 
           ],
           "name" : "member",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool member(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13666,13 +13796,14 @@
 
           ],
           "name" : "merge",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool merge(const OSArray*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13683,13 +13814,14 @@
 
           ],
           "name" : "setObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool setObject(const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -13700,13 +13832,14 @@
 
           ],
           "name" : "removeObject",
+          "note" : "in-memory OSObject container; DriverKit OSSerialization accepts only OSData, OSString, OSNumber, OSBoolean, OSArray and OSDictionary, so it is never a property or payload value, and Swift code keeps its own state in Swift collections",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void removeObject(const OSMetaClassBase*)",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "OSSet",
@@ -13731,13 +13864,14 @@
 
           ],
           "name" : "withCString",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSStringPtr withCString(const char*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -13748,13 +13882,15 @@
 
           ],
           "name" : "withCString",
+          "note" : "Swift String and its prefix views; the runtime copies UTF-8 into OSString",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSStringPtr withCString(const char*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "String"
         },
         {
           "access" : "public",
@@ -13765,13 +13901,15 @@
 
           ],
           "name" : "withCStringNoCopy",
+          "note" : "Swift String; the runtime copies UTF-8 into OSString",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSStringPtr withCStringNoCopy(const char*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "String"
         },
         {
           "access" : "public",
@@ -13782,13 +13920,15 @@
 
           ],
           "name" : "withString",
+          "note" : "Swift String value copies",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSStringPtr withString(const OSString*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "String"
         },
         {
           "access" : "public",
@@ -13799,13 +13939,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "compare Data(string.utf8) with Data",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSData*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "String"
         },
         {
           "access" : "public",
@@ -13816,13 +13958,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "String is Equatable",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSMetaClassBase*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "String"
         },
         {
           "access" : "public",
@@ -13833,13 +13977,15 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "String is Equatable",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const OSString*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "String"
         },
         {
           "access" : "public",
@@ -13850,13 +13996,14 @@
 
           ],
           "name" : "isEqualTo",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool isEqualTo(const char*) const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
