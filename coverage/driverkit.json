@@ -14199,13 +14199,14 @@
           ],
           "introduced" : "19.0",
           "name" : "getReport",
+          "note" : "overridden: answered report types reach Swift as hidGetReportRequest events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t getReport(IOMemoryDescriptor*, IOHIDReportType, IOOptionBits, uint32_t, OSAction*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -14217,13 +14218,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleReport",
+          "note" : "called for Swift-submitted input reports and overridden by USB HID devices",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t handleReport(uint64_t, IOMemoryDescriptor*, uint32_t, IOHIDReportType, IOOptionBits)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -14235,13 +14237,14 @@
           ],
           "introduced" : "19.0",
           "name" : "setReport",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t setReport(IOMemoryDescriptor*, IOHIDReportType, IOOptionBits, uint32_t, OSAction*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -14253,13 +14256,14 @@
           ],
           "introduced" : "19.0",
           "name" : "CompleteReport",
+          "note" : "completes each Swift-answered or aborted get-report request once",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void CompleteReport(OSAction*, IOReturn, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -14271,13 +14275,14 @@
           ],
           "introduced" : "19.0",
           "name" : "setProperty",
+          "note" : "overridden: property changes reach Swift as hidProperties events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void setProperty(OSObject*, OSObject*)",
-          "status" : "gap"
+          "status" : "generated"
         }
       ],
       "name" : "IOHIDDevice",
@@ -14414,7 +14419,8 @@
             "27.0"
           ],
           "signature" : "IOFixed getX()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14432,7 +14438,8 @@
             "27.0"
           ],
           "signature" : "IOFixed getY()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14450,7 +14457,8 @@
             "27.0"
           ],
           "signature" : "IOFixed getZ()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14468,7 +14476,8 @@
             "27.0"
           ],
           "signature" : "IOHIDDigitizerCollectionType getType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14486,7 +14495,8 @@
             "27.0"
           ],
           "signature" : "bool getInRange()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14504,7 +14514,8 @@
             "27.0"
           ],
           "signature" : "bool getTouch()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "private",
@@ -14540,7 +14551,8 @@
             "27.0"
           ],
           "signature" : "void addElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14577,7 +14589,8 @@
             "27.0"
           ],
           "signature" : "void setInRange(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14595,7 +14608,8 @@
             "27.0"
           ],
           "signature" : "void setTouch(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14613,7 +14627,8 @@
             "27.0"
           ],
           "signature" : "void setX(IOFixed)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14631,7 +14646,8 @@
             "27.0"
           ],
           "signature" : "void setY(IOFixed)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         },
         {
           "access" : "public",
@@ -14649,7 +14665,8 @@
             "27.0"
           ],
           "signature" : "void setZ(IOFixed)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDDigitizerCollection"
         }
       ],
       "name" : "IOHIDDigitizerCollection",
@@ -14681,7 +14698,8 @@
             "27.0"
           ],
           "signature" : "IOFixed getScaledFixedValue(IOHIDValueScaleType)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElementValue"
         },
         {
           "access" : "public",
@@ -14699,7 +14717,8 @@
             "27.0"
           ],
           "signature" : "IOHIDElementCollectionType getCollectionType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14717,7 +14736,8 @@
             "27.0"
           ],
           "signature" : "IOHIDElementCookie getCookie()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14735,7 +14755,8 @@
             "27.0"
           ],
           "signature" : "IOHIDElementType getType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14753,7 +14774,8 @@
             "27.0"
           ],
           "signature" : "IOReturn commit(IOHIDElementCommitDirection)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "commitHIDElement"
         },
         {
           "access" : "public",
@@ -14771,7 +14793,8 @@
             "27.0"
           ],
           "signature" : "bool conformsTo(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElementConforms"
         },
         {
           "access" : "public",
@@ -14789,7 +14812,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getFlags()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14807,7 +14831,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getLogicalMax()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14825,7 +14850,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getLogicalMin()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14843,7 +14869,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getPhysicalMax()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14861,7 +14888,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getPhysicalMin()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14879,7 +14907,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getReportCount()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14897,7 +14926,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getReportID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14915,7 +14945,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getReportSize()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14933,7 +14964,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getScaledValue(IOHIDValueScaleType)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElementValue"
         },
         {
           "access" : "public",
@@ -14951,7 +14983,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getUnit()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14969,7 +15002,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getUnitExponent()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -14987,7 +15021,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getUsage()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -15005,7 +15040,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getUsagePage()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElements"
         },
         {
           "access" : "public",
@@ -15023,7 +15059,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getValue(IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElementValue"
         },
         {
           "access" : "public",
@@ -15041,7 +15078,8 @@
             "27.0"
           ],
           "signature" : "uint64_t getTimeStamp()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidElementValue"
         },
         {
           "access" : "public",
@@ -15059,7 +15097,8 @@
             "27.0"
           ],
           "signature" : "void setDataValue(OSData*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDElementData"
         },
         {
           "access" : "public",
@@ -15077,7 +15116,8 @@
             "27.0"
           ],
           "signature" : "void setValue(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDElementValue"
         }
       ],
       "name" : "IOHIDElement",
@@ -15122,13 +15162,14 @@
           ],
           "introduced" : "21.0",
           "name" : "SetLEDState",
+          "note" : "overridden: LED changes reach Swift as hidLEDState events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetLEDState(uint32_t, uint32_t, bool)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -15140,13 +15181,14 @@
           ],
           "introduced" : "21.0",
           "name" : "SetProperties",
+          "note" : "overridden: property sets reach Swift as hidProperties events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -15158,13 +15200,14 @@
           ],
           "introduced" : "21.0",
           "name" : "Start",
+          "note" : "the superclass Start runs unchanged and calls handleStart, which the generated runtime overrides",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Start(IOService*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -15176,13 +15219,14 @@
           ],
           "introduced" : "21.0",
           "name" : "Stop",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Stop(IOService*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -15200,7 +15244,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchAbsolutePointerEvent(uint64_t, IOFixed, IOFixed, uint32_t, IOOptionBits, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDAbsolutePointerEvent"
         },
         {
           "access" : "public",
@@ -15218,7 +15263,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchDigitizerStylusEvent(uint64_t, IOHIDDigitizerStylusData*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDStylusEvent"
         },
         {
           "access" : "public",
@@ -15236,7 +15282,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchDigitizerTouchEvent(uint64_t, IOHIDDigitizerTouchData*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDTouchEvent"
         },
         {
           "access" : "public",
@@ -15254,7 +15301,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchKeyboardEvent(uint64_t, uint32_t, uint32_t, uint32_t, IOOptionBits, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDKeyboardEvent"
         },
         {
           "access" : "public",
@@ -15272,7 +15320,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchRelativePointerEvent(uint64_t, IOFixed, IOFixed, uint32_t, IOOptionBits, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDRelativePointerEvent"
         },
         {
           "access" : "public",
@@ -15290,7 +15339,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchRelativeScrollWheelEvent(uint64_t, IOFixed, IOFixed, IOFixed, IOOptionBits, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDScrollEvent"
         },
         {
           "access" : "protected",
@@ -15302,13 +15352,14 @@
           ],
           "introduced" : "21.0",
           "name" : "handleCopyMatchingEvent",
+          "note" : "IOHIDEvent is only forward-declared by the DriverKit SDK, so no typed event can be built or read; the superclass answers copy-matching requests",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t handleCopyMatchingEvent(OSDictionary*, IOHIDEvent**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -15326,7 +15377,8 @@
             "27.0"
           ],
           "signature" : "void SetLED(uint32_t, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDLED"
         },
         {
           "access" : "protected",
@@ -15338,13 +15390,14 @@
           ],
           "introduced" : "19.0",
           "name" : "dispatchEvent",
+          "note" : "IOHIDEvent is only forward-declared by the DriverKit SDK, so no typed event can be built or read, and IOUserHIDEventService makes its override private; Swift dispatches through the typed dispatch* members",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void dispatchEvent(IOHIDEvent*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -15713,13 +15766,14 @@
           ],
           "introduced" : "19.0",
           "name" : "AddReportToPool",
+          "note" : "IOUserHIDEventService opens its provider interface, fills the report pool, and closes it; the generated event service keeps that implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t AddReportToPool(IOBufferMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -15731,13 +15785,14 @@
           ],
           "introduced" : "19.0",
           "name" : "Close",
+          "note" : "IOUserHIDEventService opens its provider interface, fills the report pool, and closes it; the generated event service keeps that implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Close(IOService*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -15755,7 +15810,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetReport(IOMemoryDescriptor*, IOHIDReportType, uint32_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidInterfaceReport"
         },
         {
           "access" : "public",
@@ -15767,13 +15823,14 @@
           ],
           "introduced" : "19.0",
           "name" : "Open",
+          "note" : "IOUserHIDEventService opens its provider interface, fills the report pool, and closes it; the generated event service keeps that implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Open(IOService*, IOOptionBits, OSAction*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -15791,7 +15848,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetReport(IOMemoryDescriptor*, IOHIDReportType, uint32_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDInterfaceReport"
         },
         {
           "access" : "public",
@@ -15809,7 +15867,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t commitElements(OSArray*, IOHIDElementCommitDirection)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "commitHIDElements"
         },
         {
           "access" : "public",
@@ -15821,13 +15880,14 @@
           ],
           "introduced" : "19.0",
           "name" : "ReportAvailable",
+          "note" : "IOUserHIDEventService's private ReportAvailable action receives reports and calls processReport and handleReport, which the generated runtime overrides",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void ReportAvailable(uint64_t, uint32_t, uint32_t, IOHIDReportType, IOMemoryDescriptor*, OSAction*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -15864,7 +15924,8 @@
             "27.0"
           ],
           "signature" : "void processReport(uint64_t, uint8_t*, uint32_t, IOHIDReportType, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "processHIDInterfaceReport"
         }
       ],
       "name" : "IOHIDInterface",
@@ -16120,13 +16181,14 @@
           ],
           "introduced" : "21.0",
           "name" : "copyKeyboardEvent",
+          "note" : "IOHIDEvent is only forward-declared by the DriverKit SDK, so no typed event can be built or read; IOUserHIDEventDriver's own handleCopyMatchingEvent uses it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOHIDEvent* copyKeyboardEvent(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -16157,13 +16219,14 @@
           ],
           "introduced" : "19.0",
           "name" : "parseDigitizerElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseDigitizerElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16175,13 +16238,14 @@
           ],
           "introduced" : "21.0",
           "name" : "parseElement",
+          "note" : "IOUserHIDEventDriver's element-classification driver; the generated runtime gates the per-category parse*Element hooks it calls and keeps this implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -16193,13 +16257,14 @@
           ],
           "introduced" : "19.0",
           "name" : "parseElements",
+          "note" : "IOUserHIDEventDriver's element-classification driver; the generated runtime gates the per-category parse*Element hooks it calls and keeps this implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseElements(OSArray*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -16211,13 +16276,14 @@
           ],
           "introduced" : "21.0",
           "name" : "parseGameControllerElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseGameControllerElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16229,13 +16295,14 @@
           ],
           "introduced" : "19.0",
           "name" : "parseKeyboardElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseKeyboardElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16247,13 +16314,14 @@
           ],
           "introduced" : "19.0",
           "name" : "parseLEDElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseLEDElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16265,13 +16333,14 @@
           ],
           "introduced" : "19.0",
           "name" : "parsePointerElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parsePointerElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16283,13 +16352,14 @@
           ],
           "introduced" : "20.3",
           "name" : "parseProximityElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseProximityElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16301,13 +16371,14 @@
           ],
           "introduced" : "21.0",
           "name" : "parseRemainingElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseRemainingElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16319,13 +16390,14 @@
           ],
           "introduced" : "19.0",
           "name" : "parseScrollElement",
+          "note" : "overridden: parses only the configured HIDEventDriverCategories",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool parseScrollElement(IOHIDElement*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16337,13 +16409,14 @@
           ],
           "introduced" : "21.0",
           "name" : "postProcessElements",
+          "note" : "IOUserHIDEventDriver's element-classification driver; the generated runtime gates the per-category parse*Element hooks it calls and keeps this implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool postProcessElements(OSDictionary*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "private",
@@ -16373,13 +16446,14 @@
           ],
           "introduced" : "21.0",
           "name" : "SetProperties",
+          "note" : "overridden: property sets reach Swift as hidProperties events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -16391,13 +16465,14 @@
           ],
           "introduced" : "19.0",
           "name" : "Start",
+          "note" : "the superclass Start runs unchanged and calls handleStart, which the generated runtime overrides",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Start(IOService*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -16409,13 +16484,14 @@
           ],
           "introduced" : "21.0",
           "name" : "handleCopyMatchingEvent",
+          "note" : "IOHIDEvent is only forward-declared by the DriverKit SDK, so no typed event can be built or read; IOUserHIDEventDriver's implementation answers copy-matching requests",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t handleCopyMatchingEvent(OSDictionary*, IOHIDEvent**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "private",
@@ -16469,7 +16545,8 @@
             "27.0"
           ],
           "signature" : "void SetLED(uint32_t, bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDLED"
         },
         {
           "access" : "private",
@@ -16536,13 +16613,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleAbsolutePointerReport",
+          "note" : "overridden: dispatches only the categories setHIDEventDriverCategories enables",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleAbsolutePointerReport(uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16554,13 +16632,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleDigitizerReport",
+          "note" : "overridden: dispatches only the categories setHIDEventDriverCategories enables",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleDigitizerReport(uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16572,13 +16651,14 @@
           ],
           "introduced" : "21.0",
           "name" : "handleGameControllerReport",
+          "note" : "overridden: dispatches only the categories setHIDEventDriverCategories enables",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleGameControllerReport(uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16590,13 +16670,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleKeyboardReport",
+          "note" : "overridden: dispatches only the categories setHIDEventDriverCategories enables",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleKeyboardReport(uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16608,13 +16689,14 @@
           ],
           "introduced" : "20.3",
           "name" : "handleProximityReport",
+          "note" : "overridden: dispatches only the categories setHIDEventDriverCategories enables",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleProximityReport(uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16626,13 +16708,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleRelativePointerReport",
+          "note" : "overridden: dispatches only the categories setHIDEventDriverCategories enables",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleRelativePointerReport(uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16644,13 +16727,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleReport",
+          "note" : "overridden: delivers reports and element values to Swift before the superclass parses them",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleReport(uint64_t, uint8_t*, uint32_t, IOHIDReportType, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -16662,13 +16746,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleScrollReport",
+          "note" : "overridden: dispatches only the categories setHIDEventDriverCategories enables",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleScrollReport(uint64_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "private",
@@ -16916,7 +17001,8 @@
             "27.0"
           ],
           "signature" : "bool conformsTo(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidServiceConforms"
         },
         {
           "access" : "private",
@@ -16947,13 +17033,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleStart",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool handleStart(IOService*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -16984,13 +17071,14 @@
           ],
           "introduced" : "21.0",
           "name" : "SetLEDState",
+          "note" : "overridden: LED changes reach Swift as hidLEDState events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetLEDState(uint32_t, uint32_t, bool)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -17002,13 +17090,14 @@
           ],
           "introduced" : "20.4",
           "name" : "SetProperties",
+          "note" : "overridden: property sets reach Swift as hidProperties events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -17020,13 +17109,14 @@
           ],
           "introduced" : "19.0",
           "name" : "Start",
+          "note" : "the superclass Start runs unchanged and calls handleStart, which the generated runtime overrides",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Start(IOService*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -17038,13 +17128,14 @@
           ],
           "introduced" : "19.0",
           "name" : "Stop",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Stop(IOService*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -17062,7 +17153,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchDigitizerStylusEvent(uint64_t, IOHIDDigitizerStylusData*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDStylusEvent"
         },
         {
           "access" : "public",
@@ -17080,7 +17172,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchDigitizerTouchEvent(uint64_t, IOHIDDigitizerTouchData*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDTouchEvent"
         },
         {
           "access" : "public",
@@ -17093,13 +17186,14 @@
           "deprecated" : "23.0",
           "introduced" : "22.0",
           "name" : "dispatchExtendedGameControllerEvent",
+          "note" : "deprecated in DriverKit 23.0; replaced by dispatchExtendedGameControllerEventWithOptionalButtons, which Swift reaches through dispatchHIDExtendedGameControllerEvent",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t dispatchExtendedGameControllerEvent(uint64_t, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, bool, bool, IOFixed, IOFixed, IOFixed, IOFixed, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -17117,7 +17211,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchExtendedGameControllerEventWithOptionalButtons(uint64_t, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, bool, bool, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDExtendedGameControllerEvent"
         },
         {
           "access" : "public",
@@ -17135,7 +17230,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t dispatchStandardGameControllerEvent(uint64_t, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, IOFixed, bool, bool, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "dispatchHIDGameControllerEvent"
         },
         {
           "access" : "protected",
@@ -17147,13 +17243,14 @@
           ],
           "introduced" : "21.0",
           "name" : "processReport",
+          "note" : "overridden: serializes element updates with Swift commands",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t processReport(uint64_t, uint64_t, uint32_t, IOHIDReportType, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "private",
@@ -17223,13 +17320,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleReport",
+          "note" : "overridden: delivers reports and element values to Swift",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void handleReport(uint64_t, uint8_t*, uint32_t, IOHIDReportType, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         }
       ],
       "name" : "IOUserHIDEventService",
@@ -17273,13 +17371,14 @@
           ],
           "introduced" : "19.0",
           "name" : "newReportDescriptor",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSData* newReportDescriptor()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -17291,13 +17390,14 @@
           ],
           "introduced" : "19.0",
           "name" : "newDeviceDescription",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSDictionary* newDeviceDescription()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "private",
@@ -17327,13 +17427,14 @@
           ],
           "introduced" : "19.0",
           "name" : "handleStart",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool handleStart(IOService*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -17382,13 +17483,14 @@
           ],
           "introduced" : "19.0",
           "name" : "Start",
+          "note" : "the superclass Start runs unchanged and calls handleStart, which the generated runtime overrides",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Start(IOService*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -17400,13 +17502,14 @@
           ],
           "introduced" : "19.0",
           "name" : "Stop",
+          "note" : "referenced by the generated runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Stop(IOService*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "private",
@@ -17436,13 +17539,14 @@
           ],
           "introduced" : "19.0",
           "name" : "getReport",
+          "note" : "overridden: answered report types reach Swift, others go to the device",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t getReport(IOMemoryDescriptor*, IOHIDReportType, IOOptionBits, uint32_t, OSAction*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -17460,7 +17564,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t getReport(IOMemoryDescriptor*, IOHIDReportType, IOOptionBits, uint32_t, uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "hidDeviceReport"
         },
         {
           "access" : "protected",
@@ -17472,13 +17577,14 @@
           ],
           "introduced" : "19.0",
           "name" : "initInputReport",
+          "note" : "IOUserUSBHostHIDDevice's interrupt-pipe and output-request plumbing; the generated device keeps the superclass implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t initInputReport()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "private",
@@ -17514,7 +17620,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t setIdle(uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDDeviceIdle"
         },
         {
           "access" : "protected",
@@ -17532,7 +17639,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t setIdlePolicy(USBIdlePolicyType, uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDDeviceIdlePolicy"
         },
         {
           "access" : "public",
@@ -17550,7 +17658,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t setProtocol(uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setHIDDeviceProtocol"
         },
         {
           "access" : "public",
@@ -17562,13 +17671,14 @@
           ],
           "introduced" : "19.0",
           "name" : "setReport",
+          "note" : "overridden: accepted report types reach Swift, others go to the device",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t setReport(IOMemoryDescriptor*, IOHIDReportType, IOOptionBits, uint32_t, OSAction*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "protected",
@@ -17580,13 +17690,14 @@
           ],
           "introduced" : "19.0",
           "name" : "CompleteInputReport",
+          "note" : "IOUserUSBHostHIDDevice's interrupt-pipe and output-request plumbing; the generated device keeps the superclass implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void CompleteInputReport(OSAction*, IOReturn, uint32_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -17598,13 +17709,14 @@
           ],
           "introduced" : "20.0",
           "name" : "CompleteOutputReport",
+          "note" : "IOUserUSBHostHIDDevice's interrupt-pipe and output-request plumbing; the generated device keeps the superclass implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void CompleteOutputReport(OSAction*, IOReturn, uint32_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -17616,13 +17728,14 @@
           ],
           "introduced" : "20.0",
           "name" : "CompleteOutputRequest",
+          "note" : "IOUserUSBHostHIDDevice's interrupt-pipe and output-request plumbing; the generated device keeps the superclass implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void CompleteOutputRequest(OSAction*, IOReturn, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "private",
@@ -17652,13 +17765,14 @@
           ],
           "introduced" : "19.0",
           "name" : "TimerOccurred",
+          "note" : "IOUserUSBHostHIDDevice's interrupt-pipe and output-request plumbing; the generated device keeps the superclass implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void TimerOccurred(OSAction*, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -17670,13 +17784,14 @@
           ],
           "introduced" : "19.0",
           "name" : "cancelInputReportRetry",
+          "note" : "IOUserUSBHostHIDDevice's interrupt-pipe and output-request plumbing; the generated device keeps the superclass implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void cancelInputReportRetry()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -17713,7 +17828,8 @@
             "27.0"
           ],
           "signature" : "void reset()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "resetHIDDevice"
         },
         {
           "access" : "private",
@@ -17743,13 +17859,14 @@
           ],
           "introduced" : "19.0",
           "name" : "scheduleInputReportRetry",
+          "note" : "IOUserUSBHostHIDDevice's interrupt-pipe and output-request plumbing; the generated device keeps the superclass implementation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void scheduleInputReportRetry(kern_return_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "protected",
@@ -17761,13 +17878,14 @@
           ],
           "introduced" : "19.0",
           "name" : "setProperty",
+          "note" : "overridden: property changes reach Swift as hidProperties events",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void setProperty(OSObject*, OSObject*)",
-          "status" : "gap"
+          "status" : "generated"
         }
       ],
       "name" : "IOUserUSBHostHIDDevice",
