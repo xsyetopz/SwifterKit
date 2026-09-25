@@ -2,7 +2,7 @@
 set -euo pipefail
 
 xcrun swift-format lint --strict --recursive Sources Tests Package.swift
-swiftlint lint --strict
+swiftlint lint --strict Sources Tests Package.swift
 swift test -Xswiftc -warnings-as-errors
 swift build -c release -Xswiftc -warnings-as-errors
 
