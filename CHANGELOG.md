@@ -13,6 +13,22 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- The runtime protocol is now version 2. The handshake offers a version range,
+  the extension selects the highest common version, and both sides use it for
+  the rest of the connection; `DriverRuntimeConnection.protocolVersion` reports
+  it. Hosts and extensions must both come from this release, because version 1
+  extensions do not negotiate. `RuntimeProtocolVersion` is now `Comparable`,
+  adds `version2`, `minimumSupported`, and `supported`, and no longer declares
+  `version1`.
+- **Breaking:** `RuntimeMessageFlags.finalFragment` is removed. The runtime
+  never sent fragmented messages.
+- Runtime messages larger than `RuntimeMessage.maximumSize` (64 KiB, header
+  included) now throw `RuntimeProtocolError.payloadTooLarge` before the IOKit
+  call instead of failing in the extension.
+- Runtime magic, versions, limits, message kinds, flags, opcodes, event types,
+  and capability bits are declared once in Swift. The native extension uses a
+  header rendered from that schema, and a test fails when the checked-in header
+  drifts.
 - The package manifest now requires Swift 6.1 (Xcode 16.3) instead of 6.2, and
   CI runs the test suite on Swift 6.1 rather than only building it.
 - The package builds on Linux. The IOKit transport, `DriverClient()`, and

@@ -14,6 +14,16 @@ HID host-report acceptance is static capability policy owned by ``HIDDeviceConfi
 
 The generated extension and Swift host exchange versioned ``RuntimeMessage`` values. ``DriverContext`` checks ``RuntimeCapabilities`` before it sends a ``DriverCommand``. Capability extensions expose typed methods such as ``DriverContext/usbRead(endpoint:length:timeout:)``, ``DriverContext/pciRead(space:offset:width:options:)``, and ``DriverContext/allocateMemory(capacity:length:direction:alignment:)`` instead of exposing DriverKit objects or native pointers.
 
+### Protocol versions and message limits
+
+``DriverRuntimeConnection/connect(session:requiring:maximumResponseSize:)`` starts with a handshake that offers ``RuntimeProtocolVersion/supported``. The extension selects the highest version in both its own range and the offered range, returns it with its ``RuntimeCapabilities``, and fails the handshake when the ranges do not overlap. Every later message uses the selected ``DriverRuntimeConnection/protocolVersion``, and ``RuntimeMessage/init(decoding:)`` accepts only versions in the supported range. Protocol version 2 is the first version that negotiates; version 1 extensions are not supported.
+
+A complete message, header included, is at most ``RuntimeMessage/maximumSize`` bytes in either direction. ``RuntimeMessage/encoded()`` throws ``RuntimeProtocolError/payloadTooLarge`` for a larger message, so an oversize command fails before it reaches IOKit.
+
+### One protocol schema
+
+SwifterKit declares the wire protocol's magic value, version range, message size limit, message kinds, message flags, opcodes, event types, and capability bits once in Swift. The native extension includes a header rendered from those declarations, and a package test fails when the checked-in header drifts from the Swift schema. Fixed-size native payload layouts stay hand-written; the extension checks the header and handshake layouts against the sizes the schema declares.
+
 ``DriverEvent`` has an event type and payload at the transport layer. Decode it with the extension for the capability that owns the event, such as ``DriverEvent/hidReport()``, ``DriverEvent/serial()``, ``DriverEvent/ethernet()``, or ``DriverEvent/video()``. Each decoder returns `nil` for events from other capability families and throws for malformed payloads in its own family.
 
 ## Memory and completion ownership
