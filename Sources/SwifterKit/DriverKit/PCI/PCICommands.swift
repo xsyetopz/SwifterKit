@@ -6,9 +6,9 @@ extension DriverCommand {
     space: PCIRegisterSpace,
     offset: UInt64,
     width: PCIAccessWidth,
-    options: UInt32 = 0
+    options: PCIAccessOptions = []
   ) throws -> Self {
-    try validatePCI(space: space, offset: offset, width: width)
+    try validatePCI(space: space, offset: offset, width: width, options: options)
     return Self(
       opcode: .pciRead,
       requiredCapabilities: .pci,
@@ -29,9 +29,9 @@ extension DriverCommand {
     offset: UInt64,
     value: UInt64,
     width: PCIAccessWidth,
-    options: UInt32 = 0
+    options: PCIAccessOptions = []
   ) throws -> Self {
-    try validatePCI(space: space, offset: offset, width: width)
+    try validatePCI(space: space, offset: offset, width: width, options: options)
     guard width == .quadWord || value < UInt64(1) << UInt64(width.rawValue * 8) else {
       throw PCIRuntimeError.valueOutOfRange
     }
@@ -84,9 +84,12 @@ extension DriverCommand {
   private static func validatePCI(
     space: PCIRegisterSpace,
     offset: UInt64,
-    width: PCIAccessWidth
+    width: PCIAccessWidth,
+    options: PCIAccessOptions
   ) throws {
+    guard options.subtracting(.all).isEmpty else { throw PCIRuntimeError.invalidAccessOptions }
     if case .configuration = space {
+      guard options.isEmpty else { throw PCIRuntimeError.invalidAccessOptions }
       guard width != .quadWord else { throw PCIRuntimeError.invalidConfigurationWidth }
       guard offset <= 4_096 - UInt64(width.rawValue) else {
         throw PCIRuntimeError.configurationOffsetOutOfRange
@@ -102,7 +105,7 @@ extension DriverCommand {
     offset: UInt64,
     value: UInt64,
     width: PCIAccessWidth,
-    options: UInt32
+    options: PCIAccessOptions
   ) -> Data {
     let encodedSpace: UInt8
     let memoryIndex: UInt8
@@ -118,7 +121,7 @@ extension DriverCommand {
     var payload = Data(capacity: 24)
     payload.appendRuntimeInteger(offset)
     payload.appendRuntimeInteger(value)
-    payload.appendRuntimeInteger(options)
+    payload.appendRuntimeInteger(options.rawValue)
     payload.append(memoryIndex)
     payload.append(width.rawValue)
     payload.append(encodedSpace)
@@ -129,11 +132,14 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads a PCI configuration-space or aperture register.
+  ///
+  /// The extension rejects an aperture access that does not fit inside the BAR whose memory
+  /// index it names. Configuration space accepts no options.
   public func pciRead(
     space: PCIRegisterSpace,
     offset: UInt64,
     width: PCIAccessWidth,
-    options: UInt32 = 0
+    options: PCIAccessOptions = []
   ) async throws -> UInt64 {
     let payload = try await execute(
       .pciRead(space: space, offset: offset, width: width, options: options)
@@ -143,12 +149,15 @@ extension DriverContext {
   }
 
   /// Writes a PCI configuration-space or aperture register.
+  ///
+  /// The extension rejects an aperture access that does not fit inside the BAR whose memory
+  /// index it names. Configuration space accepts no options.
   public func pciWrite(
     space: PCIRegisterSpace,
     offset: UInt64,
     value: UInt64,
     width: PCIAccessWidth,
-    options: UInt32 = 0
+    options: PCIAccessOptions = []
   ) async throws {
     _ = try await execute(
       .pciWrite(space: space, offset: offset, value: value, width: width, options: options)

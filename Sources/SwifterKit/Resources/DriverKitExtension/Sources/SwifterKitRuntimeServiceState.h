@@ -177,6 +177,12 @@ struct SwifterKitRuntimeService_IVars {
 #endif
 #if SWIFTERKIT_ENABLE_PCI
     IOPCIDevice* pciDevice = nullptr;
+    // Memory indices and sizes of BAR0...BAR5, read lazily from GetBARInfo to bound aperture
+    // accesses. The expansion ROM has no reported size and is never cached.
+    bool pciAperturesLoaded = false;
+    uint8_t pciApertureCount = 0;
+    uint8_t pciApertureIndices[6] = {};
+    uint64_t pciApertureSizes[6] = {};
 #endif
 #if SWIFTERKIT_ENABLE_INTERRUPTS
     IOService* interruptProvider = nullptr;

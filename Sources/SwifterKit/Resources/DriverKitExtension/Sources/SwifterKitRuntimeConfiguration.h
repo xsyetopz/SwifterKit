@@ -147,6 +147,10 @@ static constexpr bool kSwifterKitSerialInitialDCD = false;
 
 static constexpr uint32_t kSwifterKitInterruptIndices[] = {0};
 static constexpr uint32_t kSwifterKitInterruptSourceCount = 0;
+static constexpr bool kSwifterKitPCIConfigureInterrupts = false;
+static constexpr uint32_t kSwifterKitPCIInterruptType = 0;
+static constexpr uint32_t kSwifterKitPCIInterruptRequiredVectors = 0;
+static constexpr uint32_t kSwifterKitPCIInterruptRequestedVectors = 0;
 
 static constexpr uint8_t kSwifterKitHIDReportDescriptor[] = {0};
 static constexpr uint32_t kSwifterKitHIDReportDescriptorLength = 0;

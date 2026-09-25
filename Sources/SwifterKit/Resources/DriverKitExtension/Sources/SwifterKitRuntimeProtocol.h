@@ -73,6 +73,24 @@ struct __attribute__((packed)) SwifterKitPCICapabilityHeader {
     uint64_t searchOffset;
 };
 
+struct __attribute__((packed)) SwifterKitPCIResetHeader {
+    uint32_t type;
+    uint32_t options;
+};
+
+struct __attribute__((packed)) SwifterKitPCILinkSpeedHeader {
+    uint32_t speed;
+    uint8_t retrain;
+    uint8_t reserved[3];
+};
+
+struct __attribute__((packed)) SwifterKitPCIPropertiesHeader {
+    uint8_t configSpaceVolatile;
+    uint8_t sleepLinkDisable;
+    uint8_t sleepReset;
+    uint8_t reserved;
+};
+
 struct __attribute__((packed)) SwifterKitMemoryAllocateHeader {
     uint64_t capacity;
     uint64_t length;
@@ -424,6 +442,9 @@ static_assert(sizeof(SwifterKitUSBControlTransferHeader) == 16);
 static_assert(sizeof(SwifterKitUSBPipeTransferHeader) == 16);
 static_assert(sizeof(SwifterKitPCIAccessHeader) == 24);
 static_assert(sizeof(SwifterKitPCICapabilityHeader) == 16);
+static_assert(sizeof(SwifterKitPCIResetHeader) == 8);
+static_assert(sizeof(SwifterKitPCILinkSpeedHeader) == 8);
+static_assert(sizeof(SwifterKitPCIPropertiesHeader) == 4);
 static_assert(sizeof(SwifterKitMemoryAllocateHeader) == 32);
 static_assert(sizeof(SwifterKitMemoryAccessHeader) == 24);
 static_assert(sizeof(SwifterKitMemorySetLengthHeader) == 16);

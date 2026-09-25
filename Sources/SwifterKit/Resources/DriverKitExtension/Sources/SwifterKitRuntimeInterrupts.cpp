@@ -12,12 +12,60 @@
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
 
+    #if SWIFTERKIT_ENABLE_PCI
+        #include <PCIDriverKit/IOPCIFamilyDefinitions.h>
+    #endif
+
 namespace {
     constexpr uint32_t kMaximumInterruptSources = 32;
 
     bool HasReservedBytes(const SwifterKitInterruptCommandHeader* header) {
         return header->reserved[0] != 0 || header->reserved[1] != 0 || header->reserved[2] != 0;
     }
+
+    #if SWIFTERKIT_ENABLE_PCI
+    // kIOInterruptTypeLevel from IOKit's IOInterrupts.h; the DriverKit SDK names it only in
+    // documentation, so the value is spelled out here.
+    constexpr uint32_t kInterruptTypeLevel = 1;
+
+    bool IsValidPCIInterruptConfiguration() {
+        const uint32_t type = kSwifterKitPCIInterruptType;
+        uint32_t maximum = 0;
+        if (type == kInterruptTypeLevel) {
+            maximum = 1;
+        } else if (type == kIOInterruptTypePCIMessaged) {
+            maximum = 32;
+        } else if (type == kIOInterruptTypePCIMessagedX) {
+            maximum = 2048;
+        }
+        if (kSwifterKitPCIInterruptRequiredVectors == 0
+            || kSwifterKitPCIInterruptRequiredVectors > kSwifterKitPCIInterruptRequestedVectors
+            || kSwifterKitPCIInterruptRequestedVectors > maximum) {
+            return false;
+        }
+        for (uint32_t slot = 0; slot < kSwifterKitInterruptSourceCount; ++slot) {
+            const uint32_t index = kSwifterKitInterruptIndices[slot] & kIOInterruptSourceIndexMask;
+            if (index >= kSwifterKitPCIInterruptRequiredVectors) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    kern_return_t ConfigurePCIInterrupts(IOPCIDevice* device) {
+        if (!kSwifterKitPCIConfigureInterrupts) {
+            return kIOReturnSuccess;
+        }
+        if (device == nullptr || !IsValidPCIInterruptConfiguration()) {
+            return kIOReturnBadArgument;
+        }
+        return device->ConfigureInterrupts(
+            kSwifterKitPCIInterruptType,
+            kSwifterKitPCIInterruptRequiredVectors,
+            kSwifterKitPCIInterruptRequestedVectors,
+            0);
+    }
+    #endif
 
     int32_t FindInterruptSlot(uint32_t index) {
         for (uint32_t slot = 0; slot < kSwifterKitInterruptSourceCount; ++slot) {
@@ -39,6 +87,15 @@ kern_return_t SwifterKitRuntimeService::StartInterrupts(IOService* provider) {
         || ivars->interruptProvider != nullptr) {
         return kIOReturnBadArgument;
     }
+
+    #if SWIFTERKIT_ENABLE_PCI
+    // ConfigureInterrupts allocates the MSI, MSI-X, or legacy vectors, so it runs after the
+    // provider is open and before any IOInterruptDispatchSource is created for those vectors.
+    const kern_return_t configured = ConfigurePCIInterrupts(ivars->pciDevice);
+    if (configured != kIOReturnSuccess) {
+        return configured;
+    }
+    #endif
 
     provider->retain();
     ivars->interruptProvider = provider;

@@ -126,6 +126,7 @@ extension DriverExtensionGenerator {
       static constexpr uint32_t kSwifterKitInterruptIndices[] = {\(encodedInterruptIndices)};
       static constexpr uint32_t kSwifterKitInterruptSourceCount =
           \(configuration.interruptSources.count);
+      \(pciInterruptDeclarations(configuration))
 
       static constexpr uint8_t kSwifterKitHIDReportDescriptor[] = {\(descriptor)};
       static constexpr uint32_t kSwifterKitHIDReportDescriptorLength =
@@ -252,24 +253,7 @@ extension DriverExtensionGenerator {
           kern_return_t USBClearStall(uint8_t endpoint, bool withRequest) LOCALONLY;
           kern_return_t USBSelectAlternateSetting(uint8_t alternateSetting) LOCALONLY;
       """ : ""
-    let pciMethods =
-      pci
-      ? """
-          kern_return_t PCICommand(
-              uint32_t opcode,
-              const uint8_t* payload,
-              uint32_t payloadLength,
-              OSData** response) LOCALONLY;
-          kern_return_t PCIAccess(
-              const SwifterKitPCIAccessHeader* header,
-              bool write,
-              OSData** response) LOCALONLY;
-          kern_return_t PCIGetBARInfo(uint8_t barIndex, OSData** response) LOCALONLY;
-          kern_return_t PCIGetLocation(OSData** response) LOCALONLY;
-          kern_return_t PCIFindCapability(
-              const SwifterKitPCICapabilityHeader* header,
-              OSData** response) LOCALONLY;
-      """ : ""
+    let pciMethods = pciServiceMethods(enabled: pci)
     let midiMethods =
       midi
       ? """

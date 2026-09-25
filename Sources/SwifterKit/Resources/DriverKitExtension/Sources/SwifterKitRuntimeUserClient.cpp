@@ -131,6 +131,15 @@ namespace {
             case SwifterKitRuntimeOpcode::PCIGetBARInfo:
             case SwifterKitRuntimeOpcode::PCIGetLocation:
             case SwifterKitRuntimeOpcode::PCIFindCapability:
+            case SwifterKitRuntimeOpcode::PCIReset:
+            case SwifterKitRuntimeOpcode::PCISaveDeviceState:
+            case SwifterKitRuntimeOpcode::PCIRestoreDeviceState:
+            case SwifterKitRuntimeOpcode::PCIHasPowerManagement:
+            case SwifterKitRuntimeOpcode::PCIEnablePowerManagement:
+            case SwifterKitRuntimeOpcode::PCIGetLinkSpeed:
+            case SwifterKitRuntimeOpcode::PCISetLinkSpeed:
+            case SwifterKitRuntimeOpcode::PCISetASPMState:
+            case SwifterKitRuntimeOpcode::PCISetProperties:
 #if SWIFTERKIT_ENABLE_PCI
                 if (service == nullptr) {
                     return kIOReturnNotReady;

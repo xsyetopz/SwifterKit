@@ -32,6 +32,21 @@ Use `.usb` with ``USBDeviceConfiguration`` for an `IOUSBHostInterface` provider.
 
 Use `.pci` with ``PCIDeviceConfiguration`` for an `IOPCIDevice` provider. Read and write configuration or BAR space with ``DriverContext/pciRead(space:offset:width:options:)`` and ``DriverContext/pciWrite(space:offset:value:width:options:)``; inspect BARs with ``DriverContext/pciBaseAddressInfo(index:)``.
 
+Configuration-space accesses stay inside the 4 KiB extended configuration area and take no options. Aperture accesses name a memory index from ``PCIBaseAddressInfo/memoryIndex``; the extension checks each access against the size `GetBARInfo` reports for BAR0 through BAR5 and rejects accesses past the end of the BAR or to the expansion ROM, whose size DriverKit does not report. ``PCIAccessOptions/latencyTolerant`` lets DriverKit offload an aperture access.
+
+Device-control operations change device state, so each one is an explicit call with no implicit use by the runtime:
+
+- ``DriverContext/pciReset(type:options:)`` resets the device, or every function of a multifunction device. Nothing may access the device during the reset. ``PCIResetType/warmDisable`` leaves the device unusable until a ``PCIResetType/warmEnable`` reset, and ``PCIResetOptions/terminate`` terminates the device and this extension, so the call may not return a response.
+- ``DriverContext/pciSaveDeviceState(options:)`` and ``DriverContext/pciRestoreDeviceState()`` save and rewrite configuration space.
+- ``DriverContext/pciHasPowerManagement(support:)`` and ``DriverContext/pciEnablePowerManagement(state:)`` query and select the sleep power state.
+- ``DriverContext/pciLinkSpeed()`` reads the link speed. ``DriverContext/pciSetLinkSpeed(_:retrain:)`` sets the upstream bridge's target speed and, with `retrain`, retrains the link immediately.
+- ``DriverContext/pciSetASPMState(_:)`` enables or disables ASPM levels on the device and its upstream bridge.
+- ``DriverContext/pciSetProperties(_:)`` sets the Boolean sleep properties in ``PCIDeviceProperties``.
+
+To allocate MSI, MSI-X, or legacy vectors, set ``PCIDeviceConfiguration/interrupts`` to a ``PCIInterruptConfiguration`` and enable `.interrupts`. The extension calls `IOPCIDevice::ConfigureInterrupts` while starting, after it opens the provider and before it creates any interrupt source, because that call allocates the vectors the sources use. Every ``InterruptSourceConfiguration/index`` must be below ``PCIInterruptConfiguration/requiredVectorCount``, the only vectors DriverKit guarantees; the generator and the extension both reject other indices. MSI allows 32 vectors, MSI-X 2,048, and legacy one. DriverKit documents that interrupt dispatch sources support only MSI for `IOPCIDevice` providers, so prefer ``PCIInterruptType/msi`` or ``PCIInterruptType/msiX``. Confirm the assigned type with ``DriverContext/interruptType(index:)`` and ``PCIInterruptType/init(interruptTypeFlags:)``.
+
+The SDK headers declare every `IOPCIDevice` member used here in DriverKit 24.4 and later without an availability attribute, so the generator applies no deployment floor beyond the PCI row above. An older system can still return an error for an operation it does not implement.
+
 ### Serial and block storage
 
 Use `.serial` with ``SerialPortConfiguration``. Receive typed serial events from ``DriverEvent/serial()``, queue received bytes, dequeue transmitted bytes, and update modem or receive-error state through ``DriverContext``.
@@ -50,7 +65,7 @@ Use `.video` with ``VideoDeviceConfiguration``. Video APIs access bounded buffer
 
 ## Hardware support
 
-Use `.interrupts` with one or more ``InterruptSourceConfiguration`` values. Enable delivery, read the type or latest snapshot, and decode ``DriverEvent/interrupt()``.
+Use `.interrupts` with one or more ``InterruptSourceConfiguration`` values. Enable delivery, read the type or latest snapshot, and decode ``DriverEvent/interrupt()``. For PCI providers, ``PCIInterruptConfiguration`` selects MSI, MSI-X, or legacy allocation before the sources are created.
 
 Use `.memory` with ``MemoryPoolConfiguration``. Allocate ``DriverMemoryHandle`` values, access bounded ranges, inspect mapping metadata, and prepare or complete DMA through ``DriverContext``.
 

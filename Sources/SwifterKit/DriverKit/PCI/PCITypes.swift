@@ -16,14 +16,23 @@ public enum PCIMatchKey: String, Sendable, Hashable {
 public struct PCIDeviceConfiguration: Sendable, Hashable {
   /// Raw PCI match expressions keyed by their DriverKit matching property.
   public let matches: [PCIMatchKey: String]
+  /// MSI, MSI-X, or legacy vectors to allocate before creating interrupt sources.
+  ///
+  /// When `nil`, the extension does not call `IOPCIDevice::ConfigureInterrupts` and uses the
+  /// provider's default interrupt configuration. A value requires the
+  /// ``RuntimeCapabilities/interrupts`` capability.
+  public let interrupts: PCIInterruptConfiguration?
 
   /// Creates PCI matching from explicit DriverKit match expressions.
-  public init(matches: [PCIMatchKey: String]) { self.matches = matches }
+  public init(matches: [PCIMatchKey: String], interrupts: PCIInterruptConfiguration? = nil) {
+    self.matches = matches
+    self.interrupts = interrupts
+  }
 
   /// Creates primary vendor/device matching.
-  public init(vendorID: UInt16, deviceIDs: [UInt16]) {
+  public init(vendorID: UInt16, deviceIDs: [UInt16], interrupts: PCIInterruptConfiguration? = nil) {
     let expressions = deviceIDs.map { String(format: "0x%04X%04X", $0, vendorID) }
-    self.init(matches: [.primary: expressions.joined(separator: " ")])
+    self.init(matches: [.primary: expressions.joined(separator: " ")], interrupts: interrupts)
   }
 
   var matchingProperties: [String: DriverProperty] {
@@ -114,6 +123,12 @@ public enum PCIRuntimeError: Error, Sendable, Equatable {
   case valueOutOfRange
   /// The offset is not aligned to the access width.
   case misalignedOffset
+  /// Access options contain unknown bits, or configuration space received options.
+  case invalidAccessOptions
+  /// Device-control options or states contain values DriverKit does not define.
+  case invalidOptions
+  /// A property update sets no property.
+  case emptyPropertyUpdate
   /// The native runtime returned a malformed response.
   case invalidResponse
 }

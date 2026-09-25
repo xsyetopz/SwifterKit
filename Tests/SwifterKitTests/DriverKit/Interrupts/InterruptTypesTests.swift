@@ -23,6 +23,14 @@ struct InterruptTypesTests {
   }
 
   @Test
+  func classifiesPCIInterruptTypeFlags() {
+    #expect(PCIInterruptType(interruptTypeFlags: 0x0002_0000) == .msiX)
+    #expect(PCIInterruptType(interruptTypeFlags: 0x0001_0000) == .msi)
+    #expect(PCIInterruptType(interruptTypeFlags: 0x1) == .legacy)
+    #expect(PCIInterruptType(interruptTypeFlags: 0) == nil)
+  }
+
+  @Test
   func rejectsOutOfRangeSource() {
     #expect(throws: InterruptRuntimeError.invalidSourceIndex) {
       try DriverCommand.setInterruptEnabled(index: 65_536, enabled: true)

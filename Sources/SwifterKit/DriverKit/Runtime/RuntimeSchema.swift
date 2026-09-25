@@ -63,6 +63,15 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case pciGetBARInfo = 0x0402
   case pciGetLocation = 0x0403
   case pciFindCapability = 0x0404
+  case pciReset = 0x0410
+  case pciSaveDeviceState = 0x0411
+  case pciRestoreDeviceState = 0x0412
+  case pciHasPowerManagement = 0x0413
+  case pciEnablePowerManagement = 0x0414
+  case pciGetLinkSpeed = 0x0415
+  case pciSetLinkSpeed = 0x0416
+  case pciSetASPMState = 0x0417
+  case pciSetProperties = 0x0418
   case memoryAllocate = 0x0500
   case memoryRelease = 0x0501
   case memorySetLength = 0x0502

@@ -30,7 +30,8 @@ public enum DriverExtensionGenerationError: Error, Sendable, Equatable {
   case invalidSCSIConfiguration
   /// Video metadata is absent, malformed, unavailable at the deployment target, or conflicts.
   case invalidVideoConfiguration
-  /// Interrupt sources are absent, duplicated, out of range, or exceed the runtime limit.
+  /// Interrupt sources are absent, duplicated, out of range, or exceed the runtime limit, or
+  /// PCI interrupt allocation is invalid or cannot deliver a configured source.
   case invalidInterruptConfiguration
   /// Native memory-pool limits are absent or invalid.
   case invalidMemoryConfiguration

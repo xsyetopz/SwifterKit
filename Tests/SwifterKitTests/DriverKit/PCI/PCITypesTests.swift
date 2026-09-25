@@ -33,12 +33,12 @@ struct PCITypesTests {
       offset: 8,
       value: 0x1122,
       width: .quadWord,
-      options: 7
+      options: .latencyTolerant
     )
 
     #expect(command.opcode == 0x0401)
     #expect(try command.payload.readRuntimeInteger(at: 8) as UInt64 == 0x1122)
-    #expect(try command.payload.readRuntimeInteger(at: 16) as UInt32 == 7)
+    #expect(try command.payload.readRuntimeInteger(at: 16) as UInt32 == 1)
     #expect(command.payload[20] == 3)
     #expect(command.payload[22] == 1)
   }
@@ -59,6 +59,27 @@ struct PCITypesTests {
     }
     #expect(throws: PCIRuntimeError.invalidBARIndex) {
       try DriverCommand.pciBaseAddressInfo(index: 7)
+    }
+  }
+
+  @Test
+  func rejectsUnknownAndConfigurationAccessOptions() {
+    #expect(throws: PCIRuntimeError.invalidAccessOptions) {
+      try DriverCommand.pciRead(
+        space: .memory(index: 0),
+        offset: 0,
+        width: .byte,
+        options: PCIAccessOptions(rawValue: 2)
+      )
+    }
+    #expect(throws: PCIRuntimeError.invalidAccessOptions) {
+      try DriverCommand.pciWrite(
+        space: .configuration,
+        offset: 0,
+        value: 0,
+        width: .byte,
+        options: .latencyTolerant
+      )
     }
   }
 

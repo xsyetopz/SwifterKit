@@ -205,6 +205,11 @@ public enum DriverExtensionGenerator {
     } else if !interruptIndices.isEmpty {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.interrupts)
     }
+    if let pciInterrupts = configuration.pciDevice?.interrupts,
+      !isValid(pciInterrupts: pciInterrupts, configuration: configuration)
+    {
+      throw DriverExtensionGenerationError.invalidInterruptConfiguration
+    }
     if configuration.capabilities.contains(.memory) {
       guard let memory = configuration.memoryPool, memory.maximumBuffers > 0,
         memory.maximumBuffers <= 64, memory.maximumBufferSize > 0,
