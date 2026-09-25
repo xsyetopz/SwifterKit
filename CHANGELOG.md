@@ -66,6 +66,32 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- Extension timers, with no capability flag, on runtime opcodes
+  `0x0E00`-`0x0E01`: `startTimer(afterNanoseconds:repeatingEveryNanoseconds:leewayNanoseconds:)`
+  creates and arms an `IOTimerDispatchSource`, one-shot or repeating with a
+  leeway, and `cancelTimer(_:)` cancels it. Each firing is a lossy event that
+  `DriverEvent.timerFiring()` decodes as a `ServiceTimerFiring` with the timer
+  ID, firing count, and `CLOCK_UPTIME_RAW` timestamp. At most 16 timers run;
+  intervals are at least 1 ms and durations at most one day.
+- Service and system-state watches on opcodes `0x0E10`-`0x0E12`:
+  `watchServices(matching:)` observes services matching a `DriverServiceMatch`
+  through `IOServiceNotificationDispatchSource` and reports each match and
+  termination as a `ServiceMatchNotification` with its registry entry ID and
+  name. `watchSystemState(items:)` observes up to eight system state items
+  through `IOServiceStateNotificationDispatchSource` and reports each change as
+  a `SystemStateNotification` with the item's dictionary. `cancelWatch(_:)`
+  ends either kind. At most eight watches run, and events carry sequence
+  numbers so dropped lossy events are detectable. Timers and watches end when
+  the host disconnects or the service stops.
+- IOReporting: `DriverConfiguration.reporting` declares simple, state, and
+  histogram reporters with channels, categories, units, and legend groups,
+  validated against `ReportingLimits` at generation. The extension creates them
+  when the service starts, publishes their legend with `IOService::SetLegend`,
+  and serves `ConfigureReport` and `UpdateReport` for the system's IOReport
+  clients. On opcodes `0x0E20`-`0x0E21`, Swift updates values with
+  `setReportValue`, `incrementReportValue`, `setReportState`,
+  `adjustReportState`, `tallyReportValue`, and `overrideHistogramBucket`, and
+  reads them with `reportValue` and `reportStateStatistics`.
 - IOService operations for every generated service, with no capability flag,
   on runtime opcodes `0x0D00`-`0x0D33`: `setServiceProperties(_:)`,
   `serviceProperties()`, `removeServiceProperty(named:)`,

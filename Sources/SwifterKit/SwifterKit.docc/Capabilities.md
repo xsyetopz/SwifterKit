@@ -89,6 +89,22 @@ Every generated extension exposes `IOService` operations on its own service, wit
 
 The extension overrides `IOService::SetPowerState`. Decode ``DriverEvent/servicePowerState()``, make the device safe for ``ServicePowerStateRequest/capability``, and answer with ``DriverContext/completePowerState(requestID:)``; DriverKit changes power only after the change is acknowledged. The extension acknowledges on the driver's behalf after ten seconds, when the host disconnects or the service stops, and at once when no host is connected, so a missing or failed Swift handler cannot stall the system. DriverKit's acknowledgement has no status, so every path acknowledges the same way. A driver that ignores the event delays every sleep and wake by the ten-second timeout. Completing a request the extension already acknowledged fails with `kIOReturnNotFound`.
 
+## Timers and watches
+
+Every generated extension also runs timers and watches for Swift, with no capability flag. They belong to the connected host and end when it disconnects or the service stops.
+
+- ``DriverContext/startTimer(afterNanoseconds:repeatingEveryNanoseconds:leewayNanoseconds:)`` creates an `IOTimerDispatchSource` that fires once, or repeatedly when an interval is given, and ``DriverContext/cancelTimer(_:)`` cancels it. Decode each firing with ``DriverEvent/timerFiring()``. A repeating timer skips periods that already passed instead of firing in a burst, and ``ServiceTimerFiring/fireCount`` shows how many firings a stalled host missed. ``ServiceTimerLimits`` bounds the number of timers and the durations.
+- ``DriverContext/watchServices(matching:)`` observes services that match a ``DriverServiceMatch`` through `IOServiceNotificationDispatchSource`, starting with those that already match. A dext sees another service only while the notification is delivered, so ``ServiceMatchNotification`` carries the kind, registry entry ID, and name.
+- ``DriverContext/watchSystemState(items:)`` observes system state items through `IOServiceStateNotificationDispatchSource` and reports each item's current dictionary as a ``SystemStateNotification``. ``DriverContext/cancelWatch(_:)`` ends either kind of watch; ``ServiceWatchLimits`` bounds them.
+
+These events are lossy: each carries a count or sequence number, so compare it with the last one seen to detect drops.
+
+## IOReporting
+
+Set ``DriverConfiguration/reporting`` to a ``ReportingConfiguration`` to publish channels for the system's IOReport clients. Each ``ReporterConfiguration`` is an `IOSimpleReporter`, an `IOStateReporter` with its state IDs, or an `IOHistogramReporter` with its ``HistogramSegment`` layout, with ``ReportChannel`` values, ``ReportCategories``, a ``ReportUnit``, and a legend group. The generator rejects configurations outside ``ReportingLimits`` with ``DriverExtensionGenerationError/invalidReportingConfiguration``.
+
+The extension creates the reporters when the service starts and publishes their legend with `IOService::SetLegend`, so the channels exist even while no host is connected. The generated service answers `ConfigureReport` and `UpdateReport` from those reporters. Swift names a reporter by its index in ``ReportingConfiguration/reporters`` and updates it with ``DriverContext/setReportValue(_:reporter:channel:)``, ``DriverContext/incrementReportValue(by:reporter:channel:)``, ``DriverContext/setReportState(_:reporter:channel:)``, ``DriverContext/adjustReportState(_:reporter:channel:residency:transitions:lastTransition:accumulate:)``, ``DriverContext/tallyReportValue(_:reporter:channel:)``, and ``DriverContext/overrideHistogramBucket(_:reporter:channel:hits:minimum:maximum:sum:)``. ``DriverContext/reportValue(reporter:channel:)`` and ``DriverContext/reportStateStatistics(_:reporter:channel:)`` read values back. The extension rejects an operation that does not match the reporter's kind, channel, or states with `kIOReturnBadArgument`.
+
 ## Related articles
 
 - <doc:GettingStarted>

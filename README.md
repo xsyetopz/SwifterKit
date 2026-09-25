@@ -161,6 +161,8 @@ supports only output reports. Rejected report types return
 | Interrupts | `InterruptSourceConfiguration` | Delivery control, interrupt metadata, typed events |
 | Memory and DMA | `MemoryPoolConfiguration` | Bounded buffers, valid lengths, provider mappings, DMA lifecycle |
 | Service (every extension) | None | Registry properties, provider properties, name and registry ID, power-state requests and changes, power override, PM assertions, busy state, bus-stall limits, termination, system state items, CoreAnalytics events |
+| Timers and watches (every extension) | None | One-shot and repeating timers with leeway, service match and termination events, system state item changes |
+| IOReporting (every extension) | `ReportingConfiguration` | Simple, state, and histogram reporters with a published legend; value and state updates and reads |
 
 A generated extension advertises only the capabilities implemented by its
 native runtime. Some device-family combinations are invalid because DriverKit
