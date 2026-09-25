@@ -55,11 +55,23 @@ namespace {
         return sequence;
     }
 
-    void ReleaseWatch(SwifterKitServiceWatch* watch) {
-        SwifterKitReleaseSource(watch->source, watch->action);
+    // Releases the watch's references without cancelling its source.
+    void DropWatch(SwifterKitServiceWatch* watch) {
+        OSSafeReleaseNULL(watch->source);
+        OSSafeReleaseNULL(watch->action);
         OSSafeReleaseNULL(watch->stateService);
         OSSafeReleaseNULL(watch->items);
         *watch = {};
+    }
+
+    void ReleaseWatch(SwifterKitServiceWatch* watch) {
+        if (watch->source != nullptr) {
+            (void)watch->source->Cancel(nullptr);
+        }
+        if (watch->action != nullptr) {
+            (void)watch->action->Cancel(nullptr);
+        }
+        DropWatch(watch);
     }
 
     // Moves the slot holding watchID into taken and empties the slot.
@@ -93,6 +105,14 @@ namespace {
                 state->nextWatchID = watchID == UINT32_MAX ? 1 : watchID + 1;
             } while (FindWatch(state, watchID) != nullptr);
             SwifterKitSetActionIdentifier(watch.action, watchID);
+            // The slot owns its own references: a concurrent cancel or stop may release them
+            // while the command still enables the source.
+            watch.source->retain();
+            watch.action->retain();
+            if (watch.stateService != nullptr) {
+                watch.stateService->retain();
+                watch.items->retain();
+            }
             slot = watch;
             slot.watchID = watchID;
             break;
@@ -103,7 +123,7 @@ namespace {
 
     kern_return_t DecodeMatching(const uint8_t* payload, uint32_t length, OSDictionary** matching) {
         OSObject* value = nullptr;
-        kern_return_t result = SwifterKitDecodeProperty(payload, length, &value);
+        const kern_return_t result = SwifterKitDecodeProperty(payload, length, &value);
         if (result != kIOReturnSuccess) {
             return result;
         }
@@ -122,7 +142,7 @@ namespace {
 
     kern_return_t DecodeItems(const uint8_t* payload, uint32_t length, OSArray** items) {
         OSObject* value = nullptr;
-        kern_return_t result = SwifterKitDecodeProperty(payload, length, &value);
+        const kern_return_t result = SwifterKitDecodeProperty(payload, length, &value);
         if (result != kIOReturnSuccess) {
             return result;
         }
@@ -227,14 +247,15 @@ kern_return_t SwifterKitRuntimeService::WatchCommand(
         *response = OSData::withBytes(&reply, sizeof(reply));
         result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
     }
-    if (result != kIOReturnSuccess) {
-        // Free the slot unless a concurrent cancel or stop already took it.
+    if (result != kIOReturnSuccess && watchID == 0) {
+        ReleaseWatch(&watch);
+    } else {
+        // Free the slot on failure unless a concurrent cancel or stop already took it.
         SwifterKitServiceWatch taken = {};
-        if (watchID == 0) {
-            ReleaseWatch(&watch);
-        } else if (TakeWatch(ivars, watchID, &taken)) {
+        if (result != kIOReturnSuccess && TakeWatch(ivars, watchID, &taken)) {
             ReleaseWatch(&taken);
         }
+        DropWatch(&watch);
     }
     return result;
 }
@@ -245,7 +266,7 @@ void SwifterKitRuntimeService::ServicesChanged_Impl(OSAction* action) {
         return;
     }
     IOLockLock(ivars->dispatchLock);
-    SwifterKitServiceWatch* slot = FindWatch(ivars, watchID);
+    const SwifterKitServiceWatch* slot = FindWatch(ivars, watchID);
     auto* source = slot == nullptr
                        ? nullptr
                        : OSDynamicCast(IOServiceNotificationDispatchSource, slot->source);
@@ -303,12 +324,12 @@ void SwifterKitRuntimeService::SystemStateChanged_Impl(OSAction* action) {
         return;
     }
     IOLockLock(ivars->dispatchLock);
-    SwifterKitServiceWatch* slot = FindWatch(ivars, watchID);
+    const SwifterKitServiceWatch* slot = FindWatch(ivars, watchID);
     auto* source = slot == nullptr
                        ? nullptr
                        : OSDynamicCast(IOServiceStateNotificationDispatchSource, slot->source);
     IOService* system = source == nullptr ? nullptr : slot->stateService;
-    OSArray* items = source == nullptr ? nullptr : slot->items;
+    const OSArray* items = source == nullptr ? nullptr : slot->items;
     if (source != nullptr) {
         source->retain();
         system->retain();

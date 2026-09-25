@@ -141,6 +141,10 @@ kern_return_t SwifterKitRuntimeService::TimerCommand(
         } else {
             timerID = NextTimerID(ivars);
             SwifterKitSetActionIdentifier(action, timerID);
+            // The slot owns its own references: a concurrent cancel or stop may release them
+            // while this command still enables and arms the source.
+            source->retain();
+            action->retain();
             *slot = {
                 .timerID = timerID,
                 .interval = request.interval,
@@ -164,15 +168,17 @@ kern_return_t SwifterKitRuntimeService::TimerCommand(
         *response = OSData::withBytes(&reply, sizeof(reply));
         result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
     }
-    if (result != kIOReturnSuccess) {
-        // Free the slot unless a concurrent cancel or stop already took it.
+    if (result != kIOReturnSuccess && timerID == 0) {
+        SwifterKitReleaseSource(source, action);
+    } else {
+        // Free the slot on failure unless a concurrent cancel or stop already took it.
         IOTimerDispatchSource* reserved = nullptr;
         OSAction* reservedAction = nullptr;
-        if (timerID != 0 && TakeTimer(ivars, timerID, &reserved, &reservedAction)) {
+        if (result != kIOReturnSuccess && TakeTimer(ivars, timerID, &reserved, &reservedAction)) {
             SwifterKitReleaseSource(reserved, reservedAction);
-        } else if (timerID == 0) {
-            SwifterKitReleaseSource(source, action);
         }
+        OSSafeReleaseNULL(source);
+        OSSafeReleaseNULL(action);
     }
     return result;
 }

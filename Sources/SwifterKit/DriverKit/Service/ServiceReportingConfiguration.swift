@@ -46,20 +46,24 @@ public struct ReporterConfiguration: Sendable, Hashable {
   public let unit: ReportUnit
 
   /// Creates a reporter configuration.
+  ///
+  /// Without a `unit`, a state reporter uses ``ReportUnit/hardwareTicks``, the time base
+  /// ``DriverContext/setReportState(_:reporter:channel:)`` accounts residency in; other reporters
+  /// use ``ReportUnit/none``.
   public init(
     kind: Kind,
     group: String,
     subgroup: String? = nil,
     channels: [ReportChannel],
     categories: ReportCategories,
-    unit: ReportUnit = .none
+    unit: ReportUnit? = nil
   ) {
     self.kind = kind
     self.group = group
     self.subgroup = subgroup
     self.channels = channels
     self.categories = categories
-    self.unit = unit
+    if case .state = kind { self.unit = unit ?? .hardwareTicks } else { self.unit = unit ?? .none }
   }
 }
 

@@ -18,6 +18,19 @@ struct ServiceReportingCommandsTests {
     #expect(ReportUnit.bytes.rawValue == 0x0900_8200_0000_0000)
     #expect(ReportUnit.events.rawValue == 0x6400_0000_0000_0000)
     #expect(HistogramSegment.Scale.exponential.rawValue == 1)
+    let channel = [ReportChannel(id: 1, name: "C")]
+    #expect(
+      ReporterConfiguration(
+        kind: .state(states: [1]),
+        group: "G",
+        channels: channel,
+        categories: .power
+      ).unit == .hardwareTicks
+    )
+    #expect(
+      ReporterConfiguration(kind: .simple, group: "G", channels: channel, categories: .power).unit
+        == .none
+    )
   }
 
   @Test

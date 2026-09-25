@@ -31,9 +31,17 @@ namespace {
 
     static_assert(kSwifterKitReporterCount <= kSwifterKitMaximumReporters);
 
+    // Returns entry index of the run that starts at start, or nullptr outside the table. The
+    // generator writes consistent runs; the check keeps a malformed table from reading past it.
+    template<typename Entry, uint32_t Count>
+    const Entry* RunEntry(const Entry (&table)[Count], uint32_t start, uint32_t index) {
+        return start < Count && index < Count - start ? &table[start + index] : nullptr;
+    }
+
     bool HasChannel(const SwifterKitReporterConfiguration& reporter, uint64_t channelID) {
         for (uint32_t index = 0; index < reporter.channelCount; index += 1) {
-            if (kSwifterKitReportChannels[reporter.channelStart + index].identifier == channelID) {
+            const auto* channel = RunEntry(kSwifterKitReportChannels, reporter.channelStart, index);
+            if (channel != nullptr && channel->identifier == channelID) {
                 return true;
             }
         }
@@ -42,7 +50,8 @@ namespace {
 
     bool HasState(const SwifterKitReporterConfiguration& reporter, uint64_t stateID) {
         for (uint32_t index = 0; index < reporter.stateCount; index += 1) {
-            if (kSwifterKitReportStates[reporter.stateStart + index] == stateID) {
+            const uint64_t* state = RunEntry(kSwifterKitReportStates, reporter.stateStart, index);
+            if (state != nullptr && *state == stateID) {
                 return true;
             }
         }
@@ -52,30 +61,39 @@ namespace {
     uint32_t BucketCount(const SwifterKitReporterConfiguration& reporter) {
         uint32_t count = 0;
         for (uint32_t index = 0; index < reporter.segmentCount; index += 1) {
-            count += kSwifterKitHistogramSegments[reporter.segmentStart + index].bucketCount;
+            const auto* segment =
+                RunEntry(kSwifterKitHistogramSegments, reporter.segmentStart, index);
+            count += segment == nullptr ? 0 : segment->bucketCount;
         }
         return count;
     }
 
     IOReporter* CreateReporter(IOService* service, const SwifterKitReporterConfiguration& config) {
-        const SwifterKitReportChannelConfiguration* channels =
-            &kSwifterKitReportChannels[config.channelStart];
+        const auto* first = RunEntry(kSwifterKitReportChannels, config.channelStart, 0);
+        if (first == nullptr || config.channelCount == 0
+            || config.segmentCount > kSwifterKitMaximumHistogramSegments) {
+            return nullptr;
+        }
         if (config.kind == kHistogram) {
             IOHistogramSegmentConfig segments[kSwifterKitMaximumHistogramSegments] = {};
             for (uint32_t index = 0; index < config.segmentCount; index += 1) {
-                const auto& segment = kSwifterKitHistogramSegments[config.segmentStart + index];
+                const auto* segment =
+                    RunEntry(kSwifterKitHistogramSegments, config.segmentStart, index);
+                if (segment == nullptr) {
+                    return nullptr;
+                }
                 segments[index] = {
-                    .base_bucket_width = segment.baseBucketWidth,
-                    .scale_flag = segment.scale,
+                    .base_bucket_width = segment->baseBucketWidth,
+                    .scale_flag = segment->scale,
                     .segment_idx = index,
-                    .segment_bucket_count = segment.bucketCount,
+                    .segment_bucket_count = segment->bucketCount,
                 };
             }
             return IOHistogramReporter::with(
                 service,
                 config.categories,
-                channels[0].identifier,
-                channels[0].name,
+                first->identifier,
+                first->name,
                 config.unit,
                 static_cast<int>(config.segmentCount),
                 segments);
@@ -95,15 +113,19 @@ namespace {
         }
         bool valid = reporter != nullptr;
         for (uint32_t index = 0; valid && index < config.channelCount; index += 1) {
-            valid = reporter->addChannel(channels[index].identifier, channels[index].name)
-                    == kIOReturnSuccess;
+            const auto* channel = RunEntry(kSwifterKitReportChannels, config.channelStart, index);
+            valid = channel != nullptr
+                    && reporter->addChannel(channel->identifier, channel->name) == kIOReturnSuccess;
             for (uint32_t state = 0; valid && stateReporter != nullptr && state < config.stateCount;
                  state += 1) {
-                valid = stateReporter->setStateID(
-                            channels[index].identifier,
-                            static_cast<int>(state),
-                            kSwifterKitReportStates[config.stateStart + state])
-                        == kIOReturnSuccess;
+                const uint64_t* stateID =
+                    RunEntry(kSwifterKitReportStates, config.stateStart, state);
+                valid = stateID != nullptr
+                        && stateReporter->setStateID(
+                               channel->identifier,
+                               static_cast<int>(state),
+                               *stateID)
+                               == kIOReturnSuccess;
             }
         }
         if (!valid) {
@@ -113,7 +135,7 @@ namespace {
     }
 
     // Returns a retained reporter for index, or nullptr when reporting has not started.
-    IOReporter* CopyReporter(SwifterKitRuntimeService_IVars* state, uint32_t index) {
+    IOReporter* CopyReporter(const SwifterKitRuntimeService_IVars* state, uint32_t index) {
         IOLockLock(state->dispatchLock);
         IOReporter* reporter = state->reporters[index];
         if (reporter != nullptr) {
@@ -123,7 +145,7 @@ namespace {
         return reporter;
     }
 
-    OSArray* CopyReporterSet(SwifterKitRuntimeService_IVars* state) {
+    OSArray* CopyReporterSet(const SwifterKitRuntimeService_IVars* state) {
         if (state == nullptr || state->dispatchLock == nullptr) {
             return nullptr;
         }
@@ -284,14 +306,16 @@ void SwifterKitRuntimeService::StopReporting() {
     if (ivars == nullptr || ivars->dispatchLock == nullptr) {
         return;
     }
-    IOReporter* reporters[kSwifterKitMaximumReporters] = {};
+    const IOReporter* reporters[kSwifterKitMaximumReporters] = {};
     IOLockLock(ivars->dispatchLock);
-    OSArray* reporterSet = ivars->reporterSet;
+    const OSArray* reporterSet = ivars->reporterSet;
     ivars->reporterSet = nullptr;
-    memcpy(reporters, ivars->reporters, sizeof(reporters));
-    memset(ivars->reporters, 0, sizeof(ivars->reporters));
+    for (uint32_t index = 0; index < kSwifterKitMaximumReporters; index += 1) {
+        reporters[index] = ivars->reporters[index];
+        ivars->reporters[index] = nullptr;
+    }
     IOLockUnlock(ivars->dispatchLock);
-    for (auto* reporter : reporters) {
+    for (const auto* reporter : reporters) {
         OSSafeReleaseNULL(reporter);
     }
     OSSafeReleaseNULL(reporterSet);

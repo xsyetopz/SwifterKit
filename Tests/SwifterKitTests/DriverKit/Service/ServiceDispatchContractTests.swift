@@ -47,7 +47,7 @@ struct ServiceDispatchContractTests {
       )
       let control = try source("SwifterKitRuntimeServiceControl.cpp", in: output)
       let opcodes = RuntimeOpcode.allCases.filter { $0.rawValue & 0xFF00 == 0x0E00 }
-      #expect(opcodes.count == 5)
+      #expect(opcodes.count == 7)
       for opcode in opcodes {
         let name = String(describing: opcode)
         let native =
@@ -91,6 +91,10 @@ struct ServiceDispatchContractTests {
       #expect(timers.contains("result = kIOReturnNoResources;"))
       // The action carries the timer ID, and a firing for a freed slot is dropped.
       #expect(timers.contains("SwifterKitSetActionIdentifier(action, timerID);"))
+      // The slot takes its own references before it becomes visible to cancel and stop.
+      let timerRetain = try #require(timers.range(of: "source->retain();")?.lowerBound)
+      let timerStore = try #require(timers.range(of: ".timerID = timerID,")?.lowerBound)
+      #expect(timerRetain < timerStore)
       #expect(timers.contains("SwifterKitTimerSlot* slot = FindTimer(ivars, timerID);"))
       // Missed periods are skipped rather than delivered as a burst.
       #expect(timers.contains("((now - slot->deadline) / slot->interval + 1) * slot->interval"))
@@ -107,6 +111,9 @@ struct ServiceDispatchContractTests {
   func watchesValidateAndReportWhatADextMayObserve() throws {
     try withGeneratedExtension { output in
       let watches = try source("SwifterKitRuntimeServiceWatches.cpp", in: output)
+      let watchRetain = try #require(watches.range(of: "watch.source->retain();")?.lowerBound)
+      let watchStore = try #require(watches.range(of: "slot = watch;")?.lowerBound)
+      #expect(watchRetain < watchStore)
       #expect(watches.contains("(*matching)->getObject(kIOProviderClassKey)"))
       #expect(watches.contains("(*items)->getCount() <= kSwifterKitMaximumWatchedStateItems"))
       #expect(watches.contains("SwifterKitIsPropertyName("))
