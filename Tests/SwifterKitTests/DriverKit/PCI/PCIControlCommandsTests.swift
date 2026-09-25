@@ -75,6 +75,40 @@ struct PCIControlCommandsTests {
   }
 
   @Test
+  func decodesPowerManagementAndLinkSpeedResponses() throws {
+    #expect(try PCIPowerManagementSupport.isSupported(runtimePayload: Data([1, 0, 0, 0])))
+    #expect(!(try PCIPowerManagementSupport.isSupported(runtimePayload: Data([0, 0, 0, 0]))))
+    #expect(throws: PCIRuntimeError.invalidResponse) {
+      try PCIPowerManagementSupport.isSupported(runtimePayload: Data([2, 0, 0, 0]))
+    }
+    #expect(throws: PCIRuntimeError.invalidResponse) {
+      try PCIPowerManagementSupport.isSupported(runtimePayload: Data([1, 0, 0]))
+    }
+
+    #expect(try PCILinkSpeed(runtimePayload: Data([4, 0, 0, 0])) == .gen4)
+    for invalid in [Data([0, 0, 0, 0]), Data([6, 0, 0, 0]), Data([3, 0, 0, 0, 0])] {
+      #expect(throws: PCIRuntimeError.invalidResponse) { try PCILinkSpeed(runtimePayload: invalid) }
+    }
+  }
+
+  @Test
+  func nativeUserClientDispatchesEveryPCIOpcode() throws {
+    let userClient = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { url, _ in
+      url.deletingLastPathComponent()  // PCI, DriverKit, SwifterKitTests, Tests, package root.
+    }.appendingPathComponent("Sources/SwifterKit/Resources/DriverKitExtension/Sources")
+      .appendingPathComponent("SwifterKitRuntimeUserClient.cpp")
+    let source = try String(contentsOf: userClient, encoding: .utf8)
+    // Native opcode names come from the rendered schema, e.g. "    PCIReset = 0x0410,".
+    let names = RuntimeSchemaHeader.render().split(separator: "\n").compactMap { line in
+      line.contains(" = 0x04") ? line.split(separator: " ").first.map(String.init) : nil
+    }
+    #expect(names.count == RuntimeOpcode.allCases.filter { $0.rawValue >> 8 == 0x04 }.count)
+    for name in names {
+      #expect(source.contains("case SwifterKitRuntimeOpcode::\(name):"), "\(name)")
+    }
+  }
+
+  @Test
   func rejectsUndefinedOptionBits() {
     #expect(throws: PCIRuntimeError.invalidOptions) {
       try DriverCommand.pciReset(type: .hot, options: PCIResetOptions(rawValue: 2))

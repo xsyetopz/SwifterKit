@@ -1,3 +1,5 @@
+import Foundation
+
 /// Options for PCI aperture accesses, `tIOPCIAccessOptions`.
 ///
 /// Configuration-space accesses accept no options.
@@ -87,6 +89,14 @@ public struct PCIPowerManagementSupport: OptionSet, Sendable, Hashable {
   /// The function can signal PME from D3cold, `kPCIPMCPMESupportFromD3Cold`.
   public static let pmeFromD3Cold = Self(rawValue: 0x8000)
 
+  /// Decodes the runtime's support answer: 1 when DriverKit reported success, otherwise 0.
+  static func isSupported(runtimePayload: Data) throws -> Bool {
+    guard runtimePayload.count == 4 else { throw PCIRuntimeError.invalidResponse }
+    let value: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
+    guard value <= 1 else { throw PCIRuntimeError.invalidResponse }
+    return value == 1
+  }
+
   /// Every capability bit the runtime accepts.
   public static let all: Self = [
     .d3, .d1, .d2, .pmeFromD0, .pmeFromD1, .pmeFromD2, .pmeFromD3Hot, .pmeFromD3Cold,
@@ -119,6 +129,13 @@ public enum PCILinkSpeed: UInt32, Sendable, Hashable, CaseIterable {
   case gen4 = 4
   /// 32 GT/s, PCIe generation 5.
   case gen5 = 5
+
+  init(runtimePayload: Data) throws {
+    guard runtimePayload.count == 4,
+      let speed = Self(rawValue: try runtimePayload.readRuntimeInteger(at: 0))
+    else { throw PCIRuntimeError.invalidResponse }
+    self = speed
+  }
 }
 
 /// Active State Power Management levels, `tIOPCILinkControlASPMBits`.

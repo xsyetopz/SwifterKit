@@ -16,6 +16,9 @@ SwifterKit records user-visible changes in this file.
   instead of a raw `UInt32`, and reject unknown option bits and any option for
   configuration space. `PCIRuntimeError` gains `invalidAccessOptions`,
   `invalidOptions`, and `emptyPropertyUpdate`.
+- **Breaking:** PCI aperture accesses past the end of a BAR, or to a memory
+  index that is not BAR0 through BAR5, such as the expansion ROM, now fail with
+  `kIOReturnBadArgument` before reaching DriverKit.
 
 ### Fixed
 
@@ -44,8 +47,8 @@ SwifterKit records user-visible changes in this file.
   type's limit and source indices at or above the required vector count.
   `PCIInterruptType(interruptTypeFlags:)` classifies `interruptType(index:)`.
 - The extension bounds every PCI aperture access by the BAR size `GetBARInfo`
-  reports and rejects expansion-ROM aperture accesses. PCIDriverKit coverage
-  in `coverage/driverkit.json` has no remaining gaps.
+  reports. PCIDriverKit coverage in `coverage/driverkit.json` has no remaining
+  gaps.
 - `coverage/driverkit.json` records every class and member function declared
   by the DriverKit 24.4, 25.5, and 27.0 SDK headers and how SwifterKit covers
   it. The `SwifterKitCoverage` tool updates, summarizes, and checks the manifest,

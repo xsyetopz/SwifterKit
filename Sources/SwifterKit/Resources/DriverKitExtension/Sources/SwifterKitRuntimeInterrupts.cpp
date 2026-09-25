@@ -24,8 +24,8 @@ namespace {
     }
 
     #if SWIFTERKIT_ENABLE_PCI
-    // kIOInterruptTypeLevel from IOKit's IOInterrupts.h; the DriverKit SDK names it only in
-    // documentation, so the value is spelled out here.
+    // kIOInterruptTypeLevel from the macOS SDK's Kernel.framework IOKit/IOInterrupts.h; the
+    // DriverKit SDK names it only in documentation, so the value is spelled out here.
     constexpr uint32_t kInterruptTypeLevel = 1;
 
     bool IsValidPCIInterruptConfiguration() {

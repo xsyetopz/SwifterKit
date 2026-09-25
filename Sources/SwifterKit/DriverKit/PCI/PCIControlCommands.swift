@@ -109,11 +109,9 @@ extension DriverContext {
   /// sleep. The runtime reports `true` when DriverKit returns `kIOReturnSuccess` and `false` for
   /// any other result.
   public func pciHasPowerManagement(support: PCIPowerManagementSupport = []) async throws -> Bool {
-    let payload = try await execute(.pciHasPowerManagement(support: support))
-    guard payload.count == 4 else { throw PCIRuntimeError.invalidResponse }
-    let value: UInt32 = try payload.readRuntimeInteger(at: 0)
-    guard value <= 1 else { throw PCIRuntimeError.invalidResponse }
-    return value == 1
+    try await PCIPowerManagementSupport.isSupported(
+      runtimePayload: execute(.pciHasPowerManagement(support: support))
+    )
   }
 
   /// Selects the power state the device enters during system sleep.
@@ -125,11 +123,7 @@ extension DriverContext {
 
   /// Returns the endpoint's current PCI Express link speed.
   public func pciLinkSpeed() async throws -> PCILinkSpeed {
-    let payload = try await execute(.pciLinkSpeed)
-    guard payload.count == 4,
-      let speed = PCILinkSpeed(rawValue: try payload.readRuntimeInteger(at: 0))
-    else { throw PCIRuntimeError.invalidResponse }
-    return speed
+    try await PCILinkSpeed(runtimePayload: execute(.pciLinkSpeed))
   }
 
   /// Sets the upstream bridge's target link speed.
