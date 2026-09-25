@@ -177,6 +177,50 @@ struct DriverExtensionEventNotificationContractTests {
   }
 
   @Test
+  func replacingTheClientAnswersRequestsThePreviousClientTook() throws {
+    try withGeneratedExtension { output in
+      let events = try source("SwifterKitRuntimeEvents.cpp", in: output)
+      let attach = try section(of: events, from: "::AttachEventClient(", to: "::DetachEventClient(")
+      try expectOrder(
+        in: attach,
+        "IOLockLock(ivars->eventLock);",
+        "while (ivars->eventClient != nullptr && ivars->eventClient != userClient) {",
+        "IOLockUnlock(ivars->eventLock);",
+        "DetachEventClient(replaced);",
+        "IOLockLock(ivars->eventLock);",
+        "const SwifterKitRuntimeUserClient* previous = ivars->eventClient;",
+        "ivars->eventClient = userClient;",
+        "IOLockUnlock(ivars->eventLock);",
+        "OSSafeReleaseNULL(previous);",
+        "SendNotification(target);"
+      )
+      #expect(!attach.contains("StopBlockStorage"))
+      #expect(!attach.contains("flushCollection"))
+      #expect(events.contains("A registration from a different user client first detaches"))
+    }
+  }
+
+  @Test
+  func pollThatTakesARequiredEventRetriesUSBCompletionsOutsideTheLock() throws {
+    try withGeneratedExtension { output in
+      let events = try source("SwifterKitRuntimeEvents.cpp", in: output)
+      let poll = try section(of: events, from: "::CopyNextEvent(", to: "::EnqueueEvent(")
+      try expectOrder(
+        in: poll,
+        "IOLockLock(ivars->eventLock);",
+        "*event = TakeFirst(ivars->requiredEvents);",
+        "const bool tookRequired = *event != nullptr;",
+        "IOLockUnlock(ivars->eventLock);",
+        "#if SWIFTERKIT_ENABLE_USB",
+        "if (tookRequired) {\n        DeliverUSBCompletions();",
+        "#endif",
+        "return kIOReturnSuccess;"
+      )
+      #expect(poll.components(separatedBy: "DeliverUSBCompletions();").count == 2)
+    }
+  }
+
+  @Test
   func serviceInterfacesDeclareTheNotificationMethods() throws {
     let declarations = [
       "virtual kern_return_t ClientCrashed(IOService* client, uint64_t options) override;",

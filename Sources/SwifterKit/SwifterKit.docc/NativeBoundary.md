@@ -42,7 +42,7 @@ The extension keeps an armed flag, changed only under its event lock, so no even
 - Queuing an event while the flag is armed clears it and sends one signal after the lock is released. Events queued while the host is still taking events send nothing; the host finds them before its queue is empty.
 - Registering arms the flag, or signals at once when events are already queued.
 
-The host's connection buffers at most one signal, so signals that arrive while the host is busy coalesce into one more pass over the queue. A second registration replaces the first, and the earlier ``DriverEventSequence`` ends. When the second registration comes from a different connection, the first connection is no longer the registered host: closing it answers nothing, and requests it already took but never completed stay outstanding until the service stops.
+The host's connection buffers at most one signal, so signals that arrive while the host is busy coalesce into one more pass over the queue. A second registration replaces the first, and the earlier ``DriverEventSequence`` ends. When the second registration comes from a different connection, the first connection is no longer the registered host, so the extension detaches it the same way it detaches a departed host: it empties both queues and answers the tracked requests, as described below. Closing the first connection afterwards answers nothing more.
 
 When the registered host goes away, the extension answers the requests that host can no longer complete. Closing the connection, host process exit, a DriverKit client-crash report for the runtime client, and stopping the extension's service all detach the host. Detaching empties both queues and then answers tracked requests the same way the service does when it stops:
 
@@ -61,7 +61,7 @@ When the lossy queue is full or the event cannot be allocated, the extension dro
 
 A request that the extension answers this way has no request identifier for Swift to complete.
 
-A USB pipe completion has no DriverKit request to answer. When the required queue rejects one, the extension keeps the transfer's slot, its result, and its data, so the request identifier is not reused and a full table refuses new transfers. It retries delivery, oldest completion first, on every later USB command and completion.
+A USB pipe completion has no DriverKit request to answer. When the required queue rejects one, the extension keeps the transfer's slot, its result, and its data, so the request identifier is not reused and a full table refuses new transfers. It retries delivery, oldest completion first, on every later USB command and completion, and after each request for an event that takes a required event and so frees required capacity. A host that only takes events therefore still receives it.
 
 ## Host access
 

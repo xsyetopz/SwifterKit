@@ -36,6 +36,12 @@
 //   every tracked request. Emptying first means a request
 //   queued concurrently is still answered; at worst its stale event reaches the
 //   next host, whose completion for it then fails.
+// - A registration from a different user client first detaches the previous
+//   client through DetachEventClient, so its tracked requests are answered as
+//   when a host departs. Requests queued meanwhile wait for the new client.
+// - Taking a required event frees required capacity, so CopyNextEvent then
+//   retries USB completions the full required queue rejected earlier, after
+//   dropping eventLock (DeliverUSBCompletions takes usbLock, then eventLock).
 // - Requests that arrive while no host is registered wait in the queues for the
 //   next host, as they do before the first host connects.
 
@@ -114,6 +120,15 @@ auto SwifterKitRuntimeService::AttachEventClient(IOService* client) -> kern_retu
 
     userClient->retain();
     IOLockLock(ivars->eventLock);
+    // A different registered client is replaced: detach it as a departed host,
+    // which empties both queues and answers its requests, before registering.
+    // Loop, because another registration can land while eventLock is dropped.
+    while (ivars->eventClient != nullptr && ivars->eventClient != userClient) {
+        IOService* replaced = ivars->eventClient;
+        IOLockUnlock(ivars->eventLock);
+        DetachEventClient(replaced);
+        IOLockLock(ivars->eventLock);
+    }
     const SwifterKitRuntimeUserClient* previous = ivars->eventClient;
     ivars->eventClient = userClient;
     ivars->eventNotificationArmed = true;
@@ -172,6 +187,7 @@ auto SwifterKitRuntimeService::CopyNextEvent(OSData** event) -> kern_return_t {
 
     IOLockLock(ivars->eventLock);
     *event = TakeFirst(ivars->requiredEvents);
+    [[maybe_unused]] const bool tookRequired = *event != nullptr;
     if (*event == nullptr) {
         *event = TakeFirst(ivars->events);
     }
@@ -179,6 +195,14 @@ auto SwifterKitRuntimeService::CopyNextEvent(OSData** event) -> kern_return_t {
         ivars->eventNotificationArmed = true;
     }
     IOLockUnlock(ivars->eventLock);
+#if SWIFTERKIT_ENABLE_USB
+    // Retry completions that the required queue rejected earlier, now that
+    // this poll freed required capacity. A host that only takes events sends no
+    // USB command, so the command-path retries alone would never run.
+    if (tookRequired) {
+        DeliverUSBCompletions();
+    }
+#endif
     return kIOReturnSuccess;
 }
 

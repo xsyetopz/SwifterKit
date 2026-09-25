@@ -46,6 +46,13 @@ SwifterKit records user-visible changes in this file.
   failure. Before this, block-storage requests and SCSI tasks were returned as
   errors without a completion, and task-management responses were left unset.
   The extension counts dropped lossy events.
+- USB pipe completions that the full required queue rejected are also retried
+  when a poll takes a required event, so a host that only receives events gets
+  them. Before this, only a USB command from Swift retried them.
+- When a different connection registers for events, the extension answers the
+  requests the previous connection took (block storage, SCSI, Ethernet
+  transmits) as it does when a host disconnects. Before this, they stayed
+  outstanding until the service stopped.
 
 ### Added
 
