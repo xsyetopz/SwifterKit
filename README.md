@@ -14,10 +14,11 @@ Use SwifterKit when a driver needs:
 
 ## Requirements
 
-- Swift 6.2 or later for package consumers
-- the Swift version in `.swift-version` for local development; CI alone runs
-  the Swift 6.1 compatibility build
-- macOS 10.15 or later for the Swift package and base DriverKit runtime
+- Swift 6.1 (Xcode 16.3) or later for package consumers
+- the Swift version in `.swift-version` for local development
+- macOS 10.15 or later for the IOKit host transport and base DriverKit runtime;
+  configuration, validation, protocol, and generation code also builds on
+  Linux, where the IOKit transport is unavailable
 - Xcode with the DriverKit SDK for generated extension builds
 - Apple-approved entitlements, signing assets, a host application, and physical
   hardware for deployment testing
@@ -28,6 +29,9 @@ project locally.
 DriverKit family frameworks were added across later releases.
 `DriverExtensionGenerationOptions.deploymentTarget` defaults to `19.0`; the
 generator rejects a capability when its native runtime needs a newer DriverKit version.
+Build a 19.0 or 20.x target with an Xcode whose DriverKit SDK still accepts
+it, such as Xcode 16.3 (DriverKit 24.4 accepts 19.0 and later). The DriverKit
+SDK in Xcode 27 accepts deployment targets from 21.0.
 
 ### Deployment targets
 
@@ -194,10 +198,23 @@ The suite checks Swift and C++ formatting, SwiftLint, Swift 6 tests, a release
 build with warnings as errors, DocC links, C++20 static analysis, unsigned
 arm64 and x86_64 DriverKit builds, property lists, and source LOC limits.
 
-The compatibility job builds the package and its tests with Xcode 16.3 and a
-CI-only Swift 6.1 manifest header while retaining the macOS 10.15 deployment
-target. The main validation job uses the checked-in manifest and latest passing
-local toolchain.
+The compatibility job runs the tests with Xcode 16.3, Swift 6.1, and the
+DriverKit 24.4 SDK while retaining the macOS 10.15 deployment target. A Linux
+job runs the tests in the `swift:6.1` container. The main validation job uses
+the latest passing local toolchain.
+
+Tests that build a generated extension use the DriverKit SDK in
+`SWIFTERKIT_DRIVERKIT_DEVELOPER_DIR`, or `DEVELOPER_DIR` when that is unset.
+Point it at Xcode 16.3 to build the default DriverKit 19.0 target unchanged.
+`validate.sh` builds the checked-in native project, which links every family
+framework including VideoDriverKit, with `DEVELOPER_DIR`. With a newer SDK the
+build's deployment target is raised to the SDK minimum (the Xcode 27 SDK starts
+at DriverKit 21.0). Build tests for projects that need a newer SDK, such as
+video (DriverKit 27.0), report as skipped on older SDKs; only the Xcode 27 SDK
+builds video. Set `SWIFTERKIT_REQUIRE_DRIVERKIT=1` to fail
+the run when no SDK is installed. Unset `TOOLCHAINS` when it selects a
+swift.org toolchain, because the generated-project builds must use Xcode's
+compilers.
 
 CI does not run on macOS 10.15 and cannot activate a signed extension or attach
 physical hardware. The following macOS 10.15 runtime paths remain

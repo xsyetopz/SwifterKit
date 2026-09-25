@@ -111,23 +111,12 @@ struct DriverExtensionProjectTests {
     #expect(frameworkLines.allSatisfy { $0.contains("HIDDriverKit.framework") })
 
     let derivedData = root.appendingPathComponent("DerivedData", isDirectory: true)
-    let build = try run(
-      executable: "/usr/bin/xcrun",
-      arguments: [
-        "xcodebuild", "-quiet", "-project", "SwifterKitRuntime.xcodeproj", "-scheme",
-        "SwifterKitRuntime", "-configuration", "Debug", "-sdk", "driverkit", "-derivedDataPath",
-        derivedData.path, "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO",
-        "DEVELOPMENT_TEAM=", "ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO",
-        "GCC_TREAT_WARNINGS_AS_ERRORS=YES", "build",
-      ],
-      currentDirectory: output
-    )
-    #expect(build.status == 0, Comment(rawValue: build.output))
+    guard try expectGeneratedExtensionBuilds(at: output, derivedData: derivedData) else { return }
 
     let binary = derivedData.appendingPathComponent(
       "Build/Products/Debug-driverkit/SwifterKitRuntime.dext/SwifterKitRuntime"
     )
-    let linkedLibraries = try run(executable: "/usr/bin/otool", arguments: ["-L", binary.path])
+    let linkedLibraries = try runTool("/usr/bin/xcrun", ["otool", "-L", binary.path])
     #expect(linkedLibraries.status == 0, Comment(rawValue: linkedLibraries.output))
     #expect(linkedLibraries.output.contains("HIDDriverKit.framework/HIDDriverKit"))
     for unrelated in [
@@ -232,24 +221,4 @@ struct DriverExtensionProjectTests {
     )
   }
 
-  private func run(
-    executable: String,
-    arguments: [String],
-    currentDirectory: URL? = nil
-  ) throws -> (status: Int32, output: String) {
-    let process = Process()
-    let output = Pipe()
-    process.executableURL = URL(fileURLWithPath: executable)
-    process.arguments = arguments
-    process.currentDirectoryURL = currentDirectory
-    process.standardOutput = output
-    process.standardError = output
-    try process.run()
-    process.waitUntilExit()
-    let data = output.fileHandleForReading.readDataToEndOfFile()
-    return (
-      process.terminationStatus,
-      String(bytes: data, encoding: .utf8) ?? "process emitted non-UTF-8 output"
-    )
-  }
 }

@@ -68,12 +68,30 @@ struct VideoGeneratorTests {
     #expect(project.contains("SwifterKitRuntimeVideoControls.cpp in Sources"))
     #expect(project.contains("SwifterKitRuntimeVideoDirectionControl.iig in Sources"))
     #expect(project.contains("SwifterKitRuntimeVideoStream.iig in Sources"))
+  }
 
-    let build = try buildGeneratedExtension(
+  @Test(.enabled(if: DriverKitSDK.supports(deploymentTarget: "27.0")))
+  func buildsVideoRuntime() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      UUID().uuidString,
+      isDirectory: true
+    )
+    defer { try? FileManager.default.removeItem(at: root) }
+    let output = root.appendingPathComponent("VideoDriver", isDirectory: true)
+    try DriverExtensionGenerator.generate(
+      configuration: DriverConfiguration(
+        bundleIdentifier: "com.example.video",
+        providerClass: "IOService",
+        capabilities: .video,
+        videoDevice: sampleDevice()
+      ),
+      options: DriverExtensionGenerationOptions(deploymentTarget: "27.0"),
+      at: output
+    )
+    try expectGeneratedExtensionBuilds(
       at: output,
       derivedData: root.appendingPathComponent("DerivedData")
     )
-    #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
   @Test
@@ -188,28 +206,4 @@ struct VideoGeneratorTests {
     )
   }
 
-  private func buildGeneratedExtension(
-    at directory: URL,
-    derivedData: URL
-  ) throws -> (status: Int32, output: String) {
-    let process = Process()
-    let output = Pipe()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-    process.arguments = [
-      "xcodebuild", "-quiet", "-project", "SwifterKitRuntime.xcodeproj", "-scheme",
-      "SwifterKitRuntime", "-configuration", "Debug", "-sdk", "driverkit", "-derivedDataPath",
-      derivedData.path, "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "DEVELOPMENT_TEAM=",
-      "ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO", "GCC_TREAT_WARNINGS_AS_ERRORS=YES", "build",
-    ]
-    process.currentDirectoryURL = directory
-    process.standardOutput = output
-    process.standardError = output
-    try process.run()
-    process.waitUntilExit()
-    let data = output.fileHandleForReading.readDataToEndOfFile()
-    return (
-      process.terminationStatus,
-      String(bytes: data, encoding: .utf8) ?? "xcodebuild emitted non-UTF-8 output"
-    )
-  }
 }

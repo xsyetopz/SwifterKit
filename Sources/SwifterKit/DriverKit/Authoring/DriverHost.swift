@@ -25,10 +25,15 @@ public actor DriverHost<Driver: SwiftDriver> {
   private var context: DriverContext?
 
   /// Creates a host for one Swift driver implementation.
-  public init(driver: Driver, client: DriverClient = DriverClient()) {
+  public init(driver: Driver, client: DriverClient) {
     self.driver = driver
     self.client = client
   }
+
+  #if canImport(IOKit)
+    /// Creates a host that discovers the generated extension through native IOKit.
+    public init(driver: Driver) { self.init(driver: driver, client: DriverClient()) }
+  #endif
 
   /// Discovers the generated extension, negotiates capabilities, and starts driver behavior.
   @discardableResult

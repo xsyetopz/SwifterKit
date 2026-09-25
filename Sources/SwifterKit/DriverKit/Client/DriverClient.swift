@@ -2,8 +2,10 @@
 public actor DriverClient {
   private let transport: any DriverTransport
 
-  /// Creates a client backed by native IOKit.
-  public init() { self.transport = IOKitDriverTransport() }
+  #if canImport(IOKit)
+    /// Creates a client backed by native IOKit.
+    public init() { self.transport = IOKitDriverTransport() }
+  #endif
 
   /// Creates a client backed by a custom transport.
   public init(transport: any DriverTransport) { self.transport = transport }

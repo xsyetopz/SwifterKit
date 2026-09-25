@@ -54,11 +54,10 @@ struct DriverExtensionSerialGeneratorTests {
     #expect(service.contains("SerialCommand"))
     #expect(service.contains("HwProgramUART"))
 
-    let build = try buildGeneratedExtension(
+    try expectGeneratedExtensionBuilds(
       at: output,
       derivedData: root.appendingPathComponent("DerivedData")
     )
-    #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
   @Test
@@ -87,11 +86,10 @@ struct DriverExtensionSerialGeneratorTests {
     #expect(service.contains("SerialCommand"))
     #expect(service.contains("USBControlTransfer"))
 
-    let build = try buildGeneratedExtension(
+    try expectGeneratedExtensionBuilds(
       at: output,
       derivedData: root.appendingPathComponent("DerivedData")
     )
-    #expect(build.status == 0, Comment(rawValue: build.output))
   }
 
   @Test
@@ -135,31 +133,6 @@ struct DriverExtensionSerialGeneratorTests {
         at: root.appendingPathComponent(UUID().uuidString)
       )
     }
-  }
-
-  private func buildGeneratedExtension(
-    at directory: URL,
-    derivedData: URL
-  ) throws -> (status: Int32, output: String) {
-    let process = Process()
-    let output = Pipe()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-    process.arguments = [
-      "xcodebuild", "-quiet", "-project", "SwifterKitRuntime.xcodeproj", "-scheme",
-      "SwifterKitRuntime", "-configuration", "Debug", "-sdk", "driverkit", "-derivedDataPath",
-      derivedData.path, "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "DEVELOPMENT_TEAM=",
-      "ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO", "GCC_TREAT_WARNINGS_AS_ERRORS=YES", "build",
-    ]
-    process.currentDirectoryURL = directory
-    process.standardOutput = output
-    process.standardError = output
-    try process.run()
-    process.waitUntilExit()
-    let data = output.fileHandleForReading.readDataToEndOfFile()
-    return (
-      process.terminationStatus,
-      String(bytes: data, encoding: .utf8) ?? "xcodebuild emitted non-UTF-8 output"
-    )
   }
 
   private var hidConfiguration: HIDDeviceConfiguration {

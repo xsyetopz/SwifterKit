@@ -33,30 +33,4 @@ extension DriverProperty {
     case .dictionary(let values): values.mapValues(\.foundationValue)
     }
   }
-
-  static func decode(_ value: Any) -> DriverProperty? {
-    if let value = value as? Bool { return .boolean(value) }
-    if let value = decodeNumber(value) { return value }
-    if let value = value as? String { return .string(value) }
-    if let value = value as? Data { return .data(value) }
-    if let values = value as? [Any] { return .array(values.compactMap(Self.decode)) }
-    if let values = value as? [String: Any] {
-      return .dictionary(values.compactMapValues(Self.decode))
-    }
-    return nil
-  }
-
-  private static func decodeNumber(_ value: Any) -> DriverProperty? {
-    let object = value as AnyObject
-    guard let encoding = object.objCType, let signedValue = object.int64Value,
-      let unsignedValue = object.uint64Value, let realValue = object.doubleValue
-    else { return nil }
-
-    let type = String(cString: encoding)
-    if type == "f" || type == "d" { return .real(realValue) }
-    if type == "Q" || type == "I" || type == "S" || type == "C" {
-      return .unsignedInteger(unsignedValue)
-    }
-    return .integer(signedValue)
-  }
 }

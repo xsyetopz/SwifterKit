@@ -7,8 +7,13 @@ swift test -Xswiftc -warnings-as-errors
 swift build -c release -Xswiftc -warnings-as-errors
 
 swift package dump-symbol-graph --minimum-access-level public
-symbol_graph_dir="$(find .build -type d -name symbolgraph -print -quit)"
-test -n "$symbol_graph_dir"
+# Built test targets add their own symbol graph; DocC accepts only the library module.
+symbol_graph="$(find .build -type f -path '*/symbolgraph/SwifterKit.symbols.json' -print -quit)"
+test -n "$symbol_graph"
+symbol_graph_dir=".build/SwifterKitSymbolGraph"
+rm -rf "$symbol_graph_dir"
+mkdir -p "$symbol_graph_dir"
+cp "$symbol_graph" "$symbol_graph_dir/"
 xcrun docc convert Sources/SwifterKit/SwifterKit.docc \
 	--additional-symbol-graph-dir "$symbol_graph_dir" \
 	--fallback-display-name SwifterKit \
@@ -20,6 +25,13 @@ xcrun docc convert Sources/SwifterKit/SwifterKit.docc \
 native_project="Sources/SwifterKit/Resources/DriverKitExtension/SwifterKitRuntime.xcodeproj"
 native_sources="Sources/SwifterKit/Resources/DriverKitExtension/Sources"
 xcrun clang-format --dry-run --Werror "$native_sources"/*.{cpp,h,iig}
+
+# The checked-in project targets DriverKit 19.0 and links every family framework, including
+# VideoDriverKit, so it needs the newest SDK. Newer SDKs raise their minimum (21.0 in the Xcode 27
+# SDK), so build at the oldest target the selected SDK accepts.
+driverkit_settings="$(xcrun --sdk driverkit --show-sdk-path)/SDKSettings.json"
+driverkit_target="$(plutil -extract SupportedTargets.driverkit.MinimumDeploymentTarget raw -o - "$driverkit_settings")"
+export SWIFTERKIT_DRIVERKIT_TARGET="$driverkit_target"
 
 derived_data="${RUNNER_TEMP:-.build}/SwifterKitDriverKitDerived"
 xcodebuild -quiet \
@@ -34,6 +46,7 @@ xcodebuild -quiet \
 	"ARCHS=arm64 x86_64" \
 	ONLY_ACTIVE_ARCH=NO \
 	GCC_TREAT_WARNINGS_AS_ERRORS=YES \
+	DRIVERKIT_DEPLOYMENT_TARGET="$driverkit_target" \
 	build
 
 native_binary="$derived_data/Build/Products/Debug-driverkit/SwifterKitRuntime.dext/SwifterKitRuntime"
@@ -57,6 +70,7 @@ xcodebuild -quiet \
 	ARCHS=arm64 \
 	ONLY_ACTIVE_ARCH=YES \
 	GCC_TREAT_WARNINGS_AS_ERRORS=YES \
+	DRIVERKIT_DEPLOYMENT_TARGET="$driverkit_target" \
 	analyze
 
 ./scripts/ci/validate-native.sh "$derived_data"

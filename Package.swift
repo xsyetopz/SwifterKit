@@ -1,8 +1,10 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.1
 
 import Foundation
 import PackageDescription
 
+// Xcode's Swift Testing framework lives outside the default search paths of swift.org
+// toolchains; point macOS test builds at the selected Xcode.
 let developerDirectory =
   ProcessInfo.processInfo.environment["DEVELOPER_DIR"]
   ?? "/Applications/Xcode.app/Contents/Developer"
@@ -18,14 +20,17 @@ let package = Package(
     .target(
       name: "SwifterKit",
       resources: [.copy("Resources/DriverKitExtension")],
-      linkerSettings: [.linkedFramework("IOKit")]
+      linkerSettings: [.linkedFramework("IOKit", .when(platforms: [.macOS]))]
     ),
     .testTarget(
       name: "SwifterKitTests",
       dependencies: ["SwifterKit"],
-      swiftSettings: [.unsafeFlags(["-F", testingFrameworks])],
+      swiftSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))],
       linkerSettings: [
-        .unsafeFlags(["-F", testingFrameworks, "-Xlinker", "-rpath", "-Xlinker", testingRuntime])
+        .unsafeFlags(
+          ["-F", testingFrameworks, "-Xlinker", "-rpath", "-Xlinker", testingRuntime],
+          .when(platforms: [.macOS])
+        )
       ]
     ),
   ],

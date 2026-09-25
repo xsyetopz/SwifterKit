@@ -14,7 +14,7 @@ Bug reports should include the Swift and Xcode versions, macOS version, affected
 
 ## Development setup
 
-The checked-in package manifest requires Swift 6.2. Local development uses the latest passing Swift version recorded in `.swift-version`. Swift 6.1 and other lower supported compilers run only in CI compatibility jobs. Generated extension builds require Xcode with the DriverKit SDK. Install SwiftLint and LLVM tools when they are not already available:
+The checked-in package manifest requires Swift 6.1. Local development uses the latest passing Swift version recorded in `.swift-version`; check the floor with Xcode 16.3's toolchain before submitting. Generated extension builds require Xcode with the DriverKit SDK. Keep IOKit-only code behind `#if canImport(IOKit)` so the package still builds on Linux. Install SwiftLint and LLVM tools when they are not already available:
 
 ```sh
 brew install swiftlint llvm

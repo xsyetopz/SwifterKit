@@ -21,14 +21,10 @@ jobs:
     timeout-minutes: 20
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.3.app/Contents/Developer
+      SWIFTERKIT_REQUIRE_DRIVERKIT: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
-
-      - name: Prepare compatibility manifest
-        run: |
-          git apply --check --unidiff-zero .github/compatibility/swift-6.1.patch
-          git apply --unidiff-zero .github/compatibility/swift-6.1.patch
 
       - name: Verify compatibility toolchain
         run: |
@@ -40,11 +36,23 @@ jobs:
         run: |
           swift package dump-package | jq -e 'any(.platforms[]; .platformName == "macos" and .version == "10.15")'
 
-      - name: Build package and tests
-        run: swift build --build-tests -Xswiftc -warnings-as-errors
+      - name: Test package
+        run: swift test -Xswiftc -warnings-as-errors
 
       - name: Build release package
         run: swift build -c release -Xswiftc -warnings-as-errors
+
+  linux:
+    name: Swift 6.1 / Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: swift:6.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Test package
+        run: swift test -Xswiftc -warnings-as-errors
 
   validate:
     name: Swift 6 and DriverKit
@@ -52,6 +60,7 @@ jobs:
     timeout-minutes: 60
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      SWIFTERKIT_REQUIRE_DRIVERKIT: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1

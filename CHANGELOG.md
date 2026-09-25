@@ -4,6 +4,20 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- The package manifest now requires Swift 6.1 (Xcode 16.3) instead of 6.2, and
+  CI runs the test suite on Swift 6.1 rather than only building it.
+- The package builds on Linux. The IOKit transport, `DriverClient()`, and
+  `DriverHost(driver:)` are available only where IOKit exists; elsewhere pass a
+  `DriverClient(transport:)` explicitly.
+
+### Fixed
+
+- Registry numbers 0 and 1 no longer decode as Booleans. Only CoreFoundation
+  Boolean values become `DriverProperty.boolean`, and registry integers decode
+  as `DriverProperty.integer`.
+
 ## 0.1.3
 
 ### Fixed

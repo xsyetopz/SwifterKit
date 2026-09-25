@@ -1,15 +1,17 @@
-import Testing
+#if canImport(IOKit)
+  import Testing
 
-@testable import SwifterKit
+  @testable import SwifterKit
 
-@Suite
-struct IOKitDriverTransportTests {
-  @Test
-  func rejectsEmptyServiceClass() async {
-    let transport = IOKitDriverTransport()
+  @Suite
+  struct IOKitDriverTransportTests {
+    @Test
+    func rejectsEmptyServiceClass() async {
+      let transport = IOKitDriverTransport()
 
-    await #expect(throws: DriverKitError.self) {
-      try await transport.services(matching: DriverServiceMatch(serviceClass: ""))
+      await #expect(throws: DriverKitError.self) {
+        try await transport.services(matching: DriverServiceMatch(serviceClass: ""))
+      }
     }
   }
-}
+#endif

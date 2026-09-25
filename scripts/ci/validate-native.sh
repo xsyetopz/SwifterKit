@@ -43,7 +43,7 @@ for source in "$native_sources"/*.cpp; do
 		-fblocks \
 		-fno-exceptions \
 		-fno-rtti \
-		-target arm64-apple-driverkit19.0 \
+		-target "arm64-apple-driverkit${SWIFTERKIT_DRIVERKIT_TARGET:-19.0}" \
 		-isysroot "$sdk" \
 		-I "$native_sources" \
 		-I "$derived_sources"

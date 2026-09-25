@@ -1,103 +1,105 @@
-import Foundation
-@preconcurrency import IOKit
+#if canImport(IOKit)
+  import Foundation
+  @preconcurrency import IOKit
 
-actor IOKitDriverConnection: DriverConnection {
-  private var connection: io_connect_t
-  private let serviceID: UInt64
+  actor IOKitDriverConnection: DriverConnection {
+    private var connection: io_connect_t
+    private let serviceID: UInt64
 
-  init(connection: io_connect_t, serviceID: UInt64) {
-    self.connection = connection
-    self.serviceID = serviceID
-  }
-
-  deinit { if connection != 0 { IOServiceClose(connection) } }
-
-  func call(_ request: DriverRequest) throws -> DriverResponse {
-    guard connection != 0 else {
-      throw DriverKitError(
-        kind: .sessionClosed,
-        operation: "IOConnectCallMethod",
-        serviceID: serviceID
-      )
-    }
-    try validate(request)
-
-    let output = Self.invoke(connection: connection, request: request)
-
-    guard output.result == kIOReturnSuccess else {
-      throw DriverKitError(
-        kind: .ioReturn(output.result),
-        operation: "IOConnectCallMethod",
-        serviceID: serviceID
-      )
+    init(connection: io_connect_t, serviceID: UInt64) {
+      self.connection = connection
+      self.serviceID = serviceID
     }
 
-    return DriverResponse(
-      scalarOutput: output.scalarOutput,
-      structureOutput: Data(output.structureOutput)
-    )
-  }
+    deinit { if connection != 0 { IOServiceClose(connection) } }
 
-  nonisolated private static func invoke(
-    connection: io_connect_t,
-    request: DriverRequest
-  ) -> IOKitMethodOutput {
-    var scalarOutput = [UInt64](repeating: 0, count: request.scalarOutputCapacity)
-    var scalarOutputCount = UInt32(request.scalarOutputCapacity)
-    var structureOutput = [UInt8](repeating: 0, count: request.structureOutputCapacity)
-    var structureOutputSize = request.structureOutputCapacity
+    func call(_ request: DriverRequest) throws -> DriverResponse {
+      guard connection != 0 else {
+        throw DriverKitError(
+          kind: .sessionClosed,
+          operation: "IOConnectCallMethod",
+          serviceID: serviceID
+        )
+      }
+      try validate(request)
 
-    let result = request.scalarInput.withUnsafeBufferPointer { scalarInput in
-      request.structureInput.withUnsafeBytes { structureInput in
-        scalarOutput.withUnsafeMutableBufferPointer { scalarOutput in
-          structureOutput.withUnsafeMutableBytes { structureOutput in
-            IOConnectCallMethod(
-              connection,
-              request.selector,
-              scalarInput.baseAddress,
-              UInt32(scalarInput.count),
-              structureInput.baseAddress,
-              structureInput.count,
-              scalarOutput.baseAddress,
-              &scalarOutputCount,
-              structureOutput.baseAddress,
-              &structureOutputSize
-            )
+      let output = Self.invoke(connection: connection, request: request)
+
+      guard output.result == kIOReturnSuccess else {
+        throw DriverKitError(
+          kind: .ioReturn(output.result),
+          operation: "IOConnectCallMethod",
+          serviceID: serviceID
+        )
+      }
+
+      return DriverResponse(
+        scalarOutput: output.scalarOutput,
+        structureOutput: Data(output.structureOutput)
+      )
+    }
+
+    nonisolated private static func invoke(
+      connection: io_connect_t,
+      request: DriverRequest
+    ) -> IOKitMethodOutput {
+      var scalarOutput = [UInt64](repeating: 0, count: request.scalarOutputCapacity)
+      var scalarOutputCount = UInt32(request.scalarOutputCapacity)
+      var structureOutput = [UInt8](repeating: 0, count: request.structureOutputCapacity)
+      var structureOutputSize = request.structureOutputCapacity
+
+      let result = request.scalarInput.withUnsafeBufferPointer { scalarInput in
+        request.structureInput.withUnsafeBytes { structureInput in
+          scalarOutput.withUnsafeMutableBufferPointer { scalarOutput in
+            structureOutput.withUnsafeMutableBytes { structureOutput in
+              IOConnectCallMethod(
+                connection,
+                request.selector,
+                scalarInput.baseAddress,
+                UInt32(scalarInput.count),
+                structureInput.baseAddress,
+                structureInput.count,
+                scalarOutput.baseAddress,
+                &scalarOutputCount,
+                structureOutput.baseAddress,
+                &structureOutputSize
+              )
+            }
           }
         }
       }
-    }
 
-    return IOKitMethodOutput(
-      result: result,
-      scalarOutput: Array(scalarOutput.prefix(Int(scalarOutputCount))),
-      structureOutput: Array(structureOutput.prefix(structureOutputSize))
-    )
-  }
-
-  func close() {
-    guard connection != 0 else { return }
-    IOServiceClose(connection)
-    connection = 0
-  }
-
-  private func validate(_ request: DriverRequest) throws {
-    let capacities = [
-      request.scalarInput.count, request.structureInput.count, request.scalarOutputCapacity,
-      request.structureOutputCapacity,
-    ]
-    guard capacities.allSatisfy({ $0 <= Int(UInt32.max) }) else {
-      throw DriverKitError(
-        kind: .bufferTooLarge,
-        operation: "IOConnectCallMethod",
-        serviceID: serviceID
+      return IOKitMethodOutput(
+        result: result,
+        scalarOutput: Array(scalarOutput.prefix(Int(scalarOutputCount))),
+        structureOutput: Array(structureOutput.prefix(structureOutputSize))
       )
     }
-  }
-}
 
-private struct IOKitMethodOutput {
-  let result: kern_return_t
-  let scalarOutput: [UInt64]
-  let structureOutput: [UInt8]
-}
+    func close() {
+      guard connection != 0 else { return }
+      IOServiceClose(connection)
+      connection = 0
+    }
+
+    private func validate(_ request: DriverRequest) throws {
+      let capacities = [
+        request.scalarInput.count, request.structureInput.count, request.scalarOutputCapacity,
+        request.structureOutputCapacity,
+      ]
+      guard capacities.allSatisfy({ $0 <= Int(UInt32.max) }) else {
+        throw DriverKitError(
+          kind: .bufferTooLarge,
+          operation: "IOConnectCallMethod",
+          serviceID: serviceID
+        )
+      }
+    }
+  }
+
+  private struct IOKitMethodOutput {
+    let result: kern_return_t
+    let scalarOutput: [UInt64]
+    let structureOutput: [UInt8]
+  }
+#endif
