@@ -48,7 +48,7 @@ jobs:
           fi
 
       - name: Checkout tag
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ steps.release.outputs.tag }}
           fetch-depth: 0
@@ -65,7 +65,7 @@ jobs:
         run: ./scripts/release/archive-source.sh
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: SwifterKit-${{ steps.release.outputs.tag }}
           path: .build/release-artifacts/*

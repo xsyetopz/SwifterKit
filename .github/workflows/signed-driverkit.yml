@@ -23,7 +23,7 @@ jobs:
       CODESIGN_IDENTITY: Apple Development
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Import signing credentials
         id: signing
@@ -44,7 +44,7 @@ jobs:
           ditto -c -k --keepParent "$dext" .build/SwifterKitRuntime-signed.zip
 
       - name: Upload signed validation artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: SwifterKitRuntime-signed
           path: .build/SwifterKitRuntime-signed.zip
