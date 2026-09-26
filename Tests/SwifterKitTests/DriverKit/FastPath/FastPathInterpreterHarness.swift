@@ -4,7 +4,9 @@
 /// ``FastPathInterpreterTests/programs`` with the generator's own table emitter, and prints one
 /// transcript line per run: the status, whether an `emit` ran, the slots, and every register
 /// access, delay, and emitted value in order. Rejection lines report the status and the number of
-/// accesses, which must be zero because a malformed program never starts.
+/// accesses, which must be zero because a malformed program never starts. Ring accesses log as
+/// `S`/`L` (store and load at a byte offset from entry 0), `I`/`P` (index read and set), and `A`
+/// (device address).
 let fastPathInterpreterHarness = #"""
   #include <stdio.h>
   #include <stdlib.h>
@@ -18,6 +20,8 @@ let fastPathInterpreterHarness = #"""
 
       struct Fake {
           uint8_t memory[kSwifterKitFastPathBARCount][256] = {};
+          uint8_t ring[64] = {};
+          uint32_t indices[2] = {0x10, 0};
           uint32_t readyAfter = 0;
           uint32_t readyReads = 0;
           uint32_t accesses = 0;
@@ -56,6 +60,43 @@ let fastPathInterpreterHarness = #"""
               length += snprintf(log + length, sizeof(log) - length, " D%u", microseconds);
               Check();
           }
+          void Log(const char* kind, uint32_t ring, uint64_t detail, uint32_t width,
+              uint64_t value) {
+              accesses += 1;
+              length += snprintf(log + length, sizeof(log) - length, " %s%u%c%llX/%u=%llX", kind,
+                  ring, kind[0] == 'I' || kind[0] == 'P' ? '.' : '+',
+                  static_cast<unsigned long long>(detail), width,
+                  static_cast<unsigned long long>(value));
+              Check();
+          }
+          uint64_t RingLoad(uint32_t ringIndex, uint64_t offset, uint32_t width) {
+              if (ringIndex != 0 || offset + width > sizeof(ring)) {
+                  abort();
+              }
+              uint64_t value = 0;
+              memcpy(&value, &ring[offset], width);
+              Log("L", ringIndex, offset, width, value);
+              return value;
+          }
+          void RingStore(uint32_t ringIndex, uint64_t offset, uint32_t width, uint64_t value) {
+              if (ringIndex != 0 || offset + width > sizeof(ring)) {
+                  abort();
+              }
+              memcpy(&ring[offset], &value, width);
+              Log("S", ringIndex, offset, width, value);
+          }
+          uint32_t RingIndex(uint32_t ringIndex, uint32_t index) {
+              Log("I", ringIndex, index, 4, indices[index & 1]);
+              return indices[index & 1];
+          }
+          void SetRingIndex(uint32_t ringIndex, uint32_t index, uint32_t value) {
+              indices[index & 1] = value;
+              Log("P", ringIndex, index, 4, value);
+          }
+          uint64_t RingDeviceAddress(uint32_t ringIndex) {
+              Log("A", ringIndex, 0, 8, 0x123456000);
+              return 0x123456000;
+          }
           void Emit(const uint64_t* values, uint32_t count) {
               accesses += 1;
               length += snprintf(log + length, sizeof(log) - length, " E");
@@ -72,6 +113,7 @@ let fastPathInterpreterHarness = #"""
           SwifterKitFastPathOperation operations[kSwifterKitFastPathOperationCount];
           SwifterKitFastPathTrigger triggers[kSwifterKitFastPathTriggerCount];
           SwifterKitFastPathBAR bars[kSwifterKitFastPathBARSizeCount];
+          SwifterKitFastPathRing rings[kSwifterKitFastPathRingCount];
           SwifterKitFastPathTables view;
 
           Tables() {
@@ -79,9 +121,10 @@ let fastPathInterpreterHarness = #"""
               memcpy(operations, kSwifterKitFastPathOperations, sizeof(operations));
               memcpy(triggers, kSwifterKitFastPathTriggers, sizeof(triggers));
               memcpy(bars, kSwifterKitFastPathBARSizes, sizeof(bars));
+              memcpy(rings, kSwifterKitFastPathRings, sizeof(rings));
               view = {programs, kSwifterKitFastPathProgramCount, operations,
                   kSwifterKitFastPathOperationCount, triggers, kSwifterKitFastPathTriggerCount,
-                  bars, kSwifterKitFastPathBARSizeCount};
+                  bars, kSwifterKitFastPathBARSizeCount, rings, kSwifterKitFastPathRingCount};
           }
           SwifterKitFastPathOperation& Op(uint32_t program, uint32_t index) {
               return operations[programs[program].operationStart + index];
@@ -170,12 +213,15 @@ let fastPathInterpreterHarness = #"""
           const uint64_t four[] = {1, 2, 3, 4};
           Fake emitAll;
           Run("emit-all", 9, four, 4, emitAll);
+          const uint64_t entry[] = {5, 0xAABBCCDD};
+          Fake ring;
+          Run("ring", 10, entry, 2, ring);
       }
 
       void Malformed() {
           using T = Tables;
           Reject("opcode-zero", 0, 2, [](T& t) { t.Op(0, 0).opcode = 0; });
-          Reject("opcode-unknown", 0, 2, [](T& t) { t.Op(0, 0).opcode = 10; });
+          Reject("opcode-unknown", 0, 2, [](T& t) { t.Op(0, 0).opcode = 13; });
           Reject("read-slot", 0, 2, [](T& t) { t.Op(0, 0).b = 8; });
           Reject("read-unused-c", 0, 2, [](T& t) { t.Op(0, 0).c = 1; });
           Reject("read-unused-immediate", 0, 2, [](T& t) { t.Op(0, 4).immediate2 = 1; });
@@ -187,7 +233,7 @@ let fastPathInterpreterHarness = #"""
           Reject("out-of-bounds", 0, 2, [](T& t) { t.Op(0, 0).immediate0 = 0x100; });
           Reject("end-of-bar", 0, 2, [](T& t) { t.Op(0, 3).immediate0 = 0xFC; });
           Reject("write-wide-constant", 0, 2, [](T& t) { t.Op(0, 2).immediate1 = 0x1AB; });
-          Reject("write-operand-kind", 0, 2, [](T& t) { t.Op(0, 1).c = 2; });
+          Reject("write-operand-kind", 0, 2, [](T& t) { t.Op(0, 1).c = 4; });
           Reject("write-slot", 0, 2, [](T& t) { t.Op(0, 1).immediate1 = 8; });
           Reject("write-unused", 0, 2, [](T& t) { t.Op(0, 2).b = 1; });
           Reject("budget-mismatch", 0, 2, [](T& t) { t.programs[0].delayBudgetMicroseconds = 1; });
@@ -205,7 +251,7 @@ let fastPathInterpreterHarness = #"""
           Reject("compute-op-unknown", 2, 2, [](T& t) { t.Op(2, 0).b = 8; });
           Reject("compute-shift", 2, 2, [](T& t) { t.Op(2, 6).immediate1 = 64; });
           Reject("compute-slot", 2, 2, [](T& t) { t.Op(2, 0).a = 8; });
-          Reject("compute-operand-kind", 2, 2, [](T& t) { t.Op(2, 0).c = 2; });
+          Reject("compute-operand-kind", 2, 2, [](T& t) { t.Op(2, 0).c = 4; });
           Reject("compute-unused", 2, 2, [](T& t) { t.Op(2, 0).immediate0 = 1; });
           Reject("poll-iterations-zero", 3, 0, [](T& t) { t.Op(3, 0).b = 0; });
           Reject("poll-iterations-over", 3, 0, [](T& t) { t.Op(3, 0).b = 10001; });
@@ -233,6 +279,30 @@ let fastPathInterpreterHarness = #"""
           Reject("fail-unused", 8, 0, [](T& t) { t.Op(8, 1).immediate0 = 1; });
           Reject("bar-smaller", 6, 1, [](T& t) { t.bars[1].minimumSize = 8; });
           Reject("bar-missing", 0, 2, [](T& t) { t.view.barCount = 1; });
+          Reject("ring-index", 10, 2, [](T& t) { t.Op(10, 0).a = 1 | 4 << 8; });
+          Reject("ring-width", 10, 2, [](T& t) { t.Op(10, 0).a = 3 << 8; });
+          Reject("ring-field-bounds", 10, 2, [](T& t) { t.Op(10, 0).immediate0 = 16; });
+          Reject("ring-field-misaligned", 10, 2, [](T& t) { t.Op(10, 0).immediate0 = 2; });
+          Reject("ring-entry-slot", 10, 2, [](T& t) { t.Op(10, 0).b = 8; });
+          Reject("ring-store-wide-constant", 10, 2, [](T& t) {
+              t.Op(10, 0).c = 0;
+              t.Op(10, 0).immediate1 = 0x100000000;
+          });
+          Reject("ring-load-slot", 10, 2, [](T& t) { t.Op(10, 1).c = 8; });
+          Reject("ring-load-unused", 10, 2, [](T& t) { t.Op(10, 1).immediate1 = 1; });
+          Reject("ring-advance-index", 10, 2, [](T& t) { t.Op(10, 2).b = 2; });
+          Reject("ring-advance-ring", 10, 2, [](T& t) { t.Op(10, 2).a = 1; });
+          Reject("ring-operand-ring", 10, 2, [](T& t) { t.Op(10, 4).immediate1 = 1; });
+          Reject("ring-operand-selector", 10, 2, [](T& t) { t.Op(10, 4).immediate1 = 2 << 8; });
+          Reject("ring-entry-size", 10, 2, [](T& t) { t.rings[0].entrySize = 24; });
+          Reject("ring-entry-count", 10, 2, [](T& t) { t.rings[0].entryCount = 131072; });
+          Reject("ring-bytes", 10, 2, [](T& t) {
+              t.rings[0].entrySize = 4096;
+              t.rings[0].entryCount = 2048;
+          });
+          Reject("ring-direction", 10, 2, [](T& t) { t.rings[0].direction = 4; });
+          Reject("ring-identifier", 10, 2, [](T& t) { t.rings[0].id = 0x1000000; });
+          Reject("ring-missing", 10, 2, [](T& t) { t.view.ringCount = 0; });
       }
 
       void Configurations() {

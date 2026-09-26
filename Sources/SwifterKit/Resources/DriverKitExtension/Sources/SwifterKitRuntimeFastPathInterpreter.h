@@ -19,8 +19,17 @@
 //   void Write(uint32_t bar, uint64_t offset, uint32_t width, uint64_t value);
 //   void Delay(uint32_t microseconds);
 //   void Emit(const uint64_t* values, uint32_t count);
+//   uint64_t RingLoad(uint32_t ring, uint64_t offset, uint32_t width);
+//   void RingStore(uint32_t ring, uint64_t offset, uint32_t width, uint64_t value);
+//   uint32_t RingIndex(uint32_t ring, uint32_t index);
+//   void SetRingIndex(uint32_t ring, uint32_t index, uint32_t value);
+//   uint64_t RingDeviceAddress(uint32_t ring);
 // `bar` is a BAR index below kSwifterKitFastPathBARCount, `width` is 1, 2, 4, or 8 bytes, and the
-// access lies inside the BAR's declared minimum size.
+// access lies inside the BAR's declared minimum size. `ring` is an index into the ring table,
+// `offset` is a byte offset from entry 0 aligned to `width` with the access inside the ring's
+// entries, `index` is a SwifterKitFastPathRingIndex value, and a stored index is below the entry
+// count. RingIndex may return any value; the interpreter masks it. RingDeviceAddress is the
+// device address of entry 0.
 
 static_assert((kSwifterKitFastPathSlotCount & (kSwifterKitFastPathSlotCount - 1)) == 0);
 
@@ -34,6 +43,8 @@ struct SwifterKitFastPathTables {
     uint32_t triggerCount;
     const SwifterKitFastPathBAR* bars;
     uint32_t barCount;
+    const SwifterKitFastPathRing* rings;
+    uint32_t ringCount;
 };
 
 // The declared minimum size of each BAR; zero means the BAR is not declared.
@@ -83,6 +94,51 @@ inline bool SwifterKitFastPathLoadBARSizes(
     return true;
 }
 
+inline constexpr bool SwifterKitFastPathIsPowerOfTwo(uint64_t value) {
+    return value != 0 && (value & (value - 1)) == 0;
+}
+
+// Checks the ring table: at most kSwifterKitFastPathMaximumRings rows, unique identifiers inside
+// the client-memory identifier field, power-of-two entry sizes and counts within the schema
+// bounds, a kIOMemoryDirection value, and every ring together within
+// kSwifterKitFastPathMaximumRingBytes.
+inline bool SwifterKitFastPathIsValidRings(const SwifterKitFastPathTables& tables) {
+    if (tables.ringCount > kSwifterKitFastPathMaximumRings) {
+        return false;
+    }
+    uint64_t bytes = 0;
+    for (uint32_t index = 0; index < tables.ringCount; ++index) {
+        const SwifterKitFastPathRing& ring = tables.rings[index];
+        if (ring.id > kSwifterKitClientMemoryIdentifierMask
+            || !SwifterKitFastPathIsPowerOfTwo(ring.entrySize)
+            || ring.entrySize < kSwifterKitFastPathMinimumRingEntrySize
+            || ring.entrySize > kSwifterKitFastPathMaximumRingEntrySize
+            || !SwifterKitFastPathIsPowerOfTwo(ring.entryCount)
+            || ring.entryCount < kSwifterKitFastPathMinimumRingEntryCount
+            || ring.entryCount > kSwifterKitFastPathMaximumRingEntryCount || ring.direction == 0
+            || ring.direction > 3) {
+            return false;
+        }
+        for (uint32_t earlier = 0; earlier < index; ++earlier) {
+            if (tables.rings[earlier].id == ring.id) {
+                return false;
+            }
+        }
+        bytes += kSwifterKitFastPathRingHeaderSize + uint64_t {ring.entrySize} * ring.entryCount;
+    }
+    return bytes <= kSwifterKitFastPathMaximumRingBytes;
+}
+
+// Returns the ring table index of the ring with `id`, or ringCount when none has it.
+inline uint32_t SwifterKitFastPathRingNamed(const SwifterKitFastPathTables& tables, uint32_t id) {
+    for (uint32_t index = 0; index < tables.ringCount; ++index) {
+        if (tables.rings[index].id == id) {
+            return index;
+        }
+    }
+    return tables.ringCount;
+}
+
 namespace swifterkit_fast_path {
     // A register packed as `bar | widthBytes << 8` in `a`, at the offset in `immediate0`.
     inline bool IsValidRegister(
@@ -102,17 +158,38 @@ namespace swifterkit_fast_path {
         return SwifterKitFastPathWidthMask((row.a >> 8U) & 0xFFU);
     }
 
-    inline bool IsValidOperand(uint32_t kind, uint64_t value, uint64_t constantLimit) {
+    // A ring operand is a ring index with a half or ring index selector, 0 or 1, above it.
+    inline bool
+        IsValidOperand(uint32_t kind, uint64_t value, uint64_t constantLimit, uint32_t ringCount) {
         switch (static_cast<SwifterKitFastPathOperandKind>(kind)) {
             case SwifterKitFastPathOperandKind::Constant:
                 return value <= constantLimit;
             case SwifterKitFastPathOperandKind::Value:
                 return value < kSwifterKitFastPathSlotCount;
+            case SwifterKitFastPathOperandKind::RingDeviceAddress:
+            case SwifterKitFastPathOperandKind::RingIndex:
+                return (value & 0xFFU) < ringCount && (value >> 8U) <= 1;
         }
         return false;
     }
 
-    inline bool IsValidCompute(const SwifterKitFastPathOperation& row) {
+    // A ring entry field packed as `ring | widthBytes << 8` in `a`, at the field offset in
+    // `immediate0`, with the entry slot in `b`: aligned to its width and inside one entry.
+    inline bool IsValidRingField(
+        const SwifterKitFastPathOperation& row,
+        const SwifterKitFastPathTables& tables) {
+        const uint32_t ring = row.a & 0xFFU;
+        const uint32_t width = (row.a >> 8U) & 0xFFU;
+        if ((row.a >> 16U) != 0 || ring >= tables.ringCount
+            || (width != 1 && width != 2 && width != 4 && width != 8)
+            || row.b >= kSwifterKitFastPathSlotCount) {
+            return false;
+        }
+        const uint64_t size = tables.rings[ring].entrySize;
+        return size >= width && row.immediate0 % width == 0 && row.immediate0 <= size - width;
+    }
+
+    inline bool IsValidCompute(const SwifterKitFastPathOperation& row, uint32_t ringCount) {
         const auto operation = static_cast<SwifterKitFastPathComputeOperation>(row.b);
         const bool shift = operation == SwifterKitFastPathComputeOperation::ShiftLeft
                            || operation == SwifterKitFastPathComputeOperation::ShiftRight;
@@ -124,7 +201,8 @@ namespace swifterkit_fast_path {
         return IsValidOperand(
             row.c,
             row.immediate1,
-            shift ? kSwifterKitFastPathShiftLimit - 1 : UINT64_MAX);
+            shift ? kSwifterKitFastPathShiftLimit - 1 : UINT64_MAX,
+            ringCount);
     }
 
     inline bool IsValidPoll(
@@ -163,6 +241,7 @@ namespace swifterkit_fast_path {
     inline bool IsValidOperation(
         const SwifterKitFastPathOperation& row,
         uint32_t remaining,
+        const SwifterKitFastPathTables& tables,
         const SwifterKitFastPathBARSizes& bars,
         uint64_t* budget) {
         switch (static_cast<SwifterKitFastPathOpcode>(row.opcode)) {
@@ -171,13 +250,17 @@ namespace swifterkit_fast_path {
                        && row.c == 0 && row.immediate1 == 0 && row.immediate2 == 0;
             case SwifterKitFastPathOpcode::Write:
                 return IsValidRegister(row, bars) && row.b == 0 && row.immediate2 == 0
-                       && IsValidOperand(row.c, row.immediate1, RegisterMask(row));
+                       && IsValidOperand(
+                           row.c,
+                           row.immediate1,
+                           RegisterMask(row),
+                           tables.ringCount);
             case SwifterKitFastPathOpcode::Modify:
                 return IsValidRegister(row, bars) && row.b == 0 && row.c == 0
                        && row.immediate1 <= RegisterMask(row)
                        && row.immediate2 <= RegisterMask(row);
             case SwifterKitFastPathOpcode::Compute:
-                return IsValidCompute(row);
+                return IsValidCompute(row, tables.ringCount);
             case SwifterKitFastPathOpcode::Poll:
                 return IsValidPoll(row, bars, budget);
             case SwifterKitFastPathOpcode::Delay:
@@ -194,14 +277,68 @@ namespace swifterkit_fast_path {
             case SwifterKitFastPathOpcode::Fail:
                 return row.a == 0 && row.b != 0 && row.c == 0 && row.immediate0 == 0
                        && row.immediate1 == 0 && row.immediate2 == 0;
+            case SwifterKitFastPathOpcode::RingLoad:
+                return IsValidRingField(row, tables) && row.c < kSwifterKitFastPathSlotCount
+                       && row.immediate1 == 0 && row.immediate2 == 0;
+            case SwifterKitFastPathOpcode::RingStore:
+                return IsValidRingField(row, tables) && row.immediate2 == 0
+                       && IsValidOperand(
+                           row.c,
+                           row.immediate1,
+                           SwifterKitFastPathWidthMask((row.a >> 8U) & 0xFFU),
+                           tables.ringCount);
+            case SwifterKitFastPathOpcode::RingAdvance:
+                return row.a < tables.ringCount
+                       && row.b <= static_cast<uint32_t>(SwifterKitFastPathRingIndex::Consumer)
+                       && row.immediate0 == 0 && row.immediate2 == 0
+                       && IsValidOperand(row.c, row.immediate1, UINT64_MAX, tables.ringCount);
         }
         return false;
     }
 
-    inline uint64_t Operand(uint32_t kind, uint64_t value, const uint64_t* slots) {
-        return kind == static_cast<uint32_t>(SwifterKitFastPathOperandKind::Value)
-                   ? slots[SwifterKitFastPathSlot(value)]
-                   : value;
+    // The ring index `ring` names, masked below its entry count.
+    template<typename Access>
+    uint32_t RingIndex(
+        const SwifterKitFastPathTables& tables,
+        uint32_t ring,
+        uint32_t index,
+        Access& access) {
+        return access.RingIndex(ring, index) & (tables.rings[ring].entryCount - 1);
+    }
+
+    template<typename Access>
+    uint64_t Operand(
+        const SwifterKitFastPathTables& tables,
+        uint32_t kind,
+        uint64_t value,
+        const uint64_t* slots,
+        Access& access) {
+        const auto ring = static_cast<uint32_t>(value & 0xFFU);
+        const uint32_t selector = static_cast<uint32_t>(value >> 8U) & 1U;
+        switch (static_cast<SwifterKitFastPathOperandKind>(kind)) {
+            case SwifterKitFastPathOperandKind::Constant:
+                return value;
+            case SwifterKitFastPathOperandKind::Value:
+                return slots[SwifterKitFastPathSlot(value)];
+            case SwifterKitFastPathOperandKind::RingDeviceAddress: {
+                const uint64_t address = access.RingDeviceAddress(ring);
+                return selector == 0 ? address & UINT32_MAX : address >> 32U;
+            }
+            case SwifterKitFastPathOperandKind::RingIndex:
+                return RingIndex(tables, ring, selector, access);
+        }
+        return value;
+    }
+
+    // The byte offset from entry 0 of a validated ring field row, the entry slot masked below
+    // the entry count.
+    inline uint64_t RingFieldOffset(
+        const SwifterKitFastPathTables& tables,
+        const SwifterKitFastPathOperation& row,
+        const uint64_t* slots) {
+        const SwifterKitFastPathRing& ring = tables.rings[row.a & 0xFFU];
+        const uint64_t entry = slots[SwifterKitFastPathSlot(row.b)] & (ring.entryCount - 1);
+        return entry * ring.entrySize + row.immediate0;
     }
 
     // Wrapping arithmetic; a slot shift distance uses its low six bits.
@@ -234,8 +371,8 @@ inline bool SwifterKitFastPathIsValidProgram(
     const SwifterKitFastPathTables& tables,
     uint32_t program,
     const SwifterKitFastPathBARSizes& bars) {
-    if (program >= tables.programCount
-        || tables.programCount > kSwifterKitFastPathMaximumPrograms) {
+    if (program >= tables.programCount || tables.programCount > kSwifterKitFastPathMaximumPrograms
+        || !SwifterKitFastPathIsValidRings(tables)) {
         return false;
     }
     const SwifterKitFastPathProgram& row = tables.programs[program];
@@ -250,6 +387,7 @@ inline bool SwifterKitFastPathIsValidProgram(
         if (!swifterkit_fast_path::IsValidOperation(
                 tables.operations[row.operationStart + index],
                 row.operationCount - index - 1,
+                tables,
                 bars,
                 &budget)) {
             return false;
@@ -397,7 +535,13 @@ SwifterKitFastPathOutcome SwifterKitFastPathExecute(
                     bar,
                     operation.immediate0,
                     width,
-                    swifterkit_fast_path::Operand(operation.c, operation.immediate1, slots) & mask);
+                    swifterkit_fast_path::Operand(
+                        tables,
+                        operation.c,
+                        operation.immediate1,
+                        slots,
+                        access)
+                        & mask);
                 break;
             case SwifterKitFastPathOpcode::Modify: {
                 const uint64_t value = access.Read(bar, operation.immediate0, width);
@@ -413,7 +557,12 @@ SwifterKitFastPathOutcome SwifterKitFastPathExecute(
                 value = swifterkit_fast_path::Compute(
                     operation.b,
                     value,
-                    swifterkit_fast_path::Operand(operation.c, operation.immediate1, slots));
+                    swifterkit_fast_path::Operand(
+                        tables,
+                        operation.c,
+                        operation.immediate1,
+                        slots,
+                        access));
                 break;
             }
             case SwifterKitFastPathOpcode::Poll: {
@@ -460,6 +609,43 @@ SwifterKitFastPathOutcome SwifterKitFastPathExecute(
             case SwifterKitFastPathOpcode::Fail:
                 outcome.status = operation.b;
                 return outcome;
+            case SwifterKitFastPathOpcode::RingLoad:
+                slots[SwifterKitFastPathSlot(operation.c)] =
+                    access.RingLoad(
+                        bar,
+                        swifterkit_fast_path::RingFieldOffset(tables, operation, slots),
+                        width)
+                    & mask;
+                break;
+            case SwifterKitFastPathOpcode::RingStore:
+                access.RingStore(
+                    bar,
+                    swifterkit_fast_path::RingFieldOffset(tables, operation, slots),
+                    width,
+                    swifterkit_fast_path::Operand(
+                        tables,
+                        operation.c,
+                        operation.immediate1,
+                        slots,
+                        access)
+                        & mask);
+                break;
+            case SwifterKitFastPathOpcode::RingAdvance: {
+                const uint32_t ring = operation.a;
+                const uint64_t step = swifterkit_fast_path::Operand(
+                    tables,
+                    operation.c,
+                    operation.immediate1,
+                    slots,
+                    access);
+                const uint64_t current =
+                    swifterkit_fast_path::RingIndex(tables, ring, operation.b, access);
+                access.SetRingIndex(
+                    ring,
+                    operation.b,
+                    static_cast<uint32_t>((current + step) & (tables.rings[ring].entryCount - 1)));
+                break;
+            }
         }
     }
     return outcome;

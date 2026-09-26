@@ -102,6 +102,8 @@ public enum FastPathRuntimeError: Error, Sendable, Hashable {
   case invalidArgumentCount(program: Int, count: Int)
   /// The extension returned a malformed fast-path payload.
   case invalidPayload
+  /// The ring identifier is above `0xFF_FFFF` or not declared by the context's configuration.
+  case unknownRing(UInt32)
 }
 
 extension DriverCommand {

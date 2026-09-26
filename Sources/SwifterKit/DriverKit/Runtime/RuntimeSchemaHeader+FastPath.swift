@@ -38,12 +38,33 @@ extension RuntimeSchemaHeader {
             "\(limits.maximumDelayBudgetMicroseconds)"
           ), ("kSwifterKitFastPathBARCount", "\(limits.barCount)"),
           ("kSwifterKitFastPathShiftLimit", "\(limits.shiftLimit)"),
+          ("kSwifterKitFastPathMaximumRings", "\(limits.maximumRings)"),
+          ("kSwifterKitFastPathMinimumRingEntrySize", "\(limits.ringEntrySizes.lowerBound)"),
+          ("kSwifterKitFastPathMaximumRingEntrySize", "\(limits.ringEntrySizes.upperBound)"),
+          ("kSwifterKitFastPathMinimumRingEntryCount", "\(limits.ringEntryCounts.lowerBound)"),
+          ("kSwifterKitFastPathMaximumRingEntryCount", "\(limits.ringEntryCounts.upperBound)"),
+          ("kSwifterKitFastPathMaximumRingBytes", "\(limits.maximumRingBytes)"),
+          ("kSwifterKitFastPathRingHeaderSize", "\(limits.ringHeaderSize)"),
+          ("kSwifterKitFastPathRingProducerOffset", "\(limits.ringProducerOffset)"),
+          ("kSwifterKitFastPathRingConsumerOffset", "\(limits.ringConsumerOffset)"),
+          ("kSwifterKitFastPathRingEntrySizeOffset", "\(limits.ringEntrySizeOffset)"),
+          ("kSwifterKitFastPathRingEntryCountOffset", "\(limits.ringEntryCountOffset)"),
         ]
       ), enumeration("SwifterKitFastPathOpcode", type: "uint32_t", RuntimeFastPathOpcode.allCases),
       enumeration(
         "SwifterKitFastPathOperandKind",
         type: "uint32_t",
         RuntimeFastPathOperandKind.allCases
+      ),
+      enumeration(
+        "SwifterKitFastPathRingAddressHalf",
+        type: "uint32_t",
+        RuntimeFastPathRingAddressHalf.allCases
+      ),
+      enumeration(
+        "SwifterKitFastPathRingIndex",
+        type: "uint32_t",
+        RuntimeFastPathRingIndex.allCases
       ),
       enumeration(
         "SwifterKitFastPathComputeOperation",

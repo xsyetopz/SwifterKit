@@ -187,6 +187,34 @@ struct DriverRuntimeConnectionTests {
     }
   }
 
+  @Test
+  func mapsFastPathRingsByIdentifier() async throws {
+    let backend = RuntimeMockConnection(capabilities: [.pci])
+    let runtime = try await makeRuntime(backend: backend)
+    let ring = FastPathRing(id: 5, entrySize: 16, entryCount: 4, direction: .bidirectional)
+    let fastPath = FastPathConfiguration(
+      programs: [FastPathProgram(trigger: .start, operations: [.delay(microseconds: 1)])],
+      rings: [ring]
+    )
+    let context = await DriverContext(runtime: runtime, fastPath: fastPath)
+    let memory = try await context.mapRing(5)
+    #expect(!memory.isReadOnly)
+    #expect(await backend.mappings.types == [0x0300_0005])
+    await #expect(throws: FastPathRuntimeError.unknownRing(6)) { try await context.mapRing(6) }
+    let unconfigured = await DriverContext(runtime: runtime)
+    await #expect(throws: FastPathRuntimeError.unknownRing(0x100_0000)) {
+      try await unconfigured.mapRing(0x100_0000)
+    }
+    _ = try await unconfigured.mapRing(9)
+    #expect(await backend.mappings.types == [0x0300_0005, 0x0300_0009])
+    await #expect(throws: DriverContextError.unsupportedCapability(.pci)) {
+      try await DriverContext(capabilities: .memory).mapRing(5)
+    }
+    #expect(FastPathRingLayout.entryOffset(5, of: ring) == 64 + 16)
+    #expect(FastPathRingLayout.entryOffset(3, of: ring) == 64 + 48)
+    #expect(ring.byteCount == 128)
+  }
+
   private func makeRuntime(
     backend: RuntimeMockConnection,
     requiring capabilities: RuntimeCapabilities = [],

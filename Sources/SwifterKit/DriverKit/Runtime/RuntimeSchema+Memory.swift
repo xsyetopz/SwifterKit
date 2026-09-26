@@ -24,7 +24,7 @@ enum RuntimeClientMemoryKind: UInt32, CaseIterable {
   case memoryBuffer = 1
   /// A networking packet pool; the identifier is an ``EthernetPacketPool`` value.
   case packetPool = 2
-  /// Reserved for fast-path rings; the extension answers `kIOReturnUnsupported`.
+  /// A fast-path ring; the identifier is its ``FastPathRing/id``.
   case ring = 3
   /// Reserved for host-shared data queues; the extension answers `kIOReturnUnsupported`.
   case dataQueue = 4

@@ -6,6 +6,14 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** `FastPathOp` gains `ringLoad`, `ringStore`, and `ringAdvance`;
+  `FastPathOperand` gains `ringDeviceAddress` and `ringIndex`; `FastPathError`
+  gains `tooManyRings`, `invalidRing`, `duplicateRing`, `ringBytesExceeded`,
+  `ringsWithoutPCIDevice`, `unknownRing`, and `ringFieldOutOfBounds`; and
+  `FastPathRuntimeError` gains `unknownRing`. Exhaustive switches over them
+  must handle the new cases.
+- A client-memory type of kind 3 maps a fast-path ring instead of answering
+  `kIOReturnUnsupported`.
 - **Breaking:** `DriverConnection` requires `mapMemory(type:readOnly:)`, which
   maps the memory the user client shares for a `CopyClientMemoryForType` type
   into the host and returns a `DriverSharedMemory`; custom connections must
@@ -276,6 +284,19 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- Fast-path rings: `FastPathConfiguration.rings` declares up to eight
+  `FastPathRing` values (power-of-two entry sizes of 8-4096 bytes and counts
+  of 2-65536, at most 4 MiB together, PCI device required). At fast-path start
+  the extension allocates one `IOBufferMemoryDescriptor` per ring, a 64-byte
+  header with the producer and consumer indices followed by the entries,
+  prepares it for DMA with `IODMACommand` as one segment, and releases it
+  after the stop programs. Programs load and store entry fields with
+  `ringLoad` and `ringStore`, move indices with `ringAdvance` (masked by the
+  entry count), and hand the device entry 0's address through
+  `.ringDeviceAddress(_:_:)`; the interpreter re-validates every ring row and
+  field. `DriverContext.mapRing(_:)` maps a ring into the host as
+  `DriverSharedMemory` through client-memory kind 3, and `FastPathRingLayout`
+  documents the header.
 - `DriverContext.mapMemory(_:)` maps a runtime buffer, subrange, or chain into
   the host without copying, and `DriverContext.mapPacketPool(_:)` maps the
   transmit or receive `EthernetPacketPool` read-only. The runtime user client

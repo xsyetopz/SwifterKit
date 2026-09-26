@@ -105,8 +105,22 @@ struct FastPathInterpreterTests {
         argumentCount: 4,
         operations: [.emit(FastPathSlot.allCases)]
       ),
+      FastPathProgram(
+        trigger: .command,
+        argumentCount: 2,
+        operations: [
+          .ringStore(7, entry: .v0, fieldOffset: 8, width: .bits32, .value(.v1)),
+          .ringLoad(7, entry: .v0, fieldOffset: 8, width: .bits32, into: .v2),
+          .ringAdvance(7, .producer, by: .constant(3)),
+          .ringAdvance(7, .producer, by: .constant(3)),
+          .compute(.v3, .add, .ringIndex(7, .producer)),
+          .compute(.v4, .add, .ringDeviceAddress(7, .high)),
+          .compute(.v5, .add, .ringDeviceAddress(7, .low)),
+        ]
+      ),
     ],
-    barSizes: [0: 0x100, 2: 0x10]
+    barSizes: [0: 0x100, 2: 0x10],
+    rings: [FastPathRing(id: 7, entrySize: 16, entryCount: 4, direction: .deviceReads)]
   )
 
   /// The transcript of each valid run: status, emit flag, slots, then accesses in order.
@@ -130,6 +144,11 @@ struct FastPathInterpreterTests {
     "emit-clear status=0 emitted=1 slots=5,100,0,0,0,0,0,0 log=R0+8/4=100 E:5",
     "fail status=E00002BC emitted=0 slots=0,0,0,0,0,0,0,0 log=W0+40/4=7",
     "emit-all status=0 emitted=1 slots=1,2,3,4,0,0,0,0 log=E:1:2:3:4:0:0:0:0",
+    // Entry 5 wraps to entry 1 (byte 0x18); the host-written producer 0x10 masks to 0, and two
+    // advances by 3 wrap to 2.
+    "ring status=0 emitted=0 slots=5,AABBCCDD,AABBCCDD,2,1,23456000,0,0 log=S0+18/4=AABBCCDD"
+      + " L0+18/4=AABBCCDD I0.0/4=10 P0.0/4=3 I0.0/4=3 P0.0/4=2 I0.0/4=2 A0+0/8=123456000"
+      + " A0+0/8=123456000",
   ]
 
   static let rejections = [
@@ -143,6 +162,10 @@ struct FastPathInterpreterTests {
     "poll-wide-mask", "poll-budget", "delay-zero", "delay-over", "delay-unused", "skip-zero",
     "skip-past-end", "skip-test", "skip-slot", "emit-zero", "emit-over", "emit-slot",
     "emit-extra-byte", "emit-unused", "fail-zero", "fail-unused", "bar-smaller", "bar-missing",
+    "ring-index", "ring-width", "ring-field-bounds", "ring-field-misaligned", "ring-entry-slot",
+    "ring-store-wide-constant", "ring-load-slot", "ring-load-unused", "ring-advance-index",
+    "ring-advance-ring", "ring-operand-ring", "ring-operand-selector", "ring-entry-size",
+    "ring-entry-count", "ring-bytes", "ring-direction", "ring-identifier", "ring-missing",
   ]
 
   static let invalidConfigurations = [
@@ -189,7 +212,7 @@ struct FastPathInterpreterTests {
     for name in Self.invalidConfigurations {
       #expect(lines["config-\(name)"] == "config-\(name) valid=0")
     }
-    #expect(lines["interrupt-program"] == "interrupt-program source3=7 source4=10 count=10")
+    #expect(lines["interrupt-program"] == "interrupt-program source3=7 source4=11 count=11")
     #expect(lines["deliver"] == "deliver always=1 never=0 emitted=1 silent=0 not-run=1 unknown=1")
     #expect(lines["command"] == "command matching=1 count=0 start=0 interrupt=0 missing=0")
     #expect(

@@ -14,11 +14,18 @@ public struct FastPathConfiguration: Sendable, Hashable {
   /// Every register must lie inside its declared BAR; the extension refuses to start the fast
   /// path when the device's BAR is smaller.
   public let barSizes: [UInt8: UInt64]
+  /// The descriptor rings the extension allocates for DMA when the fast path starts.
+  public let rings: [FastPathRing]
 
   /// Creates a fast-path configuration.
-  public init(programs: [FastPathProgram], barSizes: [UInt8: UInt64] = [:]) {
+  public init(
+    programs: [FastPathProgram],
+    barSizes: [UInt8: UInt64] = [:],
+    rings: [FastPathRing] = []
+  ) {
     self.programs = programs
     self.barSizes = barSizes
+    self.rings = rings
   }
 }
 
@@ -45,6 +52,14 @@ public enum FastPathLimits {
   public static let maximumBAR = UInt8(RuntimeFastPathLimits.barCount - 1)
   /// The most slots one `emit` delivers.
   public static let maximumEmittedSlots = RuntimeFastPathLimits.slotCount
+  /// The most rings in one configuration.
+  public static let maximumRings = RuntimeFastPathLimits.maximumRings
+  /// The allowed entry sizes of a ring, in bytes; each is a power of two.
+  public static let ringEntrySizes = RuntimeFastPathLimits.ringEntrySizes
+  /// The allowed entry counts of a ring; each is a power of two.
+  public static let ringEntryCounts = RuntimeFastPathLimits.ringEntryCounts
+  /// The most bytes every ring of a configuration occupies together, headers included.
+  public static let maximumRingBytes = RuntimeFastPathLimits.maximumRingBytes
 }
 
 /// Why a ``FastPathConfiguration`` was refused. `program` and `operation` are array indices.
@@ -98,4 +113,19 @@ public enum FastPathError: Error, Sendable, Hashable {
   case invalidEmit(program: Int, operation: Int)
   /// A `fail` status is zero, `kIOReturnSuccess`.
   case invalidFailStatus(program: Int, operation: Int)
+  /// The configuration has more than ``FastPathLimits/maximumRings`` rings.
+  case tooManyRings(count: Int)
+  /// A ring's identifier is above `0xFF_FFFF`, or its entry size or count is not a power of two
+  /// in ``FastPathLimits/ringEntrySizes`` or ``FastPathLimits/ringEntryCounts``.
+  case invalidRing(ring: UInt32)
+  /// Two rings share an identifier.
+  case duplicateRing(ring: UInt32)
+  /// The rings together occupy more than ``FastPathLimits/maximumRingBytes``.
+  case ringBytesExceeded(bytes: UInt64)
+  /// Rings are declared without ``DriverConfiguration/pciDevice``, the device that DMAs them.
+  case ringsWithoutPCIDevice
+  /// An operation or operand names a ring the configuration does not declare.
+  case unknownRing(program: Int, operation: Int)
+  /// A ring field is not aligned to its width or extends past the entry.
+  case ringFieldOutOfBounds(program: Int, operation: Int)
 }

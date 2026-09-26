@@ -310,6 +310,9 @@ extension DriverExtensionGenerator {
           void StopFastPath() LOCALONLY;
           void InvalidateFastPathBARs() LOCALONLY;
           bool RunFastPathInterrupt(uint32_t sourceIndex) LOCALONLY;
+          kern_return_t CopyFastPathRingMemory(
+              uint32_t identifier,
+              IOMemoryDescriptor** memory) LOCALONLY;
           kern_return_t FastPathCommand(
               uint32_t opcode,
               const uint8_t* payload,

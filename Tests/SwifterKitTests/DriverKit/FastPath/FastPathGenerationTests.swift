@@ -66,6 +66,8 @@ struct FastPathGenerationTests {
             {2, 0, 256ULL}
         };
         static constexpr uint32_t kSwifterKitFastPathBARSizeCount = 2;
+        static constexpr SwifterKitFastPathRing kSwifterKitFastPathRings[1] = {};
+        static constexpr uint32_t kSwifterKitFastPathRingCount = 0;
         """
     )
   }
@@ -93,7 +95,11 @@ struct FastPathGenerationTests {
     ] { #expect(header.contains("kSwifterKitFastPath\(name) = \(value);")) }
     #expect(header.contains("    Fail = 9,\n"))
     #expect(header.contains("static_assert(sizeof(SwifterKitFastPathOperation) == 40);"))
-    #expect(Set(RuntimeFastPathOpcode.allCases.map(\.rawValue)).count == 9)
+    #expect(header.contains("    RingAdvance = 12,\n"))
+    #expect(header.contains("kSwifterKitFastPathMaximumRings = 8;"))
+    #expect(header.contains("kSwifterKitFastPathRingHeaderSize = 64;"))
+    #expect(header.contains("static_assert(sizeof(SwifterKitFastPathRing) == 16);"))
+    #expect(Set(RuntimeFastPathOpcode.allCases.map(\.rawValue)).count == 12)
   }
 
   /// Every operation kind, register width, operand kind, and condition, repeated to fill a program.
@@ -116,7 +122,20 @@ struct FastPathGenerationTests {
     .skip(count: 1, if: FastPathCondition(.v0, mask: 1, is: .nonzero)),
     .fail(status: Int32(bitPattern: 0xE000_02BC)),
     .skip(count: 1, if: FastPathCondition(.v2, is: .zero)), .emit(FastPathSlot.allCases),
+    .ringStore(0, entry: .v0, fieldOffset: 8, width: .bits64, .ringDeviceAddress(0, .low)),
+    .ringLoad(7, entry: .v1, fieldOffset: 4088, width: .bits64, into: .v2),
+    .ringAdvance(3, .consumer, by: .ringIndex(3, .producer)),
+    .write(FastPathRegister(bar: 0, offset: 8, width: .bits32), .ringDeviceAddress(7, .high)),
   ]
+
+  /// The most rings, with the smallest and largest entry sizes and counts.
+  private static let rings = (0..<UInt32(FastPathLimits.maximumRings)).map { id in
+    switch id {
+    case 3: FastPathRing(id: id, entrySize: 8, entryCount: 65_536, direction: .deviceWrites)
+    case 7: FastPathRing(id: id, entrySize: 4096, entryCount: 256, direction: .deviceReads)
+    default: FastPathRing(id: id, entrySize: 64, entryCount: 2, direction: .bidirectional)
+    }
+  }
 
   /// The most programs, each with the most operations, over every trigger and delivery.
   static let maximal: FastPathConfiguration = {
@@ -138,7 +157,8 @@ struct FastPathGenerationTests {
           operations: operations
         )
       },
-      barSizes: [0: 0x1000, 2: 0x100, 5: 0x20]
+      barSizes: [0: 0x1000, 2: 0x100, 5: 0x20],
+      rings: rings
     )
   }()
 
@@ -163,6 +183,7 @@ struct FastPathGenerationTests {
       #expect(configuration.contains("kSwifterKitFastPathOperationCount = 2048;"))
       #expect(configuration.contains("kSwifterKitFastPathTriggerCount = 32;"))
       #expect(configuration.contains("kSwifterKitFastPathBARSizeCount = 3;"))
+      #expect(configuration.contains("kSwifterKitFastPathRingCount = 8;"))
       try expectGeneratedExtensionBuilds(
         at: output,
         derivedData: root.appendingPathComponent("DerivedData")

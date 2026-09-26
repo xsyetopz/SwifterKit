@@ -44,7 +44,7 @@ struct ClientMemoryRuntimeContractTests {
   }
 
   @Test
-  func serviceRefusesUnknownTypesAndReservesRingsAndQueues() throws {
+  func serviceRefusesUnknownTypesMapsRingsAndReservesQueues() throws {
     let clients = try Self.checkedIn("SwifterKitRuntimeClients.cpp")
     let copy = try section(
       of: clients,
@@ -66,6 +66,7 @@ struct ClientMemoryRuntimeContractTests {
       "readOnly = true;",
       "result = CopyPacketPoolMemory(identifier, memory);",
       "SwifterKitClientMemoryKind::Ring",
+      "result = CopyFastPathRingMemory(identifier, memory);",
       "SwifterKitClientMemoryKind::DataQueue",
       "result = kIOReturnUnsupported;",
       "if (result == kIOReturnSuccess && options != nullptr && readOnly) {",

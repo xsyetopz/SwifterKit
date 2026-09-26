@@ -2,12 +2,15 @@
 
 #if SWIFTERKIT_ENABLE_FAST_PATH
 
+    #include <DriverKit/IOBufferMemoryDescriptor.h>
+    #include <DriverKit/IODMACommand.h>
     #include <DriverKit/IOInterruptDispatchSource.h>
     #include <DriverKit/IOLib.h>
     #include <DriverKit/IOReturn.h>
     #include <DriverKit/OSData.h>
 
     #include "SwifterKitRuntimeFastPathInterpreter.h"
+    #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeServiceState.h"
@@ -28,6 +31,16 @@
 //   delivered according to the trigger's delivery. Command programs answer their command
 //   exactly once, with the program's status and slots. Stop programs run first in Stop, before
 //   any teardown; after them no program runs again.
+// - Rings are allocated after the tables and BARs check out and before start programs run, so
+//   a start program can hand the device a ring's address. Each is one IOBufferMemoryDescriptor
+//   of a 64-byte header and its entries, mapped into the extension and prepared for DMA with an
+//   IODMACommand on the PCI device; a ring the DMA preparation cannot describe as one segment
+//   refuses the fast path, and every ring allocated so far is released. The header holds the
+//   producer and consumer indices, the entry size, and the entry count (the offsets are
+//   kSwifterKitFastPathRing*Offset); indices are stored with release and loaded with acquire
+//   ordering because the host maps the same buffer through CopyFastPathRingMemory. Rings stay
+//   allocated while the device may hold their addresses: until StopFastPath, after the stop
+//   programs, completes their DMA and releases them.
 // - emit queues a fast-path event through the lossy EnqueueEvent path; an event the full queue
 //   rejects increments fastPathEventDrops, which Swift reads with FastPathStatus.
 
@@ -57,7 +70,13 @@ namespace {
         .triggerCount = kSwifterKitFastPathTriggerCount,
         .bars = kSwifterKitFastPathBARSizes,
         .barCount = kSwifterKitFastPathBARSizeCount,
+        .rings = kSwifterKitFastPathRings,
+        .ringCount = kSwifterKitFastPathRingCount,
     };
+    // Rings start on a page so the host maps them from their first byte.
+    constexpr uint64_t kRingAlignment = 4096;
+    // PrepareForDMA fills a caller array of up to 32 segments; a ring must need only one.
+    constexpr uint32_t kSegmentCapacity = 32;
     constexpr uint32_t kMicrosecondsPerMillisecond = 1000;
     constexpr uint32_t kMaximumInterruptSources = 32;
 
@@ -136,6 +155,47 @@ namespace {
             }
         }
 
+        [[nodiscard]] uint64_t RingBase(uint32_t ring) const {
+            return state->fastPathRings[ring % kSwifterKitFastPathMaximumRings].address;
+        }
+
+        [[nodiscard]] uint64_t RingLoad(uint32_t ring, uint64_t offset, uint32_t width) const {
+            uint64_t value = 0;
+            __builtin_memcpy(
+                &value,
+                SwifterKitMappedPointer(
+                    RingBase(ring) + kSwifterKitFastPathRingHeaderSize + offset),
+                width);
+            return value;
+        }
+
+        void RingStore(uint32_t ring, uint64_t offset, uint32_t width, uint64_t value) const {
+            __builtin_memcpy(
+                SwifterKitMappedPointer(
+                    RingBase(ring) + kSwifterKitFastPathRingHeaderSize + offset),
+                &value,
+                width);
+        }
+
+        [[nodiscard]] uint32_t* RingIndexPointer(uint32_t ring, uint32_t index) const {
+            return SwifterKitMappedPointer<uint32_t>(
+                RingBase(ring)
+                + (index == 0 ? kSwifterKitFastPathRingProducerOffset
+                              : kSwifterKitFastPathRingConsumerOffset));
+        }
+
+        [[nodiscard]] uint32_t RingIndex(uint32_t ring, uint32_t index) const {
+            return __atomic_load_n(RingIndexPointer(ring, index), __ATOMIC_ACQUIRE);
+        }
+
+        void SetRingIndex(uint32_t ring, uint32_t index, uint32_t value) const {
+            __atomic_store_n(RingIndexPointer(ring, index), value, __ATOMIC_RELEASE);
+        }
+
+        [[nodiscard]] uint64_t RingDeviceAddress(uint32_t ring) const {
+            return state->fastPathRings[ring % kSwifterKitFastPathMaximumRings].deviceAddress;
+        }
+
         void Emit(const uint64_t* values, uint32_t count) const {
             SwifterKitFastPathEvent event = {.program = program, .count = count, .values = {}};
             for (uint32_t index = 0; index < count && index < kSwifterKitFastPathSlotCount;
@@ -177,6 +237,89 @@ namespace {
         return kIOReturnSuccess;
     }
 
+    void ReleaseRings(SwifterKitRuntimeService_IVars* state) {
+        for (auto& ring : state->fastPathRings) {
+            if (ring.dmaCommand != nullptr) {
+                (void)ring.dmaCommand->CompleteDMA(0);
+                OSSafeReleaseNULL(ring.dmaCommand);
+            }
+            OSSafeReleaseNULL(ring.map);
+            OSSafeReleaseNULL(ring.buffer);
+            ring = {};
+        }
+    }
+
+    // Allocates, maps, and zeroes one ring, writes its geometry into the header, and prepares it
+    // for DMA as a single segment.
+    kern_return_t PrepareRing(
+        IOService* provider,
+        const SwifterKitFastPathRing& row,
+        SwifterKitFastPathRingState* ring) {
+        const uint64_t bytes =
+            kSwifterKitFastPathRingHeaderSize + uint64_t {row.entrySize} * row.entryCount;
+        kern_return_t result =
+            IOBufferMemoryDescriptor::Create(row.direction, bytes, kRingAlignment, &ring->buffer);
+        if (result == kIOReturnSuccess && ring->buffer != nullptr) {
+            result = ring->buffer->SetLength(bytes);
+        }
+        if (result == kIOReturnSuccess && ring->buffer != nullptr) {
+            result = ring->buffer->CreateMapping(0, 0, 0, bytes, 0, &ring->map);
+        }
+        if (result != kIOReturnSuccess || ring->buffer == nullptr || ring->map == nullptr
+            || ring->map->GetAddress() == 0) {
+            return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
+        }
+        ring->address = ring->map->GetAddress();
+        __builtin_memset(SwifterKitMappedPointer(ring->address), 0, bytes);
+        *SwifterKitMappedPointer<uint32_t>(ring->address + kSwifterKitFastPathRingEntrySizeOffset) =
+            row.entrySize;
+        *SwifterKitMappedPointer<uint32_t>(
+            ring->address + kSwifterKitFastPathRingEntryCountOffset) = row.entryCount;
+
+        IODMACommandSpecification specification = {};
+        specification.maxAddressBits = 64;
+        result = IODMACommand::Create(provider, 0, &specification, &ring->dmaCommand);
+        if (result != kIOReturnSuccess || ring->dmaCommand == nullptr) {
+            return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
+        }
+        uint64_t flags = 0;
+        uint32_t segmentCount = kSegmentCapacity;
+        IOAddressSegment segments[kSegmentCapacity] = {};
+        result = ring->dmaCommand
+                     ->PrepareForDMA(0, ring->buffer, 0, bytes, &flags, &segmentCount, segments);
+        if (result != kIOReturnSuccess) {
+            // Nothing is prepared, so ReleaseRings must not complete it.
+            OSSafeReleaseNULL(ring->dmaCommand);
+            return result;
+        }
+        if (segmentCount != 1 || segments[0].length < bytes) {
+            return kIOReturnNoResources;
+        }
+        ring->deviceAddress = segments[0].address + kSwifterKitFastPathRingHeaderSize;
+        return kIOReturnSuccess;
+    }
+
+    // Prepares every ring on the PCI device, the provider that performs their DMA. Any failure
+    // releases the rings prepared so far and refuses the fast path.
+    kern_return_t PrepareRings(
+        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitFastPathTables& tables) {
+    #if SWIFTERKIT_ENABLE_PCI
+        IOService* const provider = state->pciDevice;
+    #else
+        IOService* const provider = nullptr;
+    #endif
+        for (uint32_t index = 0; index < tables.ringCount; ++index) {
+            if (provider == nullptr
+                || PrepareRing(provider, tables.rings[index], &state->fastPathRings[index])
+                       != kIOReturnSuccess) {
+                ReleaseRings(state);
+                return kIOReturnNoResources;
+            }
+        }
+        return kIOReturnSuccess;
+    }
+
     kern_return_t PrepareFastPath(SwifterKitRuntimeService_IVars* state) {
         uint32_t sources[kMaximumInterruptSources] = {};
         const uint32_t sourceCount = kSwifterKitInterruptSourceCount < kMaximumInterruptSources
@@ -192,7 +335,8 @@ namespace {
                 &state->fastPathBARs)) {
             return kIOReturnNoResources;
         }
-        return PrepareBARs(state);
+        const kern_return_t result = PrepareBARs(state);
+        return result == kIOReturnSuccess ? PrepareRings(state, kTables) : result;
     }
 
     // Runs one program under fastPathLock. Returns the fast path's refusal or stop status when
@@ -325,7 +469,30 @@ void SwifterKitRuntimeService::StopFastPath() {
     IOLockLock(ivars->fastPathLock);
     ivars->fastPathRunning = false;
     ivars->fastPathRefusal = kIOReturnNotReady;
+    ReleaseRings(ivars);
     IOLockUnlock(ivars->fastPathLock);
+}
+
+kern_return_t SwifterKitRuntimeService::CopyFastPathRingMemory(
+    uint32_t identifier,
+    IOMemoryDescriptor** memory) {
+    if (ivars == nullptr || ivars->fastPathLock == nullptr || memory == nullptr) {
+        return kIOReturnNotReady;
+    }
+    IOLockLock(ivars->fastPathLock);
+    const uint32_t ring = SwifterKitFastPathRingNamed(kTables, identifier);
+    kern_return_t result = kIOReturnSuccess;
+    if (ring >= kTables.ringCount) {
+        result = kIOReturnBadArgument;
+    } else if (!ivars->fastPathRunning || ivars->fastPathRings[ring].buffer == nullptr) {
+        result = kIOReturnNotReady;
+    } else {
+        // DriverKit consumes this reference; the ring keeps its own until StopFastPath.
+        ivars->fastPathRings[ring].buffer->retain();
+        *memory = ivars->fastPathRings[ring].buffer;
+    }
+    IOLockUnlock(ivars->fastPathLock);
+    return result;
 }
 
 void SwifterKitRuntimeService::InvalidateFastPathBARs() {

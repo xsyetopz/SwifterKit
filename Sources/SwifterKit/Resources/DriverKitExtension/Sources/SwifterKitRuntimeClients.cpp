@@ -60,8 +60,9 @@ auto SwifterKitRuntimeService::ClientCrashed_Impl(IOService* client, uint64_t op
 // Resolves an IOConnectMapMemory64 memory type for the runtime user client, which only an
 // entitled host can open. The type's kind selects the source and its identifier the object;
 // kinds the extension was generated without, identifiers that name nothing, and any bit above
-// the 32-bit type are refused with kIOReturnBadArgument. Rings and data queues have reserved
-// kinds and answer kIOReturnUnsupported.
+// the 32-bit type are refused with kIOReturnBadArgument. A ring answers kIOReturnNotReady while
+// the fast path is not running. Data queues have a reserved kind and answer
+// kIOReturnUnsupported.
 auto SwifterKitRuntimeService::CopyClientMemory(
     uint64_t type,
     uint64_t* options,
@@ -74,7 +75,7 @@ auto SwifterKitRuntimeService::CopyClientMemory(
         return kIOReturnBadArgument;
     }
     const uint32_t kind = static_cast<uint32_t>(type) >> kSwifterKitClientMemoryKindShift;
-    // Unused when the extension was generated without memory and networking.
+    // Unused when the extension was generated without memory, networking, and a fast path.
     [[maybe_unused]] const uint32_t identifier =
         static_cast<uint32_t>(type) & kSwifterKitClientMemoryIdentifierMask;
     kern_return_t result = kIOReturnBadArgument;
@@ -91,9 +92,11 @@ auto SwifterKitRuntimeService::CopyClientMemory(
 #if SWIFTERKIT_ENABLE_NETWORKING
         result = CopyPacketPoolMemory(identifier, memory);
 #endif
-    } else if (
-        kind == static_cast<uint32_t>(SwifterKitClientMemoryKind::Ring)
-        || kind == static_cast<uint32_t>(SwifterKitClientMemoryKind::DataQueue)) {
+    } else if (kind == static_cast<uint32_t>(SwifterKitClientMemoryKind::Ring)) {
+#if SWIFTERKIT_ENABLE_FAST_PATH
+        result = CopyFastPathRingMemory(identifier, memory);
+#endif
+    } else if (kind == static_cast<uint32_t>(SwifterKitClientMemoryKind::DataQueue)) {
         result = kIOReturnUnsupported;
     }
     if (result == kIOReturnSuccess && options != nullptr && readOnly) {

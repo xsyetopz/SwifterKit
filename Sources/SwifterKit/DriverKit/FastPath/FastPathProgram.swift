@@ -63,6 +63,10 @@ public enum FastPathOperand: Sendable, Hashable {
   case constant(UInt64)
   /// The current value of a slot.
   case value(FastPathSlot)
+  /// Half of the device address of entry 0 of the ring with this identifier.
+  case ringDeviceAddress(UInt32, FastPathRingAddressHalf)
+  /// The current producer or consumer index of the ring with this identifier.
+  case ringIndex(UInt32, FastPathRingIndex)
 }
 
 /// A wrapping 64-bit operation that `compute` applies to a slot.
@@ -141,6 +145,27 @@ public enum FastPathOp: Sendable, Hashable {
   case emit([FastPathSlot])
   /// Ends the program with a nonzero `IOReturn`.
   case fail(status: Int32)
+  /// Reads `width` bytes at `fieldOffset` of the ring entry whose index is in `entry`, masked by
+  /// the entry count, into a slot, zero-extended. The field is aligned to its width and lies
+  /// inside the entry.
+  case ringLoad(
+    UInt32,
+    entry: FastPathSlot,
+    fieldOffset: UInt32,
+    width: FastPathRegister.Width,
+    into: FastPathSlot
+  )
+  /// Writes an operand to `width` bytes at `fieldOffset` of the ring entry whose index is in
+  /// `entry`, masked by the entry count; a constant must fit the width.
+  case ringStore(
+    UInt32,
+    entry: FastPathSlot,
+    fieldOffset: UInt32,
+    width: FastPathRegister.Width,
+    FastPathOperand
+  )
+  /// Adds an operand to a ring index, wrapping by the entry count.
+  case ringAdvance(UInt32, FastPathRingIndex, by: FastPathOperand)
 }
 
 /// What runs a fast-path program.

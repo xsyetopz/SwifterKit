@@ -26,6 +26,24 @@ enum RuntimeFastPathLimits {
   static let barCount = 6
   /// The shift distance a `shiftLeft` or `shiftRight` constant stays below.
   static let shiftLimit = 64
+  /// The most rings in one configuration.
+  static let maximumRings = 8
+  /// The entry sizes of a ring in bytes; a size must also be a power of two.
+  static let ringEntrySizes = 8...4096
+  /// The entry counts of a ring; a count must also be a power of two.
+  static let ringEntryCounts = 2...65_536
+  /// The most bytes every ring occupies together, headers included.
+  static let maximumRingBytes = 4 * 1024 * 1024
+  /// The bytes of a ring's header, before entry 0.
+  static let ringHeaderSize = 64
+  /// The header offset of the producer index, a `uint32_t`.
+  static let ringProducerOffset = 0
+  /// The header offset of the consumer index, a `uint32_t`.
+  static let ringConsumerOffset = 4
+  /// The header offset of the entry size, a `uint32_t`.
+  static let ringEntrySizeOffset = 8
+  /// The header offset of the entry count, a `uint32_t`.
+  static let ringEntryCountOffset = 12
 }
 
 /// What one `SwifterKitFastPathOperation` row does.
@@ -44,6 +62,12 @@ enum RuntimeFastPathLimits {
 ///   `immediate1` mask.
 /// - `emit`: `b` slot count, `immediate1` slot indices, one per byte from the lowest.
 /// - `fail`: `b` the `IOReturn` bit pattern.
+/// - `ringLoad`: `a` ring index into the ring table `| widthBytes << 8`, `b` entry slot, `c`
+///   destination slot, `immediate0` field offset.
+/// - `ringStore`: `a` ring index `| widthBytes << 8`, `b` entry slot, `c` operand kind,
+///   `immediate0` field offset, `immediate1` operand.
+/// - `ringAdvance`: `a` ring index, `b` ``RuntimeFastPathRingIndex``, `c` operand kind,
+///   `immediate1` operand.
 ///
 /// Unused fields are zero.
 enum RuntimeFastPathOpcode: UInt32, CaseIterable {
@@ -56,6 +80,9 @@ enum RuntimeFastPathOpcode: UInt32, CaseIterable {
   case skip = 7
   case emit = 8
   case fail = 9
+  case ringLoad = 10
+  case ringStore = 11
+  case ringAdvance = 12
 }
 
 /// How a `write` or `compute` row interprets its operand value.
@@ -64,6 +91,23 @@ enum RuntimeFastPathOperandKind: UInt32, CaseIterable {
   case constant = 0
   /// `immediate1` is a slot index whose value is used.
   case value = 1
+  /// `immediate1` is a ring index `| RuntimeFastPathRingAddressHalf << 8`; the value is that
+  /// half of the device address of the ring's entry 0.
+  case ringDeviceAddress = 2
+  /// `immediate1` is a ring index `| RuntimeFastPathRingIndex << 8`; the value is that index.
+  case ringIndex = 3
+}
+
+/// The half of a ring device address a `ringDeviceAddress` operand takes.
+enum RuntimeFastPathRingAddressHalf: UInt32, CaseIterable {
+  case low = 0
+  case high = 1
+}
+
+/// The ring index a `ringIndex` operand or a `ringAdvance` row names.
+enum RuntimeFastPathRingIndex: UInt32, CaseIterable {
+  case producer = 0
+  case consumer = 1
 }
 
 /// The wrapping arithmetic or bitwise operation a `compute` row applies.
@@ -164,6 +208,15 @@ struct RuntimeFastPathRow {
     fields: [("uint32_t", "bar"), ("uint32_t", "reserved"), ("uint64_t", "minimumSize")]
   )
 
+  /// One ring: its identifier, entry geometry, and `kIOMemoryDirection` value.
+  static let ring = Self(
+    name: "SwifterKitFastPathRing",
+    fields: [
+      ("uint32_t", "id"), ("uint32_t", "entrySize"), ("uint32_t", "entryCount"),
+      ("uint32_t", "direction"),
+    ]
+  )
+
   /// A `fastPathRun` command payload: the program index and its arguments, unused ones zero.
   static let runRequest = Self(
     name: "SwifterKitFastPathRunRequest",
@@ -188,5 +241,7 @@ struct RuntimeFastPathRow {
   )
 
   /// Every row layout, in header order.
-  static let all = [program, operation, trigger, bar, runRequest, runResult, event, statusReply]
+  static let all = [
+    program, operation, trigger, bar, ring, runRequest, runResult, event, statusReply,
+  ]
 }

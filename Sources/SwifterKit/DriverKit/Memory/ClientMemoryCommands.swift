@@ -19,4 +19,17 @@ extension DriverContext {
     else { throw DriverMemoryError.invalidHandle }
     return try await mapMemory(type, readOnly: true, requiring: .networking)
   }
+
+  /// Maps a fast-path ring into this process, header and entries, without copying.
+  ///
+  /// ``FastPathRingLayout`` describes the bytes. The extension answers `kIOReturnNotReady` while
+  /// its fast path is not running. When the context has a ``fastPath`` configuration, a ring it
+  /// does not declare is refused before any request. The mapping keeps the ring's memory alive
+  /// after the fast path stops, but the device no longer uses it then.
+  public func mapRing(_ id: UInt32) async throws -> DriverSharedMemory {
+    guard fastPath?.rings.contains(where: { $0.id == id }) ?? true,
+      let type = RuntimeClientMemoryType(kind: .ring, identifier: UInt64(id))
+    else { throw FastPathRuntimeError.unknownRing(id) }
+    return try await mapMemory(type, readOnly: false, requiring: .pci)
+  }
 }

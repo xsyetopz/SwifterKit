@@ -43,7 +43,21 @@
 #endif
 
 #if SWIFTERKIT_ENABLE_FAST_PATH
+    #include <DriverKit/IOBufferMemoryDescriptor.h>
+    #include <DriverKit/IODMACommand.h>
+    #include <DriverKit/IOMemoryMap.h>
+
     #include "SwifterKitRuntimeFastPathInterpreter.h"
+
+// One fast-path ring: its buffer, the extension's mapping of it, the DMA preparation that pins
+// it, the mapped address, and the device address of entry 0. See SwifterKitRuntimeFastPath.cpp.
+struct SwifterKitFastPathRingState {
+    IOBufferMemoryDescriptor* buffer = nullptr;
+    IOMemoryMap* map = nullptr;
+    IODMACommand* dmaCommand = nullptr;
+    uint64_t address = 0;
+    uint64_t deviceAddress = 0;
+};
 #endif
 
 #if SWIFTERKIT_ENABLE_INTERRUPTS
@@ -441,6 +455,7 @@ struct SwifterKitRuntimeService_IVars {
     SwifterKitFastPathBARSizes fastPathBARs = {};
     uint8_t fastPathMemoryIndices[kSwifterKitFastPathBARCount] = {};
     uint64_t fastPathEventDrops = 0;
+    SwifterKitFastPathRingState fastPathRings[kSwifterKitFastPathMaximumRings] = {};
 #endif
 };
 

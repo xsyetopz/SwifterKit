@@ -17,6 +17,17 @@ static constexpr uint32_t kSwifterKitFastPathMaximumDelayMicroseconds = 1000;
 static constexpr uint32_t kSwifterKitFastPathMaximumDelayBudgetMicroseconds = 10000;
 static constexpr uint32_t kSwifterKitFastPathBARCount = 6;
 static constexpr uint32_t kSwifterKitFastPathShiftLimit = 64;
+static constexpr uint32_t kSwifterKitFastPathMaximumRings = 8;
+static constexpr uint32_t kSwifterKitFastPathMinimumRingEntrySize = 8;
+static constexpr uint32_t kSwifterKitFastPathMaximumRingEntrySize = 4096;
+static constexpr uint32_t kSwifterKitFastPathMinimumRingEntryCount = 2;
+static constexpr uint32_t kSwifterKitFastPathMaximumRingEntryCount = 65536;
+static constexpr uint32_t kSwifterKitFastPathMaximumRingBytes = 4194304;
+static constexpr uint32_t kSwifterKitFastPathRingHeaderSize = 64;
+static constexpr uint32_t kSwifterKitFastPathRingProducerOffset = 0;
+static constexpr uint32_t kSwifterKitFastPathRingConsumerOffset = 4;
+static constexpr uint32_t kSwifterKitFastPathRingEntrySizeOffset = 8;
+static constexpr uint32_t kSwifterKitFastPathRingEntryCountOffset = 12;
 
 enum class SwifterKitFastPathOpcode : uint32_t {
     Read = 1,
@@ -28,11 +39,26 @@ enum class SwifterKitFastPathOpcode : uint32_t {
     Skip = 7,
     Emit = 8,
     Fail = 9,
+    RingLoad = 10,
+    RingStore = 11,
+    RingAdvance = 12,
 };
 
 enum class SwifterKitFastPathOperandKind : uint32_t {
     Constant = 0,
     Value = 1,
+    RingDeviceAddress = 2,
+    RingIndex = 3,
+};
+
+enum class SwifterKitFastPathRingAddressHalf : uint32_t {
+    Low = 0,
+    High = 1,
+};
+
+enum class SwifterKitFastPathRingIndex : uint32_t {
+    Producer = 0,
+    Consumer = 1,
 };
 
 enum class SwifterKitFastPathComputeOperation : uint32_t {
@@ -104,6 +130,14 @@ struct SwifterKitFastPathBAR {
     uint64_t minimumSize;
 };
 static_assert(sizeof(SwifterKitFastPathBAR) == 16);
+
+struct SwifterKitFastPathRing {
+    uint32_t id;
+    uint32_t entrySize;
+    uint32_t entryCount;
+    uint32_t direction;
+};
+static_assert(sizeof(SwifterKitFastPathRing) == 16);
 
 struct SwifterKitFastPathRunRequest {
     uint32_t program;

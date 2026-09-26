@@ -21,9 +21,11 @@ extension FastPathConfiguration {
     where bar > FastPathLimits.maximumBAR || size == 0 { throw .invalidBARSize(bar: bar) }
     let usesRegisters = programs.contains { $0.operations.contains { $0.register != nil } }
     if (usesRegisters || !barSizes.isEmpty) && !hasPCIDevice { throw .registersWithoutPCIDevice }
+    let rings = try validatedRings()
+    if !rings.isEmpty && !hasPCIDevice { throw .ringsWithoutPCIDevice }
     var interruptTriggers: Set<UInt32> = []
     for (index, program) in programs.enumerated() {
-      try program.validate(index: index, barSizes: barSizes)
+      try program.validate(index: index, barSizes: barSizes, rings: rings)
       if case .interrupt(let source, _) = program.trigger {
         guard interruptSources.contains(source) else {
           throw .unknownInterruptSource(program: index, sourceIndex: source)
@@ -33,6 +35,32 @@ extension FastPathConfiguration {
         }
       }
     }
+  }
+}
+
+extension FastPathConfiguration {
+  /// Checks the ring declarations and returns them keyed by identifier.
+  func validatedRings() throws(FastPathError) -> [UInt32: FastPathRing] {
+    guard rings.count <= FastPathLimits.maximumRings else {
+      throw .tooManyRings(count: rings.count)
+    }
+    var byID: [UInt32: FastPathRing] = [:]
+    var bytes: UInt64 = 0
+    for ring in rings {
+      guard ring.id <= RuntimeClientMemoryType.identifierMask,
+        FastPathLimits.ringEntrySizes.contains(Int(ring.entrySize)),
+        FastPathLimits.ringEntryCounts.contains(Int(ring.entryCount)),
+        ring.entrySize.nonzeroBitCount == 1, ring.entryCount.nonzeroBitCount == 1
+      else { throw .invalidRing(ring: ring.id) }
+      guard byID.updateValue(ring, forKey: ring.id) == nil else {
+        throw .duplicateRing(ring: ring.id)
+      }
+      bytes += ring.byteCount
+    }
+    guard bytes <= UInt64(FastPathLimits.maximumRingBytes) else {
+      throw .ringBytesExceeded(bytes: bytes)
+    }
+    return byID
   }
 }
 
@@ -50,7 +78,11 @@ extension FastPathProgram {
     }
   }
 
-  func validate(index: Int, barSizes: [UInt8: UInt64]) throws(FastPathError) {
+  func validate(
+    index: Int,
+    barSizes: [UInt8: UInt64],
+    rings: [UInt32: FastPathRing] = [:]
+  ) throws(FastPathError) {
     guard !operations.isEmpty else { throw .emptyProgram(program: index) }
     guard operations.count <= FastPathLimits.maximumOperations else {
       throw .tooManyOperations(program: index, count: operations.count)
@@ -66,7 +98,8 @@ extension FastPathProgram {
         program: index,
         operation: position,
         remaining: operations.count - position - 1,
-        barSizes: barSizes
+        barSizes: barSizes,
+        rings: rings
       )
     }
     let budget = delayBudgetMicroseconds
@@ -83,7 +116,39 @@ extension FastPathOp {
     case .read(let register, _), .write(let register, _), .modify(let register, _, _),
       .poll(let register, _, _, _, _):
       register
-    case .compute, .delay, .skip, .emit, .fail: nil
+    case .compute, .delay, .skip, .emit, .fail, .ringLoad, .ringStore, .ringAdvance: nil
+    }
+  }
+
+  /// The rings the operation and its operand name.
+  var ringIDs: [UInt32] {
+    var ids: [UInt32] = []
+    var operand: FastPathOperand?
+    switch self {
+    case .ringLoad(let ring, _, _, _, _): ids.append(ring)
+    case .ringStore(let ring, _, _, _, let value):
+      ids.append(ring)
+      operand = value
+    case .ringAdvance(let ring, _, let value):
+      ids.append(ring)
+      operand = value
+    case .write(_, let value), .compute(_, _, let value): operand = value
+    default: break
+    }
+    switch operand {
+    case .ringDeviceAddress(let ring, _), .ringIndex(let ring, _): ids.append(ring)
+    default: break
+    }
+    return ids
+  }
+
+  /// The ring field an entry access names, if any.
+  var ringField: (ring: UInt32, offset: UInt32, width: FastPathRegister.Width)? {
+    switch self {
+    case .ringLoad(let ring, _, let offset, let width, _),
+      .ringStore(let ring, _, let offset, let width, _):
+      (ring, offset, width)
+    default: nil
     }
   }
 
@@ -91,15 +156,27 @@ extension FastPathOp {
     program: Int,
     operation: Int,
     remaining: Int,
-    barSizes: [UInt8: UInt64]
+    barSizes: [UInt8: UInt64],
+    rings: [UInt32: FastPathRing] = [:]
   ) throws(FastPathError) {
     if let register {
       try register.validate(program: program, operation: operation, barSizes: barSizes)
     }
+    for id in ringIDs where rings[id] == nil {
+      throw .unknownRing(program: program, operation: operation)
+    }
+    if let field = ringField, let ring = rings[field.ring] {
+      let bytes = UInt32(field.width.byteCount)
+      guard field.offset.isMultiple(of: bytes), field.offset <= ring.entrySize - bytes else {
+        throw .ringFieldOutOfBounds(program: program, operation: operation)
+      }
+    }
     let width = register?.width.mask ?? .max
     var fits = true
     switch self {
-    case .read: break
+    case .read, .ringLoad, .ringAdvance: break
+    case .ringStore(_, _, _, let width, let operand):
+      if case .constant(let value) = operand { fits = value <= width.mask }
     case .write(_, let operand): if case .constant(let value) = operand { fits = value <= width }
     case .modify(_, let clear, let set): fits = clear <= width && set <= width
     case .compute(_, let computation, let operand):
