@@ -22444,13 +22444,14 @@
 
           ],
           "name" : "prepareWithQueue",
+          "note" : "IOUserNetworkPacket.iig declares prepareWithQueue(IOUserNetworkPacketQueue *queue, IOUserNetworkPacketDirection direction) LOCALONLY with no documentation of when a driver must call it. The runtime originates no packets: it never calls allocatePacket, and every packet it fills or completes comes from the family through the receive or transmit submission queue and leaves through a completion queue or deallocatePacket",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn prepareWithQueue(IOUserNetworkPacketQueue*, IOUserNetworkPacketDirection)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24173,13 +24174,14 @@
 
           ],
           "name" : "setPacketPoller",
+          "note" : "IOUserNetworkPacketPoller.iig: updatePacketCounters \"is automatically called by an IOUserNetworkPacketQueue when a poller was successfully set via its <code>setPacketPoller()</code> method\", so attaching only moves the counter update into the queue. The runtime already calls updatePacketCounters itself for received frames after dropping networkLock, while every EnqueuePacket, EnqueuePackets, and enqueuePackets on the completion queues runs under networkLock, which a poll takes in DrainNetworkTransmits; an attached poller would count received frames twice and update the poller under that lock",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24784,13 +24786,14 @@
 
           ],
           "name" : "setPacketPoller",
+          "note" : "IOUserNetworkPacketPoller.iig: updatePacketCounters \"is automatically called by an IOUserNetworkPacketQueue when a poller was successfully set via its <code>setPacketPoller()</code> method\", so attaching only moves the counter update into the queue. The runtime already calls updatePacketCounters itself for received frames after dropping networkLock, while every EnqueuePacket, EnqueuePackets, and enqueuePackets on the completion queues runs under networkLock, which a poll takes in DrainNetworkTransmits; an attached poller would count received frames twice and update the poller under that lock",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25525,13 +25528,14 @@
 
           ],
           "name" : "setPacketPoller",
+          "note" : "IOUserNetworkPacketPoller.iig: updatePacketCounters \"is automatically called by an IOUserNetworkPacketQueue when a poller was successfully set via its <code>setPacketPoller()</code> method\", so attaching only moves the counter update into the queue. The runtime already calls updatePacketCounters itself for received frames after dropping networkLock, while every EnqueuePacket, EnqueuePackets, and enqueuePackets on the completion queues runs under networkLock, which a poll takes in DrainNetworkTransmits; an attached poller would count received frames twice and update the poller under that lock",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
