@@ -212,8 +212,10 @@ extension DriverCommand {
 
   /// Answers a required ``AudioObjectEvent`` request.
   ///
-  /// Accepting a box request calls `SetIsAcquired`; rejecting it calls `SetAcquisitionFailure`
-  /// with `failure`, or `kIOReturnError` when `failure` is zero. Accepting a sample-rate request
+  /// The box takes the requested acquired state before its callback reports success, as
+  /// `IOUserAudioBox` requires. Accepting a box request keeps that state; rejecting it restores
+  /// the previous state and calls `SetAcquisitionFailure` with `failure`, or `kIOReturnError`
+  /// when `failure` is zero. Accepting a sample-rate request
   /// starts a device configuration change; rejecting it leaves the rate unchanged.
   public static func audioCompleteRequest(
     requestID: UInt32,

@@ -23,7 +23,9 @@
 //   audioCompleteRequest; kAudioRequestTimeoutNanoseconds elapse (rejected with
 //   kIOReturnTimeout); the host detaches or the audio runtime stops (rejected with
 //   kIOReturnAborted).
-// - Accepting a box request calls SetIsAcquired; rejecting it calls SetAcquisitionFailure.
+// - HandleChangeAcquireBox sets the requested acquired state before it reports success, as
+//   IOUserAudioBox requires. Accepting the request keeps that state; rejecting it restores the
+//   previous state and calls SetAcquisitionFailure.
 //   Accepting a sample-rate request starts a device configuration change; rejecting it leaves
 //   the rate unchanged.
 // - Without a registered host or a timeout timer, the callbacks apply the framework default at
@@ -196,13 +198,13 @@ kern_return_t SwifterKitRuntimeService::ApplyAudioRequest(
     auto* box = OSDynamicCast(SwifterKitRuntimeAudioBox, object);
     auto* clock = OSDynamicCast(SwifterKitRuntimeAudioClockDevice, object);
     if (kind == kSwifterKitAudioEventBoxRequest && box != nullptr) {
-        kern_return_t result = box->SetAcquisitionFailure(
+        // HandleChangeAcquireBox already applied the requested state; a rejection restores it.
+        kern_return_t result = box->SetIsAcquired(accept ? value != 0 : value == 0);
+        const kern_return_t failed = box->SetAcquisitionFailure(
             accept         ? kIOReturnSuccess
             : failure != 0 ? failure
                            : kIOReturnError);
-        if (accept && result == kIOReturnSuccess)
-            result = box->SetIsAcquired(value != 0);
-        return result;
+        return result == kIOReturnSuccess ? failed : result;
     }
     if (kind == kSwifterKitAudioEventClockRequest && clock != nullptr)
         return accept ? clock->RequestSampleRate(__builtin_bit_cast(double, value))

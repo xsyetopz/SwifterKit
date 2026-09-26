@@ -26,7 +26,10 @@ struct AudioObjectRuntimeContractTests {
         at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
       )
       #expect(entitlements["com.apple.developer.driverkit.family.audio"] as? Bool == true)
-      #expect(entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] == nil)
+      // Audio keeps this entitlement; see DriverExtensionGenerator.swift.
+      #expect(
+        entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] as? Bool == true
+      )
 
       try expectGeneratedExtensionBuilds(at: output, derivedData: derivedData)
     }
@@ -82,7 +85,7 @@ struct AudioObjectRuntimeContractTests {
         to: "::RejectAudioRequests("
       )
       #expect(apply.contains("SetAcquisitionFailure("))
-      #expect(apply.contains("SetIsAcquired(value != 0)"))
+      #expect(apply.contains("SetIsAcquired(accept ? value != 0 : value == 0)"))
       #expect(apply.contains("RequestSampleRate("))
       // Answers also run on the work queue, so they must not take audioLock.
       #expect(!apply.contains("audioLock"))
@@ -101,7 +104,7 @@ struct AudioObjectRuntimeContractTests {
       #expect(detach.contains("RejectAudioRequests(kIOReturnAborted);"))
 
       let box = try source("SwifterKitRuntimeAudioBox.cpp", in: output)
-      #expect(box.contains("kIOReturnNotAttached ? super::HandleChangeAcquireBox(acquire)"))
+      #expect(box.contains("return super::HandleChangeAcquireBox(acquire);"))
       let clock = try source("SwifterKitRuntimeAudioClockDevice.cpp", in: output)
       #expect(clock.contains("kIOReturnNotAttached ? RequestSampleRate(sampleRate)"))
       #expect(clock.contains("__DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5"))

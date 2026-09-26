@@ -63,12 +63,20 @@ kern_return_t SwifterKitRuntimeAudioBox::Configure(
 kern_return_t SwifterKitRuntimeAudioBox::HandleChangeAcquireBox(bool acquire) {
     if (ivars == nullptr || !IsAcquirable())
         return kIOReturnNotPermitted;
-    // Swift answers through audioCompleteRequest; without a host the framework default applies.
-    const kern_return_t result = ivars->service->BeginAudioRequest(
-        this,
-        kSwifterKitAudioEventBoxRequest,
-        ivars->index,
-        acquire);
-    return result == kIOReturnNotAttached ? super::HandleChangeAcquireBox(acquire) : result;
+    // IOUserAudioBox.iig: a callback that reports success must already have updated the value.
+    // The box takes the requested state before the request is queued, so a fast answer from
+    // Swift cannot be overwritten; a rejection from audioCompleteRequest restores the previous
+    // state. Without a host the framework default applies.
+    const bool previous = IsAcquired();
+    kern_return_t result = SetIsAcquired(acquire);
+    if (result != kIOReturnSuccess)
+        return result;
+    result = ivars->service
+                 ->BeginAudioRequest(this, kSwifterKitAudioEventBoxRequest, ivars->index, acquire);
+    if (result == kIOReturnNotAttached)
+        return super::HandleChangeAcquireBox(acquire);
+    if (result != kIOReturnSuccess)
+        (void)SetIsAcquired(previous);
+    return result;
 }
 #endif
