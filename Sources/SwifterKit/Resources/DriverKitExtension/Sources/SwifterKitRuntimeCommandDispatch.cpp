@@ -60,6 +60,20 @@ namespace {
         return RespondToCommand(context, result, response);
     }
 
+    kern_return_t DispatchInterruptCommand([[maybe_unused]] const CommandContext& context) {
+#if SWIFTERKIT_ENABLE_INTERRUPTS
+        return HandleInterruptCommand(
+            context.service,
+            context.arguments,
+            context.requestID,
+            context.opcode,
+            context.payload,
+            context.payloadLength);
+#else
+        return kIOReturnUnsupported;
+#endif
+    }
+
     kern_return_t DispatchFastPathCommand([[maybe_unused]] const CommandContext& context) {
 #if SWIFTERKIT_ENABLE_FAST_PATH
         if (context.service == nullptr) {
@@ -72,20 +86,6 @@ namespace {
             context.payloadLength,
             &response);
         return RespondToCommand(context, result, response);
-#else
-        return kIOReturnUnsupported;
-#endif
-    }
-
-    kern_return_t DispatchInterruptCommand([[maybe_unused]] const CommandContext& context) {
-#if SWIFTERKIT_ENABLE_INTERRUPTS
-        return HandleInterruptCommand(
-            context.service,
-            context.arguments,
-            context.requestID,
-            context.opcode,
-            context.payload,
-            context.payloadLength);
 #else
         return kIOReturnUnsupported;
 #endif

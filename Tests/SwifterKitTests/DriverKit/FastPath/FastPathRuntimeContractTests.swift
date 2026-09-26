@@ -85,7 +85,7 @@ struct FastPathRuntimeContractTests {
       let route = try section(
         of: dispatch,
         from: "kern_return_t DispatchFastPathCommand(",
-        to: "kern_return_t DispatchInterruptCommand("
+        to: "kern_return_t DispatchUSBControlTransfer("
       )
       #expect(route.components(separatedBy: "->FastPathCommand(").count == 2)
       #expect(route.components(separatedBy: "return RespondToCommand(").count == 2)
