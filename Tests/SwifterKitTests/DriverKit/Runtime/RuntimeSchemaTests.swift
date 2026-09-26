@@ -34,7 +34,7 @@ struct RuntimeSchemaTests {
     let header = RuntimeSchemaHeader.render()
     let declared = try Self.names(
       in: header,
-      matching: #"static constexpr [A-Za-z0-9_]+ ([A-Za-z0-9_]+) ="#,
+      matching: #"static constexpr [A-Za-z0-9_]+ ([A-Za-z0-9_]+)(?:\[\])? ="#,
       #"enum class ([A-Za-z0-9_]+) :"#
     )
     #expect(declared.count > 20)

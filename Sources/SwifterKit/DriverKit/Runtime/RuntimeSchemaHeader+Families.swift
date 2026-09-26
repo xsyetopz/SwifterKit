@@ -2,7 +2,7 @@
 extension RuntimeSchemaHeader {
   /// The family sections, in header order; `render()` separates them with blank lines.
   static func familySections() -> [[String]] {
-    serviceSections() + storageSections() + midiSections()
+    serviceSections() + storageSections() + midiSections() + usbSections()
   }
 
   /// `static constexpr` declarations of one native type, from name and value pairs.
@@ -156,6 +156,40 @@ extension RuntimeSchemaHeader {
             ("kSwifterKitMIDIPropertyMaximumEntries", "\(properties.maximumEntries)"),
             ("kSwifterKitMIDIPropertyKeyMaximumLength", "\(properties.keyMaximumLength)"),
           ]
+        )
+      ),
+    ]
+  }
+
+  private static func usbSections() -> [[String]] {
+    let usb = RuntimeUSBLimits.self
+    let releases = usb.supportedReleases.map { hex($0, digits: 4) }.joined(separator: ", ")
+    return [
+      joined(
+        constants(
+          "uint32_t",
+          [
+            ("kSwifterKitUSBMaximumInterfaces", "\(usb.maximumInterfaces)"),
+            ("kSwifterKitUSBMaximumPendingTransfers", "\(usb.maximumPendingTransfers)"),
+            ("kSwifterKitUSBMaximumIsochronousFrames", "\(usb.maximumIsochronousFrames)"),
+            ("kSwifterKitUSBMaximumBundleRings", "\(usb.maximumBundleRings)"),
+            ("kSwifterKitUSBMaximumBundleRingEntries", "\(usb.maximumBundleRingEntries)"),
+            ("kSwifterKitUSBMaximumBundleRingBytes", "\(usb.maximumBundleRingBytes)"),
+            ("kSwifterKitUSBMaximumBundledTransfers", "\(usb.maximumBundledTransfers)"),
+          ]
+        ),
+        ["static constexpr uint16_t kSwifterKitUSBSupportedReleases[] =", "    {\(releases)};"]
+      ),
+      joined(
+        constants(
+          "kSwifterKitUSBConfiguration",
+          type: "uint8_t",
+          RuntimeUSBConfigurationSelector.allCases
+        ),
+        constants(
+          "kSwifterKitUSBPipeDescriptors",
+          type: "uint8_t",
+          [RuntimeUSBPipeDescriptorPolicy.original, .currentPolicy]
         )
       ),
     ]

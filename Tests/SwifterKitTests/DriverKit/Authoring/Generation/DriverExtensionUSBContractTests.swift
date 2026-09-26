@@ -18,9 +18,22 @@ struct DriverExtensionUSBContractTests {
       #expect(
         limits.contains("static_assert(kSwifterKitUSBMaximumDescriptorLength == \(descriptor));")
       )
-      #expect(limits.contains("kSwifterKitUSBMaximumPendingTransfers = 32;"))
+      #expect(limits.contains("#include \"SwifterKitRuntimeProtocol.h\""))
+      let schema = try source(RuntimeSchemaHeader.fileName, in: output)
+      #expect(schema.contains("kSwifterKitUSBMaximumPendingTransfers = 32;"))
       #expect(
-        limits.contains(
+        schema.contains("kSwifterKitUSBMaximumInterfaces = \(RuntimeUSBLimits.maximumInterfaces);")
+      )
+      #expect(
+        schema.contains(
+          "kSwifterKitUSBSupportedReleases[] =\n"
+            + "    {0x0110, 0x0200, 0x0210, 0x0300, 0x0310, 0x0320};"
+        )
+      )
+      #expect(schema.contains("kSwifterKitUSBConfigurationValue = 2;"))
+      #expect(schema.contains("kSwifterKitUSBPipeDescriptorsCurrentPolicy = 1;"))
+      #expect(
+        schema.contains(
           "kSwifterKitUSBMaximumIsochronousFrames = \(DriverCommand.usbMaximumIsochronousFrames);"
         )
       )

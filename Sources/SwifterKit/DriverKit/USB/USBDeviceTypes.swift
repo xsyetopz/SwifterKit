@@ -139,7 +139,7 @@ public struct USBPipeDescriptors: Sendable, Hashable {
   public let superSpeedPlusIsochronousBytesPerInterval: UInt32?
 
   /// The `bcdUSB` values `AdjustPipe` accepts.
-  static let supportedReleases: Set<UInt16> = [0x0110, 0x0200, 0x0210, 0x0300, 0x0310, 0x0320]
+  static let supportedReleases = Set(RuntimeUSBLimits.supportedReleases)
 
   /// Creates endpoint descriptors, for example an adjusted copy for
   /// ``DriverContext/usbAdjustPipe(endpoint:descriptors:)``.

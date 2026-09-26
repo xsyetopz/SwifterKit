@@ -6,7 +6,7 @@ extension DriverCommand {
   /// The largest asynchronous OUT transfer: its command must fit in one message.
   public static let usbMaximumAsyncWriteLength = usbMaximumCommandPayload - 16
   /// The most frames one isochronous transfer may describe.
-  public static let usbMaximumIsochronousFrames = 1_024
+  public static let usbMaximumIsochronousFrames = RuntimeUSBLimits.maximumIsochronousFrames
 
   /// Creates a command that enqueues an asynchronous bulk or interrupt IN transfer.
   ///

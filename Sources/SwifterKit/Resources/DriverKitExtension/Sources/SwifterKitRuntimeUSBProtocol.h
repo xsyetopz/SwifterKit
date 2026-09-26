@@ -7,7 +7,9 @@
 
 // Packed payloads for the USB device, interface, and pipe opcodes in 0x0210-0x023F, and for
 // the USB pipe completion events. Swift encodes and decodes the same layouts in
-// Sources/SwifterKit/DriverKit/USB.
+// Sources/SwifterKit/DriverKit/USB. The interface, transfer, and bundled-I/O limits, the
+// supported bcdUSB releases, and the configuration and pipe-descriptor selectors come from
+// RuntimeSchema+USB.swift.
 
 // The largest payload in one command after the runtime and command headers.
 static constexpr uint32_t kSwifterKitUSBMaximumCommandPayload =
@@ -20,22 +22,11 @@ static constexpr uint32_t kSwifterKitUSBMaximumResponsePayload =
 // A descriptor response is its full length followed by the bytes when they fit.
 static constexpr uint32_t kSwifterKitUSBMaximumDescriptorLength =
     kSwifterKitUSBMaximumResponsePayload - sizeof(uint32_t);
-// Interface enumeration stops after this many interfaces.
-static constexpr uint32_t kSwifterKitUSBMaximumInterfaces = 256;
-// Outstanding AsyncIO and IsochIO requests share this many slots.
-static constexpr uint32_t kSwifterKitUSBMaximumPendingTransfers = 32;
-static constexpr uint32_t kSwifterKitUSBMaximumIsochronousFrames = 1024;
 
 struct __attribute__((packed)) SwifterKitUSBSetConfiguration {
     uint8_t configurationValue;
     uint8_t matchInterfaces;
     uint16_t reserved;
-};
-
-enum : uint8_t {
-    kSwifterKitUSBConfigurationCurrent = 0,
-    kSwifterKitUSBConfigurationIndex = 1,
-    kSwifterKitUSBConfigurationValue = 2,
 };
 
 struct __attribute__((packed)) SwifterKitUSBConfigurationRequest {
@@ -62,11 +53,6 @@ struct __attribute__((packed)) SwifterKitUSBDescriptorRequest {
 struct __attribute__((packed)) SwifterKitUSBFrameTime {
     uint64_t frame;
     uint64_t time;
-};
-
-enum : uint8_t {
-    kSwifterKitUSBPipeDescriptorsOriginal = 0,
-    kSwifterKitUSBPipeDescriptorsCurrentPolicy = 1,
 };
 
 struct __attribute__((packed)) SwifterKitUSBPipeRequest {
@@ -138,11 +124,6 @@ struct __attribute__((packed)) SwifterKitUSBDeviceRequestEvent {
 };
 
 // Bundled I/O over a runtime-owned descriptor ring on one bulk pipe.
-static constexpr uint32_t kSwifterKitUSBMaximumBundleRings = 4;
-static constexpr uint32_t kSwifterKitUSBMaximumBundleRingEntries = 64;
-static constexpr uint32_t kSwifterKitUSBMaximumBundleRingBytes = 4U * 1024U * 1024U;
-static constexpr uint32_t kSwifterKitUSBMaximumBundledTransfers = 16;
-
 struct __attribute__((packed)) SwifterKitUSBBundleRingRequest {
     uint8_t endpoint;
     uint8_t reserved8;

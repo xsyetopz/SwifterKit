@@ -8,13 +8,13 @@ extension DriverCommand {
   /// message.
   public static let usbMaximumAsyncControlWriteLength = usbMaximumCommandPayload - 16
   /// The most descriptor-ring entries one bundled pipe may have.
-  public static let usbMaximumBundleRingEntries = 64
+  public static let usbMaximumBundleRingEntries = RuntimeUSBLimits.maximumBundleRingEntries
   /// The largest buffer of one descriptor-ring entry: its completion event must fit in one message.
   public static let usbMaximumBundleBufferLength = usbMaximumEventPayload - 16
   /// The most bytes all buffers of one descriptor ring may hold together.
-  public static let usbMaximumBundleRingBytes = 4 * 1_024 * 1_024
+  public static let usbMaximumBundleRingBytes = RuntimeUSBLimits.maximumBundleRingBytes
   /// The most transfers one bundled submission may carry, `kIOUSBHostPipeBundlingMax`.
-  public static let usbMaximumBundledTransfers = 16
+  public static let usbMaximumBundledTransfers = RuntimeUSBLimits.maximumBundledTransfers
 
   /// Creates a command that enqueues an asynchronous request on the default control endpoint.
   ///

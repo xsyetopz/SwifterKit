@@ -46,12 +46,14 @@ extension DriverCommand {
   public static func usbConfigurationDescriptor(
     _ selector: USBConfigurationSelector = .current
   ) -> Self {
-    let payload: Data
+    let kind: RuntimeUSBConfigurationSelector
+    let value: UInt8
     switch selector {
-    case .current: payload = Data([0, 0, 0, 0])
-    case .index(let index): payload = Data([1, index, 0, 0])
-    case .value(let value): payload = Data([2, value, 0, 0])
+    case .current: (kind, value) = (.current, 0)
+    case .index(let index): (kind, value) = (.index, index)
+    case .value(let configuration): (kind, value) = (.value, configuration)
     }
+    let payload = Data([kind.rawValue, value, 0, 0])
     return usbDescriptorCommand(.usbCopyConfigurationDescriptor, payload: payload)
   }
 
@@ -91,7 +93,7 @@ extension DriverCommand {
   /// Creates a command that lists the interfaces of the active configuration. Requires an
   /// `IOUSBHostDevice` provider.
   public static func usbInterfaces() -> Self {
-    usbCommand(.usbCopyInterfaces, response: 4 + 256 * 9)
+    usbCommand(.usbCopyInterfaces, response: 4 + RuntimeUSBLimits.maximumInterfaces * 9)
   }
 
   /// Creates a command that copies the matched interface's descriptor. Requires an
@@ -242,7 +244,7 @@ extension DriverContext {
   public func usbInterfaces() async throws -> [USBInterfaceDescriptor] {
     let payload = try await execute(.usbInterfaces())
     let count = Int(try payload.readRuntimeInteger(at: 0) as UInt32)
-    guard count <= 256, payload.count == 4 + count * 9 else {
+    guard count <= RuntimeUSBLimits.maximumInterfaces, payload.count == 4 + count * 9 else {
       throw USBRuntimeError.invalidResponse
     }
     let bytes = [UInt8](payload)

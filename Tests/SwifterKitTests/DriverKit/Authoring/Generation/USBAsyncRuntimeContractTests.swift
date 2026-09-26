@@ -19,14 +19,19 @@ struct USBAsyncRuntimeContractTests {
       #expect(
         limits.contains("static_assert(kSwifterKitUSBMaximumBundleBufferLength == \(buffer));")
       )
+      let schema = try source(RuntimeSchemaHeader.fileName, in: output)
       #expect(
-        limits.contains(
+        schema.contains(
           "kSwifterKitUSBMaximumBundleRingEntries = \(DriverCommand.usbMaximumBundleRingEntries);"
         )
       )
-      #expect(limits.contains("kSwifterKitUSBMaximumBundleRingBytes = 4U * 1024U * 1024U;"))
       #expect(
-        limits.contains(
+        schema.contains(
+          "kSwifterKitUSBMaximumBundleRingBytes = \(DriverCommand.usbMaximumBundleRingBytes);"
+        )
+      )
+      #expect(
+        schema.contains(
           "kSwifterKitUSBMaximumBundledTransfers = \(DriverCommand.usbMaximumBundledTransfers);"
         )
       )

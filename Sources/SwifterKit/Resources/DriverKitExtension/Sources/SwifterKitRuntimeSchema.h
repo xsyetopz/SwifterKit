@@ -427,4 +427,20 @@ static constexpr uint32_t kSwifterKitMIDIPropertyMaximumDepth = 4;
 static constexpr uint32_t kSwifterKitMIDIPropertyMaximumEntries = 256;
 static constexpr uint32_t kSwifterKitMIDIPropertyKeyMaximumLength = 255;
 
+static constexpr uint32_t kSwifterKitUSBMaximumInterfaces = 256;
+static constexpr uint32_t kSwifterKitUSBMaximumPendingTransfers = 32;
+static constexpr uint32_t kSwifterKitUSBMaximumIsochronousFrames = 1024;
+static constexpr uint32_t kSwifterKitUSBMaximumBundleRings = 4;
+static constexpr uint32_t kSwifterKitUSBMaximumBundleRingEntries = 64;
+static constexpr uint32_t kSwifterKitUSBMaximumBundleRingBytes = 4194304;
+static constexpr uint32_t kSwifterKitUSBMaximumBundledTransfers = 16;
+static constexpr uint16_t kSwifterKitUSBSupportedReleases[] =
+    {0x0110, 0x0200, 0x0210, 0x0300, 0x0310, 0x0320};
+
+static constexpr uint8_t kSwifterKitUSBConfigurationCurrent = 0;
+static constexpr uint8_t kSwifterKitUSBConfigurationIndex = 1;
+static constexpr uint8_t kSwifterKitUSBConfigurationValue = 2;
+static constexpr uint8_t kSwifterKitUSBPipeDescriptorsOriginal = 0;
+static constexpr uint8_t kSwifterKitUSBPipeDescriptorsCurrentPolicy = 1;
+
 #endif

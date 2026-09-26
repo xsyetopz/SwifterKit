@@ -31,7 +31,6 @@
 // transfer type must match the pipe's original descriptor.
 
 namespace {
-    constexpr uint16_t kSupportedUSBReleases[] = {0x0110, 0x0200, 0x0210, 0x0300, 0x0310, 0x0320};
 
     struct PreparedRequest {
         IOBufferMemoryDescriptor* buffer = nullptr;
@@ -55,7 +54,7 @@ namespace {
     }
 
     bool SupportedRelease(uint16_t release) {
-        for (const uint16_t supported : kSupportedUSBReleases) {
+        for (const uint16_t supported : kSwifterKitUSBSupportedReleases) {
             if (supported == release) {
                 return true;
             }
