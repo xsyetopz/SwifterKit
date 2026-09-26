@@ -6,6 +6,18 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** `EthernetEvent` gains the `hardwareAssistsChanged`, `polling`,
+  `packetTap`, and `nicProxyConfiguration` cases, and `EthernetRuntimeError`
+  gains `invalidLinkStatus`, `invalidLinkQuality`, `invalidBandwidths`, and
+  `invalidPollingParameters`, so exhaustive switches over them must handle the
+  new cases.
+- The networking runtime registers its queues through
+  `registerEthernetInterface(queues, numQueues, txPool, rxPool)`, which reads
+  the address from `getHardwareAddress`, and checks each packet pool's packet
+  and buffer counts after creating it.
+- `SwifterKitRuntimeServiceWatches.cpp` and the USB protocol header use the
+  shared `kSwifterKitMaximumEventPayloadLength` instead of their own copies of
+  the event payload limit.
 - **Breaking:** `USBEvent` gains the `deviceRequest` and `bundledIO` cases, and
   `USBRuntimeError` gains `invalidBundleRing`, `invalidBundledTransfer`, and
   `invalidEndpointPolicy`, so exhaustive switches over them must handle the
@@ -51,6 +63,12 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- `EthernetEvent.wakeOnMagicPacket` was decoded but never sent. The extension
+  now delivers it when the stack changes `kIOUserNetworkHWAssistWOMP` through
+  `setHardwareAssists(assists, mask)`.
+- The extension accepted an MTU of 0 from the networking stack. It now rejects
+  an MTU below `EthernetDeviceConfiguration.minimumTransferUnit` (68 by
+  default).
 - `pciReset(type:options:)` with `.terminate` now documents that the call
   returns the reset's result: DriverKit starts termination without waiting for
   it. The extension holds the PCI device across the reset, since termination
@@ -100,6 +118,16 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- Ethernet capabilities: `EthernetDeviceConfiguration` takes typed hardware
+  assists (`EthernetHardwareAssists`: checksum, TSO with `EthernetTSOOptions`,
+  LRO, VLAN, timestamps, wake on magic packet, NIC proxy), feature flags, a
+  minimum MTU, transmit headroom, tailroom, and data offset, the interface
+  subfamily, BSD name prefix and unit, a BPF tap, packet pool options
+  (`EthernetPacketPoolOptions`), a separate receive pool, and hybrid polling
+  through `IOUserNetworkPacketPoller` (`EthernetPacketPolling`).
+- `DriverContext` reports Ethernet link status flags, link quality, data
+  bandwidths, hardware counters, and NIC proxy limits, and enables or
+  reconfigures the packet poller (opcodes `0x0910`-`0x0915`).
 - USB serial ports: `USBSerialPortConfiguration` generates an `IOUserUSBSerial`
   service on an `IOUSBHostInterface` (`.serial` and `.usb`). USBSerialDriverKit
   owns the bulk and interrupt data path; Swift receives the usual

@@ -20496,13 +20496,14 @@
 
           ],
           "name" : "ReportLinkQuality",
+          "note" : "deprecated in the SDK; reportLinkQuality(LinkQuality) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn ReportLinkQuality(IOUserNetworkLinkQuality)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -20520,7 +20521,8 @@
             "27.0"
           ],
           "signature" : "IOReturn addHardwareCountsWithInterfaceStatistics(const IOUserNetworkHardwareCounts*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "addEthernetHardwareCounts"
         },
         {
           "access" : "public",
@@ -20532,13 +20534,14 @@
 
           ],
           "name" : "bpfAttach",
+          "note" : "called at start for EthernetDeviceConfiguration.packetTap",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn bpfAttach(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -20588,13 +20591,14 @@
 
           ],
           "name" : "getTSOOptions",
+          "note" : "answers from EthernetDeviceConfiguration.tsoOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn getTSOOptions(IOUserNetworkTSOOptions*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -20625,13 +20629,14 @@
 
           ],
           "name" : "processInterfaceCommand",
+          "note" : "private SIOCSDRVSPEC/SIOCGDRVSPEC requests are answered through ifd_data inside the family's synchronous call, which a Swift host cannot reply to; the family default stays",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn processInterfaceCommand(ifdrv_t*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -20643,13 +20648,14 @@
 
           ],
           "name" : "registerEthernetInterface",
+          "note" : "registers the queues with the transmit and receive pools at start",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn registerEthernetInterface(IOUserNetworkPacketQueue**, uint32_t, IOUserNetworkPacketBufferPool*, IOUserNetworkPacketBufferPool*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -20661,13 +20667,14 @@
 
           ],
           "name" : "registerEthernetInterface",
+          "note" : "DriverKit 24.0 overload of registerEthernetInterface(queues, numQueues, txPool, rxPool), which the runtime calls from DriverKit 22.0 and which reads the address from getHardwareAddress",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn registerEthernetInterface(ether_addr_t, IOUserNetworkPacketQueue**, uint32_t, IOUserNetworkPacketBufferPool*, IOUserNetworkPacketBufferPool*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -20685,7 +20692,8 @@
             "27.0"
           ],
           "signature" : "IOReturn reportDataBandwidths(uint64_t, uint64_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "reportEthernetDataBandwidths"
         },
         {
           "access" : "public",
@@ -20703,7 +20711,8 @@
             "27.0"
           ],
           "signature" : "IOReturn reportLinkQuality(LinkQuality)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "reportEthernetLinkQuality"
         },
         {
           "access" : "public",
@@ -20740,7 +20749,8 @@
             "27.0"
           ],
           "signature" : "IOReturn reportNicProxyLimits(nicproxy_limits_info_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "reportEthernetNICProxyLimits"
         },
         {
           "access" : "public",
@@ -20791,13 +20801,14 @@
 
           ],
           "name" : "setHardwareAssists",
+          "note" : "overridden; delivers EthernetEvent.hardwareAssists",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setHardwareAssists(uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -20809,13 +20820,14 @@
 
           ],
           "name" : "setHardwareAssists",
+          "note" : "overridden; delivers EthernetEvent.hardwareAssistsChanged",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setHardwareAssists(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -20976,13 +20988,14 @@
 
           ],
           "name" : "start",
+          "note" : "LOCALONLY lifecycle hook; the generated service runs its lifecycle through the IIG Start override, which chains to super",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool start(IOService*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -20994,13 +21007,14 @@
 
           ],
           "name" : "getBSDNamePrefix",
+          "note" : "answers from EthernetDeviceConfiguration.bsdNamePrefix",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "const char* getBSDNamePrefix()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21012,13 +21026,14 @@
 
           ],
           "name" : "bpfTap",
+          "note" : "overridden; delivers EthernetEvent.packetTap",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "int bpfTap(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21030,13 +21045,14 @@
 
           ],
           "name" : "getBSDUnitNumber",
+          "note" : "answers from EthernetDeviceConfiguration.bsdUnitNumber",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "int32_t getBSDUnitNumber()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21048,13 +21064,14 @@
 
           ],
           "name" : "GetHardwareAssists",
+          "note" : "deprecated in the SDK; getHardwareAssists() replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetHardwareAssists(uint32_t*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21066,13 +21083,14 @@
 
           ],
           "name" : "GetMaxTransferUnit",
+          "note" : "deprecated in the SDK; getMaxTransferUnit() replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetMaxTransferUnit(uint32_t*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21084,13 +21102,14 @@
 
           ],
           "name" : "RegisterEthernetInterface",
+          "note" : "deprecated in the SDK; registerEthernetInterface(queues, numQueues, txPool, rxPool) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RegisterEthernetInterface(IOUserNetworkMACAddress, IOUserNetworkPacketBufferPool*, IOUserNetworkPacketQueue**, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21102,13 +21121,14 @@
 
           ],
           "name" : "RegisterEthernetInterface",
+          "note" : "single-pool registration; the runtime calls registerEthernetInterface(queues, numQueues, txPool, rxPool) so the receive pool can be separate",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RegisterEthernetInterface(ether_addr_t, IOUserNetworkPacketBufferPool*, IOUserNetworkPacketQueue**, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21120,13 +21140,14 @@
 
           ],
           "name" : "ReportAvailableMediaTypes",
+          "note" : "deprecated in the SDK; getSupportedMediaArray(MediaWord*, uint32_t*) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ReportAvailableMediaTypes(const IOUserNetworkMediaType*, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21137,13 +21158,14 @@
 
           ],
           "name" : "ReportDataBandwidths",
+          "note" : "deprecated in the SDK; reportDataBandwidths replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ReportDataBandwidths(uint64_t, uint64_t, uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21154,13 +21176,14 @@
 
           ],
           "name" : "ReportLinkStatus",
+          "note" : "deprecated in the SDK; reportLinkStatus(LinkStatus, MediaWord) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ReportLinkStatus(IOUserNetworkLinkStatus, IOUserNetworkMediaType)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21172,13 +21195,14 @@
 
           ],
           "name" : "ReportNicProxyLimits",
+          "note" : "deprecated in the SDK; reportNicProxyLimits(nicproxy_limits_info_t) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ReportNicProxyLimits(nicproxy_limits_info_s)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21189,13 +21213,14 @@
 
           ],
           "name" : "SelectMediaType",
+          "note" : "deprecated in the SDK; handleChosenMedia(MediaWord) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SelectMediaType(IOUserNetworkMediaType)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21206,13 +21231,14 @@
 
           ],
           "name" : "SetAllMulticastModeEnable",
+          "note" : "deprecated in the SDK; setAllMulticastModeEnable(bool) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetAllMulticastModeEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21224,13 +21250,14 @@
 
           ],
           "name" : "SetHardwareAssists",
+          "note" : "deprecated in the SDK; setHardwareAssists(uint32_t, uint32_t) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetHardwareAssists(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21241,13 +21268,14 @@
 
           ],
           "name" : "SetInterfaceEnable",
+          "note" : "deprecated in the SDK; setInterfaceEnable(bool) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetInterfaceEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21259,13 +21287,14 @@
 
           ],
           "name" : "SetMTU",
+          "note" : "deprecated in the SDK; setMaxTransferUnit(uint32_t) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetMTU(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21276,13 +21305,14 @@
 
           ],
           "name" : "SetMulticastAddresses",
+          "note" : "deprecated in the SDK; setMulticastAddresses(const ether_addr_t*, uint32_t) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetMulticastAddresses(const IOUserNetworkMACAddress*, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21293,13 +21323,14 @@
 
           ],
           "name" : "SetPromiscuousModeEnable",
+          "note" : "IIG entry superseded by the LOCALONLY setPromiscuousModeEnable(bool), which the runtime overrides",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetPromiscuousModeEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21310,13 +21341,14 @@
 
           ],
           "name" : "SetSoftwareVlanSupport",
+          "note" : "called at start for EthernetDeviceConfiguration.supportsSoftwareVLAN",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetSoftwareVlanSupport(bool)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21327,13 +21359,14 @@
 
           ],
           "name" : "SetTxPacketHeadroom",
+          "note" : "called at start for EthernetDeviceConfiguration.transmitHeadroom",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetTxPacketHeadroom(uint16_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21344,13 +21377,14 @@
 
           ],
           "name" : "SetTxPacketTailroom",
+          "note" : "called at start for EthernetDeviceConfiguration.transmitTailroom",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetTxPacketTailroom(uint16_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21361,13 +21395,14 @@
 
           ],
           "name" : "SetWakeOnMagicPacketEnable",
+          "note" : "deprecated in the SDK; setHardwareAssists(uint32_t, uint32_t) with kIOUserNetworkHWAssistWOMP, delivered as EthernetEvent.wakeOnMagicPacket, replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetWakeOnMagicPacketEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21397,13 +21432,14 @@
 
           ],
           "name" : "getTxDataOffset",
+          "note" : "answers from EthernetDeviceConfiguration.transmitDataOffset",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint16_t getTxDataOffset()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21415,13 +21451,14 @@
 
           ],
           "name" : "getFeatureFlags",
+          "note" : "adds EthernetDeviceConfiguration.featureFlags",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t getFeatureFlags()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21452,13 +21489,14 @@
 
           ],
           "name" : "getInterfaceSubFamily",
+          "note" : "answers from EthernetDeviceConfiguration.interfaceSubFamily",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t getInterfaceSubFamily()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21489,13 +21527,14 @@
 
           ],
           "name" : "bpfTapInputPacket",
+          "note" : "taps received frames while the input tap is on",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void bpfTapInputPacket(uint32_t, IOUserNetworkPacket*, void*, size_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21507,13 +21546,14 @@
 
           ],
           "name" : "bpfTapOutputPacket",
+          "note" : "taps transmitted frames while the output tap is on",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void bpfTapOutputPacket(uint32_t, IOUserNetworkPacket*, void*, size_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21543,13 +21583,14 @@
 
           ],
           "name" : "hwConfigNicProxyData",
+          "note" : "overridden; delivers EthernetEvent.nicProxyConfiguration",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void hwConfigNicProxyData(nicproxy_info_t*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -21562,13 +21603,14 @@
 
           ],
           "name" : "hwConfigNicProxyData",
+          "note" : "deprecated in the SDK; hwConfigNicProxyData(nicproxy_info_t*) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void hwConfigNicProxyData(offload_info_s*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -21580,13 +21622,14 @@
 
           ],
           "name" : "stop",
+          "note" : "LOCALONLY lifecycle hook; the generated service runs its lifecycle through the IIG Stop override, which chains to super",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void stop(IOService*)",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "IOUserNetworkEthernet",
@@ -23228,13 +23271,14 @@
 
           ],
           "name" : "allocatePacket",
+          "note" : "the stack supplies every packet the runtime handles through the Rx and Tx submission queues; the runtime never originates one",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn allocatePacket(IOUserNetworkPacket**, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23263,13 +23307,14 @@
 
           ],
           "name" : "deallocatePackets",
+          "note" : "returns pending transmits in one batch",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn deallocatePackets(IOUserNetworkPacket**, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -23280,13 +23325,14 @@
 
           ],
           "name" : "newPacket",
+          "note" : "subclass factory hook; the runtime uses the family's IOUserNetworkPacket and never subclasses the pool",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn newPacket(IOUserNetworkPacketDescriptor*, IOUserNetworkPacket**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23297,13 +23343,14 @@
 
           ],
           "name" : "getPoolOwnerDevice",
+          "note" : "returns the IOService passed to CreateWithOptions, which is the runtime service itself",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOService* getPoolOwnerDevice()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23314,13 +23361,14 @@
 
           ],
           "name" : "withName",
+          "note" : "alternate factory; the runtime creates every pool through CreateWithOptions with the same IOUserNetworkPacketBufferPoolOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkPacketBufferPool* withName(const char*, OSObject*, IONetworkPacketType, const IOUserNetworkPacketBufferPoolOptions*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23349,13 +23397,14 @@
 
           ],
           "name" : "initWithName",
+          "note" : "initializer behind withName; the runtime creates every pool through CreateWithOptions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithName(const char*, OSObject*, IONetworkPacketType, const IOUserNetworkPacketBufferPoolOptions*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23366,13 +23415,14 @@
 
           ],
           "name" : "CopyMemoryDescriptor",
+          "note" : "pools are mapped into the extension (PoolFlagMapToDext) and frames reach Swift by copy in runtime messages, so the pool descriptor never crosses the user-client boundary",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopyMemoryDescriptor(IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23421,13 +23471,14 @@
 
           ],
           "name" : "DeallocatePacket",
+          "note" : "deprecated in the SDK; deallocatePacket(IOUserNetworkPacket*) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DeallocatePacket(IOUserNetworkPacket*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23439,13 +23490,14 @@
 
           ],
           "name" : "DeallocatePackets",
+          "note" : "deprecated in the SDK; deallocatePackets(IOUserNetworkPacket**, uint32_t) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DeallocatePackets(IOUserNetworkPacket**, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -23456,13 +23508,14 @@
 
           ],
           "name" : "GetBufferCount",
+          "note" : "checks each pool's buffer count at start",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetBufferCount(uint32_t*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -23473,13 +23526,14 @@
 
           ],
           "name" : "GetPacketCount",
+          "note" : "checks each pool's packet count at start",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetPacketCount(uint32_t*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -23668,7 +23722,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setPollerParameters(const IOUserNetworkPacketPollerParameters*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setEthernetPollerParameters"
         },
         {
           "access" : "public",
@@ -23679,13 +23734,14 @@
 
           ],
           "name" : "updatePacketCounters",
+          "note" : "counts each frame Swift injects while a poller exists",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn updatePacketCounters(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -23696,13 +23752,14 @@
 
           ],
           "name" : "poller",
+          "note" : "created at start for EthernetDeviceConfiguration.packetPolling",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkPacketPoller* poller(OSObject*, IODispatchQueue*, PollAction, EventAction, IOOptionBits, void*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -23773,7 +23830,8 @@
             "27.0"
           ],
           "signature" : "void disable()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setEthernetPolling"
         },
         {
           "access" : "public",
@@ -23790,7 +23848,8 @@
             "27.0"
           ],
           "signature" : "void enable()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "setEthernetPolling"
         },
         {
           "access" : "public",

@@ -155,7 +155,7 @@ supports only output reports. Rejected report types return
 | USB serial | `USBSerialPortConfiguration` | `IOUserUSBSerial` on a USB interface; UART events, modem state, receive errors, received and interrupt packet events |
 | Block storage | `BlockStorageDeviceConfiguration` | Eject, synchronize, unmap, read/write requests and completions |
 | MIDI | `MIDIDeviceConfiguration` | Endpoint topology, Universal MIDI Packet sends, destination events |
-| Networking | `EthernetDeviceConfiguration` | Packet queues, transmit completion, receive injection, link state |
+| Networking | `EthernetDeviceConfiguration` | Packet queues and pools, transmit completion, receive injection, link status, quality, and bandwidths, offloads (checksum, TSO, LRO, VLAN, wake on magic packet, NIC proxy), MTU range, hardware counters, BPF tap, hybrid polling |
 | Audio | `AudioDeviceConfiguration` | Stream rings, timestamps, formats, controls, custom properties |
 | SCSI | `SCSIControllerConfiguration` or `SCSIPeripheralConfiguration` | Parallel tasks, task management, CDBs, logical-unit services |
 | Video | `VideoDeviceConfiguration` | Formats, controls, buffers, queues, timestamps, stream events |

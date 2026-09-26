@@ -89,7 +89,11 @@ Use `.blockStorage` with ``BlockStorageDeviceConfiguration``. Decode ``DriverEve
 
 Use `.midi` with ``MIDIDeviceConfiguration`` and send source packets through ``DriverContext/midiSend(sourceIndex:words:)``. Decode lifecycle and destination packets with ``DriverEvent/midi()``.
 
-Use `.networking` with ``EthernetDeviceConfiguration``. ``DriverEvent/ethernet()`` delivers transmit work; Swift completes it, receives frames, and reports link state through ``DriverContext``.
+Use `.networking` with ``EthernetDeviceConfiguration``. ``DriverEvent/ethernet()`` delivers transmit work and the configuration callbacks the family sends; Swift completes transmits, receives frames, and reports link state through ``DriverContext``.
+
+The configuration declares the interface's capabilities: media, ``EthernetHardwareAssists`` offloads (checksum, TSO with ``EthernetTSOOptions``, LRO, VLAN, timestamps, wake on magic packet, NIC proxy), ``EthernetFeatureFlags``, the MTU range, transmit headroom and tailroom, the interface subfamily and BSD name, and a BPF tap. ``EthernetPacketPoolOptions`` sizes the packet pools, and `receivePacketCount` gives receive its own pool. ``EthernetPacketPolling`` creates an `IOUserNetworkPacketPoller`; while it polls, each tick drains transmit work and ``EthernetEvent/polling(_:)`` tells Swift to harvest received frames.
+
+``DriverContext/reportEthernetLink(status:media:)``, ``DriverContext/reportEthernetLinkQuality(_:)``, ``DriverContext/reportEthernetDataBandwidths(_:)``, ``DriverContext/addEthernetHardwareCounts(_:)``, and ``DriverContext/reportEthernetNICProxyLimits(_:)`` report state; ``DriverContext/setEthernetPolling(enabled:)`` and ``DriverContext/setEthernetPollerParameters(dataRate:pollInterval:)`` drive the poller. Private `processInterfaceCommand` ioctls stay with the family, because their replies are due inside the family's synchronous call.
 
 Use `.audio` with ``AudioDeviceConfiguration``. Audio APIs read and write stream ranges, query I/O state, update timestamps, request sample-rate changes, and work with typed controls and custom properties.
 
