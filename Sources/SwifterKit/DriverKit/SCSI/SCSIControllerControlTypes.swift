@@ -106,3 +106,23 @@ public enum SCSIControllerLimits {
   public static let maximumTaskDataWriteLength =
     RuntimeMessage.maximumSize - RuntimeMessage.headerSize - RuntimeSchema.commandHeaderSize - 16
 }
+
+/// The result of the `UserCreateTargetForID` call that
+/// ``DriverContext/scsiCreateTarget(_:properties:)`` queued.
+public struct SCSITargetCreationResult: Sendable, Hashable {
+  /// The target identifier passed to ``DriverContext/scsiCreateTarget(_:properties:)``.
+  public let target: UInt64
+  /// The `IOReturn` status of `UserCreateTargetForID`. Zero is success.
+  public let status: Int32
+
+  /// Whether DriverKit created the target.
+  public var succeeded: Bool { status == 0 }
+
+  init(runtimePayload data: Data) throws {
+    guard data.count == 16, try data.readRuntimeInteger(at: 12) as UInt32 == 0 else {
+      throw SCSIControllerRuntimeError.invalidPayload
+    }
+    target = try data.readRuntimeInteger(at: 0)
+    status = try data.readRuntimeInteger(at: 8)
+  }
+}

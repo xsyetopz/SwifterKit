@@ -501,6 +501,13 @@ struct __attribute__((packed)) SwifterKitSCSIManagementEvent {
     uint64_t taskTag;
 };
 
+// Reports the kern_return_t of a UserCreateTargetForID that SCSICreateTarget queued.
+struct __attribute__((packed)) SwifterKitSCSITargetCreatedEvent {
+    uint64_t targetIdentifier;
+    int32_t status;
+    uint32_t reserved;
+};
+
 struct __attribute__((packed)) SwifterKitSCSICompletionHeader {
     uint32_t requestID;
     uint32_t featureResultCount;
@@ -554,6 +561,7 @@ static_assert(sizeof(SwifterKitSCSIPeripheralCommandHeader) == 40);
 static_assert(sizeof(SwifterKitSCSIPeripheralResponseHeader) == 24);
 static_assert(sizeof(SwifterKitSCSIParallelTaskEvent) == 100);
 static_assert(sizeof(SwifterKitSCSIManagementEvent) == 32);
+static_assert(sizeof(SwifterKitSCSITargetCreatedEvent) == 16);
 static_assert(sizeof(SwifterKitSCSICompletionHeader) == 48);
 static_assert(sizeof(SwifterKitSCSIPropertyHeader) == 16);
 static_assert(sizeof(SwifterKitSCSIPropertyEntry) == 4);

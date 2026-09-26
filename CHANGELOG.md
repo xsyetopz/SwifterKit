@@ -8,6 +8,9 @@ SwifterKit records user-visible changes in this file.
 
 - **Breaking:** `SCSIControllerRuntimeError` gains `invalidPropertyUpdate` and
   `invalidDataRange`.
+- **Breaking:** `SCSIControllerEvent` gains the `targetCreated` case, which
+  carries a `SCSITargetCreationResult`, so exhaustive switches over it must
+  handle the new case.
 - Video generation requires DriverKit 25.5 instead of 27.0. The DriverKit 25.5
   SDK in Xcode 26.6 ships VideoDriverKit with the same headers and exported
   symbols as the DriverKit 27.0 SDK, and generated video extensions build
@@ -85,7 +88,10 @@ SwifterKit records user-visible changes in this file.
   INQUIRY, which Swift can only poll and complete through the same, blocked,
   queue, so the create stalled until INQUIRY timed out. The extension now runs
   the create on its own queue, and `scsiCreateTarget` returns once the
-  properties are validated and the create is queued.
+  properties are validated and the create is queued. The create's `IOReturn`,
+  which the queued create had discarded so a failure never reached Swift, now
+  arrives as a required `SCSIControllerEvent.targetCreated` event with the
+  target identifier and status.
 - The video runtime attached and detached streams, set safety offsets, and set
   clock latencies directly. `IOUserVideoDriver.iig` allows changes that affect
   IO or the device's structure only in `PerformDeviceConfigurationChange`.

@@ -128,6 +128,37 @@ struct SCSIControllerRuntimeContractTests {
     }
   }
 
+  @Test
+  func reportsTheCreateResultAsARequiredEvent() throws {
+    try withGeneratedExtension { output in
+      let control = try source("SwifterKitRuntimeSCSIControl.cpp", in: output)
+      let create = try section(
+        of: control,
+        from: "case SwifterKitRuntimeOpcode::SCSICreateTarget:",
+        to: "case SwifterKitRuntimeOpcode::SCSIDestroyTarget:"
+      )
+      #expect(!create.contains("(void)UserCreateTargetForID"))
+      let call = try #require(
+        create.range(of: "UserCreateTargetForID(target, targetProperties)")?.upperBound
+      )
+      let enqueued = try #require(create.range(of: "EnqueueRequiredEvent(")?.upperBound)
+      let type = try #require(create.range(of: "kSwifterKitEventSCSITargetCreated")?.lowerBound)
+      #expect(call < enqueued && enqueued <= type)
+      let separator = create[enqueued..<type]
+      #expect(separator.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+      #expect(create.contains(".targetIdentifier = target"))
+      #expect(create.contains(".status = "))
+
+      let protocolHeader = try source("SwifterKitRuntimeProtocol.h", in: output)
+      #expect(
+        protocolHeader.contains("struct __attribute__((packed)) SwifterKitSCSITargetCreatedEvent {")
+      )
+      #expect(
+        protocolHeader.contains("static_assert(sizeof(SwifterKitSCSITargetCreatedEvent) == 16);")
+      )
+    }
+  }
+
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,

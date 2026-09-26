@@ -305,6 +305,7 @@ static constexpr uint32_t kSwifterKitEventAudio = 0x0A00;
 static constexpr uint32_t kSwifterKitEventAudioObject = 0x0A01;
 static constexpr uint32_t kSwifterKitEventSCSIParallelTask = 0x0B00;
 static constexpr uint32_t kSwifterKitEventSCSIManagement = 0x0B01;
+static constexpr uint32_t kSwifterKitEventSCSITargetCreated = 0x0B02;
 static constexpr uint32_t kSwifterKitEventVideo = 0x0C00;
 static constexpr uint32_t kSwifterKitEventVideoObject = 0x0C01;
 static constexpr uint32_t kSwifterKitEventServicePowerState = 0x0D00;

@@ -288,6 +288,8 @@ public enum SCSIControllerEvent: Sendable, Hashable {
   case initializeTarget(UInt64)
   case parallelTask(SCSIParallelTask)
   case taskManagement(SCSITaskManagementRequest)
+  /// The result of a create that ``DriverContext/scsiCreateTarget(_:properties:)`` queued.
+  case targetCreated(SCSITargetCreationResult)
 }
 
 /// A malformed SCSI controller event or completion.

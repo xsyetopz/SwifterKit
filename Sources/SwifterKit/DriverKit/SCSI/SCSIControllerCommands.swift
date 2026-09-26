@@ -39,6 +39,8 @@ extension DriverEvent {
     case .scsiParallelTask?:
       return .parallelTask(try SCSIParallelTask(runtimePayload: Data(payload)))
     case .scsiManagement?: return try SCSIControllerEvent(managementPayload: Data(payload))
+    case .scsiTargetCreated?:
+      return .targetCreated(try SCSITargetCreationResult(runtimePayload: Data(payload)))
     default: return nil
     }
   }

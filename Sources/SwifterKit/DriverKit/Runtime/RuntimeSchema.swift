@@ -320,6 +320,7 @@ enum RuntimeEventType: UInt32, CaseIterable {
   case audioObject = 0x0A01
   case scsiParallelTask = 0x0B00
   case scsiManagement = 0x0B01
+  case scsiTargetCreated = 0x0B02
   case video = 0x0C00
   case videoObject = 0x0C01
   case servicePowerState = 0x0D00

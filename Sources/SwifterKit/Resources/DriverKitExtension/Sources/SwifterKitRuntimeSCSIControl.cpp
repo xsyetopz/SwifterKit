@@ -173,7 +173,12 @@ kern_return_t SwifterKitRuntimeService::SCSIControlCommand(
             // through UserProcessParallelTask. Swift polls that task and completes it through
             // this user client, whose queue would stay blocked in the create until INQUIRY
             // timed out. The create runs on scsiTargetQueue; the command returns once it is
-            // queued, after the properties are validated.
+            // queued, after the properties are validated, so this request is answered then.
+            // The create's own result follows as a required SCSITargetCreated event. With no
+            // host registered it waits for the next host; a host that departs takes the results
+            // queued before DetachEventClient empties the queues, and later ones reach the next
+            // host. Like other untracked notifications it is rejected only when a stalled host
+            // has let the required queue fill, and no DriverKit request is left to answer then.
             result = ParseProperties(payload, payloadLength, true, &target, &properties, nullptr);
             if (result == kIOReturnSuccess && ivars->scsiTargetQueue == nullptr) {
                 result = kIOReturnNotReady;
@@ -183,8 +188,17 @@ kern_return_t SwifterKitRuntimeService::SCSIControlCommand(
                 properties = nullptr;
                 retain();
                 ivars->scsiTargetQueue->DispatchAsync(^{
-                  (void)UserCreateTargetForID(target, targetProperties);
+                  const kern_return_t created = UserCreateTargetForID(target, targetProperties);
                   targetProperties->release();
+                  const SwifterKitSCSITargetCreatedEvent event = {
+                      .targetIdentifier = target,
+                      .status = created,
+                      .reserved = 0,
+                  };
+                  (void)EnqueueRequiredEvent(
+                      kSwifterKitEventSCSITargetCreated,
+                      &event,
+                      sizeof(event));
                   release();
                 });
             }

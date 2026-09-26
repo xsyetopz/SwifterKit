@@ -87,6 +87,51 @@ struct SCSIControllerTypesTests {
     }
   }
 
+  @Test
+  func decodesTargetCreationResults() throws {
+    let created = try #require(targetCreation(from: targetCreated(target: 4).scsiController()))
+    #expect(created.target == 4)
+    #expect(created.status == 0)
+    #expect(created.succeeded)
+
+    // kIOReturnBadArgument, as a signed IOReturn.
+    let failure = Int32(bitPattern: 0xE000_02C2)
+    let failed = try #require(
+      targetCreation(from: targetCreated(target: 9, status: failure).scsiController())
+    )
+    #expect(failed.target == 9)
+    #expect(failed.status == failure)
+    #expect(!failed.succeeded)
+  }
+
+  @Test
+  func rejectsMalformedTargetCreationResults() throws {
+    let valid = targetCreated(target: 4).payload
+    #expect(throws: SCSIControllerRuntimeError.invalidPayload) {
+      try DriverEvent(type: 0x0B02, payload: Array(valid.dropLast())).scsiController()
+    }
+    #expect(throws: SCSIControllerRuntimeError.invalidPayload) {
+      try DriverEvent(type: 0x0B02, payload: valid + [0]).scsiController()
+    }
+    #expect(throws: SCSIControllerRuntimeError.invalidPayload) {
+      try targetCreated(target: 4, reserved: 1).scsiController()
+    }
+    // A creation payload under another event type is not decoded as a creation result.
+    #expect(try DriverEvent(type: 0x0100, payload: valid).scsiController() == nil)
+    #expect(throws: SCSIControllerRuntimeError.invalidPayload) {
+      try DriverEvent(type: 0x0B01, payload: valid).scsiController()
+    }
+  }
+
+  private func targetCreated(target: UInt64, status: Int32 = 0, reserved: UInt32 = 0) -> DriverEvent
+  {
+    var payload = Data()
+    payload.appendRuntimeInteger(target)
+    payload.appendRuntimeInteger(status)
+    payload.appendRuntimeInteger(reserved)
+    return DriverEvent(type: 0x0B02, payload: Array(payload))
+  }
+
   private func management(
     kind: UInt32,
     target: UInt64,
@@ -106,4 +151,9 @@ struct SCSIControllerTypesTests {
 private func parallelTask(from event: SCSIControllerEvent?) -> SCSIParallelTask? {
   guard case .parallelTask(let task) = event else { return nil }
   return task
+}
+
+private func targetCreation(from event: SCSIControllerEvent?) -> SCSITargetCreationResult? {
+  guard case .targetCreated(let result) = event else { return nil }
+  return result
 }
