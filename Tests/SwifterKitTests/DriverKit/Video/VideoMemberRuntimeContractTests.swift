@@ -103,6 +103,63 @@ struct VideoMemberRuntimeContractTests {
     }
   }
 
+  @Test
+  func rollsBackFailedBufferQueueAndListChanges() throws {
+    try withGeneratedExtension { output, _ in
+      let native = try source("SwifterKitRuntimeVideoMembers.cpp", in: output)
+      let capacity = try section(
+        of: native,
+        from: "::ApplyBufferCapacity(",
+        to: "::ApplyBufferList("
+      )
+      // A failure restores every buffer touched so far, including the half-set one, before the
+      // new descriptors are released, and the ivars are swapped only on success.
+      let failure = try #require(
+        capacity.range(of: "if (result != kIOReturnSuccess) {")?.lowerBound
+      )
+      let restore = try #require(
+        capacity.range(of: "SetDataMemoryDescriptor(ivars->dataDescriptors[stream][buffer])")?
+          .lowerBound
+      )
+      let swap = try #require(capacity.range(of: "IOLockLock(ivars->bufferLock);")?.lowerBound)
+      #expect(failure < restore && restore < swap)
+      #expect(
+        capacity.contains("SetControlMemoryDescriptor(ivars->controlDescriptors[stream][buffer])")
+      )
+      #expect(capacity.contains("for (uint32_t buffer = 0; buffer < touched; ++buffer)"))
+
+      let list = try section(of: native, from: "::ApplyBufferList(", to: "::EnqueueOutputBuffer(")
+      let built = try #require(list.range(of: "previous->setObject(")?.lowerBound)
+      let removed = try #require(list.range(of: "target->removeAllBuffers()")?.lowerBound)
+      #expect(built < removed)
+      #expect(list.contains("(void)target->addBuffers(previous);"))
+
+      let change = try section(
+        of: native,
+        from: "case kChangeQueueCount:",
+        to: "case kChangeBufferID:"
+      )
+      #expect(change.contains("previous->entryCount"))
+      #expect(change.contains("(void)target->createQueues(previousCount, 0);"))
+    }
+  }
+
+  @Test
+  func setsTheControlOwnerBeforeAddingTheControl() throws {
+    try withGeneratedExtension { output, _ in
+      let controls = try source("SwifterKitRuntimeVideoControls.cpp", in: output)
+      let configure = try section(of: controls, from: "::ConfigureControls(", to: "::CopyControl(")
+      let owner = try #require(configure.range(of: "_SetOwningDeviceID(GetObjectID())")?.lowerBound)
+      let add = try #require(configure.range(of: "AddControl(control)")?.lowerBound)
+      #expect(owner < add)
+      let members = try source("SwifterKitRuntimeVideoMembers.cpp", in: output)
+      let attach = try section(of: members, from: "::SetMemberAttachment(", to: "#endif")
+      let reowner = try #require(attach.range(of: "_SetOwningDeviceID(GetObjectID())")?.lowerBound)
+      let readd = try #require(attach.range(of: "AddControl(ivars->controls[index])")?.lowerBound)
+      #expect(reowner < readd)
+    }
+  }
+
   private func nativeName(_ opcode: RuntimeOpcode) -> String {
     let name = String(describing: opcode)
     return name.prefix(1).uppercased() + name.dropFirst()

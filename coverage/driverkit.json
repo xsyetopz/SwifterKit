@@ -32599,13 +32599,13 @@
 
           ],
           "name" : "_SetOwningDeviceID",
-          "note" : "framework hook that records the owning device; the runtime attaches controls only through IOUserVideoDevice::AddControl and RemoveControl (videoSetMemberAttachment) and reads the owner through GetOwningDeviceID (videoControlInfo)",
+          "note" : "Called with the device object ID before each AddControl; the VideoDriverKit headers and .tbd do not say AddControl sets the owner, so the runtime sets it and videoControlInfo reads it back through GetOwningDeviceID",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "void _SetOwningDeviceID(IOUserVideoObjectID)",
-          "status" : "excluded"
+          "status" : "generated"
         },
         {
           "access" : "public",

@@ -435,9 +435,16 @@ kern_return_t SwifterKitRuntimeVideoDevice::ApplyMemberChange() {
         case kChangeCapacity:
             return ApplyBufferCapacity(stream, value);
         case kChangeQueueCount: {
-            kern_return_t result = ivars->streams[stream]->destroyQueues();
-            if (result == kIOReturnSuccess)
-                result = ivars->streams[stream]->createQueues(static_cast<uint32_t>(value), 0);
+            // A failed create restores the previous queue length instead of leaving none.
+            auto* target = ivars->streams[stream];
+            const IOStreamBufferQueue* previous = target->GetOutputQueue();
+            const uint32_t previousCount = previous != nullptr ? previous->entryCount : 0;
+            kern_return_t result = target->destroyQueues();
+            if (result == kIOReturnSuccess) {
+                result = target->createQueues(static_cast<uint32_t>(value), 0);
+                if (result != kIOReturnSuccess && previousCount != 0)
+                    (void)target->createQueues(previousCount, 0);
+            }
             return result;
         }
         case kChangeBufferID: {
@@ -482,12 +489,27 @@ kern_return_t SwifterKitRuntimeVideoDevice::ApplyBufferCapacity(uint32_t stream,
                 result = descriptors[plane][buffer]
                              ->CreateMapping(0, 0, 0, sizes[plane], 0, &maps[plane][buffer]);
         }
+    uint32_t touched = 0;
     for (uint32_t buffer = 0; result == kIOReturnSuccess && buffer < bufferCount; ++buffer) {
         IOUserVideoBuffer* target = ivars->buffers[stream][buffer];
         result = target == nullptr ? kIOReturnNotReady
                                    : target->SetDataMemoryDescriptor(descriptors[0][buffer]);
+        touched = buffer + 1;
         if (result == kIOReturnSuccess)
             result = target->SetControlMemoryDescriptor(descriptors[1][buffer]);
+    }
+    if (result != kIOReturnSuccess) {
+        // Roll every buffer set so far, including a half-set one, back to the descriptors the
+        // ivars still hold; only this configuration change replaces them.
+        for (uint32_t buffer = 0; buffer < touched; ++buffer) {
+            IOUserVideoBuffer* target = ivars->buffers[stream][buffer];
+            if (target == nullptr)
+                continue;
+            if (ivars->dataDescriptors[stream][buffer] != nullptr)
+                (void)target->SetDataMemoryDescriptor(ivars->dataDescriptors[stream][buffer]);
+            if (ivars->controlDescriptors[stream][buffer] != nullptr)
+                (void)target->SetControlMemoryDescriptor(ivars->controlDescriptors[stream][buffer]);
+        }
     }
     if (result == kIOReturnSuccess) {
         // Swap under the lock; the previous objects are released after it.
@@ -527,17 +549,31 @@ kern_return_t
     if (attach) {
         result = target->addBuffer(ivars->buffers[stream][buffer]);
     } else {
-        // IOUserVideoStream removes buffers only all at once; the others are added back.
+        // IOUserVideoStream removes buffers only all at once; the others are added back. Both
+        // lists are built before anything is removed, and a failed re-add restores the
+        // previous list.
         const uint32_t bufferCount = kSwifterKitVideoStreams[stream].bufferCount;
         OSArray* remaining = OSArray::withCapacity(bufferCount);
-        result = remaining == nullptr ? kIOReturnNoMemory : target->removeAllBuffers();
-        for (uint32_t other = 0; result == kIOReturnSuccess && other < bufferCount; ++other)
-            if (other != buffer && !ivars->bufferDetached[stream][other]
-                && !remaining->setObject(ivars->buffers[stream][other]))
+        OSArray* previous = OSArray::withCapacity(bufferCount);
+        result = remaining == nullptr || previous == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+        for (uint32_t other = 0; result == kIOReturnSuccess && other < bufferCount; ++other) {
+            if (ivars->bufferDetached[stream][other])
+                continue;
+            if (!previous->setObject(ivars->buffers[stream][other])
+                || (other != buffer && !remaining->setObject(ivars->buffers[stream][other])))
                 result = kIOReturnNoMemory;
-        if (result == kIOReturnSuccess && remaining->getCount() > 0)
+        }
+        if (result == kIOReturnSuccess)
+            result = target->removeAllBuffers();
+        if (result == kIOReturnSuccess && remaining->getCount() > 0) {
             result = target->addBuffers(remaining);
+            if (result != kIOReturnSuccess) {
+                (void)target->removeAllBuffers();
+                (void)target->addBuffers(previous);
+            }
+        }
         OSSafeReleaseNULL(remaining);
+        OSSafeReleaseNULL(previous);
     }
     if (result == kIOReturnSuccess) {
         IOLockLock(ivars->bufferLock);
@@ -716,6 +752,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetMemberAttachment(
         return kIOReturnNotFound;
     if (ivars->controlDetached[index] != attach)
         return kIOReturnSuccess;
+    if (attach)
+        ivars->controls[index]->_SetOwningDeviceID(GetObjectID());
     const kern_return_t result =
         attach ? AddControl(ivars->controls[index]) : RemoveControl(ivars->controls[index]);
     if (result == kIOReturnSuccess)

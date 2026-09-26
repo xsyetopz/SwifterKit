@@ -80,6 +80,17 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- A failed video buffer-capacity change left the buffers set so far on the new
+  descriptors while the runtime kept the old ones; the change now restores
+  every buffer it touched. A failed buffer detach no longer leaves the stream
+  with no buffers: the runtime builds both buffer lists before removing any and
+  re-adds the previous list when the re-add fails.
+- A failed video queue-length change left the stream with no queues; the
+  runtime now recreates the queues at their previous length.
+- The video runtime sets each control's owning device with
+  `_SetOwningDeviceID` before `AddControl`. The VideoDriverKit headers do not
+  say that `AddControl` sets it, so `videoControlInfo` could have read an unset
+  owner.
 - The SCSI controller runtime's `UserProcessBundledParallelTasks` returned
   without answering its completion. It now hands every slot back through
   `BundledParallelTaskCompletion`; the runtime still declines the shared

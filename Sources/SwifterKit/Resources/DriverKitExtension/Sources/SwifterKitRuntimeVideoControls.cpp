@@ -191,6 +191,11 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
         if (result == kIOReturnSuccess)
             result = name == nullptr ? kIOReturnNoMemory : control->SetName(name);
         OSSafeReleaseNULL(name);
+        // IOUserVideoControl.iig documents _SetOwningDeviceID only as "Sets the control's owning
+        // device" and says nothing about AddControl setting it, so the owner is set explicitly
+        // before the control becomes visible.
+        if (result == kIOReturnSuccess)
+            control->_SetOwningDeviceID(GetObjectID());
         if (result == kIOReturnSuccess)
             result = AddControl(control);
         if (result == kIOReturnSuccess)
