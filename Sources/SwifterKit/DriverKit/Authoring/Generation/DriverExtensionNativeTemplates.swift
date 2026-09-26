@@ -5,7 +5,7 @@ extension DriverExtensionGenerator {
     let interruptsEnabled = configuration.capabilities.contains(.interrupts) ? 1 : 0
     let encodedInterruptIndices = interruptIndices(configuration)
     let memory = configuration.memoryPool
-    let serial = configuration.serialPort
+    let serial = serialTerminal(configuration)
     let block = configuration.blockStorageDevice
     let midi = configuration.midiDevice
     let ethernet = configuration.ethernetDevice
@@ -38,6 +38,7 @@ extension DriverExtensionGenerator {
       #define SWIFTERKIT_ENABLE_MIDI \(midi == nil ? 0 : 1)
       #define SWIFTERKIT_ENABLE_BLOCK_STORAGE \(block == nil ? 0 : 1)
       #define SWIFTERKIT_ENABLE_SERIAL \(serial == nil ? 0 : 1)
+      \(usbSerialConfigurationDeclarations(configuration))
       #define SWIFTERKIT_ENABLE_PCI \(configuration.capabilities.contains(.pci) ? 1 : 0)
       #define SWIFTERKIT_ENABLE_INTERRUPTS \(interruptsEnabled)
       #define SWIFTERKIT_ENABLE_MEMORY \(memory == nil ? 0 : 1)
@@ -117,13 +118,13 @@ extension DriverExtensionGenerator {
       static constexpr char kSwifterKitSerialSuffix[] =
           \(cString(serial?.suffix ?? "Serial"));
       static constexpr bool kSwifterKitSerialInitialCTS =
-          \(serial?.initialModemStatus.clearToSend == true ? "true" : "false");
+          \(serial?.modem.clearToSend == true ? "true" : "false");
       static constexpr bool kSwifterKitSerialInitialDSR =
-          \(serial?.initialModemStatus.dataSetReady == true ? "true" : "false");
+          \(serial?.modem.dataSetReady == true ? "true" : "false");
       static constexpr bool kSwifterKitSerialInitialRI =
-          \(serial?.initialModemStatus.ringIndicator == true ? "true" : "false");
+          \(serial?.modem.ringIndicator == true ? "true" : "false");
       static constexpr bool kSwifterKitSerialInitialDCD =
-          \(serial?.initialModemStatus.dataCarrierDetect == true ? "true" : "false");
+          \(serial?.modem.dataCarrierDetect == true ? "true" : "false");
 
       static constexpr uint32_t kSwifterKitInterruptIndices[] = {\(encodedInterruptIndices)};
       static constexpr uint32_t kSwifterKitInterruptSourceCount =
@@ -162,6 +163,7 @@ extension DriverExtensionGenerator {
     let usb = configuration.capabilities.contains(.usb)
     let pci = configuration.capabilities.contains(.pci)
     let serial = configuration.capabilities.contains(.serial)
+    let usbSerial = configuration.usbSerialPort != nil
     let blockStorage = configuration.capabilities.contains(.blockStorage)
     let midi = configuration.capabilities.contains(.midi)
     let networking = configuration.capabilities.contains(.networking)
@@ -174,37 +176,44 @@ extension DriverExtensionGenerator {
     let memory = configuration.capabilities.contains(.memory)
     let superclass =
       hidMode.superclass
-      ?? (serial
-        ? "IOUserSerial"
-        : blockStorage
-          ? "IOUserBlockStorageDevice"
-          : midi
-            ? "IOUserMIDIDriver"
-            : networking
-              ? "IOUserNetworkEthernet"
-              : audio
-                ? "IOUserAudioDriver"
-                : video
-                  ? "IOUserVideoDriver"
-                  : scsiController
-                    ? "IOUserSCSIParallelInterfaceController" : scsiPeripheralClass ?? "IOService")
+      ?? (usbSerial
+        ? "IOUserUSBSerial"
+        : serial
+          ? "IOUserSerial"
+          : blockStorage
+            ? "IOUserBlockStorageDevice"
+            : midi
+              ? "IOUserMIDIDriver"
+              : networking
+                ? "IOUserNetworkEthernet"
+                : audio
+                  ? "IOUserAudioDriver"
+                  : video
+                    ? "IOUserVideoDriver"
+                    : scsiController
+                      ? "IOUserSCSIParallelInterfaceController"
+                      : scsiPeripheralClass ?? "IOService")
+    let scsiControllerInclude =
+      "#include <SCSIControllerDriverKit/IOUserSCSIParallelInterfaceController.iig>"
     let superclassInclude =
       hidSuperclassInclude(hidMode)
-      ?? (serial
-        ? "#include <SerialDriverKit/IOUserSerial.iig>"
-        : blockStorage
-          ? "#include <BlockStorageDeviceDriverKit/IOUserBlockStorageDevice.iig>"
-          : midi
-            ? "#include <MIDIDriverKit/IOUserMIDIDriver.iig>"
-            : networking
-              ? "#include <NetworkingDriverKit/IOUserNetworkEthernet.iig>"
-              : audio
-                ? "#include <AudioDriverKit/IOUserAudioDriver.iig>"
-                : video
-                  ? "#include <VideoDriverKit/IOUserVideoDriver.iig>"
-                  : scsiController
-                    ? "#include <SCSIControllerDriverKit/IOUserSCSIParallelInterfaceController.iig>"
-                    : scsiPeripheralInclude ?? "#include <DriverKit/IOService.iig>")
+      ?? (usbSerial
+        ? "#include <USBSerialDriverKit/IOUserUSBSerial.iig>"
+        : serial
+          ? "#include <SerialDriverKit/IOUserSerial.iig>"
+          : blockStorage
+            ? "#include <BlockStorageDeviceDriverKit/IOUserBlockStorageDevice.iig>"
+            : midi
+              ? "#include <MIDIDriverKit/IOUserMIDIDriver.iig>"
+              : networking
+                ? "#include <NetworkingDriverKit/IOUserNetworkEthernet.iig>"
+                : audio
+                  ? "#include <AudioDriverKit/IOUserAudioDriver.iig>"
+                  : video
+                    ? "#include <VideoDriverKit/IOUserVideoDriver.iig>"
+                    : scsiController
+                      ? scsiControllerInclude
+                      : scsiPeripheralInclude ?? "#include <DriverKit/IOService.iig>")
     let lifecycle =
       hid
       ? """
@@ -318,42 +327,7 @@ extension DriverExtensionGenerator {
               struct BlockRange* ranges,
               uint32_t rangeCount) LOCALONLY override;
       """ : ""
-    let serialMethods =
-      serial
-      ? """
-          kern_return_t StartSerial() LOCALONLY;
-          void StopSerial() LOCALONLY;
-          kern_return_t SerialCommand(
-              uint32_t opcode,
-              const uint8_t* payload,
-              uint32_t payloadLength,
-              OSData** response) LOCALONLY;
-
-      protected:
-          virtual void RxFreeSpaceAvailable() LOCAL override;
-          virtual void TxDataAvailable() LOCAL override;
-          virtual kern_return_t HwActivate() LOCAL override;
-          virtual kern_return_t HwDeactivate() LOCAL override;
-          virtual kern_return_t HwResetFIFO(bool tx, bool rx) LOCAL override;
-          virtual kern_return_t HwSendBreak(bool sendBreak) LOCAL override;
-          virtual kern_return_t HwProgramUART(
-              uint32_t baudRate,
-              uint8_t dataBits,
-              uint8_t halfStopBits,
-              uint8_t parity) LOCAL override;
-          virtual kern_return_t HwProgramBaudRate(uint32_t baudRate) LOCAL override;
-          virtual kern_return_t HwProgramMCR(bool dtr, bool rts) LOCAL override;
-          virtual kern_return_t HwGetModemStatus(
-              bool* cts,
-              bool* dsr,
-              bool* ri,
-              bool* dcd) LOCAL override;
-          virtual kern_return_t HwProgramLatencyTimer(uint32_t latency) LOCAL override;
-          virtual kern_return_t HwProgramFlowControl(
-              uint32_t flags,
-              uint8_t xon,
-              uint8_t xoff) LOCAL override;
-      """ : ""
+    let serialMethods = serialServiceMethods(configuration)
     let memoryMethods =
       memory
       ? """
@@ -394,6 +368,7 @@ extension DriverExtensionGenerator {
       #include <DriverKit/OSData.iig>
       \(superclassInclude)
       \(interruptInclude)
+      \(usb ? "#include <USBDriverKit/IOUSBHostDevice.iig>" : "")
       \(usb ? "#include <USBDriverKit/IOUSBHostPipe.iig>" : "")
       \(networking ? "#include <DriverKit/IODataQueueDispatchSource.iig>" : "")
 

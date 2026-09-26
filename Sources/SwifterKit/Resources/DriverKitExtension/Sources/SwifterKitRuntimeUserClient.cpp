@@ -204,6 +204,11 @@ namespace {
             case SwifterKitRuntimeOpcode::USBPipeGetSpeed:
             case SwifterKitRuntimeOpcode::USBPipeGetDeviceAddress:
             case SwifterKitRuntimeOpcode::USBPipeIsochIO:
+            case SwifterKitRuntimeOpcode::USBAsyncDeviceRequest:
+            case SwifterKitRuntimeOpcode::USBPipeCreateBundleRing:
+            case SwifterKitRuntimeOpcode::USBPipeEnqueueBundled:
+            case SwifterKitRuntimeOpcode::USBPipeReleaseBundleRing:
+            case SwifterKitRuntimeOpcode::USBPipeAdjust:
 #if SWIFTERKIT_ENABLE_USB
                 if (service == nullptr) {
                     return kIOReturnNotReady;

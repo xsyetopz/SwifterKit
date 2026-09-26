@@ -149,9 +149,10 @@ supports only output reports. Rejected report types return
 | Capability | Configuration | Swift operations |
 | --- | --- | --- |
 | HID | `HIDDeviceConfiguration` | Input reports; allowlisted output and feature events |
-| USB | `USBDeviceConfiguration` | Interface or device providers; control transfers, synchronous and asynchronous endpoint I/O, isochronous I/O, descriptors, configuration, frame numbers, idle policy, aborts |
+| USB | `USBDeviceConfiguration` | Interface or device providers; synchronous and asynchronous control transfers, synchronous and asynchronous endpoint I/O, bundled bulk I/O over descriptor rings, isochronous I/O, endpoint bandwidth adjustment, descriptors, configuration, frame numbers, idle policy, aborts |
 | PCI | `PCIDeviceConfiguration`, `PCIInterruptConfiguration` | Configuration space, bounded BAR access with access options, device location, capability search, MSI/MSI-X allocation, reset, state save/restore, power management, link speed, ASPM, sleep properties |
 | Serial | `SerialPortConfiguration` | Queue I/O, modem state, receive errors, UART events |
+| USB serial | `USBSerialPortConfiguration` | `IOUserUSBSerial` on a USB interface; UART events, modem state, receive errors, received and interrupt packet events |
 | Block storage | `BlockStorageDeviceConfiguration` | Eject, synchronize, unmap, read/write requests and completions |
 | MIDI | `MIDIDeviceConfiguration` | Endpoint topology, Universal MIDI Packet sends, destination events |
 | Networking | `EthernetDeviceConfiguration` | Packet queues, transmit completion, receive injection, link state |

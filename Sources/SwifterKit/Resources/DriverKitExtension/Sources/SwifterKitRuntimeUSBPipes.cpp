@@ -34,11 +34,6 @@ namespace {
     constexpr uint32_t kIOEventSize = sizeof(SwifterKitUSBPipeIOEvent);
     constexpr uint32_t kCountSize = sizeof(uint32_t);
 
-    struct TransferReference {
-        uint32_t slot;
-        uint32_t requestID;
-    };
-
     static_assert(sizeof(IOUSBEndpointDescriptor) == 7);
     static_assert(sizeof(IOUSBSuperSpeedEndpointCompanionDescriptor) == 6);
     static_assert(sizeof(IOUSBSuperSpeedPlusIsochronousEndpointCompanionDescriptor) == 8);
@@ -78,42 +73,6 @@ namespace {
         }
     };
 
-    void ReleaseTransfer(SwifterKitUSBPendingTransfer& transfer) {
-        OSSafeReleaseNULL(transfer.frameMap);
-        OSSafeReleaseNULL(transfer.frames);
-        OSSafeReleaseNULL(transfer.map);
-        OSSafeReleaseNULL(transfer.buffer);
-        OSSafeReleaseNULL(transfer.pipe);
-        OSSafeReleaseNULL(transfer.action);
-        transfer = SwifterKitUSBPendingTransfer {};
-    }
-
-    bool RequestIDInUse(const SwifterKitRuntimeService_IVars* state, uint32_t requestID) {
-        for (const SwifterKitUSBPendingTransfer& transfer : state->usbTransfers) {
-            if (transfer.active && transfer.requestID == requestID) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Claims a free slot and a fresh identifier. Call with usbLock held.
-    int32_t ReserveTransfer(SwifterKitRuntimeService_IVars* state, uint32_t* requestID) {
-        for (uint32_t slot = 0; slot < kSwifterKitUSBMaximumPendingTransfers; ++slot) {
-            if (state->usbTransfers[slot].active) {
-                continue;
-            }
-            do {
-                *requestID = state->nextUSBRequestID++;
-            } while (*requestID == 0 || RequestIDInUse(state, *requestID));
-            state->usbTransfers[slot] = SwifterKitUSBPendingTransfer {};
-            state->usbTransfers[slot].active = true;
-            state->usbTransfers[slot].requestID = *requestID;
-            return static_cast<int32_t>(slot);
-        }
-        return -1;
-    }
-
     // Builds and queues the completion event of a completed slot. Call with usbLock held.
     kern_return_t QueueCompletion(
         SwifterKitRuntimeService* service,
@@ -121,6 +80,22 @@ namespace {
         const bool input = (transfer.endpoint & 0x80) != 0;
         const uint8_t* data = SwifterKitUSBMappedBytes(transfer.map);
         uint32_t length = 0;
+        if (transfer.deviceRequest) {
+            const SwifterKitUSBDeviceRequestEvent header = {
+                .requestID = transfer.requestID,
+                .status = transfer.status,
+                .bytesTransferred = transfer.bytesTransferred,
+                .requestType = transfer.endpoint,
+                .reserved = {0, 0, 0},
+            };
+            return SwifterKitQueueUSBEvent(
+                service,
+                kSwifterKitEventUSBDeviceRequest,
+                &header,
+                sizeof(header),
+                data,
+                input ? transfer.bytesTransferred : 0);
+        }
         if (transfer.isochronous) {
             const uint8_t* frames = SwifterKitUSBMappedBytes(transfer.frameMap);
             if (frames == nullptr || (input && data == nullptr)) {
@@ -355,7 +330,9 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
             &prepared.buffer,
             &prepared.map);
         if (result == kIOReturnSuccess) {
-            result = CreateActionUSBPipeIOComplete(sizeof(TransferReference), &prepared.action);
+            result = CreateActionUSBPipeIOComplete(
+                sizeof(SwifterKitUSBTransferReference),
+                &prepared.action);
         }
     } else {
         const auto* header = reinterpret_cast<const SwifterKitUSBIsochIOHeader*>(payload);
@@ -397,8 +374,9 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
             result = CreateFrameList(interface, counts, frameCount, &prepared);
         }
         if (result == kIOReturnSuccess) {
-            result =
-                CreateActionUSBPipeIsochIOComplete(sizeof(TransferReference), &prepared.action);
+            result = CreateActionUSBPipeIsochIOComplete(
+                sizeof(SwifterKitUSBTransferReference),
+                &prepared.action);
         }
     }
     if (result == kIOReturnSuccess && prepared.action == nullptr) {
@@ -409,9 +387,10 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
         result =
             result == kIOReturnSuccess && prepared.pipe == nullptr ? kIOReturnNotFound : result;
     }
-    auto* reference = prepared.action == nullptr
-                          ? nullptr
-                          : static_cast<TransferReference*>(prepared.action->GetReference());
+    auto* reference =
+        prepared.action == nullptr
+            ? nullptr
+            : static_cast<SwifterKitUSBTransferReference*>(prepared.action->GetReference());
     if (result == kIOReturnSuccess && reference == nullptr) {
         result = kIOReturnNoMemory;
     }
@@ -434,7 +413,7 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
     submission.action->retain();
     uint32_t requestID = 0;
     IOLockLock(ivars->usbLock);
-    const int32_t slot = ReserveTransfer(ivars, &requestID);
+    const int32_t slot = SwifterKitReserveUSBTransfer(ivars, &requestID);
     if (slot >= 0) {
         SwifterKitUSBPendingTransfer& transfer = ivars->usbTransfers[slot];
         transfer.endpoint = endpoint;
@@ -459,7 +438,7 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
     if (result != kIOReturnSuccess) {
         // No completion follows a failed submission, so the slot is released here.
         IOLockLock(ivars->usbLock);
-        ReleaseTransfer(ivars->usbTransfers[slot]);
+        SwifterKitReleaseUSBTransfer(ivars->usbTransfers[slot]);
         IOLockUnlock(ivars->usbLock);
         return result;
     }
@@ -474,7 +453,8 @@ void SwifterKitRuntimeService::USBPipeIOComplete_Impl(
     if (action == nullptr || ivars == nullptr || ivars->usbLock == nullptr) {
         return;
     }
-    const auto* reference = static_cast<const TransferReference*>(action->GetReference());
+    const auto* reference =
+        static_cast<const SwifterKitUSBTransferReference*>(action->GetReference());
     if (reference == nullptr || reference->slot >= kSwifterKitUSBMaximumPendingTransfers) {
         return;
     }
@@ -497,7 +477,8 @@ void SwifterKitRuntimeService::USBPipeIsochIOComplete_Impl(OSAction* action, IOR
     if (action == nullptr || ivars == nullptr || ivars->usbLock == nullptr) {
         return;
     }
-    const auto* reference = static_cast<const TransferReference*>(action->GetReference());
+    const auto* reference =
+        static_cast<const SwifterKitUSBTransferReference*>(action->GetReference());
     if (reference == nullptr || reference->slot >= kSwifterKitUSBMaximumPendingTransfers) {
         return;
     }
@@ -529,9 +510,10 @@ void SwifterKitRuntimeService::DeliverUSBCompletions() {
         if (oldest == nullptr || QueueCompletion(this, *oldest) != kIOReturnSuccess) {
             break;
         }
-        ReleaseTransfer(*oldest);
+        SwifterKitReleaseUSBTransfer(*oldest);
     }
     IOLockUnlock(ivars->usbLock);
+    DeliverUSBBundledCompletions();
 }
 
 void SwifterKitRuntimeService::ReleaseUSBTransfers() {
@@ -540,9 +522,10 @@ void SwifterKitRuntimeService::ReleaseUSBTransfers() {
     }
     IOLockLock(ivars->usbLock);
     for (SwifterKitUSBPendingTransfer& transfer : ivars->usbTransfers) {
-        ReleaseTransfer(transfer);
+        SwifterKitReleaseUSBTransfer(transfer);
     }
     IOLockUnlock(ivars->usbLock);
+    ReleaseUSBBundleRings();
 }
 
 #endif

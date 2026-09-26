@@ -85,7 +85,7 @@ struct DriverExtensionProjectTests {
       "PCIDriverKit.framework", "SerialDriverKit.framework",
       "BlockStorageDeviceDriverKit.framework", "MIDIDriverKit.framework",
       "NetworkingDriverKit.framework", "AudioDriverKit.framework", "VideoDriverKit.framework",
-      "SCSIPeripheralsDriverKit.framework",
+      "SCSIPeripheralsDriverKit.framework", "USBSerialDriverKit.framework",
     ] { #expect(!rendered.contains(framework)) }
   }
 
@@ -122,7 +122,7 @@ struct DriverExtensionProjectTests {
     for unrelated in [
       "USBDriverKit", "PCIDriverKit", "SerialDriverKit", "BlockStorageDeviceDriverKit",
       "MIDIDriverKit", "NetworkingDriverKit", "AudioDriverKit", "VideoDriverKit",
-      "SCSIControllerDriverKit", "SCSIPeripheralsDriverKit",
+      "SCSIControllerDriverKit", "SCSIPeripheralsDriverKit", "USBSerialDriverKit",
     ] { #expect(!linkedLibraries.output.contains("\(unrelated).framework")) }
   }
 
@@ -165,7 +165,7 @@ struct DriverExtensionProjectTests {
       "SerialDriverKit.framework", "BlockStorageDeviceDriverKit.framework",
       "MIDIDriverKit.framework", "NetworkingDriverKit.framework", "AudioDriverKit.framework",
       "VideoDriverKit.framework", "SCSIControllerDriverKit.framework",
-      "SCSIPeripheralsDriverKit.framework",
+      "SCSIPeripheralsDriverKit.framework", "USBSerialDriverKit.framework",
     ]
     let records = frameworks.flatMap { framework in
       [

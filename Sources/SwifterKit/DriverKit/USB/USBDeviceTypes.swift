@@ -118,6 +118,13 @@ public struct USBSuperSpeedEndpointCompanion: Sendable, Hashable {
   public let attributes: UInt8
   /// The `wBytesPerInterval` value.
   public let bytesPerInterval: UInt16
+
+  /// Creates a SuperSpeed endpoint companion descriptor.
+  public init(maxBurst: UInt8, attributes: UInt8, bytesPerInterval: UInt16) {
+    self.maxBurst = maxBurst
+    self.attributes = attributes
+    self.bytesPerInterval = bytesPerInterval
+  }
 }
 
 /// The descriptors that describe one pipe's endpoint.
@@ -130,6 +137,48 @@ public struct USBPipeDescriptors: Sendable, Hashable {
   public let superSpeedCompanion: USBSuperSpeedEndpointCompanion?
   /// The `dwBytesPerInterval` of the SuperSpeedPlus isochronous companion, when present.
   public let superSpeedPlusIsochronousBytesPerInterval: UInt32?
+
+  /// The `bcdUSB` values `AdjustPipe` accepts.
+  static let supportedReleases: Set<UInt16> = [0x0110, 0x0200, 0x0210, 0x0300, 0x0310, 0x0320]
+
+  /// Creates endpoint descriptors, for example an adjusted copy for
+  /// ``DriverContext/usbAdjustPipe(endpoint:descriptors:)``.
+  public init(
+    usbRelease: UInt16,
+    endpoint: USBEndpointDescriptor,
+    superSpeedCompanion: USBSuperSpeedEndpointCompanion? = nil,
+    superSpeedPlusIsochronousBytesPerInterval: UInt32? = nil
+  ) {
+    self.usbRelease = usbRelease
+    self.endpoint = endpoint
+    self.superSpeedCompanion = superSpeedCompanion
+    self.superSpeedPlusIsochronousBytesPerInterval = superSpeedPlusIsochronousBytesPerInterval
+  }
+
+  /// The 23-byte `SwifterKitUSBPipeDescriptors` layout.
+  var runtimePayload: [UInt8] {
+    var bytes = [UInt8(truncatingIfNeeded: usbRelease), UInt8(truncatingIfNeeded: usbRelease >> 8)]
+    bytes += [
+      7, 0x05, endpoint.address, endpoint.attributes,
+      UInt8(truncatingIfNeeded: endpoint.maxPacketSize),
+      UInt8(truncatingIfNeeded: endpoint.maxPacketSize >> 8), endpoint.interval,
+    ]
+    if let companion = superSpeedCompanion {
+      bytes += [
+        6, 0x30, companion.maxBurst, companion.attributes,
+        UInt8(truncatingIfNeeded: companion.bytesPerInterval),
+        UInt8(truncatingIfNeeded: companion.bytesPerInterval >> 8),
+      ]
+    } else {
+      bytes += [UInt8](repeating: 0, count: 6)
+    }
+    if let perInterval = superSpeedPlusIsochronousBytesPerInterval {
+      bytes += [8, 0x31, 0, 0] + (0..<4).map { UInt8(truncatingIfNeeded: perInterval >> ($0 * 8)) }
+    } else {
+      bytes += [UInt8](repeating: 0, count: 8)
+    }
+    return bytes
+  }
 
   init(runtimePayload: Data) throws {
     let bytes = [UInt8](runtimePayload)

@@ -130,6 +130,63 @@ struct __attribute__((packed)) SwifterKitUSBIsochFrame {
     uint64_t timestamp;
 };
 
+// An asynchronous control request uses SwifterKitUSBControlTransferHeader and completes with
+// this event, followed by the bytes an IN request read.
+struct __attribute__((packed)) SwifterKitUSBDeviceRequestEvent {
+    uint32_t requestID;
+    int32_t status;
+    uint32_t bytesTransferred;
+    uint8_t requestType;
+    uint8_t reserved[3];
+};
+
+// Bundled I/O over a runtime-owned descriptor ring on one bulk pipe.
+static constexpr uint32_t kSwifterKitUSBMaximumBundleRings = 4;
+static constexpr uint32_t kSwifterKitUSBMaximumBundleRingEntries = 64;
+static constexpr uint32_t kSwifterKitUSBMaximumBundleRingBytes = 4U * 1024U * 1024U;
+static constexpr uint32_t kSwifterKitUSBMaximumBundledTransfers = 16;
+
+struct __attribute__((packed)) SwifterKitUSBBundleRingRequest {
+    uint8_t endpoint;
+    uint8_t reserved8;
+    uint16_t reserved16;
+    uint32_t entryCount;
+    uint32_t bufferLength;
+    uint32_t reserved32;
+};
+
+// Followed by transferCount 32-bit lengths and, for an OUT pipe, the concatenated bytes.
+struct __attribute__((packed)) SwifterKitUSBBundledIOHeader {
+    uint8_t endpoint;
+    uint8_t transferCount;
+    uint16_t reserved16;
+    uint32_t firstIndex;
+    uint32_t timeout;
+    uint32_t reserved32;
+};
+
+// One ring entry's completion, followed by the bytes an IN transfer read.
+struct __attribute__((packed)) SwifterKitUSBBundledIOEvent {
+    uint8_t endpoint;
+    uint8_t reserved8;
+    uint16_t reserved16;
+    uint32_t index;
+    int32_t status;
+    uint32_t bytesTransferred;
+};
+
+struct __attribute__((packed)) SwifterKitUSBAdjustPipeRequest {
+    uint8_t endpoint;
+    uint8_t reserved[3];
+    SwifterKitUSBPipeDescriptors descriptors;
+    uint8_t reserved8;
+};
+
+static constexpr uint32_t kSwifterKitUSBMaximumAsyncRequestInputLength =
+    kSwifterKitUSBMaximumEventPayload - sizeof(SwifterKitUSBDeviceRequestEvent);
+static constexpr uint32_t kSwifterKitUSBMaximumBundleBufferLength =
+    kSwifterKitUSBMaximumEventPayload - sizeof(SwifterKitUSBBundledIOEvent);
+
 static constexpr uint32_t kSwifterKitUSBMaximumAsyncInputLength =
     kSwifterKitUSBMaximumEventPayload - sizeof(SwifterKitUSBPipeIOEvent);
 static constexpr uint32_t kSwifterKitUSBMaximumAsyncOutputLength =
@@ -150,5 +207,12 @@ static_assert(sizeof(SwifterKitUSBIsochFrame) == 24);
 static_assert(kSwifterKitUSBMaximumAsyncInputLength == 65484);
 static_assert(kSwifterKitUSBMaximumAsyncOutputLength == 65480);
 static_assert(kSwifterKitUSBMaximumDescriptorLength == 65508);
+static_assert(sizeof(SwifterKitUSBDeviceRequestEvent) == 16);
+static_assert(sizeof(SwifterKitUSBBundleRingRequest) == 16);
+static_assert(sizeof(SwifterKitUSBBundledIOHeader) == 16);
+static_assert(sizeof(SwifterKitUSBBundledIOEvent) == 16);
+static_assert(sizeof(SwifterKitUSBAdjustPipeRequest) == 28);
+static_assert(kSwifterKitUSBMaximumAsyncRequestInputLength == 65492);
+static_assert(kSwifterKitUSBMaximumBundleBufferLength == 65492);
 
 #endif

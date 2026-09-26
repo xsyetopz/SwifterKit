@@ -6,9 +6,58 @@
 #if SWIFTERKIT_ENABLE_USB
 
     #include <DriverKit/IOBufferMemoryDescriptor.h>
+    #include <DriverKit/IOLib.h>
     #include <DriverKit/IOMemoryMap.h>
     #include <DriverKit/OSData.h>
     #include <string.h>
+
+    #include "SwifterKitRuntimeServiceState.h"
+
+// The OSAction reference of an asynchronous transfer: its slot and the identifier it was issued.
+struct SwifterKitUSBTransferReference {
+    uint32_t slot;
+    uint32_t requestID;
+};
+
+inline void SwifterKitReleaseUSBTransfer(SwifterKitUSBPendingTransfer& transfer) {
+    OSSafeReleaseNULL(transfer.frameMap);
+    OSSafeReleaseNULL(transfer.frames);
+    OSSafeReleaseNULL(transfer.map);
+    OSSafeReleaseNULL(transfer.buffer);
+    OSSafeReleaseNULL(transfer.pipe);
+    OSSafeReleaseNULL(transfer.action);
+    transfer = SwifterKitUSBPendingTransfer {};
+}
+
+inline bool SwifterKitUSBRequestIDInUse(
+    const SwifterKitRuntimeService_IVars* state,
+    uint32_t requestID) {
+    for (const SwifterKitUSBPendingTransfer& transfer : state->usbTransfers) {
+        if (transfer.active && transfer.requestID == requestID) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Claims a free slot and a fresh identifier. Call with usbLock held.
+inline int32_t SwifterKitReserveUSBTransfer(
+    SwifterKitRuntimeService_IVars* state,
+    uint32_t* requestID) {
+    for (uint32_t slot = 0; slot < kSwifterKitUSBMaximumPendingTransfers; ++slot) {
+        if (state->usbTransfers[slot].active) {
+            continue;
+        }
+        do {
+            *requestID = state->nextUSBRequestID++;
+        } while (*requestID == 0 || SwifterKitUSBRequestIDInUse(state, *requestID));
+        state->usbTransfers[slot] = SwifterKitUSBPendingTransfer {};
+        state->usbTransfers[slot].active = true;
+        state->usbTransfers[slot].requestID = *requestID;
+        return static_cast<int32_t>(slot);
+    }
+    return -1;
+}
 
 // Allocates a controller-optimized buffer from an IOUSBHostInterface or IOUSBHostDevice, maps
 // it, and zeroes or fills it. The caller releases both objects on success or failure.
@@ -65,6 +114,32 @@ inline kern_return_t
 
 inline kern_return_t SwifterKitUSBValueResponse(uint32_t value, OSData** response) {
     return SwifterKitUSBDataResponse(&value, sizeof(value), response);
+}
+
+// Queues a required event made of a fixed header and optional trailing bytes.
+template<typename Service>
+kern_return_t SwifterKitQueueUSBEvent(
+    Service* service,
+    uint32_t type,
+    const void* header,
+    uint32_t headerLength,
+    const uint8_t* bytes,
+    uint32_t length) {
+    if (length != 0 && bytes == nullptr) {
+        return kIOReturnNoMemory;
+    }
+    const uint32_t total = headerLength + length;
+    auto* event = static_cast<uint8_t*>(IOMallocZero(total));
+    if (event == nullptr) {
+        return kIOReturnNoMemory;
+    }
+    memcpy(event, header, headerLength);
+    if (length != 0) {
+        memcpy(event + headerLength, bytes, length);
+    }
+    const kern_return_t result = service->EnqueueRequiredEvent(type, event, total);
+    IOFree(event, total);
+    return result;
 }
 
 #endif

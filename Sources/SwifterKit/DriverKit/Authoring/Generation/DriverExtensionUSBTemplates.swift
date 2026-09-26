@@ -49,7 +49,32 @@ extension DriverExtensionGenerator {
               const uint8_t* payload,
               uint32_t payloadLength,
               OSData** response) LOCALONLY;
+          kern_return_t USBAsyncCommand(
+              uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+          kern_return_t USBBundleCommand(
+              uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
           void DeliverUSBCompletions() LOCALONLY;
+          void DeliverUSBBundledCompletions() LOCALONLY;
+          void AbortUSBAsyncRequests() LOCALONLY;
+          void ReleaseUSBBundleRings() LOCALONLY;
+          virtual void USBDeviceRequestComplete(
+              OSAction* action,
+              IOReturn status,
+              uint32_t bytesTransferred) TYPE(IOUSBHostDevice::CompleteAsyncDeviceRequest);
+          virtual void USBPipeBundledIOComplete(
+              OSAction* action,
+              uint32_t ioCompletionIndex,
+              uint32_t ioCompletionCount,
+              const uint32_t actualByteCountArray[kIOUSBHostPipeBundlingMax],
+              int actualByteCountArrayCount,
+              const kern_return_t statusArray[kIOUSBHostPipeBundlingMax],
+              int statusArrayCount) TYPE(IOUSBHostPipe::CompleteAsyncIOBundled);
           virtual void USBPipeIOComplete(
               OSAction* action,
               IOReturn status,

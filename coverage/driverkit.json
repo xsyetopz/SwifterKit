@@ -28617,14 +28617,14 @@
 
           ],
           "name" : "AsyncDeviceRequest",
-          "note" : "follow-up: the synchronous usbControlTransfer covers default-endpoint requests",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t AsyncDeviceRequest(IOService*, uint8_t, uint8_t, uint16_t, uint16_t, uint16_t, IOMemoryDescriptor*, OSAction*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbEnqueueControlTransfer"
         },
         {
           "access" : "public",
@@ -28921,14 +28921,14 @@
 
           ],
           "name" : "CompleteAsyncDeviceRequest",
-          "note" : "follow-up: the synchronous usbControlTransfer covers default-endpoint requests",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void CompleteAsyncDeviceRequest(OSAction*, IOReturn, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "USBDeviceRequestCompletion"
         }
       ],
       "name" : "IOUSBHostDevice",
@@ -29075,14 +29075,14 @@
 
           ],
           "name" : "AsyncDeviceRequest",
-          "note" : "follow-up: the synchronous usbControlTransfer covers default-endpoint requests",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t AsyncDeviceRequest(uint8_t, uint8_t, uint16_t, uint16_t, uint16_t, IOMemoryDescriptor*, OSAction*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbEnqueueControlTransfer"
         },
         {
           "access" : "public",
@@ -29389,14 +29389,14 @@
 
           ],
           "name" : "AdjustPipe",
-          "note" : "follow-up: needs a typed endpoint-policy request",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t AdjustPipe(const IOUSBStandardEndpointDescriptors*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbAdjustPipe"
         },
         {
           "access" : "public",
@@ -29425,14 +29425,14 @@
 
           ],
           "name" : "AsyncIOBundled",
-          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t AsyncIOBundled(uint32_t, uint32_t, uint32_t*, const uint32_t[kIOUSBHostPipeBundlingMax], int, OSAction*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbEnqueueBundledReads"
         },
         {
           "access" : "public",
@@ -29461,14 +29461,14 @@
 
           ],
           "name" : "CreateMemoryDescriptorRing",
-          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateMemoryDescriptorRing(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbCreateBundleRing"
         },
         {
           "access" : "public",
@@ -29605,14 +29605,14 @@
 
           ],
           "name" : "SetMemoryDescriptor",
-          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetMemoryDescriptor(IOMemoryDescriptor*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "usbCreateBundleRing"
         },
         {
           "access" : "public",
@@ -29641,14 +29641,14 @@
 
           ],
           "name" : "CompleteAsyncIOBundled",
-          "note" : "follow-up: bundled transfers need a descriptor ring owned by the runtime",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void CompleteAsyncIOBundled(OSAction*, uint32_t, uint32_t, const uint32_t[kIOUSBHostPipeBundlingMax], int, const kern_return_t[kIOUSBHostPipeBundlingMax], int)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "USBBundledIOCompletion"
         },
         {
           "access" : "public",
@@ -29709,13 +29709,14 @@
 
           ],
           "name" : "initWith",
+          "note" : "initializer hook that IOUserUSBSerial forwards to IOUserSerial::initWith; the generated runtime owns object lifetime and inherits it unchanged",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWith(IOBufferMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -29726,13 +29727,14 @@
 
           ],
           "name" : "ConnectQueues",
+          "note" : "StartSerial and StopSerial call it; IOUserUSBSerial opens and closes the matched interface there",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t ConnectQueues(IOBufferMemoryDescriptor**, IOMemoryDescriptor**, IOMemoryDescriptor**, IOMemoryDescriptor*, IOMemoryDescriptor*, uint32_t, uint32_t, uint8_t, uint8_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29743,13 +29745,14 @@
 
           ],
           "name" : "DisconnectQueues",
+          "note" : "StartSerial and StopSerial call it; IOUserUSBSerial opens and closes the matched interface there",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DisconnectQueues()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29760,13 +29763,14 @@
 
           ],
           "name" : "HwActivate",
+          "note" : "the generated service overrides it, dispatches to IOUserUSBSerial to start or stop pipe I/O, and notifies Swift",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t HwActivate()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29777,13 +29781,14 @@
 
           ],
           "name" : "HwDeactivate",
+          "note" : "the generated service overrides it, dispatches to IOUserUSBSerial to start or stop pipe I/O, and notifies Swift",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t HwDeactivate()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29794,13 +29799,14 @@
 
           ],
           "name" : "Start",
+          "note" : "the generated service overrides it and dispatches to IOUserUSBSerial",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Start(IOService*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29811,13 +29817,14 @@
 
           ],
           "name" : "Stop",
+          "note" : "the generated service overrides it and dispatches to IOUserUSBSerial",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Stop(IOService*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29828,13 +29835,14 @@
 
           ],
           "name" : "RxFreeSpaceAvailable",
+          "note" : "final in IOUserUSBSerial; the generated service inherits it to move queue data over the bulk pipes",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void RxFreeSpaceAvailable()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29845,13 +29853,14 @@
 
           ],
           "name" : "TxDataAvailable",
+          "note" : "final in IOUserUSBSerial; the generated service inherits it to move queue data over the bulk pipes",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void TxDataAvailable()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -29886,7 +29895,8 @@
             "27.0"
           ],
           "signature" : "void handleInterruptPacket(const uint8_t*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "USBSerialEvent"
         },
         {
           "access" : "public",
@@ -29903,7 +29913,8 @@
             "27.0"
           ],
           "signature" : "void handleRxPacket(uint8_t*&, uint32_t &)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "USBSerialEvent"
         }
       ],
       "name" : "IOUserUSBSerial",

@@ -396,6 +396,9 @@ kern_return_t SwifterKitRuntimeService::USBCommand(
         return kIOReturnNotReady;
     }
     DeliverUSBCompletions();
+    if (opcode >= static_cast<uint32_t>(SwifterKitRuntimeOpcode::USBAsyncDeviceRequest)) {
+        return USBAsyncCommand(opcode, payload, payloadLength, response);
+    }
     if (opcode >= static_cast<uint32_t>(SwifterKitRuntimeOpcode::USBPipeAsyncIO)) {
         return USBPipeCommand(opcode, payload, payloadLength, response);
     }

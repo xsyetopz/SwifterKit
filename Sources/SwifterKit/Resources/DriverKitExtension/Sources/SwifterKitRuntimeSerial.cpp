@@ -4,6 +4,7 @@
 #if SWIFTERKIT_ENABLE_SERIAL
 
     #include <DriverKit/IOLib.h>
+    #include <DriverKit/OSCollections.h>
 
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
@@ -81,7 +82,34 @@ namespace {
         };
         return service->EnqueueEvent(kSwifterKitEventSerial, &event, sizeof(event));
     }
+
+    #if SWIFTERKIT_USB_SERIAL
+    // IOUserUSBSerial::Start publishes its own usbserial- terminal name; a configured name
+    // replaces it before the service registers.
+    kern_return_t PublishTerminalName(SwifterKitRuntimeService* service) {
+        OSDictionary* names = OSDictionary::withCapacity(2);
+        OSString* baseName = OSString::withCString(kSwifterKitSerialBaseName);
+        OSString* suffix = OSString::withCString(kSwifterKitSerialSuffix);
+        kern_return_t result = kIOReturnNoMemory;
+        if (names != nullptr && baseName != nullptr && suffix != nullptr
+            && names->setObject("IOTTYBaseName", baseName)
+            && names->setObject("IOTTYSuffix", suffix)) {
+            result = service->SetProperties(names);
+        }
+        OSSafeReleaseNULL(suffix);
+        OSSafeReleaseNULL(baseName);
+        OSSafeReleaseNULL(names);
+        return result;
+    }
+    #endif
 }  // namespace
+
+// Data-path ownership: an IOUserSerial service moves terminal bytes through Swift with
+// serialEnqueueReceive and serialDequeueTransmit. An IOUserUSBSerial service leaves the queues
+// to its superclass, which opens the interface in ConnectQueues, submits bulk and interrupt I/O in
+// HwActivate, and closes the interface in DisconnectQueues; Swift sees copies of the packets
+// through handleRxPacket and handleInterruptPacket, and queue commands fail with
+// kIOReturnUnsupported.
 
 kern_return_t SwifterKitRuntimeService::StartSerial() {
     if (ivars == nullptr || ivars->serialLock == nullptr || ivars->serialConnected) {
@@ -138,13 +166,26 @@ kern_return_t SwifterKitRuntimeService::StartSerial() {
     ivars->serialDSR = kSwifterKitSerialInitialDSR;
     ivars->serialRI = kSwifterKitSerialInitialRI;
     ivars->serialDCD = kSwifterKitSerialInitialDCD;
-    return SetModemStatus(ivars->serialCTS, ivars->serialDSR, ivars->serialRI, ivars->serialDCD);
+    result = SetModemStatus(ivars->serialCTS, ivars->serialDSR, ivars->serialRI, ivars->serialDCD);
+    #if SWIFTERKIT_USB_SERIAL
+    if (result == kIOReturnSuccess && kSwifterKitUSBSerialOverridesName) {
+        result = PublishTerminalName(this);
+    }
+    #endif
+    if (result != kIOReturnSuccess) {
+        StopSerial();
+    }
+    return result;
 }
 
 void SwifterKitRuntimeService::StopSerial() {
     if (ivars == nullptr) {
         return;
     }
+    #if SWIFTERKIT_USB_SERIAL
+    // Abort the runtime's own USB requests while the superclass still holds the interface open.
+    StopUSB();
+    #endif
     ivars->serialInterface = nullptr;
     OSSafeReleaseNULL(ivars->serialTransmitMap);
     OSSafeReleaseNULL(ivars->serialReceiveMap);
@@ -168,6 +209,13 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
         return kIOReturnNotReady;
     }
     *response = nullptr;
+
+    #if SWIFTERKIT_USB_SERIAL
+    if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::SerialEnqueueReceive)
+        || opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::SerialDequeueTransmit)) {
+        return kIOReturnUnsupported;
+    }
+    #endif
 
     IOLockLock(ivars->serialLock);
     auto* serial = ivars->serialInterface;
@@ -282,6 +330,23 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
     return result;
 }
 
+    #if SWIFTERKIT_USB_SERIAL
+// IOUserUSBSerial copies its pipes and starts bulk and interrupt I/O in HwActivate, and aborts
+// them in HwDeactivate, so both dispatch to it. Swift is told after activation succeeds and
+// before deactivation starts; those notifications are lossy and never change the result.
+kern_return_t SwifterKitRuntimeService::HwActivate_Impl() {
+    const kern_return_t result = HwActivate(SUPERDISPATCH);
+    if (result == kIOReturnSuccess) {
+        (void)QueueSerialEvent(this, SerialEventKind::Activate);
+    }
+    return result;
+}
+
+kern_return_t SwifterKitRuntimeService::HwDeactivate_Impl() {
+    (void)QueueSerialEvent(this, SerialEventKind::Deactivate);
+    return HwDeactivate(SUPERDISPATCH);
+}
+    #else
 void SwifterKitRuntimeService::RxFreeSpaceAvailable_Impl() {
     (void)QueueSerialEvent(this, SerialEventKind::ReceiveSpaceAvailable);
 }
@@ -297,6 +362,7 @@ kern_return_t SwifterKitRuntimeService::HwActivate_Impl() {
 kern_return_t SwifterKitRuntimeService::HwDeactivate_Impl() {
     return QueueSerialEvent(this, SerialEventKind::Deactivate);
 }
+    #endif
 
 kern_return_t SwifterKitRuntimeService::HwResetFIFO_Impl(bool tx, bool rx) {
     return QueueSerialEvent(

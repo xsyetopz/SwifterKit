@@ -101,12 +101,79 @@ public struct USBIsochronousCompletion: Sendable, Hashable {
   }
 }
 
-/// A USB pipe completion delivered as a runtime event.
+/// The result of an asynchronous control request, from `CompleteAsyncDeviceRequest`.
+public struct USBDeviceRequestCompletion: Sendable, Hashable {
+  /// The identifier returned when the request was enqueued.
+  public let requestID: UInt32
+  /// The request's `bmRequestType`.
+  public let requestType: UInt8
+  /// The `IOReturn` status. Zero is success; `kIOReturnAborted` follows an abort.
+  public let status: Int32
+  /// The number of bytes the data stage transferred.
+  public let bytesTransferred: UInt32
+  /// Bytes an IN request read; empty for an OUT request.
+  public let data: [UInt8]
+
+  /// Whether the request completed successfully.
+  public var succeeded: Bool { status == 0 }
+
+  init(runtimePayload: Data) throws {
+    guard runtimePayload.count >= 16 else { throw USBRuntimeError.invalidResponse }
+    requestID = try runtimePayload.readRuntimeInteger(at: 0)
+    status = try runtimePayload.readRuntimeInteger(at: 4)
+    bytesTransferred = try runtimePayload.readRuntimeInteger(at: 8)
+    requestType = runtimePayload[runtimePayload.startIndex + 12]
+    data = Array(runtimePayload.dropFirst(16))
+    let input = USBTransferDirection(encodedByte: requestType) == .in
+    guard requestID != 0, runtimePayload.dropFirst(13).prefix(3).allSatisfy({ $0 == 0 }),
+      data.count == (input ? Int(bytesTransferred) : 0)
+    else { throw USBRuntimeError.invalidResponse }
+  }
+}
+
+/// The result of one descriptor-ring entry of a bundled transfer, from `CompleteAsyncIOBundled`.
+public struct USBBundledIOCompletion: Sendable, Hashable {
+  /// The endpoint address of the pipe.
+  public let endpoint: UInt8
+  /// The ring index of the entry, which is available again once this event arrives.
+  public let index: Int
+  /// The entry's `IOReturn` status.
+  public let status: Int32
+  /// The number of bytes transferred.
+  public let bytesTransferred: UInt32
+  /// Bytes an IN transfer read; empty for an OUT transfer.
+  public let data: [UInt8]
+
+  /// Whether the transfer completed successfully.
+  public var succeeded: Bool { status == 0 }
+
+  init(runtimePayload: Data) throws {
+    guard runtimePayload.count >= 16 else { throw USBRuntimeError.invalidResponse }
+    endpoint = runtimePayload[runtimePayload.startIndex]
+    let reserved: UInt8 = runtimePayload[runtimePayload.startIndex + 1]
+    let reserved16: UInt16 = try runtimePayload.readRuntimeInteger(at: 2)
+    let index: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
+    status = try runtimePayload.readRuntimeInteger(at: 8)
+    bytesTransferred = try runtimePayload.readRuntimeInteger(at: 12)
+    data = Array(runtimePayload.dropFirst(16))
+    let input = USBTransferDirection(encodedByte: endpoint) == .in
+    guard reserved == 0, reserved16 == 0, index < UInt32(DriverCommand.usbMaximumBundleRingEntries),
+      data.count == (input ? Int(bytesTransferred) : 0)
+    else { throw USBRuntimeError.invalidResponse }
+    self.index = Int(index)
+  }
+}
+
+/// A USB completion delivered as a runtime event.
 public enum USBEvent: Sendable, Hashable {
   /// An asynchronous bulk or interrupt transfer completed.
   case pipeIO(USBPipeIOCompletion)
   /// An isochronous transfer completed.
   case isochronousIO(USBIsochronousCompletion)
+  /// An asynchronous control request completed.
+  case deviceRequest(USBDeviceRequestCompletion)
+  /// One descriptor-ring entry of a bundled transfer completed.
+  case bundledIO(USBBundledIOCompletion)
 }
 
 extension DriverEvent {
@@ -120,6 +187,10 @@ extension DriverEvent {
       return .pipeIO(try USBPipeIOCompletion(runtimePayload: Data(payload)))
     case RuntimeEventType.usbPipeIsochIO.rawValue:
       return .isochronousIO(try USBIsochronousCompletion(runtimePayload: Data(payload)))
+    case RuntimeEventType.usbDeviceRequest.rawValue:
+      return .deviceRequest(try USBDeviceRequestCompletion(runtimePayload: Data(payload)))
+    case RuntimeEventType.usbPipeBundledIO.rawValue:
+      return .bundledIO(try USBBundledIOCompletion(runtimePayload: Data(payload)))
     default: return nil
     }
   }

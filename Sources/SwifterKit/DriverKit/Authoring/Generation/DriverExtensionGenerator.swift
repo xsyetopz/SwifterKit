@@ -117,10 +117,10 @@ public enum DriverExtensionGenerator {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.pci)
     }
     if configuration.capabilities.contains(.serial) {
-      guard let serial = configuration.serialPort, isValid(serial: serial),
-        !configuration.capabilities.contains(.hid)
-      else { throw DriverExtensionGenerationError.invalidSerialConfiguration }
-    } else if configuration.serialPort != nil {
+      guard !configuration.capabilities.contains(.hid), isValidSerial(configuration) else {
+        throw DriverExtensionGenerationError.invalidSerialConfiguration
+      }
+    } else if configuration.serialPort != nil || configuration.usbSerialPort != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.serial)
     }
     if configuration.capabilities.contains(.blockStorage) {
@@ -283,9 +283,21 @@ public enum DriverExtensionGenerator {
       && !value.product.isEmpty && !value.revision.isEmpty
   }
 
-  private static func isValid(serial: SerialPortConfiguration) -> Bool {
-    let strings = [serial.baseName, serial.suffix]
-    return strings.allSatisfy { !$0.isEmpty && !$0.contains("\0") }
+  private static func isValidSerial(_ configuration: DriverConfiguration) -> Bool {
+    switch (configuration.serialPort, configuration.usbSerialPort) {
+    case (let serial?, nil): return isValidTerminalName([serial.baseName, serial.suffix])
+    case (nil, let usbSerial?):
+      // IOUserUSBSerial opens the matched interface itself and drives its bulk pipes.
+      let names = [usbSerial.baseName, usbSerial.suffix].compactMap { $0 }
+      return configuration.capabilities.contains(.usb)
+        && configuration.providerClass == USBDeviceConfiguration.interfaceProviderClass
+        && (names.isEmpty || (names.count == 2 && isValidTerminalName(names)))
+    default: return false
+    }
+  }
+
+  private static func isValidTerminalName(_ strings: [String]) -> Bool {
+    strings.allSatisfy { !$0.isEmpty && !$0.contains("\0") }
   }
 
   private static func isValid(pci: PCIDeviceConfiguration) -> Bool {
@@ -340,6 +352,12 @@ public enum DriverExtensionGenerator {
     if let serial = configuration.serialPort {
       personality["IOTTYBaseName"] = serial.baseName
       personality["IOTTYSuffix"] = serial.suffix
+    }
+    if let usbSerial = configuration.usbSerialPort, let baseName = usbSerial.baseName,
+      let suffix = usbSerial.suffix
+    {
+      personality["IOTTYBaseName"] = baseName
+      personality["IOTTYSuffix"] = suffix
     }
     if let peripheral = configuration.scsiPeripheral {
       for (key, value) in peripheral.transferConstraints.registryProperties {

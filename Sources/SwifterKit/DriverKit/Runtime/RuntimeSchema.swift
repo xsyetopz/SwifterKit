@@ -90,6 +90,11 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case usbPipeGetSpeed = 0x0235
   case usbPipeGetDeviceAddress = 0x0236
   case usbPipeIsochIO = 0x0237
+  case usbAsyncDeviceRequest = 0x0240
+  case usbPipeCreateBundleRing = 0x0250
+  case usbPipeEnqueueBundled = 0x0251
+  case usbPipeReleaseBundleRing = 0x0252
+  case usbPipeAdjust = 0x0260
   case hidSubmitInputReport = 0x0300
   case hidGetRuntimeStatistics = 0x0301
   case hidCompleteGetReport = 0x0310
@@ -212,6 +217,8 @@ enum RuntimeEventType: UInt32, CaseIterable {
   case interrupt = 0x0100
   case usbPipeIO = 0x0200
   case usbPipeIsochIO = 0x0201
+  case usbDeviceRequest = 0x0210
+  case usbPipeBundledIO = 0x0220
   case hidReport = 0x0300
   case hidInputReport = 0x0310
   case hidElementValues = 0x0311
@@ -219,6 +226,7 @@ enum RuntimeEventType: UInt32, CaseIterable {
   case hidLEDState = 0x0313
   case hidProperties = 0x0314
   case serial = 0x0600
+  case usbSerialPacket = 0x0610
   case blockStorage = 0x0700
   case midi = 0x0800
   case network = 0x0900

@@ -82,6 +82,11 @@ static constexpr uint32_t kSwifterKitVideoStreamCount = 0;
 #define SWIFTERKIT_ENABLE_MIDI 0
 #define SWIFTERKIT_ENABLE_BLOCK_STORAGE 0
 #define SWIFTERKIT_ENABLE_SERIAL 0
+// True when the serial service derives from IOUserUSBSerial on an IOUSBHostInterface.
+#define SWIFTERKIT_USB_SERIAL 0
+static constexpr bool kSwifterKitUSBSerialOverridesName = false;
+static constexpr bool kSwifterKitUSBSerialDeliversReceivedPackets = false;
+static constexpr bool kSwifterKitUSBSerialDeliversInterruptPackets = false;
 #define SWIFTERKIT_ENABLE_USB 0
 #define SWIFTERKIT_ENABLE_PCI 0
 #define SWIFTERKIT_ENABLE_INTERRUPTS 0

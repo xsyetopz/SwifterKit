@@ -11,6 +11,7 @@ enum DriverExtensionProject {
 
   private static let scsiControllerFramework = "SCSIControllerDriverKit.framework"
   private static let scsiPeripheralFramework = "SCSIPeripheralsDriverKit.framework"
+  private static let usbSerialFramework = "USBSerialDriverKit.framework"
 
   static func frameworkNames(for configuration: DriverConfiguration) -> Set<String> {
     var names = Set(
@@ -20,6 +21,7 @@ enum DriverExtensionProject {
     )
     if configuration.scsiController != nil { names.insert(scsiControllerFramework) }
     if configuration.scsiPeripheral != nil { names.insert(scsiPeripheralFramework) }
+    if configuration.usbSerialPort != nil { names.insert(usbSerialFramework) }
     return names
   }
 
@@ -29,7 +31,7 @@ enum DriverExtensionProject {
     template: String
   ) throws -> String {
     let allFrameworks = Set(frameworksByCapability.map { $0.1 }).union([
-      scsiControllerFramework, scsiPeripheralFramework,
+      scsiControllerFramework, scsiPeripheralFramework, usbSerialFramework,
     ])
     var occurrenceCounts: [String: Int] = [:]
 

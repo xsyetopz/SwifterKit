@@ -6,6 +6,10 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** `USBEvent` gains the `deviceRequest` and `bundledIO` cases, and
+  `USBRuntimeError` gains `invalidBundleRing`, `invalidBundledTransfer`, and
+  `invalidEndpointPolicy`, so exhaustive switches over them must handle the
+  new cases.
 - **Breaking:** every generated service overrides `IOService::SetPowerState`
   and, while a host is connected, delivers each power change as a
   `ServicePowerStateRequest` from `DriverEvent.servicePowerState()`. DriverKit
@@ -47,6 +51,8 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- A serial extension whose start fails after its queues are connected now
+  disconnects them before the service stops.
 - A generated `IOUserHIDDevice` or `IOUserUSBHostHIDDevice` that accepts
   output or feature reports from the host now calls `CompleteReport` exactly
   once, with success and the report length, as soon as `setReport` queues the
@@ -72,6 +78,28 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- USB serial ports: `USBSerialPortConfiguration` generates an `IOUserUSBSerial`
+  service on an `IOUSBHostInterface` (`.serial` and `.usb`). USBSerialDriverKit
+  owns the bulk and interrupt data path; Swift receives the usual
+  `SerialEvent` hardware requests, programs the device with USB control
+  transfers, reports modem state with `serialSetModemStatus(_:)`, and can
+  observe received and interrupt packets as `USBSerialEvent` from
+  `DriverEvent.usbSerial()`. An optional base name and suffix replace
+  USBSerialDriverKit's `usbserial-` terminal name. `serialEnqueueReceive(_:)`
+  and `serialDequeueTransmit(maximumLength:)` report `kIOReturnUnsupported` on
+  these ports.
+- Asynchronous control requests: `usbEnqueueControlTransfer(_:data:timeout:)`
+  uses `AsyncDeviceRequest` on either provider and returns a request
+  identifier; the result arrives as `USBEvent.deviceRequest` and is aborted by
+  `usbAbortDeviceRequests()`.
+- Bundled bulk I/O: `usbCreateBundleRing(endpoint:entryCount:bufferLength:)`
+  gives a bulk pipe a runtime-owned descriptor ring, and
+  `usbEnqueueBundledReads` and `usbEnqueueBundledWrites` submit up to 16
+  transfers with `AsyncIOBundled`. Each ring entry completes as
+  `USBEvent.bundledIO`; `usbReleaseBundleRing(endpoint:)` frees an idle ring.
+- `usbAdjustPipe(endpoint:descriptors:)` changes a periodic endpoint's reserved
+  bandwidth with `AdjustPipe`. `USBPipeDescriptors` and
+  `USBSuperSpeedEndpointCompanion` gain public initializers.
 - HID event services: `HIDEventServiceConfiguration` generates an
   `IOUserHIDEventService` or `IOUserHIDEventDriver` that matches an
   `IOHIDInterface` (DriverKit 21.0 or later). Input reports and updated element

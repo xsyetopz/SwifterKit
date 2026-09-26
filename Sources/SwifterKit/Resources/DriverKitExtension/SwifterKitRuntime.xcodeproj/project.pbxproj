@@ -33,6 +33,9 @@
 		0D001BD12AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */; };
 		0D001BD32AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BD42AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp */; };
 		0D001BD52AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BD62AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp */; };
+		0D00F0412AAAAAAA00000001 /* SwifterKitRuntimeUSBBundled.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00F0422AAAAAAA00000001 /* SwifterKitRuntimeUSBBundled.cpp */; };
+		0D00F0312AAAAAAA00000001 /* SwifterKitRuntimeUSBRequests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00F0322AAAAAAA00000001 /* SwifterKitRuntimeUSBRequests.cpp */; };
+		0D00F0212AAAAAAA00000001 /* SwifterKitRuntimeUSBSerial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00F0222AAAAAAA00000001 /* SwifterKitRuntimeUSBSerial.cpp */; };
 		0D001BE12AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BE22AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp */; };
 		0D001BF12AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BF22AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp */; };
 		0D001BF32AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BF42AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp */; };
@@ -72,6 +75,7 @@
 		0D001CD12AAAAAAA00000001 /* USBDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CD22AAAAAAA00000001 /* USBDriverKit.framework */; };
 		0D001CE12AAAAAAA00000001 /* PCIDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CE22AAAAAAA00000001 /* PCIDriverKit.framework */; };
 		0D001CF12AAAAAAA00000001 /* SerialDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001CF22AAAAAAA00000001 /* SerialDriverKit.framework */; };
+		0D00F0112AAAAAAA00000001 /* USBSerialDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D00F0122AAAAAAA00000001 /* USBSerialDriverKit.framework */; };
 		0D001D012AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001D022AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework */; };
 		0D001D212AAAAAAA00000001 /* MIDIDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D001D222AAAAAAA00000001 /* MIDIDriverKit.framework */; };
 /* End PBXBuildFile section */
@@ -104,6 +108,9 @@
 		0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSB.cpp; sourceTree = "<group>"; };
 		0D001BD42AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSBDevice.cpp; sourceTree = "<group>"; };
 		0D001BD62AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSBPipes.cpp; sourceTree = "<group>"; };
+		0D00F0422AAAAAAA00000001 /* SwifterKitRuntimeUSBBundled.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSBBundled.cpp; sourceTree = "<group>"; };
+		0D00F0322AAAAAAA00000001 /* SwifterKitRuntimeUSBRequests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSBRequests.cpp; sourceTree = "<group>"; };
+		0D00F0222AAAAAAA00000001 /* SwifterKitRuntimeUSBSerial.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSBSerial.cpp; sourceTree = "<group>"; };
 		0D001BE22AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimePCI.cpp; sourceTree = "<group>"; };
 		0D001BF22AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeInterrupts.cpp; sourceTree = "<group>"; };
 		0D001BF42AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeMemory.cpp; sourceTree = "<group>"; };
@@ -146,6 +153,7 @@
 		0D001CD22AAAAAAA00000001 /* USBDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = USBDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/USBDriverKit.framework; sourceTree = SDKROOT; };
 		0D001CE22AAAAAAA00000001 /* PCIDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PCIDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/PCIDriverKit.framework; sourceTree = SDKROOT; };
 		0D001CF22AAAAAAA00000001 /* SerialDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SerialDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/SerialDriverKit.framework; sourceTree = SDKROOT; };
+		0D00F0122AAAAAAA00000001 /* USBSerialDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = USBSerialDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/USBSerialDriverKit.framework; sourceTree = SDKROOT; };
 		0D001D022AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BlockStorageDeviceDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/BlockStorageDeviceDriverKit.framework; sourceTree = SDKROOT; };
 		0D001D622AAAAAAA00000001 /* NetworkingDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkingDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/NetworkingDriverKit.framework; sourceTree = SDKROOT; };
 		0D001D222AAAAAAA00000001 /* MIDIDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MIDIDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/MIDIDriverKit.framework; sourceTree = SDKROOT; };
@@ -161,6 +169,7 @@
 				0D001CD12AAAAAAA00000001 /* USBDriverKit.framework in Frameworks */,
 				0D001CE12AAAAAAA00000001 /* PCIDriverKit.framework in Frameworks */,
 				0D001CF12AAAAAAA00000001 /* SerialDriverKit.framework in Frameworks */,
+				0D00F0112AAAAAAA00000001 /* USBSerialDriverKit.framework in Frameworks */,
 				0D001D012AAAAAAA00000001 /* BlockStorageDeviceDriverKit.framework in Frameworks */,
 				0D001D212AAAAAAA00000001 /* MIDIDriverKit.framework in Frameworks */,
 				0D001D612AAAAAAA00000001 /* NetworkingDriverKit.framework in Frameworks */,
@@ -201,6 +210,9 @@
 				0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */,
 				0D001BD42AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp */,
 				0D001BD62AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp */,
+				0D00F0422AAAAAAA00000001 /* SwifterKitRuntimeUSBBundled.cpp */,
+				0D00F0322AAAAAAA00000001 /* SwifterKitRuntimeUSBRequests.cpp */,
+				0D00F0222AAAAAAA00000001 /* SwifterKitRuntimeUSBSerial.cpp */,
 				0D001BE22AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp */,
 				0D001BF22AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp */,
 				0D001BF42AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp */,
@@ -324,6 +336,9 @@
 				0D001BD12AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp in Sources */,
 				0D001BD32AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp in Sources */,
 				0D001BD52AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp in Sources */,
+				0D00F0412AAAAAAA00000001 /* SwifterKitRuntimeUSBBundled.cpp in Sources */,
+				0D00F0312AAAAAAA00000001 /* SwifterKitRuntimeUSBRequests.cpp in Sources */,
+				0D00F0212AAAAAAA00000001 /* SwifterKitRuntimeUSBSerial.cpp in Sources */,
 				0D001BE12AAAAAAA00000001 /* SwifterKitRuntimePCI.cpp in Sources */,
 				0D001BF12AAAAAAA00000001 /* SwifterKitRuntimeInterrupts.cpp in Sources */,
 				0D001BF32AAAAAAA00000001 /* SwifterKitRuntimeMemory.cpp in Sources */,

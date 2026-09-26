@@ -16,6 +16,7 @@
 
 namespace {
     constexpr uint32_t kTransferCountSize = sizeof(uint32_t);
+    constexpr bool kSerialOwnsInterface = SWIFTERKIT_USB_SERIAL != 0;
 
     struct TransferBuffer {
         IOBufferMemoryDescriptor* descriptor = nullptr;
@@ -93,6 +94,11 @@ kern_return_t SwifterKitRuntimeService::StartUSB(IOService* provider) {
             return kIOReturnBadArgument;
         }
         ivars->usbInterface->retain();
+        // IOUserUSBSerial opened the interface for this service in ConnectQueues and closes it in
+        // DisconnectQueues, so the runtime only borrows it.
+        if constexpr (kSerialOwnsInterface) {
+            return kIOReturnSuccess;
+        }
         const kern_return_t result = ivars->usbInterface->Open(this, 0, nullptr);
         if (result != kIOReturnSuccess) {
             OSSafeReleaseNULL(ivars->usbInterface);
@@ -124,9 +130,12 @@ void SwifterKitRuntimeService::StopUSB() {
             OSSafeReleaseNULL(pipe);
         }
     }
+    AbortUSBAsyncRequests();
 
     if (ivars->usbInterface != nullptr) {
-        (void)ivars->usbInterface->Close(this, 0);
+        if constexpr (!kSerialOwnsInterface) {
+            (void)ivars->usbInterface->Close(this, 0);
+        }
         OSSafeReleaseNULL(ivars->usbInterface);
     }
     if (ivars->usbDevice != nullptr) {

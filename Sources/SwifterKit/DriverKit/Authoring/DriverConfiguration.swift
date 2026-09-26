@@ -23,6 +23,8 @@ public struct DriverConfiguration: Sendable, Hashable {
   public let pciDevice: PCIDeviceConfiguration?
   /// Terminal metadata when the generated runtime provides SerialDriverKit behavior.
   public let serialPort: SerialPortConfiguration?
+  /// USB serial-port metadata when the runtime derives from `IOUserUSBSerial`.
+  public let usbSerialPort: USBSerialPortConfiguration?
   /// Device metadata when the runtime provides BlockStorageDeviceDriverKit behavior.
   public let blockStorageDevice: BlockStorageDeviceConfiguration?
   /// Device and endpoint topology when the runtime provides MIDIDriverKit behavior.
@@ -56,6 +58,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     usbDevice: USBDeviceConfiguration? = nil,
     pciDevice: PCIDeviceConfiguration? = nil,
     serialPort: SerialPortConfiguration? = nil,
+    usbSerialPort: USBSerialPortConfiguration? = nil,
     blockStorageDevice: BlockStorageDeviceConfiguration? = nil,
     midiDevice: MIDIDeviceConfiguration? = nil,
     ethernetDevice: EthernetDeviceConfiguration? = nil,
@@ -77,6 +80,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     self.usbDevice = usbDevice
     self.pciDevice = pciDevice
     self.serialPort = serialPort
+    self.usbSerialPort = usbSerialPort
     self.blockStorageDevice = blockStorageDevice
     self.midiDevice = midiDevice
     self.ethernetDevice = ethernetDevice

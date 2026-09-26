@@ -17,7 +17,9 @@ public enum DriverExtensionGenerationError: Error, Sendable, Equatable {
   case invalidUSBConfiguration
   /// PCI metadata is absent, malformed, or conflicts with another physical transport.
   case invalidPCIConfiguration
-  /// Serial metadata is absent, malformed, or conflicts with HID subclassing.
+  /// Serial metadata is absent, malformed, or conflicts with HID subclassing, both serial and USB
+  /// serial metadata are set, or USB serial metadata lacks the USB capability or an
+  /// `IOUSBHostInterface` provider.
   case invalidSerialConfiguration
   /// Block-storage metadata is absent, malformed, or conflicts with another superclass.
   case invalidBlockStorageConfiguration

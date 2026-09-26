@@ -132,9 +132,11 @@ struct SwifterKitSCSIPendingTask {
 // submission until its completion event is queued; see SwifterKitRuntimeUSBPipes.cpp.
 struct SwifterKitUSBPendingTransfer {
     uint32_t requestID = 0;
+    // The endpoint address, or bmRequestType for an asynchronous control request.
     uint8_t endpoint = 0;
     bool active = false;
     bool isochronous = false;
+    bool deviceRequest = false;
     bool completed = false;
     uint32_t length = 0;
     uint32_t frameCount = 0;
@@ -148,6 +150,34 @@ struct SwifterKitUSBPendingTransfer {
     IOMemoryMap* map = nullptr;
     IOBufferMemoryDescriptor* frames = nullptr;
     IOMemoryMap* frameMap = nullptr;
+};
+
+// One descriptor-ring entry of a bundled-I/O pipe; see SwifterKitRuntimeUSBBundled.cpp.
+enum class SwifterKitUSBBundleEntryState : uint8_t {
+    Idle,
+    InFlight,
+    Completed
+};
+
+struct SwifterKitUSBBundleEntry {
+    SwifterKitUSBBundleEntryState state = SwifterKitUSBBundleEntryState::Idle;
+    int32_t status = 0;
+    uint32_t bytesTransferred = 0;
+    uint64_t sequence = 0;
+    IOBufferMemoryDescriptor* buffer = nullptr;
+    IOMemoryMap* map = nullptr;
+};
+
+struct SwifterKitUSBBundleRing {
+    bool reserved = false;
+    bool ready = false;
+    uint8_t endpoint = 0;
+    uint32_t generation = 0;
+    uint32_t entryCount = 0;
+    uint32_t bufferLength = 0;
+    IOUSBHostPipe* pipe = nullptr;
+    OSAction* action = nullptr;
+    SwifterKitUSBBundleEntry entries[kSwifterKitUSBMaximumBundleRingEntries] = {};
 };
 #endif
 
@@ -290,6 +320,8 @@ struct SwifterKitRuntimeService_IVars {
     uint32_t nextUSBRequestID = 1;
     uint64_t nextUSBCompletionSequence = 0;
     SwifterKitUSBPendingTransfer usbTransfers[kSwifterKitUSBMaximumPendingTransfers] = {};
+    uint32_t nextUSBBundleGeneration = 1;
+    SwifterKitUSBBundleRing usbBundleRings[kSwifterKitUSBMaximumBundleRings] = {};
 #endif
 #if SWIFTERKIT_ENABLE_PCI
     IOPCIDevice* pciDevice = nullptr;
@@ -326,9 +358,11 @@ static_assert(
 static_assert(kSwifterKitMaximumQueuedRequiredEvents > kSwifterKitHIDMaximumPendingReports);
 #endif
 #if SWIFTERKIT_ENABLE_USB
+// Pending transfers and every bundle-ring entry each hold at most one undelivered completion.
 static_assert(
     kSwifterKitMaximumQueuedRequiredEvents
-    > sizeof(SwifterKitRuntimeService_IVars::usbTransfers) / sizeof(SwifterKitUSBPendingTransfer));
+    > sizeof(SwifterKitRuntimeService_IVars::usbTransfers) / sizeof(SwifterKitUSBPendingTransfer)
+          + kSwifterKitUSBMaximumBundleRings * kSwifterKitUSBMaximumBundleRingEntries);
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
 static_assert(
