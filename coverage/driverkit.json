@@ -30336,7 +30336,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -30352,7 +30353,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -31151,7 +31153,8 @@
             "27.0"
           ],
           "signature" : "IOStreamBufferID getBufferID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -31167,7 +31170,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -31183,7 +31187,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -31199,7 +31204,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOMemoryDescriptor> GetControlMemoryDescriptor()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -31215,7 +31221,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOMemoryDescriptor> GetDataMemoryDescriptor()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -31265,7 +31272,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetControlMemoryDescriptor(IOMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetStreamProperty"
         },
         {
           "access" : "public",
@@ -31281,7 +31289,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetDataMemoryDescriptor(IOMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetStreamProperty"
         },
         {
           "access" : "public",
@@ -31314,7 +31323,8 @@
             "27.0"
           ],
           "signature" : "void setBufferID(IOStreamBufferID)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetBufferProperty"
         }
       ],
       "name" : "IOUserVideoBuffer",
@@ -32419,7 +32429,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -32435,7 +32446,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -32451,7 +32463,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoObjectID GetOwningDeviceID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -32467,7 +32480,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoObjectPropertyElement GetControlElement()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -32483,7 +32497,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoObjectPropertyScope GetControlScope()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -32499,7 +32514,8 @@
             "27.0"
           ],
           "signature" : "bool GetIsSettable()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -32527,12 +32543,13 @@
 
           ],
           "name" : "_SetOwningDeviceID",
+          "note" : "framework hook that records the owning device; the runtime attaches controls only through IOUserVideoDevice::AddControl and RemoveControl (videoSetMemberAttachment) and reads the owner through GetOwningDeviceID (videoControlInfo)",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "void _SetOwningDeviceID(IOUserVideoObjectID)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -32676,7 +32693,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -32692,7 +32710,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoCustomPropertyInfo GetCustomPropertyInfo()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoCustomPropertyInfo"
         },
         {
           "access" : "public",
@@ -32788,12 +32807,13 @@
 
           ],
           "name" : "RemoveCustomProperty",
+          "note" : "final override on a custom property, which cannot own custom properties; the framework always returns kIOReturnError",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RemoveCustomProperty(IOUserVideoCustomProperty*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -32988,7 +33008,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -33004,7 +33025,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -33122,7 +33144,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveStream(IOUserVideoStream*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -33138,7 +33161,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetCanBeDefaultInputDevice(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -33154,7 +33178,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetCanBeDefaultOutputDevice(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -33170,7 +33195,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetCanBeDefaultSystemOutputDevice(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -33203,7 +33229,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetInputSafetyOffset(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -33219,7 +33246,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetOutputSafetyOffset(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -33235,7 +33263,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPreferredChannelsForStereo(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -33251,7 +33280,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPreferredInputChannelLayout(IOUserVideoChannelLabel*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetPreferredChannelLayout"
         },
         {
           "access" : "public",
@@ -33267,7 +33297,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPreferredOutputChannelLayout(IOUserVideoChannelLabel*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetPreferredChannelLayout"
         },
         {
           "access" : "public",
@@ -33317,7 +33348,8 @@
             "27.0"
           ],
           "signature" : "uint32_t CanBeDefaultInputDevice()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoDeviceState"
         },
         {
           "access" : "public",
@@ -33333,7 +33365,8 @@
             "27.0"
           ],
           "signature" : "uint32_t CanBeDefaultOutputDevice()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoDeviceState"
         },
         {
           "access" : "public",
@@ -33349,7 +33382,8 @@
             "27.0"
           ],
           "signature" : "uint32_t CanBeDefaultSystemOutputDevice()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoDeviceState"
         },
         {
           "access" : "public",
@@ -33365,7 +33399,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetInputSafetyOffset()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoDeviceState"
         },
         {
           "access" : "public",
@@ -33381,7 +33416,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetOutputSafetyOffset()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoDeviceState"
         },
         {
           "access" : "public",
@@ -33397,7 +33433,8 @@
             "27.0"
           ],
           "signature" : "void GetCurrentClientIOTime(bool, uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoDeviceState"
         },
         {
           "access" : "public",
@@ -33413,7 +33450,8 @@
             "27.0"
           ],
           "signature" : "void GetPreferredChannelsForStereo(uint32_t*, uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoDeviceState"
         },
         {
           "access" : "public",
@@ -33446,7 +33484,8 @@
             "27.0"
           ],
           "signature" : "void StreamFormatChanged(IOUserVideoObjectID)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "deviceStreamFormatChanged"
         },
         {
           "access" : "public",
@@ -33862,7 +33901,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -33878,7 +33918,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -34915,7 +34956,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -34931,7 +34973,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -35730,7 +35773,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -35746,7 +35790,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -35830,7 +35875,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveControlValueDescriptions(const IOUserVideoSelectorValueDescription*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoRemoveSelectorItems"
         },
         {
           "access" : "public",
@@ -35863,7 +35909,8 @@
             "27.0"
           ],
           "signature" : "size_t GetControlValueDescriptions(IOUserVideoSelectorValueDescription*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -35879,7 +35926,8 @@
             "27.0"
           ],
           "signature" : "size_t GetControlValuesCount()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -36040,7 +36088,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -36056,7 +36105,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -36072,7 +36122,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoSliderRange GetRange()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -36156,7 +36207,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetRange(IOUserVideoSliderRange)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetControlProperty"
         },
         {
           "access" : "public",
@@ -36317,7 +36369,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -36333,7 +36386,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -36434,7 +36488,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPanningChannels(IOUserVideoObjectPropertyElement, IOUserVideoObjectPropertyElement)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetControlProperty"
         },
         {
           "access" : "public",
@@ -36450,7 +36505,8 @@
             "27.0"
           ],
           "signature" : "void GetPanningChannels(IOUserVideoObjectPropertyElement*, IOUserVideoObjectPropertyElement*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoControlInfo"
         },
         {
           "access" : "public",
@@ -36594,7 +36650,8 @@
             "27.0"
           ],
           "signature" : "IOStreamBufferQueue* GetInputQueue()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36610,7 +36667,8 @@
             "27.0"
           ],
           "signature" : "IOStreamBufferQueue* GetOutputQueue()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36626,7 +36684,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -36642,7 +36701,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoObjectInfo"
         },
         {
           "access" : "public",
@@ -36658,7 +36718,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoObjectID GetMemoryObjectID(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamMemoryObjectID"
         },
         {
           "access" : "public",
@@ -36674,7 +36735,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoObjectID _GetOutputControlMemoryObjectID(IOUserVideoObjectID)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -36690,7 +36752,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoObjectID _GetOutputDataMemoryObjectID(IOUserVideoObjectID)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -36706,7 +36769,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoStreamBasicDescription GetCurrentStreamFormat()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36722,7 +36786,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoStreamDirection GetStreamDirection()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36738,7 +36803,8 @@
             "27.0"
           ],
           "signature" : "IOUserVideoStreamTerminalType GetTerminalType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36754,7 +36820,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOMemoryDescriptor> GetInputQueueMemoryDescriptor()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36770,7 +36837,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOMemoryDescriptor> GetOutputControlMemoryDescriptor(IOUserVideoObjectID)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -36786,7 +36854,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOMemoryDescriptor> GetOutputDataMemoryDescriptor(IOUserVideoObjectID)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -36802,7 +36871,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOMemoryDescriptor> GetOutputQueueMemoryDescriptor()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36818,7 +36888,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOUserVideoBuffer> GetBufferWithID(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoBufferInfo"
         },
         {
           "access" : "public",
@@ -36846,12 +36917,13 @@
 
           ],
           "name" : "Create",
+          "note" : "allocates the base class, which cannot override StartIO, StopIO, InputNotification, HandleChangeCurrentStreamFormat, or HandleChangeStreamIsActive; the runtime subclass calls init instead",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOUserVideoStream> Create(IOUserVideoDriver*, OSString*, IOUserVideoStreamDirection, OSArray*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -36867,7 +36939,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSArray> GetBufferList()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36883,7 +36956,8 @@
             "27.0"
           ],
           "signature" : "bool GetStreamIsActive()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -36967,7 +37041,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SendBufferQueueChange()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoNotifyBufferQueue"
         },
         {
           "access" : "public",
@@ -37034,7 +37109,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetStartingChannel(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetStreamProperty"
         },
         {
           "access" : "public",
@@ -37050,7 +37126,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetStreamIsActive(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetStreamProperty"
         },
         {
           "access" : "public",
@@ -37066,7 +37143,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetTerminalType(IOUserVideoStreamTerminalType)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetStreamProperty"
         },
         {
           "access" : "public",
@@ -37116,7 +37194,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t addBuffer(IOUserVideoBuffer*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetBufferProperty"
         },
         {
           "access" : "public",
@@ -37132,7 +37211,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t addBuffers(OSArray*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetBufferProperty"
         },
         {
           "access" : "public",
@@ -37148,7 +37228,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t createQueues(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetStreamProperty"
         },
         {
           "access" : "public",
@@ -37181,7 +37262,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t destroyQueues()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetStreamProperty"
         },
         {
           "access" : "public",
@@ -37197,7 +37279,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t enqueueOutputBuffer(IOUserVideoBuffer*, uint32_t, uint32_t, uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoEnqueueOutputBuffer"
         },
         {
           "access" : "public",
@@ -37230,7 +37313,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t removeAllBuffers()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoSetBufferProperty"
         },
         {
           "access" : "public",
@@ -37246,7 +37330,8 @@
             "27.0"
           ],
           "signature" : "size_t GetAvailableStreamFormats(IOUserVideoStreamBasicDescription*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -37262,7 +37347,8 @@
             "27.0"
           ],
           "signature" : "size_t GetNumberAvailableStreamFormats()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -37278,7 +37364,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetBufferCount()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",
@@ -37294,7 +37381,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetStartingChannel()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "videoStreamState"
         },
         {
           "access" : "public",

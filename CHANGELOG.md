@@ -170,6 +170,22 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- VideoDriverKit device, stream, buffer, control, and custom-property support
+  on opcodes 0x0C20-0x0C2D: `videoDeviceState`, `videoSetDeviceProperty`,
+  `videoSetPreferredChannelLayout`, `videoStreamState`,
+  `videoSetStreamProperty`, `videoBufferInfo`, `videoSetBufferProperty`,
+  `videoControlInfo`, `videoSetControlProperty`, `videoRemoveSelectorItems`,
+  `videoCustomPropertyInfo`, `videoSetMemberAttachment`,
+  `videoEnqueueOutputBuffer`, and `videoStreamMemoryObjectID` on
+  `DriverContext`, with `VideoDeviceState`, `VideoStreamState`,
+  `VideoBufferInfo`, `VideoControlInfo`, `VideoCustomPropertyInfo`, and their
+  property enums. Buffer capacities, queue sizes, buffer IDs, and buffer-list
+  membership change inside `PerformDeviceConfigurationChange`, as
+  `IOUserVideoBuffer` requires. `VideoBufferQueueNotification` gains
+  `streamBufferQueueChange` and `VideoObjectEvent` gains
+  `deviceStreamFormatChanged`. Every VideoDriverKit member is now covered or
+  excluded with a reason.
+
 - VideoDriverKit object, box, and clock-device support on opcodes
   0x0C10-0x0C1F and the `videoObject` event type 0x0C01, mirroring audio:
   `VideoDeviceConfiguration` gains `boxes` and `clockDevices`;
