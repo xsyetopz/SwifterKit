@@ -89,7 +89,9 @@ class SwifterKitRuntimeAudioBox;
 class SwifterKitRuntimeAudioClockDevice;
 
 // A box-acquisition or clock sample-rate change waiting for Swift; request ID zero is free.
+// The request holds a reference on its box or clock device until it ends.
 struct SwifterKitAudioPendingRequest {
+    OSObject* object;
     uint32_t requestID;
     uint32_t kind;
     uint32_t index;

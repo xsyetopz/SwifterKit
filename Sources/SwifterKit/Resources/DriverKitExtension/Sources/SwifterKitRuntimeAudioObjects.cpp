@@ -489,7 +489,9 @@ namespace {
 kern_return_t SwifterKitRuntimeService::StartAudioObjects() {
     if (ivars == nullptr || ivars->audioLock == nullptr)
         return kIOReturnNotReady;
-    kern_return_t result = StartAudioRequests();
+    // Without the timeout timer, box and clock requests take the framework default at once.
+    (void)StartAudioRequests();
+    kern_return_t result = kIOReturnSuccess;
     for (uint32_t index = 0; result == kIOReturnSuccess && index < kSwifterKitAudioClockDeviceCount;
          ++index) {
         const auto& config = kSwifterKitAudioClockDevices[index];

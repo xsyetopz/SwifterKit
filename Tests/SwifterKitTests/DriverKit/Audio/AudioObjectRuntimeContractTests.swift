@@ -84,6 +84,9 @@ struct AudioObjectRuntimeContractTests {
       #expect(apply.contains("SetAcquisitionFailure("))
       #expect(apply.contains("SetIsAcquired(value != 0)"))
       #expect(apply.contains("RequestSampleRate("))
+      // Answers also run on the work queue, so they must not take audioLock.
+      #expect(!apply.contains("audioLock"))
+      #expect(requests.contains("object->retain();"))
       let timer = try section(of: requests, from: "::AudioRequestTimerOccurred_Impl(", to: "#endif")
       #expect(timer.contains("kIOReturnTimeout"))
       let stop = try section(

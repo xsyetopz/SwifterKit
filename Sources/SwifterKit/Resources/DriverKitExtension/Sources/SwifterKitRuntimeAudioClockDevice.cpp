@@ -150,6 +150,7 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::HandleChangeSampleRate(double s
         return kIOReturnBadArgument;
     // Swift answers through audioCompleteRequest; without a host the change proceeds at once.
     const kern_return_t result = ivars->service->BeginAudioRequest(
+        this,
         kSwifterKitAudioEventClockRequest,
         ivars->index,
         __builtin_bit_cast(uint64_t, sampleRate));

@@ -64,8 +64,11 @@ kern_return_t SwifterKitRuntimeAudioBox::HandleChangeAcquireBox(bool acquire) {
     if (ivars == nullptr || !IsAcquirable())
         return kIOReturnNotPermitted;
     // Swift answers through audioCompleteRequest; without a host the framework default applies.
-    const kern_return_t result =
-        ivars->service->BeginAudioRequest(kSwifterKitAudioEventBoxRequest, ivars->index, acquire);
+    const kern_return_t result = ivars->service->BeginAudioRequest(
+        this,
+        kSwifterKitAudioEventBoxRequest,
+        ivars->index,
+        acquire);
     return result == kIOReturnNotAttached ? super::HandleChangeAcquireBox(acquire) : result;
 }
 #endif
