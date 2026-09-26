@@ -280,7 +280,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -297,7 +298,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -314,7 +316,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioTransportType GetTransportType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -325,13 +328,14 @@
 
           ],
           "name" : "Create",
+          "note" : "allocates the base class, which cannot override HandleChangeAcquireBox; the runtime subclass calls init instead",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOUserAudioBox> Create(IOUserAudioDriver*, bool, OSString*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -348,7 +352,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetUID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -365,7 +370,8 @@
             "27.0"
           ],
           "signature" : "bool HasAudio()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioBoxState"
         },
         {
           "access" : "public",
@@ -382,7 +388,8 @@
             "27.0"
           ],
           "signature" : "bool HasMIDI()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioBoxState"
         },
         {
           "access" : "public",
@@ -399,7 +406,8 @@
             "27.0"
           ],
           "signature" : "bool HasVideo()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioBoxState"
         },
         {
           "access" : "public",
@@ -416,7 +424,8 @@
             "27.0"
           ],
           "signature" : "bool IsAcquirable()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioBoxState"
         },
         {
           "access" : "public",
@@ -433,7 +442,8 @@
             "27.0"
           ],
           "signature" : "bool IsAcquired()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioBoxState"
         },
         {
           "access" : "public",
@@ -450,7 +460,8 @@
             "27.0"
           ],
           "signature" : "bool IsProtected()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioBoxState"
         },
         {
           "access" : "public",
@@ -461,13 +472,14 @@
 
           ],
           "name" : "init",
+          "note" : "called by the runtime box subclass for each AudioBoxConfiguration",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool init(IOUserAudioDriver*, bool, OSString*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -484,7 +496,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AddClockDevice(IOUserAudioClockDevice*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxOwnership"
         },
         {
           "access" : "public",
@@ -501,7 +514,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AddDevice(IOUserAudioDevice*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxOwnership"
         },
         {
           "access" : "public",
@@ -518,7 +532,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetAcquisitionFailure()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioBoxState"
         },
         {
           "access" : "public",
@@ -535,7 +550,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t HandleChangeAcquireBox(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "boxAcquisitionRequested"
         },
         {
           "access" : "public",
@@ -552,7 +568,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveClockDevice(IOUserAudioClockDevice*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxOwnership"
         },
         {
           "access" : "public",
@@ -569,7 +586,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveDevice(IOUserAudioDevice*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxOwnership"
         },
         {
           "access" : "public",
@@ -586,7 +604,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetAcquisitionFailure(kern_return_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -603,7 +622,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetHasAudio(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -620,7 +640,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetHasMIDI(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -637,7 +658,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetHasVideo(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -654,7 +676,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetIsAcquirable(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -671,7 +694,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetIsAcquired(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -688,7 +712,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetIsProtected(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -705,7 +730,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetTransportType(IOUserAudioTransportType)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetBoxProperty"
         },
         {
           "access" : "public",
@@ -858,7 +884,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -875,7 +902,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -892,7 +920,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClockAlgorithm GetClockAlgorithm()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -909,7 +938,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioDeviceTransportState GetDeviceTransportState()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -926,7 +956,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioTransportType GetTransportType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -937,13 +968,14 @@
 
           ],
           "name" : "Create",
+          "note" : "allocates the base class, which cannot override StartIO, StopIO, or HandleChangeSampleRate; the runtime subclass calls init instead",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOUserAudioClockDevice> Create(IOUserAudioDriver*, bool, OSString*, OSString*, OSString*, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -960,7 +992,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetUID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -977,7 +1010,8 @@
             "27.0"
           ],
           "signature" : "bool GetClockIsStable()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -994,7 +1028,8 @@
             "27.0"
           ],
           "signature" : "bool GetDeviceIsAlive()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1011,7 +1046,8 @@
             "27.0"
           ],
           "signature" : "bool GetDeviceIsRunning()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1028,7 +1064,8 @@
             "27.0"
           ],
           "signature" : "bool GetIsHidden()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1045,7 +1082,8 @@
             "27.0"
           ],
           "signature" : "bool GetSupportsPrewarming()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1056,13 +1094,14 @@
 
           ],
           "name" : "init",
+          "note" : "called by the runtime clock-device subclass for each AudioClockDeviceConfiguration",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool init(IOUserAudioDriver*, bool, OSString*, OSString*, OSString*, uint32_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -1079,7 +1118,8 @@
             "27.0"
           ],
           "signature" : "double GetSampleRate()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1096,7 +1136,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AbortDeviceConfigurationChange(uint64_t, OSObject*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioRequestClockSampleRate"
         },
         {
           "access" : "public",
@@ -1107,13 +1148,14 @@
 
           ],
           "name" : "AddControl",
+          "note" : "called for each configured device control",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t AddControl(IOUserAudioControl*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -1130,7 +1172,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t HandleChangeSampleRate(double)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "clockDeviceSampleRateRequested"
         },
         {
           "access" : "public",
@@ -1147,7 +1190,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t PerformDeviceConfigurationChange(uint64_t, OSObject*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioRequestClockSampleRate"
         },
         {
           "access" : "public",
@@ -1158,13 +1202,14 @@
 
           ],
           "name" : "RemoveControl",
+          "note" : "called for each device control at teardown",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RemoveControl(IOUserAudioControl*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -1181,7 +1226,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RequestDeviceConfigurationChange(uint64_t, OSObject*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioRequestClockSampleRate"
         },
         {
           "access" : "public",
@@ -1198,7 +1244,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetAvailableSampleRates(const double*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockSampleRates"
         },
         {
           "access" : "public",
@@ -1215,7 +1262,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetClockAlgorithm(IOUserAudioClockAlgorithm)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1232,7 +1280,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetClockDomain(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1249,7 +1298,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetClockIsStable(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1266,7 +1316,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetDeviceIsAlive(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1283,7 +1334,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetInputLatency(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1300,7 +1352,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetIsHidden(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1317,7 +1370,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetOutputLatency(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1334,7 +1388,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetSampleRate(double)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioRequestClockSampleRate"
         },
         {
           "access" : "public",
@@ -1351,7 +1406,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetTransportType(IOUserAudioTransportType)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1368,7 +1424,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetZeroTimeStampPeriod(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1385,7 +1442,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t StartIO(IOUserAudioStartStopFlags)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "clockDeviceStarted"
         },
         {
           "access" : "public",
@@ -1402,7 +1460,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t StopIO(IOUserAudioStartStopFlags)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "clockDeviceStopped"
         },
         {
           "access" : "public",
@@ -1419,7 +1478,8 @@
             "27.0"
           ],
           "signature" : "size_t GetAvailableSampleRates(double*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1436,7 +1496,8 @@
             "27.0"
           ],
           "signature" : "size_t GetNumberAvailableSampleRates()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1453,7 +1514,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetClockDomain()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1470,7 +1532,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetInputLatency()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1487,7 +1550,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetOutputLatency()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1504,7 +1568,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetZeroTimestampPeriod()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1521,7 +1586,8 @@
             "27.0"
           ],
           "signature" : "void GetCurrentClientSampleTime(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1538,7 +1604,8 @@
             "27.0"
           ],
           "signature" : "void GetCurrentZeroTimestamp(uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioClockDeviceState"
         },
         {
           "access" : "public",
@@ -1554,7 +1621,8 @@
             "27.0"
           ],
           "signature" : "void SetWantsControlsRestored(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetClockDeviceProperty"
         },
         {
           "access" : "public",
@@ -1571,7 +1639,8 @@
             "27.0"
           ],
           "signature" : "void UpdateCurrentZeroTimestamp(uint64_t, uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioUpdateClockTimestamp"
         },
         {
           "access" : "public",
@@ -3166,7 +3235,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -3183,7 +3253,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -3200,7 +3271,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioTransportType GetTransportType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -3211,13 +3283,14 @@
 
           ],
           "name" : "GetWorkQueue",
+          "note" : "the audio request timeout timer runs on the driver work queue",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSharedPtr<IODispatchQueue> GetWorkQueue()",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -3234,7 +3307,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOUserAudioObject> GetAudioObjectForObjectID(IOUserAudioObjectID)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -3251,7 +3325,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetName()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -3340,7 +3415,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t PropertiesChanged(IOUserAudioObjectID, IOUserAudioObjectPropertySelector*, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioPropertiesChanged"
         },
         {
           "access" : "public",
@@ -3446,7 +3522,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t StartDevice(IOUserAudioObjectID, IOUserAudioStartStopFlags)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "deviceStarted"
         },
         {
           "access" : "public",
@@ -3481,7 +3558,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t StopDevice(IOUserAudioObjectID, IOUserAudioStartStopFlags)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "deviceStopped"
         },
         {
           "access" : "public",
@@ -4308,7 +4386,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4325,7 +4404,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4342,7 +4422,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioObjectID GetObjectID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4359,7 +4440,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioObjectID GetOwnerObjectID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4370,13 +4452,14 @@
 
           ],
           "name" : "GetWorkQueue",
+          "note" : "returns the driver work queue, which the runtime reads through IOUserAudioDriver::GetWorkQueue",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSharedPtr<IODispatchQueue> GetWorkQueue()",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -4393,7 +4476,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetElementCategoryName(IOUserAudioObjectPropertyElement, IOUserAudioObjectPropertyScope)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioElementName"
         },
         {
           "access" : "public",
@@ -4410,7 +4494,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetElementName(IOUserAudioObjectPropertyElement, IOUserAudioObjectPropertyScope)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioElementName"
         },
         {
           "access" : "public",
@@ -4427,7 +4512,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetElementNumberName(IOUserAudioObjectPropertyElement, IOUserAudioObjectPropertyScope)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioElementName"
         },
         {
           "access" : "public",
@@ -4444,7 +4530,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetName()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4473,13 +4560,14 @@
 
           ],
           "name" : "init",
+          "note" : "the box and clock-device init the runtime calls chains to it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool init(IOUserAudioDriver*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -4490,13 +4578,14 @@
 
           ],
           "name" : "AddCustomProperty",
+          "note" : "called for each configured device custom property",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t AddCustomProperty(IOUserAudioCustomProperty*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -4507,13 +4596,14 @@
 
           ],
           "name" : "RemoveCustomProperty",
+          "note" : "called for each device custom property at teardown",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RemoveCustomProperty(IOUserAudioCustomProperty*)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -4530,7 +4620,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetElementCategoryName(IOUserAudioObjectPropertyElement, IOUserAudioObjectPropertyScope, OSString*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetElementName"
         },
         {
           "access" : "public",
@@ -4547,7 +4638,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetElementName(IOUserAudioObjectPropertyElement, IOUserAudioObjectPropertyScope, OSString*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetElementName"
         },
         {
           "access" : "public",
@@ -4564,7 +4656,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetElementNumberName(IOUserAudioObjectPropertyElement, IOUserAudioObjectPropertyScope, OSString*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetElementName"
         },
         {
           "access" : "public",
@@ -4581,7 +4674,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetName(OSString*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetObjectName"
         },
         {
           "access" : "public",
