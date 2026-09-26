@@ -144,7 +144,9 @@ struct VideoObjectRuntimeContractTests {
       #expect(handler.contains("return super::HandleChangeAcquireBox(acquire);"))
       let clock = try source("SwifterKitRuntimeVideoClockDevice.cpp", in: output)
       #expect(clock.contains("return super::HandleChangeSampleRate(sampleRate);"))
-      #expect(clock.contains("VideoObjectEvent(8, ivars->index, streamID)"))
+      #expect(
+        clock.contains("kSwifterKitVideoObjectEventClockFormatChanged,\n            ivars->index,")
+      )
     }
   }
 
@@ -168,7 +170,11 @@ struct VideoObjectRuntimeContractTests {
       #expect(!handler.contains("RequestSampleRate(sampleRate)"))
 
       let finish = try section(of: clock, from: "::FinishSampleRateRequest(", to: "#endif")
-      #expect(finish.contains("VideoObjectEvent(\n            5,"))
+      #expect(
+        finish.contains(
+          "VideoObjectEvent(\n            kSwifterKitVideoObjectEventClockRateChanged,"
+        )
+      )
       #expect(finish.contains("GetSampleRate() == requested && IsAvailableSampleRate(previous)"))
       #expect(finish.contains("RequestSampleRate(previous)"))
 

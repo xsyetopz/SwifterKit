@@ -277,7 +277,19 @@ struct VideoObjectCommandsTests {
     #expect(throws: VideoRuntimeError.invalidPayload) {
       try event(8, 0, 0, 0x1_0000_0000).videoObject()
     }
-    #expect(throws: VideoRuntimeError.invalidEventKind(10)) { try event(10, 0, 0, 0).videoObject() }
+    for kind: UInt32 in [0, 10] {
+      #expect(throws: VideoRuntimeError.invalidEventKind(kind)) {
+        try event(kind, 0, 0, 0).videoObject()
+      }
+    }
+    let schema = RuntimeSchemaHeader.render()
+    #expect(schema.contains("kSwifterKitVideoMaximumReadLength = 65464;"))
+    #expect(schema.contains("kSwifterKitVideoMaximumWriteLength = 65432;"))
+    #expect(schema.contains("kSwifterKitVideoObjectEventDeviceFormatChanged = 9;"))
+    #expect(schema.contains("kSwifterKitVideoEventStreamInputAvailable = 10;"))
+    #expect(schema.contains("kSwifterKitVideoValueDirection = 7;"))
+    #expect(schema.contains("kSwifterKitVideoControlDirection = 6;"))
+    #expect(schema.contains("kSwifterKitVideoClockStateAll = 0xF;"))
     #expect(try DriverEvent(type: 0x0C00, payload: []).videoObject() == nil)
   }
 

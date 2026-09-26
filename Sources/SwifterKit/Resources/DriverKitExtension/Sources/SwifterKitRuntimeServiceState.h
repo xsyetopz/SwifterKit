@@ -325,13 +325,13 @@ struct SwifterKitRuntimeService_IVars {
     SwifterKitRuntimeVideoDevice* videoDevice = nullptr;
     // Boxes and clock devices by configuration index, and the box (index + 1) that owns the
     // device or each clock device; zero means unowned. All guarded by videoLock.
-    SwifterKitRuntimeVideoBox* videoBoxes[4] = {};
-    SwifterKitRuntimeVideoClockDevice* videoClockDevices[4] = {};
+    SwifterKitRuntimeVideoBox* videoBoxes[kSwifterKitVideoObjectTableCount] = {};
+    SwifterKitRuntimeVideoClockDevice* videoClockDevices[kSwifterKitVideoObjectTableCount] = {};
     uint8_t videoDeviceOwner = 0;
-    uint8_t videoClockOwners[4] = {};
+    uint8_t videoClockOwners[kSwifterKitVideoObjectTableCount] = {};
     // Requests Swift must answer, guarded by videoRequestLock.
     IOLock* videoRequestLock = nullptr;
-    SwifterKitVideoPendingRequest videoRequests[8] = {};
+    SwifterKitVideoPendingRequest videoRequests[kSwifterKitVideoPendingRequestCount] = {};
     uint32_t nextVideoRequestID = 1;
     bool videoRequestsStopped = true;
     IOTimerDispatchSource* videoRequestTimer = nullptr;

@@ -7,7 +7,7 @@ extension DriverCommand {
       opcode: .videoGetObjectInfo,
       requiredCapabilities: .video,
       payload: try videoTargetPayload(target),
-      maximumResponseSize: RuntimeMessage.headerSize + 32 + 255 + 255
+      maximumResponseSize: RuntimeMessage.headerSize + 32 + RuntimeVideoLimits.nameMaximumLength * 2
     )
   }
 
@@ -37,7 +37,7 @@ extension DriverCommand {
       opcode: .videoGetElementName,
       requiredCapabilities: .video,
       payload: try videoElementPayload(target, kind, element, scope, length: 0),
-      maximumResponseSize: RuntimeMessage.headerSize + 255
+      maximumResponseSize: RuntimeMessage.headerSize + RuntimeVideoLimits.nameMaximumLength
     )
   }
 
@@ -65,9 +65,10 @@ extension DriverCommand {
     _ target: VideoObjectTarget,
     selectors: [UInt32]
   ) throws -> Self {
-    guard target != .driver, (1...32).contains(selectors.count), !selectors.contains(0) else {
-      throw VideoRuntimeError.invalidPropertySelectors
-    }
+    guard target != .driver,
+      (1...RuntimeVideoLimits.maximumChangedProperties).contains(selectors.count),
+      !selectors.contains(0)
+    else { throw VideoRuntimeError.invalidPropertySelectors }
     var payload = try videoTargetPayload(target)
     payload.appendRuntimeInteger(UInt32(selectors.count))
     payload.appendRuntimeInteger(UInt32(0))
@@ -245,7 +246,7 @@ extension DriverCommand {
     streamIndex: UInt32,
     changeAction: UInt64
   ) throws -> Self {
-    guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
+    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
     guard notification != .streamBufferQueueChange || changeAction == 0 else {
       throw VideoRuntimeError.invalidPayload
     }
@@ -321,9 +322,8 @@ extension DriverCommand {
 
   private static func videoName(_ name: String) throws -> Data {
     let bytes = Data(name.utf8)
-    guard !bytes.isEmpty, bytes.count <= 255, !bytes.contains(0) else {
-      throw VideoRuntimeError.invalidName
-    }
+    guard !bytes.isEmpty, bytes.count <= RuntimeVideoLimits.nameMaximumLength, !bytes.contains(0)
+    else { throw VideoRuntimeError.invalidName }
     return bytes
   }
 }
@@ -349,9 +349,9 @@ extension DriverContext {
     let data = try await execute(
       .videoElementName(target, kind: kind, element: element, scope: scope)
     )
-    guard data.count <= 255, let name = String(data: data, encoding: .utf8) else {
-      throw VideoRuntimeError.invalidPayload
-    }
+    guard data.count <= RuntimeVideoLimits.nameMaximumLength,
+      let name = String(data: data, encoding: .utf8)
+    else { throw VideoRuntimeError.invalidPayload }
     return name
   }
 

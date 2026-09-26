@@ -14,31 +14,35 @@
     #include <VideoDriverKit/IOUserVideoStream.h>
     #include <string.h>
 
+    #include "SwifterKitRuntimeSchema.h"
+
 class SwifterKitRuntimeService;
 
 struct SwifterKitRuntimeVideoDevice_IVars {
     SwifterKitRuntimeService* service = nullptr;
-    IOUserVideoStream* streams[8] = {};
-    IOUserVideoBuffer* buffers[8][32] = {};
-    IOUserVideoControl* controls[64] = {};
-    IOUserVideoCustomProperty* customProperties[32] = {};
-    // 0 detached, 1 device, 2 driver; see SwifterKitRuntimeVideoProtocol.h.
-    uint8_t customPropertyOwners[32] = {};
-    IOBufferMemoryDescriptor* dataDescriptors[8][32] = {};
-    IOBufferMemoryDescriptor* controlDescriptors[8][32] = {};
-    IOMemoryMap* dataMaps[8][32] = {};
-    IOMemoryMap* controlMaps[8][32] = {};
+    IOUserVideoStream* streams[kSwifterKitVideoMaximumStreams] = {};
+    IOUserVideoBuffer* buffers[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
+    IOUserVideoControl* controls[kSwifterKitVideoMaximumControls] = {};
+    IOUserVideoCustomProperty* customProperties[kSwifterKitVideoMaximumCustomProperties] = {};
+    // A kSwifterKitVideoOwner value.
+    uint8_t customPropertyOwners[kSwifterKitVideoMaximumCustomProperties] = {};
+    IOBufferMemoryDescriptor* dataDescriptors[kSwifterKitVideoMaximumStreams]
+                                             [kSwifterKitVideoMaximumBuffers] = {};
+    IOBufferMemoryDescriptor* controlDescriptors[kSwifterKitVideoMaximumStreams]
+                                                [kSwifterKitVideoMaximumBuffers] = {};
+    IOMemoryMap* dataMaps[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
+    IOMemoryMap* controlMaps[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
     uint64_t pendingSampleRateBits = 0;
     // Live buffer sizing, identity, and attachment, which Swift can change after Configure.
     // bufferLock guards these, the maps, the descriptors, and the pending change; no
     // VideoDriverKit call runs under it.
     IOLock* bufferLock = nullptr;
-    uint32_t dataCapacity[8] = {};
-    uint32_t controlCapacity[8] = {};
-    uint32_t bufferIDs[8][32] = {};
-    bool bufferDetached[8][32] = {};
-    bool streamDetached[8] = {};
-    bool controlDetached[64] = {};
+    uint32_t dataCapacity[kSwifterKitVideoMaximumStreams] = {};
+    uint32_t controlCapacity[kSwifterKitVideoMaximumStreams] = {};
+    uint32_t bufferIDs[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
+    bool bufferDetached[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
+    bool streamDetached[kSwifterKitVideoMaximumStreams] = {};
+    bool controlDetached[kSwifterKitVideoMaximumControls] = {};
     // A stream or buffer change waiting for PerformDeviceConfigurationChange; kind zero is none.
     uint32_t pendingChangeKind = 0;
     uint32_t pendingChangeStream = 0;
@@ -55,12 +59,14 @@ constexpr uint64_t kSwifterKitVideoMemberChangeAction = 0x53574B564D454D42ULL;
 // request to the host using RequestDeviceConfigurationChange() ... It is only at this point that
 // the device can make the state change." The change travels in the request's change info.
 constexpr uint64_t kSwifterKitVideoStructureChangeAction = 0x53574B5653545255ULL;
-constexpr uint32_t kSwifterKitVideoChangeStreamAttachment = 1;
+constexpr uint32_t kSwifterKitVideoChangeStreamAttachment = kSwifterKitVideoMemberStream;
 // Safety offsets use the SetDeviceProperty selectors, latencies the SetClockProperty selectors.
-constexpr uint32_t kSwifterKitVideoChangeInputSafetyOffset = 4;
-constexpr uint32_t kSwifterKitVideoChangeOutputSafetyOffset = 5;
-constexpr uint32_t kSwifterKitVideoChangeInputLatency = 6;
-constexpr uint32_t kSwifterKitVideoChangeOutputLatency = 7;
+constexpr uint32_t kSwifterKitVideoChangeInputSafetyOffset =
+    kSwifterKitVideoDevicePropertyInputSafetyOffset;
+constexpr uint32_t kSwifterKitVideoChangeOutputSafetyOffset =
+    kSwifterKitVideoDevicePropertyOutputSafetyOffset;
+constexpr uint32_t kSwifterKitVideoChangeInputLatency = kSwifterKitVideoClockPropertyInputLatency;
+constexpr uint32_t kSwifterKitVideoChangeOutputLatency = kSwifterKitVideoClockPropertyOutputLatency;
 
 struct SwifterKitVideoStructureChange {
     uint32_t selector;

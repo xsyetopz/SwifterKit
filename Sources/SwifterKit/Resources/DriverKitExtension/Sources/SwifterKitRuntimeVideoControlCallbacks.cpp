@@ -75,8 +75,11 @@ void SwifterKitRuntimeVideoBooleanControl::free() {
 
 kern_return_t SwifterKitRuntimeVideoBooleanControl::HandleChangeControlValue(bool value) {
     const uint32_t rawValue = value ? 1 : 0;
-    const kern_return_t result =
-        ivars->service->VideoControlValueEvent(ivars->identifier, 1, &rawValue, 1);
+    const kern_return_t result = ivars->service->VideoControlValueEvent(
+        ivars->identifier,
+        kSwifterKitVideoValueBoolean,
+        &rawValue,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeControlValue(value) : result;
 }
 
@@ -107,8 +110,11 @@ void SwifterKitRuntimeVideoDirectionControl::free() {
 
 kern_return_t SwifterKitRuntimeVideoDirectionControl::HandleChangeControlValue(bool value) {
     const uint32_t rawValue = value ? 1 : 0;
-    const kern_return_t result =
-        ivars->service->VideoControlValueEvent(ivars->identifier, 7, &rawValue, 1);
+    const kern_return_t result = ivars->service->VideoControlValueEvent(
+        ivars->identifier,
+        kSwifterKitVideoValueDirection,
+        &rawValue,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeControlValue(value) : result;
 }
 
@@ -140,15 +146,21 @@ void SwifterKitRuntimeVideoLevelControl::free() {
 
 kern_return_t SwifterKitRuntimeVideoLevelControl::HandleChangeDecibelValue(float value) {
     const uint32_t bits = FloatBits(value);
-    const kern_return_t result =
-        ivars->service->VideoControlValueEvent(ivars->identifier, 2, &bits, 1);
+    const kern_return_t result = ivars->service->VideoControlValueEvent(
+        ivars->identifier,
+        kSwifterKitVideoValueDecibels,
+        &bits,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeDecibelValue(value) : result;
 }
 
 kern_return_t SwifterKitRuntimeVideoLevelControl::HandleChangeScalarValue(float value) {
     const uint32_t bits = FloatBits(value);
-    const kern_return_t result =
-        ivars->service->VideoControlValueEvent(ivars->identifier, 3, &bits, 1);
+    const kern_return_t result = ivars->service->VideoControlValueEvent(
+        ivars->identifier,
+        kSwifterKitVideoValueScalar,
+        &bits,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeScalarValue(value) : result;
 }
 
@@ -179,11 +191,11 @@ void SwifterKitRuntimeVideoSelectorControl::free() {
 kern_return_t SwifterKitRuntimeVideoSelectorControl::HandleChangeSelectedValues(
     const IOUserVideoSelectorValue* values,
     size_t count) {
-    if (values == nullptr || count == 0 || count > 32)
+    if (values == nullptr || count == 0 || count > kSwifterKitVideoMaximumSelectorItems)
         return kIOReturnBadArgument;
     const kern_return_t result = ivars->service->VideoControlValueEvent(
         ivars->identifier,
-        4,
+        kSwifterKitVideoValueSelector,
         values,
         static_cast<uint32_t>(count));
     return result == kIOReturnSuccess ? super::HandleChangeSelectedValues(values, count) : result;
@@ -216,8 +228,11 @@ void SwifterKitRuntimeVideoSliderControl::free() {
 }
 
 kern_return_t SwifterKitRuntimeVideoSliderControl::HandleChangeControlValue(uint32_t value) {
-    const kern_return_t result =
-        ivars->service->VideoControlValueEvent(ivars->identifier, 5, &value, 1);
+    const kern_return_t result = ivars->service->VideoControlValueEvent(
+        ivars->identifier,
+        kSwifterKitVideoValueSlider,
+        &value,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeControlValue(value) : result;
 }
 
@@ -250,8 +265,11 @@ void SwifterKitRuntimeVideoStereoPanControl::free() {
 
 kern_return_t SwifterKitRuntimeVideoStereoPanControl::HandleChangeControlValue(float value) {
     const uint32_t bits = FloatBits(value);
-    const kern_return_t result =
-        ivars->service->VideoControlValueEvent(ivars->identifier, 6, &bits, 1);
+    const kern_return_t result = ivars->service->VideoControlValueEvent(
+        ivars->identifier,
+        kSwifterKitVideoValueStereoPan,
+        &bits,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeControlValue(value) : result;
 }
 

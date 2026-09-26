@@ -1,14 +1,14 @@
 import Foundation
 
-private func videoWireKind(of value: VideoControlValue) -> UInt32 {
+private func videoWireKind(of value: VideoControlValue) -> RuntimeVideoValueKind {
   switch value {
-  case .boolean: 1
-  case .direction: 7
-  case .decibels: 2
-  case .scalar: 3
-  case .selector: 4
-  case .slider: 5
-  case .stereoPan: 6
+  case .boolean: .boolean
+  case .direction: .direction
+  case .decibels: .decibels
+  case .scalar: .scalar
+  case .selector: .selector
+  case .slider: .slider
+  case .stereoPan: .stereoPan
   }
 }
 
@@ -27,22 +27,22 @@ extension VideoControlValue {
     let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
     let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 12)
-    guard reserved == 0, count <= 32, runtimePayload.count == 16 + Int(count) * 4 else {
-      throw VideoRuntimeError.invalidPayload
-    }
+    guard reserved == 0, count <= RuntimeVideoLimits.maximumSelectorItems,
+      runtimePayload.count == 16 + Int(count) * 4
+    else { throw VideoRuntimeError.invalidPayload }
     let values: [UInt32] = try (0..<Int(count)).map {
       try runtimePayload.readRuntimeInteger(at: 16 + $0 * 4)
     }
-    switch kind {
-    case 1 where values == [0]: self = .boolean(false)
-    case 1 where values == [1]: self = .boolean(true)
-    case 2 where values.count == 1: self = .decibels(Float(bitPattern: values[0]))
-    case 3 where values.count == 1: self = .scalar(Float(bitPattern: values[0]))
-    case 4: self = .selector(values)
-    case 5 where values.count == 1: self = .slider(values[0])
-    case 6 where values.count == 1: self = .stereoPan(Float(bitPattern: values[0]))
-    case 7 where values == [0]: self = .direction(false)
-    case 7 where values == [1]: self = .direction(true)
+    switch RuntimeVideoValueKind(rawValue: kind) {
+    case .boolean where values == [0]: self = .boolean(false)
+    case .boolean where values == [1]: self = .boolean(true)
+    case .decibels where values.count == 1: self = .decibels(Float(bitPattern: values[0]))
+    case .scalar where values.count == 1: self = .scalar(Float(bitPattern: values[0]))
+    case .selector: self = .selector(values)
+    case .slider where values.count == 1: self = .slider(values[0])
+    case .stereoPan where values.count == 1: self = .stereoPan(Float(bitPattern: values[0]))
+    case .direction where values == [0]: self = .direction(false)
+    case .direction where values == [1]: self = .direction(true)
     default: throw VideoRuntimeError.invalidPayload
     }
   }
@@ -58,17 +58,20 @@ extension DriverCommand {
       opcode: .videoGetControl,
       requiredCapabilities: .video,
       payload: payload,
-      maximumResponseSize: RuntimeMessage.headerSize + 144
+      maximumResponseSize: RuntimeMessage.headerSize + 16 + RuntimeVideoLimits.maximumSelectorItems
+        * 4
     )
   }
 
   /// Writes one typed control value.
   public static func videoSetControl(identifier: UInt32, value: VideoControlValue) throws -> Self {
     let values = videoWireValues(of: value)
-    guard !values.isEmpty, values.count <= 32 else { throw VideoRuntimeError.invalidControlValue }
+    guard !values.isEmpty, values.count <= RuntimeVideoLimits.maximumSelectorItems else {
+      throw VideoRuntimeError.invalidControlValue
+    }
     var payload = Data(capacity: 16 + values.count * 4)
     payload.appendRuntimeInteger(identifier)
-    payload.appendRuntimeInteger(videoWireKind(of: value))
+    payload.appendRuntimeInteger(videoWireKind(of: value).rawValue)
     payload.appendRuntimeInteger(UInt32(values.count))
     payload.appendRuntimeInteger(UInt32(0))
     for value in values { payload.appendRuntimeInteger(value) }
@@ -112,7 +115,8 @@ extension DriverCommand {
   ) throws -> Self {
     let qualifierBytes = Data(qualifier.utf8)
     let valueBytes = value.map { Data($0.utf8) } ?? Data()
-    guard !qualifierBytes.isEmpty, qualifierBytes.count <= 255, valueBytes.count <= 4_096,
+    guard !qualifierBytes.isEmpty, qualifierBytes.count <= RuntimeVideoLimits.nameMaximumLength,
+      valueBytes.count <= RuntimeVideoLimits.customPropertyValueMaximumLength,
       !qualifier.contains("\0"), value?.contains("\0") != true
     else { throw VideoRuntimeError.invalidCustomPropertyValue }
     var payload = Data(capacity: 16 + qualifierBytes.count + valueBytes.count)
@@ -126,7 +130,8 @@ extension DriverCommand {
       opcode: opcode,
       requiredCapabilities: .video,
       payload: payload,
-      maximumResponseSize: RuntimeMessage.headerSize + 4_096
+      maximumResponseSize: RuntimeMessage.headerSize
+        + RuntimeVideoLimits.customPropertyValueMaximumLength
     )
   }
 }

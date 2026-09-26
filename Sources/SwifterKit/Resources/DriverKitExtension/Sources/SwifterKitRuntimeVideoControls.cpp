@@ -48,7 +48,7 @@ namespace {
     OSString* StringFromBytes(const uint8_t* bytes, uint32_t length, uint32_t maximum) {
         if (bytes == nullptr || length > maximum)
             return nullptr;
-        char storage[4097] = {};
+        char storage[kSwifterKitVideoCustomPropertyValueMaximumLength + 1] = {};
         memcpy(storage, bytes, length);
         return OSString::withCString(storage);
     }
@@ -65,7 +65,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
         const auto scope = static_cast<IOUserVideoObjectPropertyScope>(config.scope);
         const auto classID = static_cast<IOUserVideoClassID>(config.classID);
         switch (config.kind) {
-            case 1: {
+            case kSwifterKitVideoControlBoolean: {
                 auto* typed = OSTypeAlloc(SwifterKitRuntimeVideoBooleanControl);
                 if (typed != nullptr
                     && !typed->init(
@@ -81,7 +81,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
                 control = typed;
                 break;
             }
-            case 6: {
+            case kSwifterKitVideoControlDirection: {
                 auto* typed = OSTypeAlloc(SwifterKitRuntimeVideoDirectionControl);
                 if (typed != nullptr
                     && !typed->init(
@@ -97,7 +97,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
                 control = typed;
                 break;
             }
-            case 2: {
+            case kSwifterKitVideoControlLevel: {
                 auto* typed = OSTypeAlloc(SwifterKitRuntimeVideoLevelControl);
                 if (typed != nullptr
                     && !typed->init(
@@ -114,7 +114,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
                 control = typed;
                 break;
             }
-            case 3: {
+            case kSwifterKitVideoControlSelector: {
                 auto* selector = OSTypeAlloc(SwifterKitRuntimeVideoSelectorControl);
                 if (selector != nullptr
                     && !selector->init(
@@ -127,7 +127,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
                         classID))
                     OSSafeReleaseNULL(selector);
                 control = selector;
-                IOUserVideoSelectorValueDescription descriptions[32] = {};
+                IOUserVideoSelectorValueDescription
+                    descriptions[kSwifterKitVideoMaximumSelectorItems] = {};
                 for (uint32_t item = 0; selector != nullptr && item < config.selectorCount;
                      ++item) {
                     const auto& source = kSwifterKitVideoSelectors[config.selectorStart + item];
@@ -146,7 +147,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
                         config.initialCount);
                 break;
             }
-            case 4: {
+            case kSwifterKitVideoControlSlider: {
                 auto* typed = OSTypeAlloc(SwifterKitRuntimeVideoSliderControl);
                 if (typed != nullptr
                     && !typed->init(
@@ -163,7 +164,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
                 control = typed;
                 break;
             }
-            case 5: {
+            case kSwifterKitVideoControlStereoPan: {
                 auto* typed = OSTypeAlloc(SwifterKitRuntimeVideoStereoPanControl);
                 if (typed != nullptr
                     && !typed->init(
@@ -255,53 +256,55 @@ kern_return_t SwifterKitRuntimeVideoDevice::CopyControl(
     const auto* config = FindControl(request->identifier, &index);
     if (config == nullptr)
         return kIOReturnNotFound;
-    uint32_t values[32] = {};
+    uint32_t values[kSwifterKitVideoMaximumSelectorItems] = {};
     uint32_t count = 1;
     auto* control = ivars->controls[index];
     switch (request->kind) {
-        case 1: {
+        case kSwifterKitVideoValueBoolean: {
             auto* typed = OSDynamicCast(IOUserVideoBooleanControl, control);
-            if (config->kind != 1 || typed == nullptr)
+            if (config->kind != kSwifterKitVideoControlBoolean || typed == nullptr)
                 return kIOReturnBadArgument;
             values[0] = typed->GetControlValue() ? 1 : 0;
             break;
         }
-        case 7: {
+        case kSwifterKitVideoValueDirection: {
             auto* typed = OSDynamicCast(IOUserVideoDirectionControl, control);
-            if (config->kind != 6 || typed == nullptr)
+            if (config->kind != kSwifterKitVideoControlDirection || typed == nullptr)
                 return kIOReturnBadArgument;
             values[0] = typed->GetControlValue() ? 1 : 0;
             break;
         }
-        case 2:
-        case 3: {
+        case kSwifterKitVideoValueDecibels:
+        case kSwifterKitVideoValueScalar: {
             auto* typed = OSDynamicCast(IOUserVideoLevelControl, control);
-            if (config->kind != 2 || typed == nullptr)
+            if (config->kind != kSwifterKitVideoControlLevel || typed == nullptr)
                 return kIOReturnBadArgument;
-            const float value =
-                request->kind == 2 ? typed->GetDecibelValue() : typed->GetScalarValue();
+            const float value = request->kind == kSwifterKitVideoValueDecibels
+                                    ? typed->GetDecibelValue()
+                                    : typed->GetScalarValue();
             values[0] = __builtin_bit_cast(uint32_t, value);
             break;
         }
-        case 4: {
+        case kSwifterKitVideoValueSelector: {
             auto* typed = OSDynamicCast(IOUserVideoSelectorControl, control);
-            if (config->kind != 3 || typed == nullptr)
+            if (config->kind != kSwifterKitVideoControlSelector || typed == nullptr)
                 return kIOReturnBadArgument;
-            count = static_cast<uint32_t>(typed->GetCurrentSelectedValues(values, 32));
-            if (count == 0 || count > 32)
+            count = static_cast<uint32_t>(
+                typed->GetCurrentSelectedValues(values, kSwifterKitVideoMaximumSelectorItems));
+            if (count == 0 || count > kSwifterKitVideoMaximumSelectorItems)
                 return kIOReturnError;
             break;
         }
-        case 5: {
+        case kSwifterKitVideoValueSlider: {
             auto* typed = OSDynamicCast(IOUserVideoSliderControl, control);
-            if (config->kind != 4 || typed == nullptr)
+            if (config->kind != kSwifterKitVideoControlSlider || typed == nullptr)
                 return kIOReturnBadArgument;
             values[0] = typed->GetControlValue();
             break;
         }
-        case 6: {
+        case kSwifterKitVideoValueStereoPan: {
             auto* typed = OSDynamicCast(IOUserVideoStereoPanControl, control);
-            if (config->kind != 5 || typed == nullptr)
+            if (config->kind != kSwifterKitVideoControlStereoPan || typed == nullptr)
                 return kIOReturnBadArgument;
             values[0] = __builtin_bit_cast(uint32_t, typed->GetControlValue());
             break;
@@ -327,7 +330,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetControl(
     const SwifterKitVideoControlValueHeader* request,
     const uint32_t* values) {
     if (request == nullptr || values == nullptr || request->reserved != 0
-        || request->valueCount == 0 || request->valueCount > 32 || ivars == nullptr)
+        || request->valueCount == 0 || request->valueCount > kSwifterKitVideoMaximumSelectorItems
+        || ivars == nullptr)
         return kIOReturnBadArgument;
     uint32_t index = 0;
     const auto* config = FindControl(request->identifier, &index);
@@ -337,38 +341,39 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetControl(
         return kIOReturnNotPermitted;
     auto* control = ivars->controls[index];
     switch (request->kind) {
-        case 1: {
+        case kSwifterKitVideoValueBoolean: {
             auto* typed = OSDynamicCast(IOUserVideoBooleanControl, control);
-            return config->kind == 1 && typed != nullptr && request->valueCount == 1
-                           && values[0] <= 1
+            return config->kind == kSwifterKitVideoControlBoolean && typed != nullptr
+                           && request->valueCount == 1 && values[0] <= 1
                        ? typed->SetControlValue(values[0] != 0)
                        : kIOReturnBadArgument;
         }
-        case 7: {
+        case kSwifterKitVideoValueDirection: {
             auto* typed = OSDynamicCast(IOUserVideoDirectionControl, control);
-            return config->kind == 6 && typed != nullptr && request->valueCount == 1
-                           && values[0] <= 1
+            return config->kind == kSwifterKitVideoControlDirection && typed != nullptr
+                           && request->valueCount == 1 && values[0] <= 1
                        ? typed->SetControlValue(values[0] != 0)
                        : kIOReturnBadArgument;
         }
-        case 2:
-        case 3: {
+        case kSwifterKitVideoValueDecibels:
+        case kSwifterKitVideoValueScalar: {
             auto* typed = OSDynamicCast(IOUserVideoLevelControl, control);
-            if (config->kind != 2 || typed == nullptr || request->valueCount != 1)
+            if (config->kind != kSwifterKitVideoControlLevel || typed == nullptr
+                || request->valueCount != 1)
                 return kIOReturnBadArgument;
             const float value = FloatValue(values[0]);
             if (!__builtin_isfinite(value))
                 return kIOReturnBadArgument;
-            if (request->kind == 2) {
+            if (request->kind == kSwifterKitVideoValueDecibels) {
                 if (value < FloatValue(config->minimum) || value > FloatValue(config->maximum))
                     return kIOReturnBadArgument;
                 return typed->SetDecibelValue(value);
             }
             return value >= 0 && value <= 1 ? typed->SetScalarValue(value) : kIOReturnBadArgument;
         }
-        case 4: {
+        case kSwifterKitVideoValueSelector: {
             auto* typed = OSDynamicCast(IOUserVideoSelectorControl, control);
-            if (config->kind != 3 || typed == nullptr)
+            if (config->kind != kSwifterKitVideoControlSelector || typed == nullptr)
                 return kIOReturnBadArgument;
             for (uint32_t item = 0; item < request->valueCount; ++item) {
                 bool found = false;
@@ -385,18 +390,20 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetControl(
             }
             return typed->SetCurrentSelectedValues(values, request->valueCount);
         }
-        case 5: {
+        case kSwifterKitVideoValueSlider: {
             auto* typed = OSDynamicCast(IOUserVideoSliderControl, control);
-            return config->kind == 4 && typed != nullptr && request->valueCount == 1
-                           && values[0] >= config->minimum && values[0] <= config->maximum
+            return config->kind == kSwifterKitVideoControlSlider && typed != nullptr
+                           && request->valueCount == 1 && values[0] >= config->minimum
+                           && values[0] <= config->maximum
                        ? typed->SetControlValue(values[0])
                        : kIOReturnBadArgument;
         }
-        case 6: {
+        case kSwifterKitVideoValueStereoPan: {
             auto* typed = OSDynamicCast(IOUserVideoStereoPanControl, control);
             const float value = FloatValue(values[0]);
-            return config->kind == 5 && typed != nullptr && request->valueCount == 1
-                           && __builtin_isfinite(value) && value >= -1 && value <= 1
+            return config->kind == kSwifterKitVideoControlStereoPan && typed != nullptr
+                           && request->valueCount == 1 && __builtin_isfinite(value) && value >= -1
+                           && value <= 1
                        ? typed->SetControlValue(value)
                        : kIOReturnBadArgument;
         }
@@ -415,7 +422,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::CopyCustomProperty(
     uint32_t index = 0;
     if (FindProperty(request->identifier, &index) == nullptr)
         return kIOReturnNotFound;
-    OSString* qualifier = StringFromBytes(bytes, request->qualifierLength, 255);
+    OSString* qualifier =
+        StringFromBytes(bytes, request->qualifierLength, kSwifterKitVideoNameMaximumLength);
     OSObject* output = nullptr;
     kern_return_t result =
         qualifier == nullptr ? kIOReturnBadArgument
@@ -423,7 +431,9 @@ kern_return_t SwifterKitRuntimeVideoDevice::CopyCustomProperty(
                                    qualifier,
                                    &output);
     auto* string = OSDynamicCast(OSString, output);
-    if (result == kIOReturnSuccess && (string == nullptr || string->getLength() > 4096))
+    if (result == kIOReturnSuccess
+        && (string == nullptr
+            || string->getLength() > kSwifterKitVideoCustomPropertyValueMaximumLength))
         result = kIOReturnBadArgument;
     if (result == kIOReturnSuccess) {
         *response = OSData::withBytes(string->getCStringNoCopy(), string->getLength());
@@ -439,7 +449,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetCustomProperty(
     const SwifterKitVideoCustomPropertyHeader* request,
     const uint8_t* bytes) {
     if (request == nullptr || request->reserved != 0 || request->qualifierLength == 0
-        || request->valueLength > 4096)
+        || request->valueLength > kSwifterKitVideoCustomPropertyValueMaximumLength)
         return kIOReturnBadArgument;
     uint32_t index = 0;
     const auto* config = FindProperty(request->identifier, &index);
@@ -447,8 +457,12 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetCustomProperty(
         return kIOReturnNotFound;
     if (!config->isSettable)
         return kIOReturnNotPermitted;
-    OSString* qualifier = StringFromBytes(bytes, request->qualifierLength, 255);
-    OSString* value = StringFromBytes(bytes + request->qualifierLength, request->valueLength, 4096);
+    OSString* qualifier =
+        StringFromBytes(bytes, request->qualifierLength, kSwifterKitVideoNameMaximumLength);
+    OSString* value = StringFromBytes(
+        bytes + request->qualifierLength,
+        request->valueLength,
+        kSwifterKitVideoCustomPropertyValueMaximumLength);
     const kern_return_t result =
         qualifier == nullptr || value == nullptr
             ? kIOReturnBadArgument

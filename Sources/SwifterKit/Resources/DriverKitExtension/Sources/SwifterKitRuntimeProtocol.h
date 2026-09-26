@@ -567,7 +567,7 @@ static_assert(sizeof(SwifterKitAudioControlValueHeader) == 16);
 static_assert(sizeof(SwifterKitAudioCustomPropertyHeader) == 16);
 static_assert(sizeof(SwifterKitAudioControlEventHeader) == 20);
 static_assert(sizeof(SwifterKitAudioCustomPropertyEventHeader) == 20);
-static_assert(sizeof(SwifterKitVideoTransferHeader) == 32);
+static_assert(sizeof(SwifterKitVideoTransferHeader) == kSwifterKitVideoTransferHeaderSize);
 static_assert(sizeof(SwifterKitVideoQueueEntry) == 32);
 static_assert(sizeof(SwifterKitVideoTimestamp) == 16);
 static_assert(sizeof(SwifterKitVideoEvent) == 16);

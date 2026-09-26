@@ -3,7 +3,7 @@ extension RuntimeSchemaHeader {
   /// The family sections, in header order; `render()` separates them with blank lines.
   static func familySections() -> [[String]] {
     serviceSections() + storageSections() + midiSections() + usbSections() + hidSections()
-      + networkSections() + audioSections()
+      + networkSections() + audioSections() + videoSections()
   }
 
   /// `static constexpr` declarations of one native type, from name and value pairs.

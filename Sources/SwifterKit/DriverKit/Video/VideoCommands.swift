@@ -9,10 +9,12 @@ extension DriverCommand {
     byteOffset: UInt32 = 0,
     length: Int
   ) throws -> Self {
-    guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
-    guard bufferIndex < 32 else { throw VideoRuntimeError.invalidBufferIndex }
+    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
+    guard bufferIndex < videoMaximumBuffers else { throw VideoRuntimeError.invalidBufferIndex }
     guard length > 0 else { throw VideoRuntimeError.invalidTransferRange }
-    guard length <= 65_464 else { throw VideoRuntimeError.transferTooLarge }
+    guard length <= RuntimeVideoLimits.maximumReadLength else {
+      throw VideoRuntimeError.transferTooLarge
+    }
     return Self(
       opcode: .videoReadBuffer,
       requiredCapabilities: .video,
@@ -35,10 +37,12 @@ extension DriverCommand {
     byteOffset: UInt32 = 0,
     bytes: Data
   ) throws -> Self {
-    guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
-    guard bufferIndex < 32 else { throw VideoRuntimeError.invalidBufferIndex }
+    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
+    guard bufferIndex < videoMaximumBuffers else { throw VideoRuntimeError.invalidBufferIndex }
     guard !bytes.isEmpty else { throw VideoRuntimeError.invalidTransferRange }
-    guard bytes.count <= 65_432 else { throw VideoRuntimeError.transferTooLarge }
+    guard bytes.count <= RuntimeVideoLimits.maximumWriteLength else {
+      throw VideoRuntimeError.transferTooLarge
+    }
     var payload = videoTransferPayload(
       streamIndex: streamIndex,
       bufferIndex: bufferIndex,
@@ -55,8 +59,10 @@ extension DriverCommand {
     streamIndex: UInt32,
     entry: VideoBufferQueueEntry
   ) throws -> Self {
-    guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
-    guard entry.bufferIndex < 32 else { throw VideoRuntimeError.invalidBufferIndex }
+    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
+    guard entry.bufferIndex < videoMaximumBuffers else {
+      throw VideoRuntimeError.invalidBufferIndex
+    }
     var payload = Data(capacity: 36)
     payload.appendRuntimeInteger(streamIndex)
     payload.append(videoEntryPayload(entry))
@@ -65,7 +71,7 @@ extension DriverCommand {
 
   /// Dequeues an input entry supplied by the host.
   public static func videoDequeueInput(streamIndex: UInt32) throws -> Self {
-    guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
+    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
     var payload = Data(capacity: 4)
     payload.appendRuntimeInteger(streamIndex)
     return Self(
@@ -78,7 +84,7 @@ extension DriverCommand {
 
   /// Notifies the host that output entries are ready.
   public static func videoNotifyOutput(streamIndex: UInt32) throws -> Self {
-    guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
+    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
     var payload = Data(capacity: 4)
     payload.appendRuntimeInteger(streamIndex)
     return Self(opcode: .videoNotifyOutput, requiredCapabilities: .video, payload: payload)

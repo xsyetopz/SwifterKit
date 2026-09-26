@@ -71,14 +71,20 @@ kern_return_t SwifterKitRuntimeService::StartDevice(
     IOUserVideoStartStopFlags flags) {
     const kern_return_t result = super::StartDevice(objectID, flags);
     if (result == kIOReturnSuccess)
-        (void)VideoObjectEvent(1, objectID, static_cast<uint64_t>(flags));
+        (void)VideoObjectEvent(
+            kSwifterKitVideoObjectEventDeviceStarted,
+            objectID,
+            static_cast<uint64_t>(flags));
     return result;
 }
 
 kern_return_t SwifterKitRuntimeService::StopDevice(
     IOUserVideoObjectID objectID,
     IOUserVideoStartStopFlags flags) {
-    (void)VideoObjectEvent(2, objectID, static_cast<uint64_t>(flags));
+    (void)VideoObjectEvent(
+        kSwifterKitVideoObjectEventDeviceStopped,
+        objectID,
+        static_cast<uint64_t>(flags));
     return super::StopDevice(objectID, flags);
 }
 
@@ -206,7 +212,7 @@ kern_return_t SwifterKitRuntimeService::ApplyVideoRequest(
     int32_t failure) {
     auto* box = OSDynamicCast(SwifterKitRuntimeVideoBox, object);
     auto* clock = OSDynamicCast(SwifterKitRuntimeVideoClockDevice, object);
-    if (kind == kSwifterKitVideoEventBoxRequest && box != nullptr) {
+    if (kind == kSwifterKitVideoObjectEventBoxRequest && box != nullptr) {
         // HandleChangeAcquireBox already applied the requested state; a rejection restores it.
         kern_return_t result = box->SetIsAcquired(accept ? value != 0 : value == 0);
         const kern_return_t failed = box->SetAcquisitionFailure(
@@ -215,7 +221,7 @@ kern_return_t SwifterKitRuntimeService::ApplyVideoRequest(
                            : kIOReturnError);
         return result == kIOReturnSuccess ? failed : result;
     }
-    if (kind == kSwifterKitVideoEventClockRequest && clock != nullptr)
+    if (kind == kSwifterKitVideoObjectEventClockRequest && clock != nullptr)
         return clock->FinishSampleRateRequest(
             __builtin_bit_cast(double, value),
             __builtin_bit_cast(double, previous),

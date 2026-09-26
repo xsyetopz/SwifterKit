@@ -74,9 +74,12 @@ kern_return_t SwifterKitRuntimeVideoBox::HandleChangeAcquireBox(bool acquire) {
     kern_return_t result = SetIsAcquired(acquire);
     if (result != kIOReturnSuccess)
         return result;
-    result =
-        ivars->service
-            ->BeginVideoRequest(this, kSwifterKitVideoEventBoxRequest, ivars->index, acquire, 0);
+    result = ivars->service->BeginVideoRequest(
+        this,
+        kSwifterKitVideoObjectEventBoxRequest,
+        ivars->index,
+        acquire,
+        0);
     if (result == kIOReturnNotAttached)
         return super::HandleChangeAcquireBox(acquire);
     if (result != kIOReturnSuccess)

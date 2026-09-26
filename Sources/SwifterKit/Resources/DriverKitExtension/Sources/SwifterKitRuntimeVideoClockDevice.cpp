@@ -99,12 +99,18 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::RequestSampleRate(double sample
 kern_return_t SwifterKitRuntimeVideoClockDevice::StartIO(IOUserVideoStartStopFlags flags) {
     const kern_return_t result = super::StartIO(flags);
     if (result == kIOReturnSuccess)
-        (void)ivars->service->VideoObjectEvent(3, ivars->index, static_cast<uint64_t>(flags));
+        (void)ivars->service->VideoObjectEvent(
+            kSwifterKitVideoObjectEventClockStarted,
+            ivars->index,
+            static_cast<uint64_t>(flags));
     return result;
 }
 
 kern_return_t SwifterKitRuntimeVideoClockDevice::StopIO(IOUserVideoStartStopFlags flags) {
-    (void)ivars->service->VideoObjectEvent(4, ivars->index, static_cast<uint64_t>(flags));
+    (void)ivars->service->VideoObjectEvent(
+        kSwifterKitVideoObjectEventClockStopped,
+        ivars->index,
+        static_cast<uint64_t>(flags));
     return super::StopIO(flags);
 }
 
@@ -134,7 +140,7 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::PerformDeviceConfigurationChang
         IsAvailableSampleRate(sampleRate) ? SetSampleRate(sampleRate) : kIOReturnBadArgument;
     if (result == kIOReturnSuccess)
         result = ivars->service->VideoObjectEvent(
-            5,
+            kSwifterKitVideoObjectEventClockRateChanged,
             ivars->index,
             __builtin_bit_cast(uint64_t, sampleRate));
     return result;
@@ -164,7 +170,7 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::HandleChangeSampleRate(double s
         return result;
     result = ivars->service->BeginVideoRequest(
         this,
-        kSwifterKitVideoEventClockRequest,
+        kSwifterKitVideoObjectEventClockRequest,
         ivars->index,
         __builtin_bit_cast(uint64_t, sampleRate),
         __builtin_bit_cast(uint64_t, previous));
@@ -183,7 +189,7 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::FinishSampleRateRequest(
         return kIOReturnNotReady;
     if (accept)
         return ivars->service->VideoObjectEvent(
-            5,
+            kSwifterKitVideoObjectEventClockRateChanged,
             ivars->index,
             __builtin_bit_cast(uint64_t, requested));
     // Outside the callback the rate changes only through a device configuration change, and a
@@ -196,6 +202,9 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::FinishSampleRateRequest(
 void SwifterKitRuntimeVideoClockDevice::StreamFormatChanged(IOUserVideoObjectID streamID) {
     super::StreamFormatChanged(streamID);
     if (ivars != nullptr)
-        (void)ivars->service->VideoObjectEvent(8, ivars->index, streamID);
+        (void)ivars->service->VideoObjectEvent(
+            kSwifterKitVideoObjectEventClockFormatChanged,
+            ivars->index,
+            streamID);
 }
 #endif

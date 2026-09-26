@@ -2,24 +2,28 @@ import Foundation
 
 extension DriverExtensionGenerator {
   static func isValid(video value: VideoDeviceConfiguration) -> Bool {
+    let limits = RuntimeVideoLimits.self
     let strings =
       [value.deviceUID, value.modelUID, value.manufacturerUID, value.name]
       + value.streams.map(\.identifier)
     guard strings.allSatisfy({ !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }),
-      (1...16).contains(value.sampleRates.count),
+      (1...limits.maximumSampleRates).contains(value.sampleRates.count),
       Set(value.sampleRates).count == value.sampleRates.count,
       value.sampleRates.allSatisfy({ $0.isFinite && $0 > 0 }),
-      value.sampleRates.contains(value.initialSampleRate), (1...8).contains(value.streams.count),
-      Set(value.streams.map(\.identifier)).count == value.streams.count, value.controls.count <= 64,
-      value.customProperties.count <= 32, isValid(videoTopology: value)
+      value.sampleRates.contains(value.initialSampleRate),
+      (1...limits.maximumStreams).contains(value.streams.count),
+      Set(value.streams.map(\.identifier)).count == value.streams.count,
+      value.controls.count <= limits.maximumControls,
+      value.customProperties.count <= limits.maximumCustomProperties, isValid(videoTopology: value)
     else { return false }
 
     var totalCapacity: UInt64 = 0
     for stream in value.streams {
-      guard (1...16).contains(stream.formats.count),
+      guard (1...limits.maximumStreamFormats).contains(stream.formats.count),
         Int(stream.initialFormatIndex) < stream.formats.count,
-        (1...32).contains(stream.bufferCount), (1...16_777_216).contains(stream.dataBufferCapacity),
-        (1...1_048_576).contains(stream.controlBufferCapacity),
+        (1...limits.maximumBuffers).contains(Int(stream.bufferCount)),
+        (1...16_777_216).contains(stream.dataBufferCapacity),
+        (1...limits.maximumControlCapacity).contains(Int(stream.controlBufferCapacity)),
         stream.formats.allSatisfy({
           $0.frameRate.isFinite && $0.frameRate > 0 && $0.frameTimeValue > 0
             && $0.frameTimeScale > 0 && $0.codec.rawValue != 0 && $0.width > 0 && $0.height > 0
@@ -41,7 +45,8 @@ extension DriverExtensionGenerator {
         property.selector != 0 && !property.values.isEmpty && property.values.count <= 32
           && property.values.allSatisfy { qualifier, data in
             !qualifier.isEmpty && !qualifier.contains("\0") && !data.contains("\0")
-              && qualifier.utf8.count <= 255 && data.utf8.count <= 4_096
+              && qualifier.utf8.count <= limits.nameMaximumLength
+              && data.utf8.count <= limits.customPropertyValueMaximumLength
           }
       }
   }
@@ -61,8 +66,9 @@ extension DriverExtensionGenerator {
     case .selector(let selector):
       let values = selector.values.map(\.value)
       let names = selector.values.map(\.name)
-      return !values.isEmpty && values.count <= 32 && Set(values).count == values.count
-        && !selector.initialValues.isEmpty && selector.initialValues.count <= 32
+      let maximum = RuntimeVideoLimits.maximumSelectorItems
+      return !values.isEmpty && values.count <= maximum && Set(values).count == values.count
+        && !selector.initialValues.isEmpty && selector.initialValues.count <= maximum
         && Set(selector.initialValues).count == selector.initialValues.count
         && selector.initialValues.allSatisfy(Set(values).contains)
         && names.allSatisfy { !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }

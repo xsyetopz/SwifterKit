@@ -245,23 +245,26 @@ public enum VideoEvent: Sendable, Hashable {
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 4 else { throw VideoRuntimeError.invalidPayload }
     let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
-    switch kind {
-    case 1...3:
+    guard let eventKind = RuntimeVideoEventKind(rawValue: kind) else {
+      throw VideoRuntimeError.invalidEventKind(kind)
+    }
+    switch eventKind {
+    case .started, .stopped, .sampleRateChanged:
       guard runtimePayload.count == 16 else { throw VideoRuntimeError.invalidPayload }
       let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let value: UInt64 = try runtimePayload.readRuntimeInteger(at: 8)
       guard reserved == 0 else { throw VideoRuntimeError.invalidPayload }
-      switch kind {
-      case 1: self = .started(flags: value)
-      case 2: self = .stopped(flags: value)
+      switch eventKind {
+      case .started: self = .started(flags: value)
+      case .stopped: self = .stopped(flags: value)
       default: self = .sampleRateChanged(Double(bitPattern: value))
       }
-    case 4:
+    case .controlChanged:
       guard runtimePayload.count >= 20 else { throw VideoRuntimeError.invalidPayload }
       let identifier: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let value = try VideoControlValue(runtimePayload: Data(runtimePayload.dropFirst(4)))
       self = .controlChanged(identifier: identifier, value: value)
-    case 5:
+    case .customPropertyChanged:
       guard runtimePayload.count >= 20 else { throw VideoRuntimeError.invalidPayload }
       let identifier: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let qualifierLength: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
@@ -269,24 +272,27 @@ public enum VideoEvent: Sendable, Hashable {
       let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 16)
       let qualifierEnd = 20 + Int(qualifierLength)
       let valueEnd = qualifierEnd + Int(valueLength)
-      guard reserved == 0, qualifierLength > 0, qualifierLength <= 255, valueLength <= 4_096,
+      guard reserved == 0, qualifierLength > 0,
+        qualifierLength <= RuntimeVideoLimits.nameMaximumLength,
+        valueLength <= RuntimeVideoLimits.customPropertyValueMaximumLength,
         valueEnd == runtimePayload.count,
         let qualifier = String(data: runtimePayload[20..<qualifierEnd], encoding: .utf8),
         let value = String(data: runtimePayload[qualifierEnd..<valueEnd], encoding: .utf8)
       else { throw VideoRuntimeError.invalidPayload }
       self = .customPropertyChanged(identifier: identifier, qualifier: qualifier, value: value)
-    case 6, 7, 9, 10:
+    case .streamStarted, .streamStopped, .streamActiveChanged, .streamInputAvailable:
       guard runtimePayload.count == 16 else { throw VideoRuntimeError.invalidPayload }
       let index: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let value: UInt64 = try runtimePayload.readRuntimeInteger(at: 8)
-      switch kind {
-      case 6: self = .streamStarted(index: index, flags: value)
-      case 7: self = .streamStopped(index: index, flags: value)
-      case 9 where value <= 1: self = .streamActiveChanged(index: index, isActive: value != 0)
-      case 10 where value == 0: self = .streamInputAvailable(index: index)
+      switch eventKind {
+      case .streamStarted: self = .streamStarted(index: index, flags: value)
+      case .streamStopped: self = .streamStopped(index: index, flags: value)
+      case .streamActiveChanged where value <= 1:
+        self = .streamActiveChanged(index: index, isActive: value != 0)
+      case .streamInputAvailable where value == 0: self = .streamInputAvailable(index: index)
       default: throw VideoRuntimeError.invalidPayload
       }
-    case 8:
+    case .streamFormatChanged:
       guard runtimePayload.count == 52 else { throw VideoRuntimeError.invalidPayload }
       let index: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let frameRateBits: UInt64 = try runtimePayload.readRuntimeInteger(at: 8)
@@ -314,7 +320,6 @@ public enum VideoEvent: Sendable, Hashable {
           height: height
         )
       )
-    default: throw VideoRuntimeError.invalidEventKind(kind)
     }
   }
 }

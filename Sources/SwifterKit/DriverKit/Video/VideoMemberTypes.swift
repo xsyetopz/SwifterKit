@@ -89,14 +89,17 @@ public enum VideoDeviceProperty: Sendable, Hashable {
   case preferredStereoChannels(VideoStereoChannels)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
-    switch self {
-    case .canBeDefaultInput(let flag): (1, flag ? 1 : 0)
-    case .canBeDefaultOutput(let flag): (2, flag ? 1 : 0)
-    case .canBeDefaultSystemOutput(let flag): (3, flag ? 1 : 0)
-    case .inputSafetyOffset(let frames): (4, UInt64(frames))
-    case .outputSafetyOffset(let frames): (5, UInt64(frames))
-    case .preferredStereoChannels(let pair): (6, UInt64(pair.left) | UInt64(pair.right) << 32)
-    }
+    let fields: (RuntimeVideoDeviceProperty, UInt64) =
+      switch self {
+      case .canBeDefaultInput(let flag): (.canBeDefaultInput, flag ? 1 : 0)
+      case .canBeDefaultOutput(let flag): (.canBeDefaultOutput, flag ? 1 : 0)
+      case .canBeDefaultSystemOutput(let flag): (.canBeDefaultSystemOutput, flag ? 1 : 0)
+      case .inputSafetyOffset(let frames): (.inputSafetyOffset, UInt64(frames))
+      case .outputSafetyOffset(let frames): (.outputSafetyOffset, UInt64(frames))
+      case .preferredStereoChannels(let pair):
+        (.preferredStereoChannels, UInt64(pair.left) | UInt64(pair.right) << 32)
+      }
+    return (fields.0.rawValue, fields.1)
   }
 }
 
@@ -151,7 +154,8 @@ public struct VideoStreamState: Sendable, Hashable {
     let attached: UInt32 = try runtimePayload.readRuntimeInteger(at: 20)
     let formatCount = Int(try runtimePayload.readRuntimeInteger(at: 24) as UInt32)
     let bufferCount = Int(try runtimePayload.readRuntimeInteger(at: 28) as UInt32)
-    guard active <= 1, attached <= 1, formatCount <= 16, bufferCount <= 32,
+    guard active <= 1, attached <= 1, formatCount <= RuntimeVideoLimits.maximumStreamFormats,
+      bufferCount <= RuntimeVideoLimits.maximumBuffers,
       runtimePayload.count == 128 + formatCount * 40 + bufferCount * 4
     else { throw VideoRuntimeError.invalidPayload }
     isActive = active == 1
@@ -205,14 +209,17 @@ public enum VideoStreamProperty: Sendable, Hashable {
   case queueEntryCount(UInt32)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
-    switch self {
-    case .isActive(let flag): (1, flag ? 1 : 0)
-    case .startingChannel(let channel): (2, UInt64(channel))
-    case .terminalType(let type): (3, UInt64(type.rawValue))
-    case .currentFormat(let index): (4, UInt64(index))
-    case .bufferCapacity(let data, let control): (5, UInt64(data) | UInt64(control) << 32)
-    case .queueEntryCount(let count): (6, UInt64(count))
-    }
+    let fields: (RuntimeVideoStreamProperty, UInt64) =
+      switch self {
+      case .isActive(let flag): (.isActive, flag ? 1 : 0)
+      case .startingChannel(let channel): (.startingChannel, UInt64(channel))
+      case .terminalType(let type): (.terminalType, UInt64(type.rawValue))
+      case .currentFormat(let index): (.currentFormat, UInt64(index))
+      case .bufferCapacity(let data, let control):
+        (.bufferCapacity, UInt64(data) | UInt64(control) << 32)
+      case .queueEntryCount(let count): (.queueEntryCount, UInt64(count))
+      }
+    return (fields.0.rawValue, fields.1)
   }
 }
 
@@ -263,8 +270,9 @@ public enum VideoBufferProperty: Sendable, Hashable {
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
     switch self {
-    case .bufferID(let identifier): (1, UInt64(identifier))
-    case .isAttached(let flag): (2, flag ? 1 : 0)
+    case .bufferID(let identifier):
+      (RuntimeVideoBufferProperty.bufferID.rawValue, UInt64(identifier))
+    case .isAttached(let flag): (RuntimeVideoBufferProperty.isAttached.rawValue, flag ? 1 : 0)
     }
   }
 }
@@ -311,8 +319,8 @@ public struct VideoControlInfo: Sendable, Hashable {
     let right: UInt32 = try runtimePayload.readRuntimeInteger(at: 36)
     let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 40)
     owningDeviceID = try runtimePayload.readRuntimeInteger(at: 44)
-    guard settable <= 1, attached <= 1, count <= 32, kind == .selector || count == 0,
-      kind != .slider || minimum <= maximum
+    guard settable <= 1, attached <= 1, count <= RuntimeVideoLimits.maximumSelectorItems,
+      kind == .selector || count == 0, kind != .slider || minimum <= maximum
     else { throw VideoRuntimeError.invalidPayload }
     isSettable = settable == 1
     isAttached = attached == 1
@@ -324,7 +332,8 @@ public struct VideoControlInfo: Sendable, Hashable {
       let value: UInt32 = try runtimePayload.readRuntimeInteger(at: offset)
       let length = Int(try runtimePayload.readRuntimeInteger(at: offset + 4) as UInt32)
       let start = runtimePayload.startIndex + offset + 8
-      guard length <= 255, offset + 8 + length <= runtimePayload.count,
+      guard length <= RuntimeVideoLimits.nameMaximumLength,
+        offset + 8 + length <= runtimePayload.count,
         let name = String(data: runtimePayload[start..<(start + length)], encoding: .utf8)
       else { throw VideoRuntimeError.invalidPayload }
       items.append(VideoSelectorValue(value: value, name: name))
@@ -343,8 +352,16 @@ public enum VideoControlProperty: Sendable, Hashable {
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
     switch self {
-    case .sliderRange(let range): (1, UInt64(range.lowerBound) | UInt64(range.upperBound) << 32)
-    case .panningChannels(let pair): (2, UInt64(pair.left) | UInt64(pair.right) << 32)
+    case .sliderRange(let range):
+      (
+        RuntimeVideoControlProperty.sliderRange.rawValue,
+        UInt64(range.lowerBound) | UInt64(range.upperBound) << 32
+      )
+    case .panningChannels(let pair):
+      (
+        RuntimeVideoControlProperty.panningChannels.rawValue,
+        UInt64(pair.left) | UInt64(pair.right) << 32
+      )
     }
   }
 }
@@ -396,8 +413,8 @@ public enum VideoMember: Sendable, Hashable {
 
   var runtimeFields: (kind: UInt32, identifier: UInt32) {
     switch self {
-    case .stream(let index): (1, index)
-    case .control(let identifier): (2, identifier)
+    case .stream(let index): (RuntimeVideoMemberKind.stream.rawValue, index)
+    case .control(let identifier): (RuntimeVideoMemberKind.control.rawValue, identifier)
     }
   }
 }

@@ -2,10 +2,10 @@ import Foundation
 
 extension DriverCommand {
   /// The largest stream table, buffer table, selector list, and channel layout the runtime accepts.
-  static let videoMaximumStreams: UInt32 = 8
-  static let videoMaximumBuffers: UInt32 = 32
-  static let videoMaximumSelectorItems = 32
-  static let videoMaximumChannelLabels = 64
+  static let videoMaximumStreams = UInt32(RuntimeVideoLimits.maximumStreams)
+  static let videoMaximumBuffers = UInt32(RuntimeVideoLimits.maximumBuffers)
+  static let videoMaximumSelectorItems = RuntimeVideoLimits.maximumSelectorItems
+  static let videoMaximumChannelLabels = RuntimeVideoLimits.maximumChannelLabels
 
   /// Reads device state that has no other typed reader.
   public static func videoDeviceState() -> Self {
@@ -53,7 +53,7 @@ extension DriverCommand {
     return videoMemberCommand(
       .videoGetStreamState,
       videoMemberRequest(index, 0),
-      response: 128 + 16 * 40 + Int(videoMaximumBuffers) * 4
+      response: 128 + RuntimeVideoLimits.maximumStreamFormats * 40 + Int(videoMaximumBuffers) * 4
     )
   }
 
@@ -65,11 +65,14 @@ extension DriverCommand {
     guard index < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
     switch property {
     case .startingChannel(0): throw VideoRuntimeError.invalidPayload
-    case .currentFormat(let format) where format >= 16: throw VideoRuntimeError.invalidPayload
-    case .bufferCapacity(let data, let control)
-    where !(1...67_108_864).contains(data) || !(1...1_048_576).contains(control):
+    case .currentFormat(let format) where format >= RuntimeVideoLimits.maximumStreamFormats:
       throw VideoRuntimeError.invalidPayload
-    case .queueEntryCount(let count) where !(1...256).contains(count):
+    case .bufferCapacity(let data, let control)
+    where !(1...RuntimeVideoLimits.maximumDataCapacity).contains(Int(data))
+      || !(1...RuntimeVideoLimits.maximumControlCapacity).contains(Int(control)):
+      throw VideoRuntimeError.invalidPayload
+    case .queueEntryCount(let count)
+    where !(1...RuntimeVideoLimits.maximumQueueEntries).contains(Int(count)):
       throw VideoRuntimeError.invalidPayload
     default: break
     }
@@ -114,7 +117,7 @@ extension DriverCommand {
     videoMemberCommand(
       .videoGetControlInfo,
       videoMemberRequest(identifier, 0),
-      response: 48 + videoMaximumSelectorItems * (8 + 255)
+      response: 48 + videoMaximumSelectorItems * (8 + RuntimeVideoLimits.nameMaximumLength)
     )
   }
 

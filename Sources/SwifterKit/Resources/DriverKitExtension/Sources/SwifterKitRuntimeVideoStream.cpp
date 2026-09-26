@@ -39,19 +39,26 @@ void SwifterKitRuntimeVideoStream::free() {
 kern_return_t SwifterKitRuntimeVideoStream::StartIO(IOUserVideoStartStopFlags flags) {
     const kern_return_t result = super::StartIO(flags);
     if (result == kIOReturnSuccess)
-        (void)ivars->service
-            ->VideoStreamEvent(6, ivars->streamIndex, static_cast<uint64_t>(flags), false);
+        (void)ivars->service->VideoStreamEvent(
+            kSwifterKitVideoEventStreamStarted,
+            ivars->streamIndex,
+            static_cast<uint64_t>(flags),
+            false);
     return result;
 }
 
 kern_return_t SwifterKitRuntimeVideoStream::StopIO(IOUserVideoStartStopFlags flags) {
-    (void)ivars->service
-        ->VideoStreamEvent(7, ivars->streamIndex, static_cast<uint64_t>(flags), false);
+    (void)ivars->service->VideoStreamEvent(
+        kSwifterKitVideoEventStreamStopped,
+        ivars->streamIndex,
+        static_cast<uint64_t>(flags),
+        false);
     return super::StopIO(flags);
 }
 
 void SwifterKitRuntimeVideoStream::InputNotification() {
-    (void)ivars->service->VideoStreamEvent(10, ivars->streamIndex, 0, false);
+    (void)ivars->service
+        ->VideoStreamEvent(kSwifterKitVideoEventStreamInputAvailable, ivars->streamIndex, 0, false);
     super::InputNotification();
 }
 
@@ -79,8 +86,11 @@ kern_return_t SwifterKitRuntimeVideoStream::HandleChangeCurrentStreamFormat(
 }
 
 kern_return_t SwifterKitRuntimeVideoStream::HandleChangeStreamIsActive(bool isActive) {
-    const kern_return_t event =
-        ivars->service->VideoStreamEvent(9, ivars->streamIndex, isActive ? 1 : 0, true);
+    const kern_return_t event = ivars->service->VideoStreamEvent(
+        kSwifterKitVideoEventStreamActiveChanged,
+        ivars->streamIndex,
+        isActive ? 1 : 0,
+        true);
     return event == kIOReturnSuccess ? super::HandleChangeStreamIsActive(isActive) : event;
 }
 #endif

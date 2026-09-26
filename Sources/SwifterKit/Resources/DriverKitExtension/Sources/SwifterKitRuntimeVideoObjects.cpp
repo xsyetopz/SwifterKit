@@ -60,8 +60,9 @@ namespace {
 
     // Copies a bounded, NUL-free name from a payload into an OSString.
     OSString* CopyName(const uint8_t* bytes, uint32_t length) {
-        char name[256] = {};
-        if (bytes == nullptr || length == 0 || length > 255 || memchr(bytes, 0, length) != nullptr)
+        char name[kSwifterKitVideoNameMaximumLength + 1] = {};
+        if (bytes == nullptr || length == 0 || length > kSwifterKitVideoNameMaximumLength
+            || memchr(bytes, 0, length) != nullptr)
             return nullptr;
         memcpy(name, bytes, length);
         return OSString::withCString(name);
@@ -69,7 +70,7 @@ namespace {
 
     kern_return_t AppendName(OSData* data, const OSSharedPtr<OSString>& name, uint32_t* length) {
         *length = name ? static_cast<uint32_t>(name->getLength()) : 0;
-        if (*length > 255)
+        if (*length > kSwifterKitVideoNameMaximumLength)
             return kIOReturnNoSpace;
         return *length == 0 || data->appendBytes(name->getCStringNoCopy(), *length)
                    ? kIOReturnSuccess
@@ -121,7 +122,7 @@ namespace {
                 uid = box->GetUID();
             }
         }
-        OSData* data = OSData::withCapacity(sizeof(header) + 510);
+        OSData* data = OSData::withCapacity(sizeof(header) + 2 * kSwifterKitVideoNameMaximumLength);
         if (data == nullptr)
             return kIOReturnNoMemory;
         kern_return_t result =
@@ -178,8 +179,10 @@ namespace {
                 name->release();
                 return result;
             }
-            IOUserVideoObjectPropertySelector selectors[32] = {};
-            if (header.count == 0 || header.count > 32 || bodyLength != header.count * 4ULL)
+            IOUserVideoObjectPropertySelector selectors[kSwifterKitVideoMaximumChangedProperties] =
+                {};
+            if (header.count == 0 || header.count > kSwifterKitVideoMaximumChangedProperties
+                || bodyLength != header.count * 4ULL)
                 return kIOReturnBadArgument;
             memcpy(selectors, body, header.count * 4ULL);
             for (uint32_t index = 0; index < header.count; ++index)
@@ -195,7 +198,7 @@ namespace {
             return kIOReturnBadArgument;
         memcpy(&header, payload, sizeof(header));
         const bool setting = Is(opcode, Opcode::VideoSetElementName);
-        if (header.kind > 2
+        if (header.kind > kSwifterKitVideoElementNumber
             || (setting ? payloadLength != sizeof(header) + header.length
                         : payloadLength != sizeof(header) || header.length != 0))
             return kIOReturnBadArgument;
@@ -208,20 +211,22 @@ namespace {
             OSString* name = CopyName(payload + sizeof(header), header.length);
             if (name == nullptr)
                 return kIOReturnBadArgument;
-            const kern_return_t result =
-                header.kind == 0   ? object->SetElementName(element, scope, name)
-                : header.kind == 1 ? object->SetElementCategoryName(element, scope, name)
-                                   : object->SetElementNumberName(element, scope, name);
+            const kern_return_t result = header.kind == kSwifterKitVideoElementName
+                                             ? object->SetElementName(element, scope, name)
+                                         : header.kind == kSwifterKitVideoElementCategory
+                                             ? object->SetElementCategoryName(element, scope, name)
+                                             : object->SetElementNumberName(element, scope, name);
             name->release();
             return result;
         }
-        const OSSharedPtr<OSString> name = header.kind == 0 ? object->GetElementName(element, scope)
-                                           : header.kind == 1
+        const OSSharedPtr<OSString> name = header.kind == kSwifterKitVideoElementName
+                                               ? object->GetElementName(element, scope)
+                                           : header.kind == kSwifterKitVideoElementCategory
                                                ? object->GetElementCategoryName(element, scope)
                                                : object->GetElementNumberName(element, scope);
         if (!name || name->getLength() == 0)
             return kIOReturnSuccess;
-        return name->getLength() > 255
+        return name->getLength() > kSwifterKitVideoNameMaximumLength
                    ? kIOReturnNoSpace
                    : BytesResponse(name->getCStringNoCopy(), name->getLength(), response);
     }
@@ -255,9 +260,10 @@ namespace {
         state.clockAlgorithm = static_cast<uint32_t>(clock->GetClockAlgorithm());
         state.transport = static_cast<uint32_t>(clock->GetTransportType());
         state.transportState = static_cast<uint32_t>(clock->GetDeviceTransportState());
-        state.flags =
-            (clock->GetClockIsStable() ? 0x1U : 0) | (clock->GetDeviceIsAlive() ? 0x2U : 0)
-            | (clock->GetDeviceIsRunning() ? 0x4U : 0) | (clock->GetIsHidden() ? 0x8U : 0);
+        state.flags = (clock->GetClockIsStable() ? kSwifterKitVideoClockStateClockIsStable : 0)
+                      | (clock->GetDeviceIsAlive() ? kSwifterKitVideoClockStateIsAlive : 0)
+                      | (clock->GetDeviceIsRunning() ? kSwifterKitVideoClockStateIsRunning : 0)
+                      | (clock->GetIsHidden() ? kSwifterKitVideoClockStateIsHidden : 0);
         state.inputLatency = clock->GetInputLatency();
         state.outputLatency = clock->GetOutputLatency();
         state.rateCount = static_cast<uint32_t>(count);
@@ -306,26 +312,29 @@ namespace {
 
     kern_return_t
         SetBoxProperty(SwifterKitRuntimeVideoBox* box, uint32_t selector, uint64_t value) {
-        if (selector == 0 || selector > 8 || (selector >= 2 && selector <= 7 && !IsBool(value))
-            || value > UINT32_MAX)
+        const bool boolean = selector >= kSwifterKitVideoBoxPropertyHasAudio
+                             && selector <= kSwifterKitVideoBoxPropertyIsProtected;
+        if (selector < kSwifterKitVideoBoxPropertyTransport
+            || selector > kSwifterKitVideoBoxPropertyAcquisitionFailure
+            || (boolean && !IsBool(value)) || value > UINT32_MAX)
             return kIOReturnBadArgument;
         if (box == nullptr)
             return kIOReturnNotFound;
         const bool flag = value == 1;
         switch (selector) {
-            case 1:
+            case kSwifterKitVideoBoxPropertyTransport:
                 return box->SetTransportType(static_cast<IOUserVideoTransportType>(value));
-            case 2:
+            case kSwifterKitVideoBoxPropertyHasAudio:
                 return box->SetHasAudio(flag);
-            case 3:
+            case kSwifterKitVideoBoxPropertyHasMIDI:
                 return box->SetHasMIDI(flag);
-            case 4:
+            case kSwifterKitVideoBoxPropertyHasVideo:
                 return box->SetHasVideo(flag);
-            case 5:
+            case kSwifterKitVideoBoxPropertyIsAcquirable:
                 return box->SetIsAcquirable(flag);
-            case 6:
+            case kSwifterKitVideoBoxPropertyIsAcquired:
                 return box->SetIsAcquired(flag);
-            case 7:
+            case kSwifterKitVideoBoxPropertyIsProtected:
                 return box->SetIsProtected(flag);
             default:
                 return box->SetAcquisitionFailure(
@@ -337,25 +346,29 @@ namespace {
         SwifterKitRuntimeVideoClockDevice* clock,
         uint32_t selector,
         uint64_t value) {
-        const bool boolean = selector == 3 || selector == 4 || selector == 5;
-        if (selector == 0 || selector > 8 || value > UINT32_MAX || (boolean && !IsBool(value)))
+        const bool boolean = selector == kSwifterKitVideoClockPropertyClockIsStable
+                             || selector == kSwifterKitVideoClockPropertyIsAlive
+                             || selector == kSwifterKitVideoClockPropertyIsHidden;
+        if (selector < kSwifterKitVideoClockPropertyClockDomain
+            || selector > kSwifterKitVideoClockPropertyTransport || value > UINT32_MAX
+            || (boolean && !IsBool(value)))
             return kIOReturnBadArgument;
         if (clock == nullptr)
             return kIOReturnNotFound;
         const auto number = static_cast<uint32_t>(value);
         switch (selector) {
-            case 1:
+            case kSwifterKitVideoClockPropertyClockDomain:
                 return clock->SetClockDomain(number);
-            case 2:
+            case kSwifterKitVideoClockPropertyClockAlgorithm:
                 return clock->SetClockAlgorithm(static_cast<IOUserVideoClockAlgorithm>(number));
-            case 3:
+            case kSwifterKitVideoClockPropertyClockIsStable:
                 return clock->SetClockIsStable(number == 1);
-            case 4:
+            case kSwifterKitVideoClockPropertyIsAlive:
                 return clock->SetDeviceIsAlive(number == 1);
-            case 5:
+            case kSwifterKitVideoClockPropertyIsHidden:
                 return clock->SetIsHidden(number == 1);
-            case 6:
-            case 7:
+            case kSwifterKitVideoClockPropertyInputLatency:
+            case kSwifterKitVideoClockPropertyOutputLatency:
                 return SwifterKitRequestVideoStructureChange(clock, selector, 0, number);
             default:
                 return clock->SetTransportType(static_cast<IOUserVideoTransportType>(number));
@@ -385,9 +398,12 @@ namespace {
             const SwifterKitVideoBoxState boxState = {
                 box->GetObjectID(),
                 static_cast<uint32_t>(box->GetTransportType()),
-                (box->HasAudio() ? 0x1U : 0) | (box->HasMIDI() ? 0x2U : 0)
-                    | (box->HasVideo() ? 0x4U : 0) | (box->IsAcquirable() ? 0x8U : 0)
-                    | (box->IsAcquired() ? 0x10U : 0) | (box->IsProtected() ? 0x20U : 0),
+                (box->HasAudio() ? kSwifterKitVideoBoxStateHasAudio : 0)
+                    | (box->HasMIDI() ? kSwifterKitVideoBoxStateHasMIDI : 0)
+                    | (box->HasVideo() ? kSwifterKitVideoBoxStateHasVideo : 0)
+                    | (box->IsAcquirable() ? kSwifterKitVideoBoxStateIsAcquirable : 0)
+                    | (box->IsAcquired() ? kSwifterKitVideoBoxStateIsAcquired : 0)
+                    | (box->IsProtected() ? kSwifterKitVideoBoxStateIsProtected : 0),
                 box->GetAcquisitionFailure()};
             return BytesResponse(&boxState, sizeof(boxState), response);
         }

@@ -100,7 +100,7 @@ struct VideoMemberRuntimeContractTests {
       let read = try section(of: device, from: "::ReadBuffer(", to: "::WriteBuffer(")
       #expect(read.contains("IOLockLock(ivars->bufferLock);"))
       let format = try section(of: device, from: "::StreamFormatChanged(", to: "#endif")
-      #expect(format.contains("VideoObjectEvent(9, 0, streamID)"))
+      #expect(format.contains("kSwifterKitVideoObjectEventDeviceFormatChanged,\n            0,"))
       let notify = try section(of: device, from: "::NotifyBufferQueue(", to: "#endif")
       #expect(notify.contains("stream->SendBufferQueueChange()"))
     }
@@ -167,7 +167,11 @@ struct VideoMemberRuntimeContractTests {
   func appliesStreamOffsetAndLatencyChangesInsideADeviceConfigurationChange() throws {
     try withGeneratedExtension { output, _ in
       let members = try source("SwifterKitRuntimeVideoMembers.cpp", in: output)
-      let property = try section(of: members, from: "::SetDeviceProperty(", to: "case 6:")
+      let property = try section(
+        of: members,
+        from: "::SetDeviceProperty(",
+        to: "case kSwifterKitVideoDevicePropertyPreferredStereoChannels:"
+      )
       #expect(!property.contains("return SetInputSafetyOffset("))
       #expect(!property.contains("return SetOutputSafetyOffset("))
       #expect(
@@ -176,7 +180,7 @@ struct VideoMemberRuntimeContractTests {
       let attachment = try section(
         of: members,
         from: "::SetMemberAttachment(",
-        to: "if (request->kind != 2)"
+        to: "if (request->kind != kSwifterKitVideoMemberControl)"
       )
       #expect(!attachment.contains("AddStream("))
       #expect(attachment.contains("kSwifterKitVideoChangeStreamAttachment"))

@@ -121,7 +121,10 @@ SwifterKit records user-visible changes in this file.
   property selectors, the box and clock state bits, and the table,
   pending-request, sample-rate, name, custom-property, selector-item,
   channel-label, stream, control, format, frame, ring-buffer, and transfer
-  bounds come from it too.
+  bounds come from it too, and so do the matching video kinds, selectors, state
+  bits, and bounds, with the video buffer-property selectors, queue-notification
+  kinds, stream directions, buffer planes, and the buffer, queue-entry, data,
+  and control capacity limits.
 - The queued `UserCreateTargetForID` discarded the result of enqueueing its
   required `SCSIControllerEvent.targetCreated` event, so a registered host that
   had let the required queue fill lost the event. The create's queue now

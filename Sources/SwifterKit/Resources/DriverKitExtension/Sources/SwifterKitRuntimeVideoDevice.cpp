@@ -176,7 +176,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::Configure() {
         OSSafeReleaseNULL(identifier);
         OSSafeReleaseNULL(bufferList);
 
-        IOUserVideoStreamBasicDescription formats[16] = {};
+        IOUserVideoStreamBasicDescription formats[kSwifterKitVideoMaximumStreamFormats] = {};
         for (uint32_t formatIndex = 0; formatIndex < config.formatCount; ++formatIndex)
             formats[formatIndex] =
                 NativeFormat(kSwifterKitVideoFormats[config.formatStart + formatIndex]);
@@ -197,15 +197,17 @@ kern_return_t SwifterKitRuntimeVideoDevice::Configure() {
 kern_return_t SwifterKitRuntimeVideoDevice::ReadBuffer(
     const SwifterKitVideoTransferHeader* transfer,
     OSData** response) {
-    if (transfer == nullptr || response == nullptr || transfer->length > 65464
+    if (transfer == nullptr || response == nullptr
+        || transfer->length > kSwifterKitVideoMaximumReadLength
         || transfer->streamIndex >= kSwifterKitVideoStreamCount)
         return kIOReturnBadArgument;
     const auto& config = kSwifterKitVideoStreams[transfer->streamIndex];
-    if (transfer->bufferIndex >= config.bufferCount || transfer->plane > 1)
+    if (transfer->bufferIndex >= config.bufferCount
+        || transfer->plane > kSwifterKitVideoPlaneControl)
         return kIOReturnBadArgument;
     // A buffer-capacity change swaps the maps under bufferLock.
     IOLockLock(ivars->bufferLock);
-    IOMemoryMap* map = transfer->plane == 0
+    IOMemoryMap* map = transfer->plane == kSwifterKitVideoPlaneData
                            ? ivars->dataMaps[transfer->streamIndex][transfer->bufferIndex]
                            : ivars->controlMaps[transfer->streamIndex][transfer->bufferIndex];
     kern_return_t result = kIOReturnBadArgument;
@@ -224,14 +226,16 @@ kern_return_t SwifterKitRuntimeVideoDevice::ReadBuffer(
 kern_return_t SwifterKitRuntimeVideoDevice::WriteBuffer(
     const SwifterKitVideoTransferHeader* transfer,
     const uint8_t* bytes) {
-    if (transfer == nullptr || bytes == nullptr || transfer->length > 65432
+    if (transfer == nullptr || bytes == nullptr
+        || transfer->length > kSwifterKitVideoMaximumWriteLength
         || transfer->streamIndex >= kSwifterKitVideoStreamCount)
         return kIOReturnBadArgument;
     const auto& config = kSwifterKitVideoStreams[transfer->streamIndex];
-    if (transfer->bufferIndex >= config.bufferCount || transfer->plane > 1)
+    if (transfer->bufferIndex >= config.bufferCount
+        || transfer->plane > kSwifterKitVideoPlaneControl)
         return kIOReturnBadArgument;
     IOLockLock(ivars->bufferLock);
-    IOMemoryMap* map = transfer->plane == 0
+    IOMemoryMap* map = transfer->plane == kSwifterKitVideoPlaneData
                            ? ivars->dataMaps[transfer->streamIndex][transfer->bufferIndex]
                            : ivars->controlMaps[transfer->streamIndex][transfer->bufferIndex];
     const bool valid = map != nullptr && map->GetAddress() != 0
@@ -290,7 +294,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::NativeEntry(
 
 kern_return_t SwifterKitRuntimeVideoDevice::DequeueInput(uint32_t streamIndex, OSData** response) {
     if (response == nullptr || streamIndex >= kSwifterKitVideoStreamCount
-        || kSwifterKitVideoStreams[streamIndex].direction != 1)
+        || kSwifterKitVideoStreams[streamIndex].direction != kSwifterKitVideoDirectionInput)
         return kIOReturnBadArgument;
     IOStreamBufferQueueEntry entry = {};
     const kern_return_t result = ivars->streams[streamIndex]->dequeueInputEntry(&entry);
@@ -350,12 +354,16 @@ kern_return_t SwifterKitRuntimeVideoDevice::RequestSampleRate(double sampleRate)
 kern_return_t SwifterKitRuntimeVideoDevice::StartIO(IOUserVideoStartStopFlags flags) {
     const kern_return_t result = super::StartIO(flags);
     if (result == kIOReturnSuccess)
-        (void)ivars->service->VideoControlEvent(1, static_cast<uint64_t>(flags));
+        (void)ivars->service->VideoControlEvent(
+            kSwifterKitVideoEventStarted,
+            static_cast<uint64_t>(flags));
     return result;
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::StopIO(IOUserVideoStartStopFlags flags) {
-    (void)ivars->service->VideoControlEvent(2, static_cast<uint64_t>(flags));
+    (void)ivars->service->VideoControlEvent(
+        kSwifterKitVideoEventStopped,
+        static_cast<uint64_t>(flags));
     return super::StopIO(flags);
 }
 
@@ -374,7 +382,9 @@ kern_return_t SwifterKitRuntimeVideoDevice::PerformDeviceConfigurationChange(
     const kern_return_t result =
         IsSupportedSampleRate(sampleRate) ? SetSampleRate(sampleRate) : kIOReturnBadArgument;
     if (result == kIOReturnSuccess)
-        (void)ivars->service->VideoControlEvent(3, __builtin_bit_cast(uint64_t, sampleRate));
+        (void)ivars->service->VideoControlEvent(
+            kSwifterKitVideoEventSampleRateChanged,
+            __builtin_bit_cast(uint64_t, sampleRate));
     return result;
 }
 
@@ -422,7 +432,10 @@ kern_return_t SwifterKitRuntimeVideoDevice::AbortDeviceConfigurationChange(
 void SwifterKitRuntimeVideoDevice::StreamFormatChanged(IOUserVideoObjectID streamID) {
     super::StreamFormatChanged(streamID);
     if (ivars != nullptr)
-        (void)ivars->service->VideoObjectEvent(9, 0, streamID);
+        (void)ivars->service->VideoObjectEvent(
+            kSwifterKitVideoObjectEventDeviceFormatChanged,
+            0,
+            streamID);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::HandleChangeSampleRate(double sampleRate) {
@@ -430,29 +443,34 @@ kern_return_t SwifterKitRuntimeVideoDevice::HandleChangeSampleRate(double sample
         return kIOReturnBadArgument;
     const kern_return_t result = SetSampleRate(sampleRate);
     if (result == kIOReturnSuccess)
-        (void)ivars->service->VideoControlEvent(3, __builtin_bit_cast(uint64_t, sampleRate));
+        (void)ivars->service->VideoControlEvent(
+            kSwifterKitVideoEventSampleRateChanged,
+            __builtin_bit_cast(uint64_t, sampleRate));
     return result;
 }
 kern_return_t SwifterKitRuntimeVideoDevice::NotifyBufferQueue(
     uint32_t kind,
     uint32_t streamIndex,
     uint64_t changeAction) {
-    // Kind 3 is the stream's own SendBufferQueueChange, which takes no change action.
-    if (ivars == nullptr || kind < 1 || kind > 3 || streamIndex >= kSwifterKitVideoStreamCount
-        || (kind == 3 && changeAction != 0))
+    // The stream's own SendBufferQueueChange takes no change action.
+    if (ivars == nullptr || kind < kSwifterKitVideoNotifyBufferQueueChange
+        || kind > kSwifterKitVideoNotifyStreamBufferQueueChange
+        || streamIndex >= kSwifterKitVideoStreamCount
+        || (kind == kSwifterKitVideoNotifyStreamBufferQueueChange && changeAction != 0))
         return kIOReturnBadArgument;
     IOUserVideoStream* stream = ivars->streams[streamIndex];
     if (stream == nullptr)
         return kIOReturnNotReady;
-    if (kind == 3)
+    if (kind == kSwifterKitVideoNotifyStreamBufferQueueChange)
         return stream->SendBufferQueueChange();
-    return kind == 1 ? ivars->service->BufferQueueChange(
-                           GetObjectID(),
-                           changeAction,
-                           stream->GetObjectID())
-                     : ivars->service->OutputBufferNotification(
-                           GetObjectID(),
-                           changeAction,
-                           stream->GetObjectID());
+    return kind == kSwifterKitVideoNotifyBufferQueueChange
+               ? ivars->service->BufferQueueChange(
+                     GetObjectID(),
+                     changeAction,
+                     stream->GetObjectID())
+               : ivars->service->OutputBufferNotification(
+                     GetObjectID(),
+                     changeAction,
+                     stream->GetObjectID());
 }
 #endif

@@ -3,12 +3,15 @@
 
 #include <stdint.h>
 
+#include "SwifterKitRuntimeSchema.h"
+
 // Packed payloads for the video object, box, clock-device, queue-notification, and
 // custom-property-owner opcodes 0x0C10-0x0C1F and the videoObject event 0x0C01. Every
 // multi-byte field is little-endian, as in SwifterKitRuntimeProtocol.h, and every reserved field
 // must be zero.
 
-// Target kinds: 0 driver, 1 device, 2 box (index), 3 clock device (index), 4 object (ID).
+// kind is a kSwifterKitVideoTarget value; index selects a box or clock device, or holds an
+// object ID.
 struct __attribute__((packed)) SwifterKitVideoObjectTarget {
     uint32_t kind;
     uint32_t index;
@@ -270,27 +273,6 @@ struct __attribute__((packed)) SwifterKitVideoMemberAttachment {
     uint32_t identifier;
     uint32_t attached;
     uint32_t reserved;
-};
-
-enum : uint32_t {
-    kSwifterKitVideoTargetDriver = 0,
-    kSwifterKitVideoTargetDevice = 1,
-    kSwifterKitVideoTargetBox = 2,
-    kSwifterKitVideoTargetClock = 3,
-    kSwifterKitVideoTargetObject = 4,
-    kSwifterKitVideoObjectTableCount = 4,
-    kSwifterKitVideoPendingRequestCount = 8,
-    kSwifterKitVideoMaximumSampleRates = 16,
-    kSwifterKitVideoEventBoxRequest = 6,
-    kSwifterKitVideoEventClockRequest = 7,
-    kSwifterKitVideoOwnerDetached = 0,
-    kSwifterKitVideoOwnerDevice = 1,
-    kSwifterKitVideoOwnerDriver = 2,
-    kSwifterKitVideoMaximumChannelLabels = 64,
-    kSwifterKitVideoMaximumSelectorItems = 32,
-    kSwifterKitVideoMaximumQueueEntries = 256,
-    kSwifterKitVideoMaximumDataCapacity = 67'108'864,
-    kSwifterKitVideoMaximumControlCapacity = 1'048'576,
 };
 
 static_assert(sizeof(SwifterKitVideoMemberValue) == 16);
