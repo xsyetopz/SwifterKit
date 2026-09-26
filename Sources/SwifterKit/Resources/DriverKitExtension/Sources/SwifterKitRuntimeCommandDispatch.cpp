@@ -496,6 +496,20 @@ namespace {
             case SwifterKitRuntimeOpcode::AudioSetControl:
             case SwifterKitRuntimeOpcode::AudioGetCustomProperty:
             case SwifterKitRuntimeOpcode::AudioSetCustomProperty:
+            case SwifterKitRuntimeOpcode::AudioGetObjectInfo:
+            case SwifterKitRuntimeOpcode::AudioSetObjectName:
+            case SwifterKitRuntimeOpcode::AudioGetElementName:
+            case SwifterKitRuntimeOpcode::AudioSetElementName:
+            case SwifterKitRuntimeOpcode::AudioPropertiesChanged:
+            case SwifterKitRuntimeOpcode::AudioGetBoxState:
+            case SwifterKitRuntimeOpcode::AudioSetBoxProperty:
+            case SwifterKitRuntimeOpcode::AudioSetBoxOwnership:
+            case SwifterKitRuntimeOpcode::AudioGetClockDeviceState:
+            case SwifterKitRuntimeOpcode::AudioSetClockDeviceProperty:
+            case SwifterKitRuntimeOpcode::AudioSetClockSampleRates:
+            case SwifterKitRuntimeOpcode::AudioUpdateClockTimestamp:
+            case SwifterKitRuntimeOpcode::AudioRequestClockSampleRate:
+            case SwifterKitRuntimeOpcode::AudioCompleteRequest:
             case SwifterKitRuntimeOpcode::VideoReadBuffer:
             case SwifterKitRuntimeOpcode::VideoWriteBuffer:
             case SwifterKitRuntimeOpcode::VideoEnqueueOutput:

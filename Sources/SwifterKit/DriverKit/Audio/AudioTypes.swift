@@ -172,6 +172,11 @@ public struct AudioDeviceConfiguration: Sendable, Hashable {
   public let controls: [AudioControlConfiguration]
   /// String-backed custom properties published by the device.
   public let customProperties: [AudioCustomPropertyConfiguration]
+  /// Boxes the driver publishes, at most ``AudioObjectTarget/maximumTableCount``.
+  public let boxes: [AudioBoxConfiguration]
+  /// Stream-less clock devices the driver publishes, at most
+  /// ``AudioObjectTarget/maximumTableCount``.
+  public let clockDevices: [AudioClockDeviceConfiguration]
 
   /// Creates static AudioDriverKit device metadata and topology.
   public init(
@@ -186,7 +191,9 @@ public struct AudioDeviceConfiguration: Sendable, Hashable {
     initialSampleRate: Double,
     streams: [AudioStreamConfiguration],
     controls: [AudioControlConfiguration] = [],
-    customProperties: [AudioCustomPropertyConfiguration] = []
+    customProperties: [AudioCustomPropertyConfiguration] = [],
+    boxes: [AudioBoxConfiguration] = [],
+    clockDevices: [AudioClockDeviceConfiguration] = []
   ) {
     self.deviceUID = deviceUID
     self.modelUID = modelUID
@@ -200,6 +207,8 @@ public struct AudioDeviceConfiguration: Sendable, Hashable {
     self.streams = streams
     self.controls = controls
     self.customProperties = customProperties
+    self.boxes = boxes
+    self.clockDevices = clockDevices
   }
 }
 
@@ -293,4 +302,8 @@ public enum AudioRuntimeError: Error, Sendable, Equatable {
   case invalidEventKind(UInt32)
   case invalidControlValue
   case invalidCustomPropertyValue
+  case invalidObjectTarget
+  case invalidName
+  case invalidPropertySelectors
+  case invalidSampleRates
 }
