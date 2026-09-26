@@ -113,7 +113,7 @@ extension DriverCommand {
     return payload
   }
 
-  private static func videoEntryPayload(_ entry: VideoBufferQueueEntry) -> Data {
+  static func videoEntryPayload(_ entry: VideoBufferQueueEntry) -> Data {
     var payload = Data(capacity: 32)
     for value in [
       entry.bufferIndex, entry.dataOffset, entry.dataLength, entry.controlOffset,

@@ -234,16 +234,21 @@ extension DriverCommand {
     )
   }
 
-  /// Sends `BufferQueueChange` or `OutputBufferNotification` for a device stream.
+  /// Sends `BufferQueueChange` or `OutputBufferNotification` for a device stream, or the
+  /// stream's own `SendBufferQueueChange`.
   ///
   /// The driver passes the device and stream object IDs; VideoDriverKit documents no
-  /// constraints on `changeAction`, so the runtime forwards it unchanged.
+  /// constraints on `changeAction`, so the runtime forwards it unchanged. The stream's own
+  /// notification takes no change action, so it must be zero.
   public static func videoNotifyBufferQueue(
     _ notification: VideoBufferQueueNotification,
     streamIndex: UInt32,
     changeAction: UInt64
   ) throws -> Self {
     guard streamIndex < 8 else { throw VideoRuntimeError.invalidStreamIndex }
+    guard notification != .streamBufferQueueChange || changeAction == 0 else {
+      throw VideoRuntimeError.invalidPayload
+    }
     var payload = Data(capacity: 16)
     payload.appendRuntimeInteger(notification.rawValue)
     payload.appendRuntimeInteger(streamIndex)

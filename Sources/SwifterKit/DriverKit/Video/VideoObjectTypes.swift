@@ -109,6 +109,8 @@ public enum VideoBufferQueueNotification: UInt32, Sendable, Hashable {
   case bufferQueueChange = 1
   /// `IOUserVideoDriver::OutputBufferNotification`.
   case outputBufferNotification = 2
+  /// The stream's own `IOUserVideoStream::SendBufferQueueChange`; `changeAction` must be zero.
+  case streamBufferQueueChange = 3
 }
 
 /// Identity metadata read from a VideoDriverKit object.
@@ -171,6 +173,8 @@ public enum VideoObjectEvent: Sendable, Hashable {
   case clockDeviceSampleRateRequested(requestID: UInt32, index: UInt32, sampleRate: Double)
   /// VideoDriverKit called a clock device's `StreamFormatChanged` for a stream object.
   case clockDeviceStreamFormatChanged(index: UInt32, streamObjectID: UInt32)
+  /// The video device's `StreamFormatChanged` ran for a stream.
+  case deviceStreamFormatChanged(streamObjectID: UInt32)
 
   init(runtimePayload: Data) throws {
     guard runtimePayload.count == 24 else { throw VideoRuntimeError.invalidPayload }
@@ -200,6 +204,9 @@ public enum VideoObjectEvent: Sendable, Hashable {
     case 8:
       guard value <= UInt64(UInt32.max) else { throw VideoRuntimeError.invalidPayload }
       self = .clockDeviceStreamFormatChanged(index: index, streamObjectID: UInt32(value))
+    case 9:
+      guard index == 0, value <= UInt64(UInt32.max) else { throw VideoRuntimeError.invalidPayload }
+      self = .deviceStreamFormatChanged(streamObjectID: UInt32(value))
     default: throw VideoRuntimeError.invalidEventKind(kind)
     }
   }

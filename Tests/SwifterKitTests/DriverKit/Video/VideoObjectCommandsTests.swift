@@ -277,7 +277,7 @@ struct VideoObjectCommandsTests {
     #expect(throws: VideoRuntimeError.invalidPayload) {
       try event(8, 0, 0, 0x1_0000_0000).videoObject()
     }
-    #expect(throws: VideoRuntimeError.invalidEventKind(9)) { try event(9, 0, 0, 0).videoObject() }
+    #expect(throws: VideoRuntimeError.invalidEventKind(10)) { try event(10, 0, 0, 0).videoObject() }
     #expect(try DriverEvent(type: 0x0C00, payload: []).videoObject() == nil)
   }
 
