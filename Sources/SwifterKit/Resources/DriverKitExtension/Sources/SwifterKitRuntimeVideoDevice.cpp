@@ -9,12 +9,23 @@
     #include <DriverKit/OSString.h>
     #include <VideoDriverKit/VideoDriverKit.h>
 
+    #include "SwifterKitRuntimeMediaMembers.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeVideoDeviceState.h"
     #include "SwifterKitRuntimeVideoStream.h"
 
 namespace {
     constexpr uint64_t kSampleRateChangeAction = 0x53574B564944454FULL;
+
+    // The schema values SwifterKitApplyStructureChange in SwifterKitRuntimeMediaMembers.h reads.
+    struct VideoStructureFamily {
+        static constexpr uint32_t kChangeStreamAttachment = kSwifterKitVideoChangeStreamAttachment;
+        static constexpr uint32_t kChangeInputSafetyOffset =
+            kSwifterKitVideoChangeInputSafetyOffset;
+        static constexpr uint32_t kChangeOutputSafetyOffset =
+            kSwifterKitVideoChangeOutputSafetyOffset;
+        static constexpr uint32_t kStreamCount = kSwifterKitVideoStreamCount;
+    };
 
     IOUserVideoStreamBasicDescription NativeFormat(
         const SwifterKitVideoFormatConfiguration& format) {
@@ -390,30 +401,9 @@ kern_return_t SwifterKitRuntimeVideoDevice::PerformDeviceConfigurationChange(
 
 kern_return_t SwifterKitRuntimeVideoDevice::ApplyStructureChange(OSObject* changeInfo) {
     SwifterKitVideoStructureChange change = {};
-    if (!SwifterKitReadVideoStructureChange(changeInfo, &change) || change.value > UINT32_MAX)
+    if (!SwifterKitReadVideoStructureChange(changeInfo, &change))
         return kIOReturnBadArgument;
-    const auto value = static_cast<uint32_t>(change.value);
-    switch (change.selector) {
-        case kSwifterKitVideoChangeStreamAttachment: {
-            if (change.index >= kSwifterKitVideoStreamCount || value > 1
-                || ivars->streams[change.index] == nullptr)
-                return kIOReturnBadArgument;
-            const bool attach = value != 0;
-            if (ivars->streamDetached[change.index] != attach)
-                return kIOReturnSuccess;
-            auto* stream = ivars->streams[change.index];
-            const kern_return_t result = attach ? AddStream(stream) : RemoveStream(stream);
-            if (result == kIOReturnSuccess)
-                ivars->streamDetached[change.index] = !attach;
-            return result;
-        }
-        case kSwifterKitVideoChangeInputSafetyOffset:
-            return SetInputSafetyOffset(value);
-        case kSwifterKitVideoChangeOutputSafetyOffset:
-            return SetOutputSafetyOffset(value);
-        default:
-            return kIOReturnBadArgument;
-    }
+    return SwifterKitApplyStructureChange<VideoStructureFamily>(this, ivars, change);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::AbortDeviceConfigurationChange(

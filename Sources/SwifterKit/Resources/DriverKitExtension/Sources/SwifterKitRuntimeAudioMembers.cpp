@@ -10,6 +10,7 @@
 
     #include "SwifterKitRuntimeAudioDeviceState.h"
     #include "SwifterKitRuntimeAudioProtocol.h"
+    #include "SwifterKitRuntimeMediaMembers.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
 
@@ -26,30 +27,40 @@ namespace {
     constexpr uint8_t kPlacementDetached = 1;
     constexpr uint8_t kPlacementDriver = 2;
 
-    template<typename Type>
-    const Type* Payload(const uint8_t* payload, uint32_t payloadLength) {
-        return payload != nullptr && payloadLength == sizeof(Type)
-                   ? reinterpret_cast<const Type*>(payload)
-                   : nullptr;
-    }
+    // The AudioDriverKit classes, wire structs, and schema values the
+    // SwifterKitRuntimeMediaMembers.h member templates operate on.
+    struct AudioMemberFamily {
+        using DeviceState = SwifterKitAudioDeviceState;
+        using ChannelLayoutHeader = SwifterKitAudioChannelLayoutHeader;
+        using ChannelLabel = IOUserAudioChannelLabel;
+        using ControlInfo = SwifterKitAudioControlInfo;
+        using CustomPropertyInfo = SwifterKitAudioCustomPropertyInfo;
+        using SliderControl = IOUserAudioSliderControl;
+        using StereoPanControl = IOUserAudioStereoPanControl;
+        using SelectorControl = IOUserAudioSelectorControl;
+        using SliderRange = IOUserAudioSliderRange;
+        using PropertyElement = IOUserAudioObjectPropertyElement;
+        using SelectorDescription = IOUserAudioSelectorValueDescription;
 
-    bool FindControl(uint32_t identifier, uint32_t* index) {
-        for (uint32_t candidate = 0; candidate < kSwifterKitAudioControlCount; ++candidate)
-            if (kSwifterKitAudioControls[candidate].identifier == identifier) {
-                *index = candidate;
-                return true;
-            }
-        return false;
-    }
+        static constexpr uint32_t kMaximumChannelLabels = kSwifterKitAudioMaximumChannelLabels;
+        static constexpr uint32_t kMaximumSelectorItems = kSwifterKitAudioMaximumSelectorItems;
+        static constexpr uint32_t kNameMaximumLength = kSwifterKitAudioNameMaximumLength;
+        static constexpr uint32_t kControlPropertySliderRange =
+            kSwifterKitAudioControlPropertySliderRange;
+        static constexpr uint32_t kControlPropertyPanningChannels =
+            kSwifterKitAudioControlPropertyPanningChannels;
+        static constexpr uint32_t kChangeStreamAttachment = kSwifterKitAudioChangeStreamAttachment;
+        static constexpr uint32_t kChangeInputSafetyOffset =
+            kSwifterKitAudioChangeInputSafetyOffset;
+        static constexpr uint32_t kChangeOutputSafetyOffset =
+            kSwifterKitAudioChangeOutputSafetyOffset;
 
-    bool FindProperty(uint32_t identifier, uint32_t* index) {
-        for (uint32_t candidate = 0; candidate < kSwifterKitAudioCustomPropertyCount; ++candidate)
-            if (kSwifterKitAudioCustomProperties[candidate].identifier == identifier) {
-                *index = candidate;
-                return true;
-            }
-        return false;
-    }
+        static constexpr uint32_t kStreamCount = kSwifterKitAudioStreamCount;
+        static constexpr uint32_t kControlCount = kSwifterKitAudioControlCount;
+        static constexpr const auto* kControls = kSwifterKitAudioControls;
+        static constexpr uint32_t kCustomPropertyCount = kSwifterKitAudioCustomPropertyCount;
+        static constexpr const auto* kCustomProperties = kSwifterKitAudioCustomProperties;
+    };
 
     uint32_t WireOwner(uint8_t placement) {
         return placement == kPlacementDevice   ? kSwifterKitAudioOwnerDevice
@@ -84,14 +95,6 @@ namespace {
         const uint64_t size = static_cast<uint64_t>(bytesPerFrame) * frames;
         return size <= kSwifterKitAudioMaximumRingBufferSize ? size : 0;
     }
-
-    kern_return_t Respond(const void* bytes, uint32_t length, OSData** response) {
-        OSData* data = OSData::withBytes(bytes, length);
-        if (data == nullptr)
-            return kIOReturnNoMemory;
-        *response = data;
-        return kIOReturnSuccess;
-    }
 }  // namespace
 
 void SwifterKitRuntimeAudioDevice::RemoveControlsAndProperties() {
@@ -122,64 +125,31 @@ kern_return_t SwifterKitRuntimeAudioDevice::MemberCommand(
     if (ivars == nullptr || response == nullptr)
         return kIOReturnBadArgument;
     switch (static_cast<SwifterKitRuntimeOpcode>(opcode)) {
-        case SwifterKitRuntimeOpcode::AudioGetDeviceState: {
-            if (payloadLength != 0)
-                return kIOReturnBadArgument;
-            SwifterKitAudioDeviceState state = {};
-            state.objectID = GetObjectID();
-            state.canBeDefaultInput = CanBeDefaultInputDevice() != 0 ? 1 : 0;
-            state.canBeDefaultOutput = CanBeDefaultOutputDevice() != 0 ? 1 : 0;
-            state.canBeDefaultSystemOutput = CanBeDefaultSystemOutputDevice() != 0 ? 1 : 0;
-            state.inputSafetyOffset = GetInputSafetyOffset();
-            state.outputSafetyOffset = GetOutputSafetyOffset();
-            uint32_t left = 0;
-            uint32_t right = 0;
-            uint64_t times[4] = {};
-            GetPreferredChannelsForStereo(&left, &right);
-            GetCurrentClientIOTime(true, &times[0], &times[1]);
-            GetCurrentClientIOTime(false, &times[2], &times[3]);
-            state.preferredLeft = left;
-            state.preferredRight = right;
-            state.inputSampleTime = times[0];
-            state.inputHostTime = times[1];
-            state.outputSampleTime = times[2];
-            state.outputHostTime = times[3];
-            return Respond(&state, sizeof(state), response);
-        }
+        case SwifterKitRuntimeOpcode::AudioGetDeviceState:
+            return payloadLength == 0 ? SwifterKitCopyDeviceState<AudioMemberFamily>(this, response)
+                                      : kIOReturnBadArgument;
         case SwifterKitRuntimeOpcode::AudioSetDeviceProperty:
-            return SetDeviceProperty(Payload<SwifterKitAudioMemberValue>(payload, payloadLength));
-        case SwifterKitRuntimeOpcode::AudioSetPreferredChannelLayout: {
-            if (payload == nullptr || payloadLength < sizeof(SwifterKitAudioChannelLayoutHeader))
-                return kIOReturnBadArgument;
-            const auto* header =
-                reinterpret_cast<const SwifterKitAudioChannelLayoutHeader*>(payload);
-            if (header->isInput > 1 || header->count == 0
-                || header->count > kSwifterKitAudioMaximumChannelLabels
-                || payloadLength != sizeof(*header) + header->count * sizeof(uint32_t))
-                return kIOReturnBadArgument;
-            IOUserAudioChannelLabel labels[kSwifterKitAudioMaximumChannelLabels] = {};
-            for (uint32_t index = 0; index < header->count; ++index) {
-                uint32_t label = 0;
-                memcpy(&label, payload + sizeof(*header) + index * sizeof(label), sizeof(label));
-                labels[index] = static_cast<IOUserAudioChannelLabel>(label);
-            }
-            return header->isInput != 0 ? SetPreferredInputChannelLayout(labels, header->count)
-                                        : SetPreferredOutputChannelLayout(labels, header->count);
-        }
+            return SetDeviceProperty(
+                SwifterKitMemberPayload<SwifterKitAudioMemberValue>(payload, payloadLength));
+        case SwifterKitRuntimeOpcode::AudioSetPreferredChannelLayout:
+            return SwifterKitSetPreferredChannelLayout<AudioMemberFamily>(
+                this,
+                payload,
+                payloadLength);
         case SwifterKitRuntimeOpcode::AudioGetStreamState:
             return CopyStreamState(
-                Payload<SwifterKitAudioMemberRequest>(payload, payloadLength),
+                SwifterKitMemberPayload<SwifterKitAudioMemberRequest>(payload, payloadLength),
                 response);
         case SwifterKitRuntimeOpcode::AudioSetStreamProperty:
             return SetStreamProperty(
-                Payload<SwifterKitAudioMemberProperty>(payload, payloadLength));
+                SwifterKitMemberPayload<SwifterKitAudioMemberProperty>(payload, payloadLength));
         case SwifterKitRuntimeOpcode::AudioGetControlInfo:
             return CopyControlInfo(
-                Payload<SwifterKitAudioMemberRequest>(payload, payloadLength),
+                SwifterKitMemberPayload<SwifterKitAudioMemberRequest>(payload, payloadLength),
                 response);
         case SwifterKitRuntimeOpcode::AudioSetControlProperty:
             return SetControlProperty(
-                Payload<SwifterKitAudioMemberProperty>(payload, payloadLength));
+                SwifterKitMemberPayload<SwifterKitAudioMemberProperty>(payload, payloadLength));
         case SwifterKitRuntimeOpcode::AudioRemoveSelectorItems: {
             if (payload == nullptr || payloadLength < sizeof(SwifterKitAudioSelectorRemoval))
                 return kIOReturnBadArgument;
@@ -192,27 +162,19 @@ kern_return_t SwifterKitRuntimeAudioDevice::MemberCommand(
                 reinterpret_cast<const uint32_t*>(payload + sizeof(*header)));
         }
         case SwifterKitRuntimeOpcode::AudioGetCustomPropertyInfo: {
-            const auto* request = Payload<SwifterKitAudioMemberRequest>(payload, payloadLength);
-            uint32_t index = 0;
+            const auto* request =
+                SwifterKitMemberPayload<SwifterKitAudioMemberRequest>(payload, payloadLength);
             if (request == nullptr || request->reserved != 0)
                 return kIOReturnBadArgument;
-            if (!FindProperty(request->identifier, &index)
-                || ivars->customProperties[index] == nullptr)
-                return kIOReturnNotFound;
-            auto* property = ivars->customProperties[index];
-            const IOUserAudioCustomPropertyInfo info = property->GetCustomPropertyInfo();
-            const SwifterKitAudioCustomPropertyInfo wire = {
-                property->GetObjectID(),
-                static_cast<uint32_t>(info.mSelector),
-                static_cast<uint32_t>(info.mPropertyDataType),
-                static_cast<uint32_t>(info.mQualifierDataType),
-                WireOwner(ivars->propertyPlacement[index]),
-                0};
-            return Respond(&wire, sizeof(wire), response);
+            return SwifterKitCopyCustomPropertyInfo<AudioMemberFamily>(
+                ivars,
+                request->identifier,
+                [this](uint32_t index) { return WireOwner(ivars->propertyPlacement[index]); },
+                response);
         }
         case SwifterKitRuntimeOpcode::AudioSetMemberAttachment:
             return SetMemberAttachment(
-                Payload<SwifterKitAudioMemberAttachment>(payload, payloadLength));
+                SwifterKitMemberPayload<SwifterKitAudioMemberAttachment>(payload, payloadLength));
         default:
             return kIOReturnUnsupported;
     }
@@ -427,107 +389,28 @@ kern_return_t SwifterKitRuntimeAudioDevice::WriteStream(
 kern_return_t SwifterKitRuntimeAudioDevice::CopyControlInfo(
     const SwifterKitAudioMemberRequest* request,
     OSData** response) {
-    uint32_t index = 0;
     if (request == nullptr || request->reserved != 0)
         return kIOReturnBadArgument;
-    if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
-        return kIOReturnNotFound;
-    auto* control = ivars->controls[index];
-    SwifterKitAudioControlInfo info = {};
-    info.objectID = control->GetObjectID();
-    info.kind = kSwifterKitAudioControls[index].kind;
-    info.scope = static_cast<uint32_t>(control->GetControlScope());
-    info.element = static_cast<uint32_t>(control->GetControlElement());
-    info.isSettable = control->GetIsSettable() ? 1 : 0;
-    info.isAttached = ivars->controlDetached[index] ? 0 : 1;
-    if (auto* slider = OSDynamicCast(IOUserAudioSliderControl, control)) {
-        const IOUserAudioSliderRange range = slider->GetRange();
-        info.sliderMinimum = range.m_min;
-        info.sliderMaximum = range.m_max;
-    }
-    if (auto* pan = OSDynamicCast(IOUserAudioStereoPanControl, control)) {
-        IOUserAudioObjectPropertyElement left = 0;
-        IOUserAudioObjectPropertyElement right = 0;
-        pan->GetPanningChannels(&left, &right);
-        info.panLeft = left;
-        info.panRight = right;
-    }
-    IOUserAudioSelectorValueDescription items[kSwifterKitAudioMaximumSelectorItems] = {};
-    if (auto* selector = OSDynamicCast(IOUserAudioSelectorControl, control)) {
-        const size_t count = selector->GetControlValuesCount();
-        info.itemCount = static_cast<uint32_t>(selector->GetControlValueDescriptions(
-            items,
-            count < kSwifterKitAudioMaximumSelectorItems ? count
-                                                         : kSwifterKitAudioMaximumSelectorItems));
-    }
-    OSData* data = OSData::withCapacity(
-        sizeof(info) + info.itemCount * (8 + kSwifterKitAudioNameMaximumLength));
-    bool appended = data != nullptr && data->appendBytes(&info, sizeof(info));
-    for (uint32_t item = 0; appended && item < info.itemCount; ++item) {
-        const char* name = items[item].m_name ? items[item].m_name->getCStringNoCopy() : "";
-        const size_t length = strnlen(name, kSwifterKitAudioNameMaximumLength + 1);
-        const uint32_t header[2] = {items[item].m_value, static_cast<uint32_t>(length)};
-        appended = length <= kSwifterKitAudioNameMaximumLength
-                   && data->appendBytes(header, sizeof(header)) && data->appendBytes(name, length);
-    }
-    if (!appended) {
-        OSSafeReleaseNULL(data);
-        return kIOReturnNoMemory;
-    }
-    *response = data;
-    return kIOReturnSuccess;
+    return SwifterKitCopyControlInfo<AudioMemberFamily>(
+        ivars,
+        request->identifier,
+        response,
+        [](SwifterKitAudioControlInfo&, IOUserAudioControl*) {});
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::SetControlProperty(
     const SwifterKitAudioMemberProperty* request) {
-    uint32_t index = 0;
-    if (request == nullptr)
-        return kIOReturnBadArgument;
-    if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
-        return kIOReturnNotFound;
-    const auto low = static_cast<uint32_t>(request->value);
-    const auto high = static_cast<uint32_t>(request->value >> 32);
-    auto* control = ivars->controls[index];
-    if (request->selector == kSwifterKitAudioControlPropertySliderRange) {
-        auto* slider = OSDynamicCast(IOUserAudioSliderControl, control);
-        if (slider == nullptr || low > high)
-            return kIOReturnBadArgument;
-        return slider->SetRange(IOUserAudioSliderRange {low, high});
-    }
-    if (request->selector == kSwifterKitAudioControlPropertyPanningChannels) {
-        auto* pan = OSDynamicCast(IOUserAudioStereoPanControl, control);
-        if (pan == nullptr || low == high)
-            return kIOReturnBadArgument;
-        return pan->SetPanningChannels(low, high);
-    }
-    return kIOReturnBadArgument;
+    return SwifterKitSetControlProperty<AudioMemberFamily>(ivars, request);
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::RemoveSelectorItems(
     const SwifterKitAudioSelectorRemoval* request,
     const uint32_t* values) {
-    uint32_t index = 0;
-    if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
-        return kIOReturnNotFound;
-    auto* selector = OSDynamicCast(IOUserAudioSelectorControl, ivars->controls[index]);
-    if (selector == nullptr)
-        return kIOReturnBadArgument;
-    IOUserAudioSelectorValueDescription items[kSwifterKitAudioMaximumSelectorItems] = {};
-    const size_t available =
-        selector->GetControlValueDescriptions(items, kSwifterKitAudioMaximumSelectorItems);
-    IOUserAudioSelectorValueDescription removed[kSwifterKitAudioMaximumSelectorItems] = {};
-    for (uint32_t value = 0; value < request->count; ++value) {
-        uint32_t wanted = 0;
-        memcpy(&wanted, values + value, sizeof(wanted));
-        size_t match = available;
-        for (size_t item = 0; item < available; ++item)
-            if (items[item].m_value == wanted)
-                match = item;
-        if (match == available)
-            return kIOReturnNotFound;
-        removed[value] = items[match];
-    }
-    return selector->RemoveControlValueDescriptions(removed, request->count);
+    return SwifterKitRemoveSelectorItems<AudioMemberFamily>(
+        ivars,
+        request->identifier,
+        request->count,
+        reinterpret_cast<const uint8_t*>(values));
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
@@ -553,7 +436,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
     if (request->kind == kSwifterKitAudioMemberControl) {
         if (request->owner == kSwifterKitAudioOwnerDriver)
             return kIOReturnBadArgument;
-        if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
+        if (SwifterKitFindMemberControl<AudioMemberFamily>(ivars, request->identifier, &index)
+            == nullptr)
             return kIOReturnNotFound;
         if (ivars->controlDetached[index] != attach)
             return kIOReturnSuccess;
@@ -565,7 +449,13 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
     }
     if (request->kind != kSwifterKitAudioMemberCustomProperty)
         return kIOReturnBadArgument;
-    if (!FindProperty(request->identifier, &index) || ivars->customProperties[index] == nullptr)
+    if (SwifterKitFindByIdentifier(
+            kSwifterKitAudioCustomProperties,
+            kSwifterKitAudioCustomPropertyCount,
+            request->identifier,
+            &index)
+            == nullptr
+        || ivars->customProperties[index] == nullptr)
         return kIOReturnNotFound;
     const uint8_t current = ivars->propertyPlacement[index];
     const uint8_t wanted = request->owner == kSwifterKitAudioOwnerDevice   ? kPlacementDevice
@@ -590,29 +480,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
 }
 kern_return_t SwifterKitRuntimeAudioDevice::ApplyMemberChange(OSObject* changeInfo) {
     SwifterKitAudioMemberChange change = {};
-    if (!SwifterKitReadAudioMemberChange(changeInfo, &change) || change.value > UINT32_MAX)
+    if (!SwifterKitReadAudioMemberChange(changeInfo, &change))
         return kIOReturnBadArgument;
-    const auto value = static_cast<uint32_t>(change.value);
-    switch (change.selector) {
-        case kSwifterKitAudioChangeStreamAttachment: {
-            if (change.index >= kSwifterKitAudioStreamCount || value > 1
-                || ivars->streams[change.index] == nullptr)
-                return kIOReturnBadArgument;
-            const bool attach = value != 0;
-            if (ivars->streamDetached[change.index] != attach)
-                return kIOReturnSuccess;
-            auto* stream = ivars->streams[change.index];
-            const kern_return_t result = attach ? AddStream(stream) : RemoveStream(stream);
-            if (result == kIOReturnSuccess)
-                ivars->streamDetached[change.index] = !attach;
-            return result;
-        }
-        case kSwifterKitAudioChangeInputSafetyOffset:
-            return SetInputSafetyOffset(value);
-        case kSwifterKitAudioChangeOutputSafetyOffset:
-            return SetOutputSafetyOffset(value);
-        default:
-            return kIOReturnBadArgument;
-    }
+    return SwifterKitApplyStructureChange<AudioMemberFamily>(this, ivars, change);
 }
 #endif

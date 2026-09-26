@@ -18,13 +18,21 @@ struct AudioDeviceRuntimeContractTests {
         #expect(members.contains("case SwifterKitRuntimeOpcode::\(nativeName(opcode)):"))
       }
       for call in [
-        "SetCanBeDefaultSystemOutputDevice(", "GetCurrentClientIOTime(true",
-        "SetPreferredInputChannelLayout(", "SetWantsStreamFormatsRestored(",
+        "SetCanBeDefaultSystemOutputDevice(", "SetWantsStreamFormatsRestored(",
         "SetIOMemoryDescriptor(descriptor)", "GetNumberAvailableStreamFormats()",
+        "driver->RemoveCustomProperty(property)", "SwifterKitCopyDeviceState<AudioMemberFamily>(",
+        "SwifterKitSetPreferredChannelLayout<AudioMemberFamily>(",
+        "SwifterKitCopyControlInfo<AudioMemberFamily>(",
+        "SwifterKitSetControlProperty<AudioMemberFamily>(",
+        "SwifterKitRemoveSelectorItems<AudioMemberFamily>(",
+        "SwifterKitCopyCustomPropertyInfo<AudioMemberFamily>(",
+      ] { #expect(members.contains(call), "missing \(call)") }
+      let shared = try source("SwifterKitRuntimeMediaMembers.h", in: output)
+      for call in [
+        "GetCurrentClientIOTime(true", "SetPreferredInputChannelLayout(",
         "GetControlValueDescriptions(", "RemoveControlValueDescriptions(", "SetRange(",
         "SetPanningChannels(", "GetCustomPropertyInfo()", "RemoveStream(",
-        "driver->RemoveCustomProperty(property)",
-      ] { #expect(members.contains(call), "missing \(call)") }
+      ] { #expect(shared.contains(call), "missing \(call)") }
       let resize = try section(
         of: members,
         from: "::ResizeStreamMemory(",
@@ -146,8 +154,17 @@ struct AudioDeviceRuntimeContractTests {
       #expect(!attachment.contains("AddStream("))
       #expect(attachment.contains("kSwifterKitAudioChangeStreamAttachment"))
       let apply = try section(of: members, from: "::ApplyMemberChange(", to: "#endif")
-      #expect(apply.contains("AddStream(stream) : RemoveStream(stream)"))
-      #expect(apply.contains("return SetInputSafetyOffset(value);"))
+      #expect(
+        apply.contains("SwifterKitApplyStructureChange<AudioMemberFamily>(this, ivars, change)")
+      )
+      let shared = try source("SwifterKitRuntimeMediaMembers.h", in: output)
+      let sharedApply = try section(
+        of: shared,
+        from: "kern_return_t SwifterKitApplyStructureChange(",
+        to: "kern_return_t SwifterKitEnqueueControlValueEvent("
+      )
+      #expect(sharedApply.contains("device->AddStream(stream) : device->RemoveStream(stream)"))
+      #expect(sharedApply.contains("return device->SetInputSafetyOffset(value);"))
 
       let device = try source("SwifterKitRuntimeAudioDevice.cpp", in: output)
       let perform = try section(

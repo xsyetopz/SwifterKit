@@ -269,6 +269,31 @@ kern_return_t SwifterKitMakeConfiguredCustomProperty(
     return result;
 }
 
+// Creates each configured custom property and adds it to `device`, then hands it to
+// `store(index, property)`. The first failure releases that property and stops.
+template<typename Family, typename Device, typename Store>
+kern_return_t SwifterKitAddConfiguredCustomProperties(
+    SwifterKitRuntimeService* service,
+    Device* device,
+    Store store) {
+    kern_return_t result = kIOReturnSuccess;
+    for (uint32_t index = 0; result == kIOReturnSuccess && index < Family::kCustomPropertyCount;
+         ++index) {
+        typename Family::RuntimeCustomProperty* property = nullptr;
+        result = SwifterKitMakeConfiguredCustomProperty<Family>(
+            service,
+            Family::kCustomProperties[index],
+            &property);
+        if (result == kIOReturnSuccess)
+            result = device->AddCustomProperty(property);
+        if (result == kIOReturnSuccess)
+            store(index, property);
+        else
+            OSSafeReleaseNULL(property);
+    }
+    return result;
+}
+
 // Casts `control` when its configuration has `kind`; null otherwise.
 template<typename Typed, typename Control, typename Configuration>
 Typed* SwifterKitControlOfKind(Control* control, const Configuration& config, uint32_t kind) {

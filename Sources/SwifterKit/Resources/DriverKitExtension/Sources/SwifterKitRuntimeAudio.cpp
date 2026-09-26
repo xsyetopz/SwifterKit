@@ -8,8 +8,46 @@
     #include <DriverKit/OSString.h>
 
     #include "SwifterKitRuntimeAudioDevice.h"
+    #include "SwifterKitRuntimeMediaMembers.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
+
+namespace {
+    // The opcodes, wire structs, and schema values the SwifterKitRuntimeMediaMembers.h service
+    // templates operate on.
+    struct AudioCommandFamily {
+        using Timestamp = SwifterKitAudioTimestamp;
+        using ControlGet = SwifterKitAudioControlGet;
+        using ControlValueHeader = SwifterKitAudioControlValueHeader;
+        using CustomPropertyHeader = SwifterKitAudioCustomPropertyHeader;
+        using ControlEventHeader = SwifterKitAudioControlEventHeader;
+        using CustomPropertyEventHeader = SwifterKitAudioCustomPropertyEventHeader;
+
+        static constexpr uint32_t kUpdateTimestamp =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioUpdateTimestamp);
+        static constexpr uint32_t kRequestSampleRate =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioRequestSampleRate);
+        static constexpr uint32_t kGetControl =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetControl);
+        static constexpr uint32_t kSetControl =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioSetControl);
+        static constexpr uint32_t kGetCustomProperty =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetCustomProperty);
+        static constexpr uint32_t kSetCustomProperty =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioSetCustomProperty);
+
+        static constexpr uint32_t kValueFirst = kSwifterKitAudioValueBoolean;
+        static constexpr uint32_t kValueLast = kSwifterKitAudioValueStereoPan;
+        static constexpr uint32_t kValueSelector = kSwifterKitAudioValueSelector;
+        static constexpr uint32_t kMaximumSelectorItems = kSwifterKitAudioMaximumSelectorItems;
+        static constexpr uint32_t kNameMaximumLength = kSwifterKitAudioNameMaximumLength;
+        static constexpr uint32_t kCustomPropertyValueMaximumLength =
+            kSwifterKitAudioCustomPropertyValueMaximumLength;
+        static constexpr uint32_t kEventControlChanged = kSwifterKitAudioEventControlChanged;
+        static constexpr uint32_t kEventCustomPropertyChanged =
+            kSwifterKitAudioEventCustomPropertyChanged;
+    };
+}  // namespace
 
 kern_return_t SwifterKitRuntimeService::StartAudio() {
     if (ivars == nullptr || ivars->audioDevice != nullptr)
@@ -76,22 +114,14 @@ kern_return_t SwifterKitRuntimeService::AudioControlValueEvent(
     uint32_t kind,
     const uint32_t* values,
     uint32_t count) {
-    if (identifier == 0 || kind < kSwifterKitAudioValueBoolean
-        || kind > kSwifterKitAudioValueStereoPan || values == nullptr || count == 0
-        || count > kSwifterKitAudioMaximumSelectorItems
-        || (kind != kSwifterKitAudioValueSelector && count != 1))
-        return kIOReturnBadArgument;
-    uint8_t payload
-        [sizeof(SwifterKitAudioControlEventHeader)
-         + kSwifterKitAudioMaximumSelectorItems * sizeof(uint32_t)] = {};
-    const SwifterKitAudioControlEventHeader header =
-        {kSwifterKitAudioEventControlChanged, identifier, kind, count, 0};
-    memcpy(payload, &header, sizeof(header));
-    memcpy(payload + sizeof(header), values, count * sizeof(uint32_t));
-    return EnqueueRequiredEvent(
-        kSwifterKitEventAudio,
-        payload,
-        sizeof(header) + count * sizeof(uint32_t));
+    return SwifterKitEnqueueControlValueEvent<AudioCommandFamily>(
+        identifier,
+        kind,
+        values,
+        count,
+        [this](const void* bytes, uint32_t length) {
+            return EnqueueRequiredEvent(kSwifterKitEventAudio, bytes, length);
+        });
 }
 
 kern_return_t SwifterKitRuntimeService::AudioCustomPropertyEvent(
@@ -100,22 +130,15 @@ kern_return_t SwifterKitRuntimeService::AudioCustomPropertyEvent(
     uint32_t qualifierLength,
     const uint8_t* value,
     uint32_t valueLength) {
-    if (identifier == 0 || qualifier == nullptr || qualifierLength == 0
-        || qualifierLength > kSwifterKitAudioNameMaximumLength || value == nullptr
-        || valueLength > kSwifterKitAudioCustomPropertyValueMaximumLength)
-        return kIOReturnBadArgument;
-    uint8_t payload
-        [sizeof(SwifterKitAudioCustomPropertyEventHeader) + kSwifterKitAudioNameMaximumLength
-         + kSwifterKitAudioCustomPropertyValueMaximumLength] = {};
-    const SwifterKitAudioCustomPropertyEventHeader header =
-        {kSwifterKitAudioEventCustomPropertyChanged, identifier, qualifierLength, valueLength, 0};
-    memcpy(payload, &header, sizeof(header));
-    memcpy(payload + sizeof(header), qualifier, qualifierLength);
-    memcpy(payload + sizeof(header) + qualifierLength, value, valueLength);
-    return EnqueueRequiredEvent(
-        kSwifterKitEventAudio,
-        payload,
-        sizeof(header) + qualifierLength + valueLength);
+    return SwifterKitEnqueueCustomPropertyEvent<AudioCommandFamily>(
+        identifier,
+        qualifier,
+        qualifierLength,
+        value,
+        valueLength,
+        [this](const void* bytes, uint32_t length) {
+            return EnqueueRequiredEvent(kSwifterKitEventAudio, bytes, length);
+        });
 }
 
 kern_return_t SwifterKitRuntimeService::AudioCommand(
@@ -157,70 +180,16 @@ kern_return_t SwifterKitRuntimeService::AudioCommand(
         result = payloadLength == 0 ? device->CopyIOState(response) : kIOReturnBadArgument;
     } else if (
         device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioUpdateTimestamp)) {
-        result = payload != nullptr && payloadLength == sizeof(SwifterKitAudioTimestamp)
-                     ? device->UpdateTimestamp(
-                           reinterpret_cast<const SwifterKitAudioTimestamp*>(payload))
-                     : kIOReturnBadArgument;
-    } else if (
-        device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioRequestSampleRate)) {
-        if (payload == nullptr || payloadLength != sizeof(uint64_t))
-            result = kIOReturnBadArgument;
-        else {
-            uint64_t bits = 0;
-            memcpy(&bits, payload, sizeof(bits));
-            result = device->RequestSampleRate(__builtin_bit_cast(double, bits));
-        }
-    } else if (
-        device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetControl)) {
-        result = payload != nullptr && payloadLength == sizeof(SwifterKitAudioControlGet)
-                     ? device->CopyControl(
-                           reinterpret_cast<const SwifterKitAudioControlGet*>(payload),
-                           response)
-                     : kIOReturnBadArgument;
-    } else if (
-        device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioSetControl)) {
-        if (payload == nullptr || payloadLength < sizeof(SwifterKitAudioControlValueHeader))
-            result = kIOReturnBadArgument;
-        else {
-            const auto* request =
-                reinterpret_cast<const SwifterKitAudioControlValueHeader*>(payload);
-            const uint64_t expected =
-                sizeof(*request) + static_cast<uint64_t>(request->valueCount) * sizeof(uint32_t);
-            result = expected == payloadLength
-                         ? device->SetControl(
-                               request,
-                               reinterpret_cast<const uint32_t*>(payload + sizeof(*request)))
-                         : kIOReturnBadArgument;
-        }
-    } else if (
-        device != nullptr
         && opcode >= static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetDeviceState)
         && opcode <= static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioSetMemberAttachment)) {
         result = device->MemberCommand(opcode, payload, payloadLength, response);
-    } else if (
-        device != nullptr
-        && (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetCustomProperty)
-            || opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioSetCustomProperty))) {
-        if (payload == nullptr || payloadLength < sizeof(SwifterKitAudioCustomPropertyHeader))
-            result = kIOReturnBadArgument;
-        else {
-            const auto* request =
-                reinterpret_cast<const SwifterKitAudioCustomPropertyHeader*>(payload);
-            const uint64_t expected = sizeof(*request)
-                                      + static_cast<uint64_t>(request->qualifierLength)
-                                      + request->valueLength;
-            if (expected != payloadLength)
-                result = kIOReturnBadArgument;
-            else if (
-                opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetCustomProperty))
-                result = device->CopyCustomProperty(request, payload + sizeof(*request), response);
-            else
-                result = device->SetCustomProperty(request, payload + sizeof(*request));
-        }
+    } else if (device != nullptr) {
+        result = SwifterKitDeviceCommand<AudioCommandFamily>(
+            device,
+            opcode,
+            payload,
+            payloadLength,
+            response);
     }
     IOLockUnlock(ivars->audioLock);
     return result;

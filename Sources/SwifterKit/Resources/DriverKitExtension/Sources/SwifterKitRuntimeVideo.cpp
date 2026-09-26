@@ -7,8 +7,46 @@
     #include <DriverKit/OSString.h>
     #include <VideoDriverKit/VideoDriverKit.h>
 
+    #include "SwifterKitRuntimeMediaMembers.h"
     #include "SwifterKitRuntimeServiceState.h"
     #include "SwifterKitRuntimeVideoDevice.h"
+
+namespace {
+    // The opcodes, wire structs, and schema values the SwifterKitRuntimeMediaMembers.h service
+    // templates operate on.
+    struct VideoCommandFamily {
+        using Timestamp = SwifterKitVideoTimestamp;
+        using ControlGet = SwifterKitVideoControlGet;
+        using ControlValueHeader = SwifterKitVideoControlValueHeader;
+        using CustomPropertyHeader = SwifterKitVideoCustomPropertyHeader;
+        using ControlEventHeader = SwifterKitVideoControlEventHeader;
+        using CustomPropertyEventHeader = SwifterKitVideoCustomPropertyEventHeader;
+
+        static constexpr uint32_t kUpdateTimestamp =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoUpdateTimestamp);
+        static constexpr uint32_t kRequestSampleRate =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoRequestSampleRate);
+        static constexpr uint32_t kGetControl =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetControl);
+        static constexpr uint32_t kSetControl =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoSetControl);
+        static constexpr uint32_t kGetCustomProperty =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetCustomProperty);
+        static constexpr uint32_t kSetCustomProperty =
+            static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoSetCustomProperty);
+
+        static constexpr uint32_t kValueFirst = kSwifterKitVideoValueBoolean;
+        static constexpr uint32_t kValueLast = kSwifterKitVideoValueDirection;
+        static constexpr uint32_t kValueSelector = kSwifterKitVideoValueSelector;
+        static constexpr uint32_t kMaximumSelectorItems = kSwifterKitVideoMaximumSelectorItems;
+        static constexpr uint32_t kNameMaximumLength = kSwifterKitVideoNameMaximumLength;
+        static constexpr uint32_t kCustomPropertyValueMaximumLength =
+            kSwifterKitVideoCustomPropertyValueMaximumLength;
+        static constexpr uint32_t kEventControlChanged = kSwifterKitVideoEventControlChanged;
+        static constexpr uint32_t kEventCustomPropertyChanged =
+            kSwifterKitVideoEventCustomPropertyChanged;
+    };
+}  // namespace
 
 kern_return_t SwifterKitRuntimeService::StartVideo() {
     if (ivars == nullptr || ivars->videoLock == nullptr)
@@ -81,22 +119,14 @@ kern_return_t SwifterKitRuntimeService::VideoControlValueEvent(
     uint32_t kind,
     const uint32_t* values,
     uint32_t count) {
-    if (identifier == 0 || kind < kSwifterKitVideoValueBoolean
-        || kind > kSwifterKitVideoValueDirection || values == nullptr || count == 0
-        || count > kSwifterKitVideoMaximumSelectorItems
-        || (kind != kSwifterKitVideoValueSelector && count != 1))
-        return kIOReturnBadArgument;
-    uint8_t payload
-        [sizeof(SwifterKitVideoControlEventHeader)
-         + kSwifterKitVideoMaximumSelectorItems * sizeof(uint32_t)] = {};
-    const SwifterKitVideoControlEventHeader header =
-        {kSwifterKitVideoEventControlChanged, identifier, kind, count, 0};
-    memcpy(payload, &header, sizeof(header));
-    memcpy(payload + sizeof(header), values, count * sizeof(uint32_t));
-    return EnqueueRequiredEvent(
-        kSwifterKitEventVideo,
-        payload,
-        sizeof(header) + count * sizeof(uint32_t));
+    return SwifterKitEnqueueControlValueEvent<VideoCommandFamily>(
+        identifier,
+        kind,
+        values,
+        count,
+        [this](const void* bytes, uint32_t length) {
+            return EnqueueRequiredEvent(kSwifterKitEventVideo, bytes, length);
+        });
 }
 
 kern_return_t SwifterKitRuntimeService::VideoCustomPropertyEvent(
@@ -105,22 +135,15 @@ kern_return_t SwifterKitRuntimeService::VideoCustomPropertyEvent(
     uint32_t qualifierLength,
     const uint8_t* value,
     uint32_t valueLength) {
-    if (identifier == 0 || qualifier == nullptr || qualifierLength == 0
-        || qualifierLength > kSwifterKitVideoNameMaximumLength || value == nullptr
-        || valueLength > kSwifterKitVideoCustomPropertyValueMaximumLength)
-        return kIOReturnBadArgument;
-    uint8_t payload
-        [sizeof(SwifterKitVideoCustomPropertyEventHeader) + kSwifterKitVideoNameMaximumLength
-         + kSwifterKitVideoCustomPropertyValueMaximumLength] = {};
-    const SwifterKitVideoCustomPropertyEventHeader header =
-        {kSwifterKitVideoEventCustomPropertyChanged, identifier, qualifierLength, valueLength, 0};
-    memcpy(payload, &header, sizeof(header));
-    memcpy(payload + sizeof(header), qualifier, qualifierLength);
-    memcpy(payload + sizeof(header) + qualifierLength, value, valueLength);
-    return EnqueueRequiredEvent(
-        kSwifterKitEventVideo,
-        payload,
-        sizeof(header) + qualifierLength + valueLength);
+    return SwifterKitEnqueueCustomPropertyEvent<VideoCommandFamily>(
+        identifier,
+        qualifier,
+        qualifierLength,
+        value,
+        valueLength,
+        [this](const void* bytes, uint32_t length) {
+            return EnqueueRequiredEvent(kSwifterKitEventVideo, bytes, length);
+        });
 }
 
 kern_return_t SwifterKitRuntimeService::VideoStreamEvent(
@@ -221,67 +244,13 @@ kern_return_t SwifterKitRuntimeService::VideoCommand(
         result = payload != nullptr && payloadLength == sizeof(uint32_t)
                      ? device->NotifyOutput(*reinterpret_cast<const uint32_t*>(payload))
                      : kIOReturnBadArgument;
-    } else if (
-        device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoUpdateTimestamp)) {
-        result = payload != nullptr && payloadLength == sizeof(SwifterKitVideoTimestamp)
-                     ? device->UpdateTimestamp(
-                           reinterpret_cast<const SwifterKitVideoTimestamp*>(payload))
-                     : kIOReturnBadArgument;
-    } else if (
-        device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoRequestSampleRate)) {
-        if (payload == nullptr || payloadLength != sizeof(uint64_t))
-            result = kIOReturnBadArgument;
-        else {
-            uint64_t bits = 0;
-            memcpy(&bits, payload, sizeof(bits));
-            result = device->RequestSampleRate(__builtin_bit_cast(double, bits));
-        }
-    } else if (
-        device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetControl)) {
-        result = payload != nullptr && payloadLength == sizeof(SwifterKitVideoControlGet)
-                     ? device->CopyControl(
-                           reinterpret_cast<const SwifterKitVideoControlGet*>(payload),
-                           response)
-                     : kIOReturnBadArgument;
-    } else if (
-        device != nullptr
-        && opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoSetControl)) {
-        if (payload == nullptr || payloadLength < sizeof(SwifterKitVideoControlValueHeader))
-            result = kIOReturnBadArgument;
-        else {
-            const auto* request =
-                reinterpret_cast<const SwifterKitVideoControlValueHeader*>(payload);
-            const uint64_t expected =
-                sizeof(*request) + static_cast<uint64_t>(request->valueCount) * sizeof(uint32_t);
-            result = expected == payloadLength
-                         ? device->SetControl(
-                               request,
-                               reinterpret_cast<const uint32_t*>(payload + sizeof(*request)))
-                         : kIOReturnBadArgument;
-        }
-    } else if (
-        device != nullptr
-        && (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetCustomProperty)
-            || opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoSetCustomProperty))) {
-        if (payload == nullptr || payloadLength < sizeof(SwifterKitVideoCustomPropertyHeader))
-            result = kIOReturnBadArgument;
-        else {
-            const auto* request =
-                reinterpret_cast<const SwifterKitVideoCustomPropertyHeader*>(payload);
-            const uint64_t expected = sizeof(*request)
-                                      + static_cast<uint64_t>(request->qualifierLength)
-                                      + request->valueLength;
-            if (expected != payloadLength)
-                result = kIOReturnBadArgument;
-            else if (
-                opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetCustomProperty))
-                result = device->CopyCustomProperty(request, payload + sizeof(*request), response);
-            else
-                result = device->SetCustomProperty(request, payload + sizeof(*request));
-        }
+    } else if (device != nullptr) {
+        result = SwifterKitDeviceCommand<VideoCommandFamily>(
+            device,
+            opcode,
+            payload,
+            payloadLength,
+            response);
     }
     IOLockUnlock(ivars->videoLock);
     return result;

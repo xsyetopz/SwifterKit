@@ -9,6 +9,7 @@
     #include <DriverKit/OSString.h>
     #include <VideoDriverKit/VideoDriverKit.h>
 
+    #include "SwifterKitRuntimeMediaMembers.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeVideoDeviceState.h"
@@ -34,30 +35,34 @@ namespace {
         kChangeBufferAttached = 4,
     };
 
-    template<typename Type>
-    const Type* Payload(const uint8_t* payload, uint32_t payloadLength) {
-        return payload != nullptr && payloadLength == sizeof(Type)
-                   ? reinterpret_cast<const Type*>(payload)
-                   : nullptr;
-    }
+    // The VideoDriverKit classes, wire structs, and schema values the
+    // SwifterKitRuntimeMediaMembers.h member templates operate on.
+    struct VideoMemberFamily {
+        using DeviceState = SwifterKitVideoDeviceState;
+        using ChannelLayoutHeader = SwifterKitVideoChannelLayoutHeader;
+        using ChannelLabel = IOUserVideoChannelLabel;
+        using ControlInfo = SwifterKitVideoControlInfo;
+        using CustomPropertyInfo = SwifterKitVideoCustomPropertyInfo;
+        using SliderControl = IOUserVideoSliderControl;
+        using StereoPanControl = IOUserVideoStereoPanControl;
+        using SelectorControl = IOUserVideoSelectorControl;
+        using SliderRange = IOUserVideoSliderRange;
+        using PropertyElement = IOUserVideoObjectPropertyElement;
+        using SelectorDescription = IOUserVideoSelectorValueDescription;
 
-    bool FindControl(uint32_t identifier, uint32_t* index) {
-        for (uint32_t candidate = 0; candidate < kSwifterKitVideoControlCount; ++candidate)
-            if (kSwifterKitVideoControls[candidate].identifier == identifier) {
-                *index = candidate;
-                return true;
-            }
-        return false;
-    }
+        static constexpr uint32_t kMaximumChannelLabels = kSwifterKitVideoMaximumChannelLabels;
+        static constexpr uint32_t kMaximumSelectorItems = kSwifterKitVideoMaximumSelectorItems;
+        static constexpr uint32_t kNameMaximumLength = kSwifterKitVideoNameMaximumLength;
+        static constexpr uint32_t kControlPropertySliderRange =
+            kSwifterKitVideoControlPropertySliderRange;
+        static constexpr uint32_t kControlPropertyPanningChannels =
+            kSwifterKitVideoControlPropertyPanningChannels;
 
-    bool FindProperty(uint32_t identifier, uint32_t* index) {
-        for (uint32_t candidate = 0; candidate < kSwifterKitVideoCustomPropertyCount; ++candidate)
-            if (kSwifterKitVideoCustomProperties[candidate].identifier == identifier) {
-                *index = candidate;
-                return true;
-            }
-        return false;
-    }
+        static constexpr uint32_t kControlCount = kSwifterKitVideoControlCount;
+        static constexpr const auto* kControls = kSwifterKitVideoControls;
+        static constexpr uint32_t kCustomPropertyCount = kSwifterKitVideoCustomPropertyCount;
+        static constexpr const auto* kCustomProperties = kSwifterKitVideoCustomProperties;
+    };
 
     SwifterKitVideoStreamFormat WireFormat(const IOUserVideoStreamBasicDescription& format) {
         return {
@@ -88,14 +93,6 @@ namespace {
         state.memoryLength = Length(memory);
         return state;
     }
-
-    kern_return_t Respond(const void* bytes, uint32_t length, OSData** response) {
-        OSData* data = OSData::withBytes(bytes, length);
-        if (data == nullptr)
-            return kIOReturnNoMemory;
-        *response = data;
-        return kIOReturnSuccess;
-    }
 }  // namespace
 
 kern_return_t SwifterKitRuntimeVideoDevice::MemberCommand(
@@ -109,46 +106,34 @@ kern_return_t SwifterKitRuntimeVideoDevice::MemberCommand(
         case SwifterKitRuntimeOpcode::VideoGetDeviceState:
             return payloadLength == 0 ? CopyDeviceState(response) : kIOReturnBadArgument;
         case SwifterKitRuntimeOpcode::VideoSetDeviceProperty:
-            return SetDeviceProperty(Payload<SwifterKitVideoMemberValue>(payload, payloadLength));
-        case SwifterKitRuntimeOpcode::VideoSetPreferredChannelLayout: {
-            if (payload == nullptr || payloadLength < sizeof(SwifterKitVideoChannelLayoutHeader))
-                return kIOReturnBadArgument;
-            const auto* header =
-                reinterpret_cast<const SwifterKitVideoChannelLayoutHeader*>(payload);
-            if (header->isInput > 1 || header->count == 0
-                || header->count > kSwifterKitVideoMaximumChannelLabels
-                || payloadLength != sizeof(*header) + header->count * sizeof(uint32_t))
-                return kIOReturnBadArgument;
-            IOUserVideoChannelLabel labels[kSwifterKitVideoMaximumChannelLabels] = {};
-            for (uint32_t index = 0; index < header->count; ++index) {
-                uint32_t label = 0;
-                memcpy(&label, payload + sizeof(*header) + index * sizeof(label), sizeof(label));
-                labels[index] = static_cast<IOUserVideoChannelLabel>(label);
-            }
-            return header->isInput != 0 ? SetPreferredInputChannelLayout(labels, header->count)
-                                        : SetPreferredOutputChannelLayout(labels, header->count);
-        }
+            return SetDeviceProperty(
+                SwifterKitMemberPayload<SwifterKitVideoMemberValue>(payload, payloadLength));
+        case SwifterKitRuntimeOpcode::VideoSetPreferredChannelLayout:
+            return SwifterKitSetPreferredChannelLayout<VideoMemberFamily>(
+                this,
+                payload,
+                payloadLength);
         case SwifterKitRuntimeOpcode::VideoGetStreamState:
             return CopyStreamState(
-                Payload<SwifterKitVideoMemberRequest>(payload, payloadLength),
+                SwifterKitMemberPayload<SwifterKitVideoMemberRequest>(payload, payloadLength),
                 response);
         case SwifterKitRuntimeOpcode::VideoSetStreamProperty:
             return SetStreamProperty(
-                Payload<SwifterKitVideoMemberProperty>(payload, payloadLength));
+                SwifterKitMemberPayload<SwifterKitVideoMemberProperty>(payload, payloadLength));
         case SwifterKitRuntimeOpcode::VideoGetBufferInfo:
             return CopyBufferInfo(
-                Payload<SwifterKitVideoMemberRequest>(payload, payloadLength),
+                SwifterKitMemberPayload<SwifterKitVideoMemberRequest>(payload, payloadLength),
                 response);
         case SwifterKitRuntimeOpcode::VideoSetBufferProperty:
             return SetBufferProperty(
-                Payload<SwifterKitVideoBufferProperty>(payload, payloadLength));
+                SwifterKitMemberPayload<SwifterKitVideoBufferProperty>(payload, payloadLength));
         case SwifterKitRuntimeOpcode::VideoGetControlInfo:
             return CopyControlInfo(
-                Payload<SwifterKitVideoMemberRequest>(payload, payloadLength),
+                SwifterKitMemberPayload<SwifterKitVideoMemberRequest>(payload, payloadLength),
                 response);
         case SwifterKitRuntimeOpcode::VideoSetControlProperty:
             return SetControlProperty(
-                Payload<SwifterKitVideoMemberProperty>(payload, payloadLength));
+                SwifterKitMemberPayload<SwifterKitVideoMemberProperty>(payload, payloadLength));
         case SwifterKitRuntimeOpcode::VideoRemoveSelectorItems: {
             if (payload == nullptr || payloadLength < sizeof(SwifterKitVideoSelectorRemoval))
                 return kIOReturnBadArgument;
@@ -160,11 +145,11 @@ kern_return_t SwifterKitRuntimeVideoDevice::MemberCommand(
         }
         case SwifterKitRuntimeOpcode::VideoGetCustomPropertyInfo:
             return CopyCustomPropertyInfo(
-                Payload<SwifterKitVideoMemberRequest>(payload, payloadLength),
+                SwifterKitMemberPayload<SwifterKitVideoMemberRequest>(payload, payloadLength),
                 response);
         case SwifterKitRuntimeOpcode::VideoSetMemberAttachment:
             return SetMemberAttachment(
-                Payload<SwifterKitVideoMemberAttachment>(payload, payloadLength));
+                SwifterKitMemberPayload<SwifterKitVideoMemberAttachment>(payload, payloadLength));
         case SwifterKitRuntimeOpcode::VideoEnqueueOutputBuffer:
             return payload != nullptr
                            && payloadLength == sizeof(uint32_t) + sizeof(SwifterKitVideoQueueEntry)
@@ -174,7 +159,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::MemberCommand(
                                  payload + sizeof(uint32_t)))
                        : kIOReturnBadArgument;
         case SwifterKitRuntimeOpcode::VideoGetStreamMemoryObjectID: {
-            const auto* request = Payload<SwifterKitVideoMemberRequest>(payload, payloadLength);
+            const auto* request =
+                SwifterKitMemberPayload<SwifterKitVideoMemberRequest>(payload, payloadLength);
             if (request == nullptr || request->identifier >= kSwifterKitVideoStreamCount)
                 return kIOReturnBadArgument;
             if (ivars->streams[request->identifier] == nullptr)
@@ -182,7 +168,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::MemberCommand(
             const uint32_t wire[2] = {
                 ivars->streams[request->identifier]->GetMemoryObjectID(request->argument),
                 0};
-            return Respond(wire, sizeof(wire), response);
+            return SwifterKitBytesResponse(wire, sizeof(wire), response);
         }
         default:
             return kIOReturnUnsupported;
@@ -190,26 +176,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::MemberCommand(
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::CopyDeviceState(OSData** response) {
-    SwifterKitVideoDeviceState state = {};
-    state.objectID = GetObjectID();
-    state.canBeDefaultInput = CanBeDefaultInputDevice() != 0 ? 1 : 0;
-    state.canBeDefaultOutput = CanBeDefaultOutputDevice() != 0 ? 1 : 0;
-    state.canBeDefaultSystemOutput = CanBeDefaultSystemOutputDevice() != 0 ? 1 : 0;
-    state.inputSafetyOffset = GetInputSafetyOffset();
-    state.outputSafetyOffset = GetOutputSafetyOffset();
-    uint32_t left = 0;
-    uint32_t right = 0;
-    uint64_t times[4] = {};
-    GetPreferredChannelsForStereo(&left, &right);
-    GetCurrentClientIOTime(true, &times[0], &times[1]);
-    GetCurrentClientIOTime(false, &times[2], &times[3]);
-    state.preferredLeft = left;
-    state.preferredRight = right;
-    state.inputSampleTime = times[0];
-    state.inputHostTime = times[1];
-    state.outputSampleTime = times[2];
-    state.outputHostTime = times[3];
-    return Respond(&state, sizeof(state), response);
+    return SwifterKitCopyDeviceState<VideoMemberFamily>(this, response);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::SetDeviceProperty(
@@ -372,7 +339,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::CopyBufferInfo(
     info.outputDataLength = Length(stream->GetOutputDataMemoryDescriptor(info.dataMemoryObjectID));
     info.outputControlLength =
         Length(stream->GetOutputControlMemoryDescriptor(info.controlMemoryObjectID));
-    return Respond(&info, sizeof(info), response);
+    return SwifterKitBytesResponse(&info, sizeof(info), response);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::SetBufferProperty(
@@ -612,128 +579,42 @@ kern_return_t SwifterKitRuntimeVideoDevice::EnqueueOutputBuffer(
 kern_return_t SwifterKitRuntimeVideoDevice::CopyControlInfo(
     const SwifterKitVideoMemberRequest* request,
     OSData** response) {
-    uint32_t index = 0;
     if (request == nullptr || request->argument != 0)
         return kIOReturnBadArgument;
-    if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
-        return kIOReturnNotFound;
-    auto* control = ivars->controls[index];
-    SwifterKitVideoControlInfo info = {};
-    info.objectID = control->GetObjectID();
-    info.kind = kSwifterKitVideoControls[index].kind;
-    info.scope = static_cast<uint32_t>(control->GetControlScope());
-    info.element = static_cast<uint32_t>(control->GetControlElement());
-    info.isSettable = control->GetIsSettable() ? 1 : 0;
-    info.isAttached = ivars->controlDetached[index] ? 0 : 1;
-    info.owningDeviceID = control->GetOwningDeviceID();
-    if (auto* slider = OSDynamicCast(IOUserVideoSliderControl, control)) {
-        const IOUserVideoSliderRange range = slider->GetRange();
-        info.sliderMinimum = range.m_min;
-        info.sliderMaximum = range.m_max;
-    }
-    if (auto* pan = OSDynamicCast(IOUserVideoStereoPanControl, control)) {
-        IOUserVideoObjectPropertyElement left = 0;
-        IOUserVideoObjectPropertyElement right = 0;
-        pan->GetPanningChannels(&left, &right);
-        info.panLeft = left;
-        info.panRight = right;
-    }
-    IOUserVideoSelectorValueDescription items[kSwifterKitVideoMaximumSelectorItems] = {};
-    if (auto* selector = OSDynamicCast(IOUserVideoSelectorControl, control)) {
-        const size_t count = selector->GetControlValuesCount();
-        info.itemCount = static_cast<uint32_t>(selector->GetControlValueDescriptions(
-            items,
-            count < kSwifterKitVideoMaximumSelectorItems ? count
-                                                         : kSwifterKitVideoMaximumSelectorItems));
-    }
-    OSData* data = OSData::withCapacity(
-        sizeof(info) + info.itemCount * (8 + kSwifterKitVideoNameMaximumLength));
-    bool appended = data != nullptr && data->appendBytes(&info, sizeof(info));
-    for (uint32_t item = 0; appended && item < info.itemCount; ++item) {
-        const char* name = items[item].m_name ? items[item].m_name->getCStringNoCopy() : "";
-        const size_t length = strnlen(name, kSwifterKitVideoNameMaximumLength + 1);
-        const uint32_t header[2] = {items[item].m_value, static_cast<uint32_t>(length)};
-        appended = length <= kSwifterKitVideoNameMaximumLength
-                   && data->appendBytes(header, sizeof(header)) && data->appendBytes(name, length);
-    }
-    if (!appended) {
-        OSSafeReleaseNULL(data);
-        return kIOReturnNoMemory;
-    }
-    *response = data;
-    return kIOReturnSuccess;
+    return SwifterKitCopyControlInfo<VideoMemberFamily>(
+        ivars,
+        request->identifier,
+        response,
+        [](SwifterKitVideoControlInfo& info, IOUserVideoControl* control) {
+            info.owningDeviceID = control->GetOwningDeviceID();
+        });
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::SetControlProperty(
     const SwifterKitVideoMemberProperty* request) {
-    uint32_t index = 0;
-    if (request == nullptr)
-        return kIOReturnBadArgument;
-    if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
-        return kIOReturnNotFound;
-    const auto low = static_cast<uint32_t>(request->value);
-    const auto high = static_cast<uint32_t>(request->value >> 32);
-    auto* control = ivars->controls[index];
-    if (request->selector == kSwifterKitVideoControlPropertySliderRange) {
-        auto* slider = OSDynamicCast(IOUserVideoSliderControl, control);
-        if (slider == nullptr || low > high)
-            return kIOReturnBadArgument;
-        return slider->SetRange(IOUserVideoSliderRange {low, high});
-    }
-    if (request->selector == kSwifterKitVideoControlPropertyPanningChannels) {
-        auto* pan = OSDynamicCast(IOUserVideoStereoPanControl, control);
-        if (pan == nullptr || low == high)
-            return kIOReturnBadArgument;
-        return pan->SetPanningChannels(low, high);
-    }
-    return kIOReturnBadArgument;
+    return SwifterKitSetControlProperty<VideoMemberFamily>(ivars, request);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::RemoveSelectorItems(
     const SwifterKitVideoSelectorRemoval* request,
     const uint8_t* values) {
-    uint32_t index = 0;
-    if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
-        return kIOReturnNotFound;
-    auto* selector = OSDynamicCast(IOUserVideoSelectorControl, ivars->controls[index]);
-    if (selector == nullptr)
-        return kIOReturnBadArgument;
-    IOUserVideoSelectorValueDescription items[kSwifterKitVideoMaximumSelectorItems] = {};
-    const size_t available =
-        selector->GetControlValueDescriptions(items, kSwifterKitVideoMaximumSelectorItems);
-    IOUserVideoSelectorValueDescription removed[kSwifterKitVideoMaximumSelectorItems] = {};
-    for (uint32_t value = 0; value < request->count; ++value) {
-        uint32_t wanted = 0;
-        memcpy(&wanted, values + value * sizeof(wanted), sizeof(wanted));
-        size_t match = available;
-        for (size_t item = 0; item < available; ++item)
-            if (items[item].m_value == wanted)
-                match = item;
-        if (match == available)
-            return kIOReturnNotFound;
-        removed[value] = items[match];
-    }
-    return selector->RemoveControlValueDescriptions(removed, request->count);
+    return SwifterKitRemoveSelectorItems<VideoMemberFamily>(
+        ivars,
+        request->identifier,
+        request->count,
+        values);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::CopyCustomPropertyInfo(
     const SwifterKitVideoMemberRequest* request,
     OSData** response) {
-    uint32_t index = 0;
     if (request == nullptr || request->argument != 0)
         return kIOReturnBadArgument;
-    if (!FindProperty(request->identifier, &index) || ivars->customProperties[index] == nullptr)
-        return kIOReturnNotFound;
-    auto* property = ivars->customProperties[index];
-    const IOUserVideoCustomPropertyInfo info = property->GetCustomPropertyInfo();
-    const SwifterKitVideoCustomPropertyInfo wire = {
-        property->GetObjectID(),
-        static_cast<uint32_t>(info.mSelector),
-        static_cast<uint32_t>(info.mPropertyDataType),
-        static_cast<uint32_t>(info.mQualifierDataType),
-        ivars->customPropertyOwners[index],
-        0};
-    return Respond(&wire, sizeof(wire), response);
+    return SwifterKitCopyCustomPropertyInfo<VideoMemberFamily>(
+        ivars,
+        request->identifier,
+        [this](uint32_t index) -> uint32_t { return ivars->customPropertyOwners[index]; },
+        response);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::SetMemberAttachment(
@@ -757,7 +638,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetMemberAttachment(
     }
     if (request->kind != kSwifterKitVideoMemberControl)
         return kIOReturnBadArgument;
-    if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
+    if (SwifterKitFindMemberControl<VideoMemberFamily>(ivars, request->identifier, &index)
+        == nullptr)
         return kIOReturnNotFound;
     if (ivars->controlDetached[index] != attach)
         return kIOReturnSuccess;

@@ -98,23 +98,15 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
             OSSafeReleaseNULL(control);
     }
 
-    for (uint32_t index = 0;
-         result == kIOReturnSuccess && index < kSwifterKitVideoCustomPropertyCount;
-         ++index) {
-        SwifterKitRuntimeVideoCustomProperty* property = nullptr;
-        result = SwifterKitMakeConfiguredCustomProperty<VideoControlFamily>(
-            ivars->service,
-            kSwifterKitVideoCustomProperties[index],
-            &property);
-        if (result == kIOReturnSuccess)
-            result = AddCustomProperty(property);
-        if (result == kIOReturnSuccess) {
+    if (result != kIOReturnSuccess)
+        return result;
+    return SwifterKitAddConfiguredCustomProperties<VideoControlFamily>(
+        ivars->service,
+        this,
+        [this](uint32_t index, SwifterKitRuntimeVideoCustomProperty* property) {
             ivars->customProperties[index] = property;
             ivars->customPropertyOwners[index] = kSwifterKitVideoOwnerDevice;
-        } else
-            OSSafeReleaseNULL(property);
-    }
-    return result;
+        });
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::CopyControl(
@@ -183,9 +175,11 @@ void SwifterKitRuntimeVideoDevice::RemoveControlsAndProperties() {
             (void)RemoveControl(ivars->controls[index]);
             ivars->controlDetached[index] = true;
         }
+    // A property that was never created has no owner to leave.
     for (uint32_t index = 0; index < kSwifterKitVideoCustomPropertyCount; ++index)
-        (void)SetCustomPropertyOwner(
-            kSwifterKitVideoCustomProperties[index].identifier,
-            kSwifterKitVideoOwnerDetached);
+        if (ivars->customProperties[index] != nullptr)
+            (void)SetCustomPropertyOwner(
+                kSwifterKitVideoCustomProperties[index].identifier,
+                kSwifterKitVideoOwnerDetached);
 }
 #endif

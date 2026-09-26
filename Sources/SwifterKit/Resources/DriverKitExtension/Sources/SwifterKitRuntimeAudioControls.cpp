@@ -87,22 +87,14 @@ kern_return_t SwifterKitRuntimeAudioDevice::ConfigureControls() {
             OSSafeReleaseNULL(control);
     }
 
-    for (uint32_t index = 0;
-         result == kIOReturnSuccess && index < kSwifterKitAudioCustomPropertyCount;
-         ++index) {
-        SwifterKitRuntimeAudioCustomProperty* property = nullptr;
-        result = SwifterKitMakeConfiguredCustomProperty<AudioControlFamily>(
-            ivars->service,
-            kSwifterKitAudioCustomProperties[index],
-            &property);
-        if (result == kIOReturnSuccess)
-            result = AddCustomProperty(property);
-        if (result == kIOReturnSuccess)
+    if (result != kIOReturnSuccess)
+        return result;
+    return SwifterKitAddConfiguredCustomProperties<AudioControlFamily>(
+        ivars->service,
+        this,
+        [this](uint32_t index, SwifterKitRuntimeAudioCustomProperty* property) {
             ivars->customProperties[index] = property;
-        else
-            OSSafeReleaseNULL(property);
-    }
-    return result;
+        });
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::CopyControl(

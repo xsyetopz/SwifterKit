@@ -39,17 +39,25 @@ struct VideoMemberRuntimeContractTests {
         #expect(native.contains("case SwifterKitRuntimeOpcode::\(nativeName(opcode)):"))
       }
       for call in [
-        "SetCanBeDefaultSystemOutputDevice(", "SetPreferredInputChannelLayout(",
-        "GetCurrentClientIOTime(false", "GetBufferList()", "GetInputQueueMemoryDescriptor()",
+        "SetCanBeDefaultSystemOutputDevice(", "GetBufferList()", "GetInputQueueMemoryDescriptor()",
         "GetOutputQueue()", "GetBufferWithID(", "_GetOutputControlMemoryObjectID(",
         "GetOutputDataMemoryDescriptor(", "SetDataMemoryDescriptor(", "SetControlMemoryDescriptor(",
         "destroyQueues()", "createQueues(", "setBufferID(", "removeAllBuffers()", "addBuffers(",
         "addBuffer(", "enqueueOutputBuffer(", "GetMemoryObjectID(", "GetOwningDeviceID()",
+        "SwifterKitCopyDeviceState<VideoMemberFamily>(",
+        "SwifterKitSetPreferredChannelLayout<VideoMemberFamily>(",
+        "SwifterKitRemoveSelectorItems<VideoMemberFamily>(",
+        "SwifterKitCopyCustomPropertyInfo<VideoMemberFamily>(",
+      ] { #expect(native.contains(call), "missing \(call)") }
+      let shared = try source("SwifterKitRuntimeMediaMembers.h", in: output)
+      for call in [
+        "SetPreferredInputChannelLayout(", "GetCurrentClientIOTime(false",
         "RemoveControlValueDescriptions(", "GetCustomPropertyInfo()",
-      ] { #expect(native.contains(call)) }
+      ] { #expect(shared.contains(call), "missing \(call)") }
       // Stream detach runs in the device's PerformDeviceConfigurationChange.
       let device = try source("SwifterKitRuntimeVideoDevice.cpp", in: output)
-      #expect(device.contains("RemoveStream("))
+      #expect(device.contains("SwifterKitApplyStructureChange<VideoStructureFamily>("))
+      #expect(shared.contains("RemoveStream("))
     }
   }
 
@@ -197,9 +205,18 @@ struct VideoMemberRuntimeContractTests {
         from: "::ApplyStructureChange(",
         to: "::AbortDeviceConfigurationChange("
       )
-      #expect(apply.contains("AddStream(stream) : RemoveStream(stream)"))
-      #expect(apply.contains("return SetInputSafetyOffset(value);"))
-      #expect(apply.contains("return SetOutputSafetyOffset(value);"))
+      #expect(
+        apply.contains("SwifterKitApplyStructureChange<VideoStructureFamily>(this, ivars, change)")
+      )
+      let shared = try source("SwifterKitRuntimeMediaMembers.h", in: output)
+      let sharedApply = try section(
+        of: shared,
+        from: "kern_return_t SwifterKitApplyStructureChange(",
+        to: "kern_return_t SwifterKitEnqueueControlValueEvent("
+      )
+      #expect(sharedApply.contains("device->AddStream(stream) : device->RemoveStream(stream)"))
+      #expect(sharedApply.contains("return device->SetInputSafetyOffset(value);"))
+      #expect(sharedApply.contains("return device->SetOutputSafetyOffset(value);"))
 
       let objects = try source("SwifterKitRuntimeVideoObjects.cpp", in: output)
       let clockSetter = try section(
