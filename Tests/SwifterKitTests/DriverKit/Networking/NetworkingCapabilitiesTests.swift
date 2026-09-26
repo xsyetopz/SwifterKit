@@ -127,6 +127,11 @@ struct NetworkingCapabilitiesTests {
     for value in invalid {
       #expect(throws: EthernetRuntimeError.invalidPayload) { try value.ethernet() }
     }
+    for kind: UInt32 in [0, 17] {
+      #expect(throws: EthernetRuntimeError.invalidEventKind(kind)) {
+        try event(kind: kind, value: 0).ethernet()
+      }
+    }
   }
 
   @Test

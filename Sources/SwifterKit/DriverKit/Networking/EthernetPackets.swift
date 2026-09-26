@@ -139,13 +139,15 @@ public struct EthernetTransmitMetadata: Sendable, Hashable {
   /// Creates empty metadata.
   public init() {}
 
-  static let runtimeSize = 72
+  static let runtimeSize = RuntimeNetworkLimits.transmitMetadataSize
 
   init(runtimeData data: Data) throws {
     guard data.count == Self.runtimeSize else { throw EthernetRuntimeError.invalidPayload }
     let flags: UInt32 = try data.readRuntimeInteger(at: 4)
     let reserved: UInt8 = try data.readRuntimeInteger(at: 39)
-    guard flags & ~0xFF == 0, reserved == 0 else { throw EthernetRuntimeError.invalidPayload }
+    guard flags & ~RuntimeNetworkPacketFlag.transmit == 0, reserved == 0 else {
+      throw EthernetRuntimeError.invalidPayload
+    }
     dataOffset = try data.readRuntimeInteger(at: 0)
     serviceClass = EthernetServiceClass(rawValue: try data.readRuntimeInteger(at: 8))
     traceID = try data.readRuntimeInteger(at: 12)
@@ -162,14 +164,14 @@ public struct EthernetTransmitMetadata: Sendable, Hashable {
     let expiry: UInt64 = try data.readRuntimeInteger(at: 48)
     memorySegmentOffset = try data.readRuntimeInteger(at: 56)
     dataIOVirtualAddress = try data.readRuntimeInteger(at: 64)
-    isLinkMulticast = flags & EthernetPacketFlag.linkMulticast != 0
-    isLinkBroadcast = flags & EthernetPacketFlag.linkBroadcast != 0
-    isTimestampRequested = flags & EthernetPacketFlag.timestampRequested != 0
-    isBackgroundTraffic = flags & EthernetPacketFlag.trafficBackground != 0
-    isRealtimeTraffic = flags & EthernetPacketFlag.trafficRealtime != 0
-    timestamp = flags & EthernetPacketFlag.hasTimestamp != 0 ? time : nil
-    expiryTime = flags & EthernetPacketFlag.hasExpiryTime != 0 ? expiry : nil
-    vlanTag = flags & EthernetPacketFlag.hasVLANTag != 0 ? tag : nil
+    isLinkMulticast = flags & RuntimeNetworkPacketFlag.linkMulticast.rawValue != 0
+    isLinkBroadcast = flags & RuntimeNetworkPacketFlag.linkBroadcast.rawValue != 0
+    isTimestampRequested = flags & RuntimeNetworkPacketFlag.timestampRequested.rawValue != 0
+    isBackgroundTraffic = flags & RuntimeNetworkPacketFlag.trafficBackground.rawValue != 0
+    isRealtimeTraffic = flags & RuntimeNetworkPacketFlag.trafficRealtime.rawValue != 0
+    timestamp = flags & RuntimeNetworkPacketFlag.hasTimestamp.rawValue != 0 ? time : nil
+    expiryTime = flags & RuntimeNetworkPacketFlag.hasExpiryTime.rawValue != 0 ? expiry : nil
+    vlanTag = flags & RuntimeNetworkPacketFlag.hasVLANTag.rawValue != 0 ? tag : nil
   }
 }
 
@@ -231,13 +233,13 @@ public struct EthernetReceiveMetadata: Sendable, Hashable {
   }
 
   func runtimeHeader(length: Int) -> Data {
-    var flags: UInt32 = isLinkMulticast ? EthernetPacketFlag.linkMulticast : 0
-    if timestamp != nil { flags |= EthernetPacketFlag.hasTimestamp }
-    if vlanTag != nil { flags |= EthernetPacketFlag.hasVLANTag }
-    if dataOffset != nil { flags |= EthernetPacketFlag.hasDataOffset }
-    if !lroFlags.isEmpty { flags |= EthernetPacketFlag.hasLRO }
-    if traceEvent != nil { flags |= EthernetPacketFlag.hasTraceEvent }
-    if isWakePacket { flags |= EthernetPacketFlag.wake }
+    var flags: UInt32 = isLinkMulticast ? RuntimeNetworkPacketFlag.linkMulticast.rawValue : 0
+    if timestamp != nil { flags |= RuntimeNetworkPacketFlag.hasTimestamp.rawValue }
+    if vlanTag != nil { flags |= RuntimeNetworkPacketFlag.hasVLANTag.rawValue }
+    if dataOffset != nil { flags |= RuntimeNetworkPacketFlag.hasDataOffset.rawValue }
+    if !lroFlags.isEmpty { flags |= RuntimeNetworkPacketFlag.hasLRO.rawValue }
+    if traceEvent != nil { flags |= RuntimeNetworkPacketFlag.hasTraceEvent.rawValue }
+    if isWakePacket { flags |= RuntimeNetworkPacketFlag.wake.rawValue }
     var data = Data(capacity: 40)
     data.appendRuntimeInteger(UInt32(length))
     data.appendRuntimeInteger(dataOffset ?? 0)
@@ -330,20 +332,4 @@ public struct EthernetInterfaceCommand: Sendable, Hashable {
     command = try data.readRuntimeInteger(at: 16)
     length = try data.readRuntimeInteger(at: 24)
   }
-}
-
-/// Packet flag bits shared with the extension.
-enum EthernetPacketFlag {
-  static let linkMulticast: UInt32 = 1 << 0
-  static let linkBroadcast: UInt32 = 1 << 1
-  static let timestampRequested: UInt32 = 1 << 2
-  static let trafficBackground: UInt32 = 1 << 3
-  static let trafficRealtime: UInt32 = 1 << 4
-  static let hasTimestamp: UInt32 = 1 << 5
-  static let hasExpiryTime: UInt32 = 1 << 6
-  static let hasVLANTag: UInt32 = 1 << 7
-  static let hasDataOffset: UInt32 = 1 << 8
-  static let hasLRO: UInt32 = 1 << 9
-  static let hasTraceEvent: UInt32 = 1 << 10
-  static let wake: UInt32 = 1 << 11
 }

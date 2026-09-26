@@ -506,4 +506,47 @@ static constexpr uint32_t kSwifterKitHIDGameControllerThumbstickButtonLeft = 0x1
 static constexpr uint32_t kSwifterKitHIDGameControllerThumbstickButtonRight = 0x2;
 static constexpr uint32_t kSwifterKitHIDGameControllerFlagsAll = 0x3;
 
+static constexpr uint32_t kSwifterKitNetworkMaximumBatch = 32;
+static constexpr uint32_t kSwifterKitNetworkEventHeaderSize = 16;
+static constexpr uint32_t kSwifterKitNetworkTransmitMetadataSize = 72;
+static constexpr uint32_t kSwifterKitNetworkQueueCount = 4;
+static constexpr uint64_t kSwifterKitEthernetMaximumPollInterval = 1000000000ULL;
+static constexpr uint32_t kSwifterKitEthernetTapInput = 1;
+static constexpr uint32_t kSwifterKitEthernetTapOutput = 2;
+
+static constexpr uint32_t kSwifterKitNetworkEventInterfaceEnabled = 1;
+static constexpr uint32_t kSwifterKitNetworkEventTransmit = 2;
+static constexpr uint32_t kSwifterKitNetworkEventPromiscuousMode = 3;
+static constexpr uint32_t kSwifterKitNetworkEventMulticastAddresses = 4;
+static constexpr uint32_t kSwifterKitNetworkEventAllMulticastMode = 5;
+static constexpr uint32_t kSwifterKitNetworkEventWakeOnMagicPacket = 6;
+static constexpr uint32_t kSwifterKitNetworkEventMaximumTransferUnit = 7;
+static constexpr uint32_t kSwifterKitNetworkEventHardwareAssists = 8;
+static constexpr uint32_t kSwifterKitNetworkEventSelectedMedia = 9;
+static constexpr uint32_t kSwifterKitNetworkEventPowerState = 10;
+static constexpr uint32_t kSwifterKitNetworkEventHardwareAddress = 11;
+static constexpr uint32_t kSwifterKitNetworkEventHardwareAssistsChanged = 12;
+static constexpr uint32_t kSwifterKitNetworkEventPolling = 13;
+static constexpr uint32_t kSwifterKitNetworkEventPacketTap = 14;
+static constexpr uint32_t kSwifterKitNetworkEventNICProxyConfiguration = 15;
+static constexpr uint32_t kSwifterKitNetworkEventInterfaceCommand = 16;
+
+static constexpr uint32_t kSwifterKitNetworkPacketLinkMulticast = 0x0001;
+static constexpr uint32_t kSwifterKitNetworkPacketLinkBroadcast = 0x0002;
+static constexpr uint32_t kSwifterKitNetworkPacketTimestampRequested = 0x0004;
+static constexpr uint32_t kSwifterKitNetworkPacketTrafficBackground = 0x0008;
+static constexpr uint32_t kSwifterKitNetworkPacketTrafficRealtime = 0x0010;
+static constexpr uint32_t kSwifterKitNetworkPacketHasTimestamp = 0x0020;
+static constexpr uint32_t kSwifterKitNetworkPacketHasExpiryTime = 0x0040;
+static constexpr uint32_t kSwifterKitNetworkPacketHasVLANTag = 0x0080;
+static constexpr uint32_t kSwifterKitNetworkPacketHasDataOffset = 0x0100;
+static constexpr uint32_t kSwifterKitNetworkPacketHasLRO = 0x0200;
+static constexpr uint32_t kSwifterKitNetworkPacketHasTraceEvent = 0x0400;
+static constexpr uint32_t kSwifterKitNetworkPacketWake = 0x0800;
+static constexpr uint32_t kSwifterKitNetworkTransmitFlags = 0x00FF;
+static constexpr uint32_t kSwifterKitNetworkReceiveFlags = 0x0FA1;
+static constexpr uint32_t kSwifterKitNetworkCompletionFlags = 0x0420;
+static constexpr uint32_t kSwifterKitNetworkRxChecksumFlags = 0x0F00;
+static constexpr uint32_t kSwifterKitNetworkLROFlags = 0x0003;
+
 #endif

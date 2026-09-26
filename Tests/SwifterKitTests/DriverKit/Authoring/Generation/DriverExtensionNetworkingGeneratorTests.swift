@@ -59,7 +59,12 @@ struct NetworkingGeneratorTests {
     )
     let powerEnd = try #require(setup.range(of: "\n}", range: power..<setup.endIndex)?.lowerBound)
     let powerBody = setup[power..<powerEnd]
-    #expect(powerBody.contains("(void)NetworkControlEvent(10, static_cast<uint32_t>(state));"))
+    #expect(
+      powerBody.contains(
+        "(void)NetworkControlEvent(kSwifterKitNetworkEventPowerState, "
+          + "static_cast<uint32_t>(state));"
+      )
+    )
     #expect(powerBody.contains("return super::setPowerState(state, device);"))
     #expect(!powerBody.contains("SUPERDISPATCH"))
     #expect(!powerBody.contains("?"))

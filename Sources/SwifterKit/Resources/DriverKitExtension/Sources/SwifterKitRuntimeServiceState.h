@@ -140,11 +140,10 @@ struct SwifterKitNetworkPendingTransmit {
     IOUserNetworkPacket* packet = nullptr;
 };
 
-// DLT_EN10MB with a 14-byte Ethernet header, and the BPF_MODE_* tap directions.
+// DLT_EN10MB with a 14-byte Ethernet header. The BPF_MODE_* tap directions come from
+// RuntimeSchema+Networking.swift.
 static constexpr uint32_t kSwifterKitEthernetDataLinkType = 1;
 static constexpr uint32_t kSwifterKitEthernetHeaderLength = 14;
-static constexpr uint32_t kSwifterKitEthernetTapInput = 1;
-static constexpr uint32_t kSwifterKitEthernetTapOutput = 2;
 #endif
 
 #if SWIFTERKIT_ENABLE_BLOCK_STORAGE

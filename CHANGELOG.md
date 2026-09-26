@@ -110,7 +110,11 @@ SwifterKit records user-visible changes in this file.
   and pipe-descriptor selectors, and the HID page, cookie, collection, touch,
   pending-report, and event-value limits, the LED usage page, the element write
   kind, and the host-report, get-report, delivery, event-driver category,
-  stylus, touch, digitizer-collection, and game-controller bits.
+  stylus, touch, digitizer-collection, and game-controller bits. The Ethernet
+  event kinds, packet flags and their transmit, receive, completion, checksum,
+  and LRO masks, the batch, poll-interval, and packet-queue bounds, the
+  packet-tap directions, and the event-header and transmit-metadata sizes, from
+  which the largest `packetBufferSize` follows, come from it as well.
 - The queued `UserCreateTargetForID` discarded the result of enqueueing its
   required `SCSIControllerEvent.targetCreated` event, so a registered host that
   had let the required queue fill lost the event. The create's queue now

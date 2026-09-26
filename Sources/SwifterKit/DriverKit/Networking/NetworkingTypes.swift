@@ -199,18 +199,23 @@ public enum EthernetEvent: Sendable, Hashable {
   case interfaceCommand(EthernetInterfaceCommand)
 
   init(runtimePayload: Data) throws {
-    guard runtimePayload.count >= 16 else { throw EthernetRuntimeError.invalidPayload }
+    let headerSize = RuntimeNetworkLimits.eventHeaderSize
+    guard runtimePayload.count >= headerSize else { throw EthernetRuntimeError.invalidPayload }
     let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
     let requestID: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
     let value: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
     let length: UInt32 = try runtimePayload.readRuntimeInteger(at: 12)
-    guard Int(length) == runtimePayload.count - 16 else {
+    guard Int(length) == runtimePayload.count - headerSize else {
       throw EthernetRuntimeError.invalidPayload
     }
-    let data = runtimePayload.subdata(in: 16..<runtimePayload.count)
-    switch kind {
-    case 1: self = .interfaceEnabled(try Self.boolean(value, requestID: requestID, data: data))
-    case 2:
+    let data = runtimePayload.subdata(in: headerSize..<runtimePayload.count)
+    guard let eventKind = RuntimeNetworkEventKind(rawValue: kind) else {
+      throw EthernetRuntimeError.invalidEventKind(kind)
+    }
+    switch eventKind {
+    case .interfaceEnabled:
+      self = .interfaceEnabled(try Self.boolean(value, requestID: requestID, data: data))
+    case .transmit:
       let size = EthernetTransmitMetadata.runtimeSize
       guard requestID != 0, value != 0, Int(value) == data.count - size else {
         throw EthernetRuntimeError.invalidPayload
@@ -223,8 +228,9 @@ public enum EthernetEvent: Sendable, Hashable {
           metadata: metadata
         )
       )
-    case 3: self = .promiscuousMode(try Self.boolean(value, requestID: requestID, data: data))
-    case 4:
+    case .promiscuousMode:
+      self = .promiscuousMode(try Self.boolean(value, requestID: requestID, data: data))
+    case .multicastAddresses:
       guard requestID == 0, value == UInt32(data.count / 6), data.count.isMultiple(of: 6) else {
         throw EthernetRuntimeError.invalidPayload
       }
@@ -240,26 +246,28 @@ public enum EthernetEvent: Sendable, Hashable {
           )
         }
       )
-    case 5: self = .allMulticastMode(try Self.boolean(value, requestID: requestID, data: data))
-    case 6: self = .wakeOnMagicPacket(try Self.boolean(value, requestID: requestID, data: data))
-    case 7:
+    case .allMulticastMode:
+      self = .allMulticastMode(try Self.boolean(value, requestID: requestID, data: data))
+    case .wakeOnMagicPacket:
+      self = .wakeOnMagicPacket(try Self.boolean(value, requestID: requestID, data: data))
+    case .maximumTransferUnit:
       try Self.requireScalar(requestID, data)
       self = .maximumTransferUnit(value)
-    case 8:
+    case .hardwareAssists:
       try Self.requireScalar(requestID, data)
       self = .hardwareAssists(value)
-    case 9:
+    case .selectedMedia:
       try Self.requireScalar(requestID, data)
       self = .selectedMedia(EthernetMedia(rawValue: value))
-    case 10:
+    case .powerState:
       try Self.requireScalar(requestID, data)
       self = .powerState(value)
-    case 11:
+    case .hardwareAddress:
       guard requestID == 0, value == 1, data.count == 6 else {
         throw EthernetRuntimeError.invalidPayload
       }
       self = .hardwareAddress(EthernetAddress(data[0], data[1], data[2], data[3], data[4], data[5]))
-    case 12:
+    case .hardwareAssistsChanged:
       guard requestID == 0, data.count == 4 else { throw EthernetRuntimeError.invalidPayload }
       let mask: UInt32 = try data.readRuntimeInteger(at: 0)
       guard value & ~mask == 0 else { throw EthernetRuntimeError.invalidPayload }
@@ -267,20 +275,21 @@ public enum EthernetEvent: Sendable, Hashable {
         assists: EthernetHardwareAssists(rawValue: value),
         mask: EthernetHardwareAssists(rawValue: mask)
       )
-    case 13: self = .polling(try Self.boolean(value, requestID: requestID, data: data))
-    case 14:
+    case .polling: self = .polling(try Self.boolean(value, requestID: requestID, data: data))
+    case .packetTap:
       try Self.requireScalar(requestID, data)
-      guard value <= 3 else { throw EthernetRuntimeError.invalidPayload }
+      guard value & ~RuntimeNetworkTapMode([.input, .output]).rawValue == 0 else {
+        throw EthernetRuntimeError.invalidPayload
+      }
       self = .packetTap(EthernetPacketTapMode(rawValue: value))
-    case 15:
+    case .nicProxyConfiguration:
       guard requestID == 0, value == UInt32(data.count) else {
         throw EthernetRuntimeError.invalidPayload
       }
       self = .nicProxyConfiguration(try EthernetNICProxyConfiguration(data: data))
-    case 16:
+    case .interfaceCommand:
       guard value == 0 else { throw EthernetRuntimeError.invalidPayload }
       self = .interfaceCommand(try EthernetInterfaceCommand(requestID: requestID, data: data))
-    default: throw EthernetRuntimeError.invalidEventKind(kind)
     }
   }
 

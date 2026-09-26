@@ -156,7 +156,7 @@ public struct EthernetPacketPolling: Sendable, Hashable {
   public let enabled: Bool
 
   /// Largest accepted poll interval: one second.
-  public static let maximumPollInterval: UInt64 = 1_000_000_000
+  public static let maximumPollInterval = RuntimeNetworkLimits.maximumPollInterval
 
   /// Creates poller parameters.
   public init(dataRate: UInt64, pollInterval: UInt64 = 0, enabled: Bool = true) {

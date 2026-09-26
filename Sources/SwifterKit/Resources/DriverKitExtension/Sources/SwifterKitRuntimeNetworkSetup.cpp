@@ -85,7 +85,7 @@ namespace {
             && (type == kIOUserNetworkPacketPollerEventPollStart
                 || type == kIOUserNetworkPacketPollerEventPollStop))
             (void)service->NetworkControlEvent(
-                13,
+                kSwifterKitNetworkEventPolling,
                 type == kIOUserNetworkPacketPollerEventPollStart ? 1 : 0);
         return kIOReturnSuccess;
     }
@@ -303,7 +303,7 @@ kern_return_t SwifterKitRuntimeService::setInterfaceEnable(bool enable) {
         if (result == kIOReturnSuccess)
             result = ivars->networkRxSubmission->setEnable(true);
         if (result == kIOReturnSuccess)
-            result = NetworkControlEvent(1, 1);
+            result = NetworkControlEvent(kSwifterKitNetworkEventInterfaceEnabled, 1);
         if (result != kIOReturnSuccess) {
             (void)ivars->networkTxCompletion->setEnable(false);
             (void)ivars->networkTxSubmission->setEnable(false);
@@ -323,7 +323,7 @@ kern_return_t SwifterKitRuntimeService::setInterfaceEnable(bool enable) {
         current = ivars->networkRxSubmission->setEnable(false);
         if (result == kIOReturnSuccess)
             result = current;
-        current = NetworkControlEvent(1, 0);
+        current = NetworkControlEvent(kSwifterKitNetworkEventInterfaceEnabled, 0);
         if (result == kIOReturnSuccess)
             result = current;
     }
@@ -333,29 +333,34 @@ kern_return_t SwifterKitRuntimeService::setInterfaceEnable(bool enable) {
 }
 
 kern_return_t SwifterKitRuntimeService::setPromiscuousModeEnable(bool enable) {
-    return NetworkControlEvent(3, enable ? 1 : 0);
+    return NetworkControlEvent(kSwifterKitNetworkEventPromiscuousMode, enable ? 1 : 0);
 }
 kern_return_t SwifterKitRuntimeService::setMulticastAddresses(
     const ether_addr_t* addresses,
     uint32_t count) {
     if (count > 1024 || (count != 0 && addresses == nullptr))
         return kIOReturnBadArgument;
-    return NetworkControlEvent(4, count, addresses, count * sizeof(*addresses));
+    return NetworkControlEvent(
+        kSwifterKitNetworkEventMulticastAddresses,
+        count,
+        addresses,
+        count * sizeof(*addresses));
 }
 kern_return_t SwifterKitRuntimeService::setAllMulticastModeEnable(bool enable) {
-    return NetworkControlEvent(5, enable ? 1 : 0);
+    return NetworkControlEvent(kSwifterKitNetworkEventAllMulticastMode, enable ? 1 : 0);
 }
 kern_return_t SwifterKitRuntimeService::setMaxTransferUnit(uint32_t mtu) {
     return mtu >= kSwifterKitEthernetMinimumMTU && mtu <= kSwifterKitEthernetMTU
-               ? NetworkControlEvent(7, mtu)
+               ? NetworkControlEvent(kSwifterKitNetworkEventMaximumTransferUnit, mtu)
                : kIOReturnBadArgument;
 }
 uint32_t SwifterKitRuntimeService::getMaxTransferUnit() {
     return kSwifterKitEthernetMTU;
 }
 kern_return_t SwifterKitRuntimeService::setHardwareAssists(uint32_t assists) {
-    return (assists & ~kAdvertisedHardwareAssists) == 0 ? NetworkControlEvent(8, assists)
-                                                        : kIOReturnUnsupported;
+    return (assists & ~kAdvertisedHardwareAssists) == 0
+               ? NetworkControlEvent(kSwifterKitNetworkEventHardwareAssists, assists)
+               : kIOReturnUnsupported;
 }
 uint32_t SwifterKitRuntimeService::getHardwareAssists() {
     return kAdvertisedHardwareAssists;
@@ -366,9 +371,15 @@ kern_return_t SwifterKitRuntimeService::setHardwareAssists(uint32_t assists, uin
     if ((mask & ~kAdvertisedHardwareAssists) != 0)
         return kIOReturnUnsupported;
     const uint32_t changed = assists & mask;
-    kern_return_t result = NetworkControlEvent(12, changed, &mask, sizeof(mask));
+    kern_return_t result = NetworkControlEvent(
+        kSwifterKitNetworkEventHardwareAssistsChanged,
+        changed,
+        &mask,
+        sizeof(mask));
     if (result == kIOReturnSuccess && (mask & kIOUserNetworkHWAssistWOMP) != 0)
-        result = NetworkControlEvent(6, (changed & kIOUserNetworkHWAssistWOMP) != 0 ? 1 : 0);
+        result = NetworkControlEvent(
+            kSwifterKitNetworkEventWakeOnMagicPacket,
+            (changed & kIOUserNetworkHWAssistWOMP) != 0 ? 1 : 0);
     return result;
 }
 uint32_t SwifterKitRuntimeService::getFeatureFlags() {
@@ -416,7 +427,7 @@ int SwifterKitRuntimeService::bpfTap(uint32_t dataLinkType, uint32_t mode) {
     IOLockLock(ivars->networkLock);
     ivars->networkTapMode = tapMode;
     IOLockUnlock(ivars->networkLock);
-    (void)NetworkControlEvent(14, tapMode);
+    (void)NetworkControlEvent(kSwifterKitNetworkEventPacketTap, tapMode);
     return 0;
 }
 // The handoff is one nicproxy_info_t whose len covers its record buffer; one event carries it.
@@ -425,20 +436,24 @@ void SwifterKitRuntimeService::hwConfigNicProxyData(nicproxy_info_t* handoff) {
         || handoff->len
                > kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitNetworkEventHeader))
         return;
-    (void)NetworkControlEvent(15, handoff->len, handoff, handoff->len);
+    (void)NetworkControlEvent(
+        kSwifterKitNetworkEventNICProxyConfiguration,
+        handoff->len,
+        handoff,
+        handoff->len);
 }
 
 MediaWord SwifterKitRuntimeService::getInitialMedia() {
     return kSwifterKitEthernetInitialMedia;
 }
 kern_return_t SwifterKitRuntimeService::handleChosenMedia(MediaWord media) {
-    return NetworkControlEvent(9, media);
+    return NetworkControlEvent(kSwifterKitNetworkEventSelectedMedia, media);
 }
 // The family reaches this from SetPowerState, which SwifterKitRuntimeServicePower acknowledges
 // through super once Swift answers. The Swift notification is best effort: super always runs,
 // exactly once, and its result is returned, so a full event queue never stalls the transition.
 kern_return_t SwifterKitRuntimeService::setPowerState(unsigned long state, IOService* device) {
-    (void)NetworkControlEvent(10, static_cast<uint32_t>(state));
+    (void)NetworkControlEvent(kSwifterKitNetworkEventPowerState, static_cast<uint32_t>(state));
     return super::setPowerState(state, device);
 }
 kern_return_t SwifterKitRuntimeService::getHardwareAddress(ether_addr_t* address) {
@@ -457,7 +472,9 @@ kern_return_t SwifterKitRuntimeService::setHardwareAddress(ether_addr_t* address
         return kIOReturnBadArgument;
     IOLockLock(ivars->networkLock);
     kern_return_t result =
-        ivars->networkStopping ? kIOReturnNotReady : NetworkControlEvent(11, 1, address->octet, 6);
+        ivars->networkStopping
+            ? kIOReturnNotReady
+            : NetworkControlEvent(kSwifterKitNetworkEventHardwareAddress, 1, address->octet, 6);
     if (result == kIOReturnSuccess)
         memcpy(ivars->networkAddress, address->octet, 6);
     IOLockUnlock(ivars->networkLock);

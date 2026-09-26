@@ -61,15 +61,17 @@ kern_return_t SwifterKitRuntimeService::NetworkPacketCommand(
     if (ivars->networkStopping || ivars->networkTxSubmission == nullptr) {
         result = kIOReturnNotReady;
     } else if (command == SwifterKitRuntimeOpcode::NetworkSetQueueEnabled) {
-        SwifterKitNetworkQueueEnable request = {.queue = 4, .enabled = 2};
+        SwifterKitNetworkQueueEnable request = {
+            .queue = kSwifterKitNetworkQueueCount,
+            .enabled = 2};
         if (payloadLength == sizeof(request))
             memcpy(&request, payload, sizeof(request));
-        IOUserNetworkPacketQueue* queues[] = {
+        IOUserNetworkPacketQueue* queues[kSwifterKitNetworkQueueCount] = {
             ivars->networkTxSubmission,
             ivars->networkTxCompletion,
             ivars->networkRxSubmission,
             ivars->networkRxCompletion};
-        result = request.queue < 4 && request.enabled <= 1
+        result = request.queue < kSwifterKitNetworkQueueCount && request.enabled <= 1
                      ? queues[request.queue]->setEnable(request.enabled == 1)
                      : kIOReturnBadArgument;
     } else if (command == SwifterKitRuntimeOpcode::NetworkPurgeTransmitQueue) {
@@ -264,7 +266,11 @@ kern_return_t SwifterKitRuntimeService::processInterfaceCommand(ifdrv_t* command
     if (result != kIOReturnSuccess)
         return result;
 
-    event.header = {16, requestID, 0, static_cast<uint32_t>(sizeof(event.request))};
+    event.header = {
+        kSwifterKitNetworkEventInterfaceCommand,
+        requestID,
+        0,
+        static_cast<uint32_t>(sizeof(event.request))};
     result = EnqueueRequiredEvent(kSwifterKitEventNetwork, &event, sizeof(event));
     const uint64_t deadline = Now() + kInterfaceCommandTimeoutNanoseconds;
     while (result == kIOReturnSuccess) {

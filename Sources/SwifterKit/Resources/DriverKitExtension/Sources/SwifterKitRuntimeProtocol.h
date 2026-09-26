@@ -152,6 +152,9 @@ struct __attribute__((packed)) SwifterKitHIDRuntimeStatistics {
     uint64_t inputReportFailures;
 };
 
+// Ethernet payloads. The event kinds, packet flags and masks, batch, poll-interval, and queue
+// bounds, and the event-header and transmit-metadata sizes come from
+// RuntimeSchema+Networking.swift.
 struct __attribute__((packed)) SwifterKitNetworkReceiveHeader {
     uint32_t length;
     uint8_t linkHeaderLength;
@@ -194,37 +197,12 @@ struct __attribute__((packed)) SwifterKitNetworkPollerParameters {
     uint64_t pollInterval;
 };
 
-// The largest poll interval Swift may request: one second.
-static constexpr uint64_t kSwifterKitEthernetMaximumPollInterval = 1000000000;
-
 struct __attribute__((packed)) SwifterKitNetworkEventHeader {
     uint32_t kind;
     uint32_t requestID;
     uint32_t value;
     uint32_t dataLength;
 };
-
-// Packet flags. Transmit metadata reports the Tx bits; a received packet sets the Rx bits.
-static constexpr uint32_t kSwifterKitNetworkPacketLinkMulticast = 0x0001;
-static constexpr uint32_t kSwifterKitNetworkPacketLinkBroadcast = 0x0002;
-static constexpr uint32_t kSwifterKitNetworkPacketTimestampRequested = 0x0004;
-static constexpr uint32_t kSwifterKitNetworkPacketTrafficBackground = 0x0008;
-static constexpr uint32_t kSwifterKitNetworkPacketTrafficRealtime = 0x0010;
-static constexpr uint32_t kSwifterKitNetworkPacketHasTimestamp = 0x0020;
-static constexpr uint32_t kSwifterKitNetworkPacketHasExpiryTime = 0x0040;
-static constexpr uint32_t kSwifterKitNetworkPacketHasVLANTag = 0x0080;
-static constexpr uint32_t kSwifterKitNetworkPacketHasDataOffset = 0x0100;
-static constexpr uint32_t kSwifterKitNetworkPacketHasLRO = 0x0200;
-static constexpr uint32_t kSwifterKitNetworkPacketHasTraceEvent = 0x0400;
-static constexpr uint32_t kSwifterKitNetworkPacketWake = 0x0800;
-
-static constexpr uint32_t kSwifterKitNetworkTransmitFlags = 0x00FF;
-static constexpr uint32_t kSwifterKitNetworkReceiveFlags = 0x0FA1;
-static constexpr uint32_t kSwifterKitNetworkCompletionFlags = 0x0420;
-static constexpr uint32_t kSwifterKitNetworkRxChecksumFlags = 0x0F00;
-static constexpr uint32_t kSwifterKitNetworkLROFlags = 0x0003;
-// The most frames one receive or completion batch carries.
-static constexpr uint32_t kSwifterKitNetworkMaximumBatch = 32;
 
 // Precedes each transmitted frame in a transmit event.
 struct __attribute__((packed)) SwifterKitNetworkTransmitMetadata {
@@ -570,11 +548,11 @@ static_assert(sizeof(SwifterKitSerialEvent) == 16);
 static_assert(sizeof(SwifterKitNetworkReceiveHeader) == 8);
 static_assert(sizeof(SwifterKitNetworkCompletion) == 8);
 static_assert(sizeof(SwifterKitNetworkLink) == 8);
-static_assert(sizeof(SwifterKitNetworkEventHeader) == 16);
+static_assert(sizeof(SwifterKitNetworkEventHeader) == kSwifterKitNetworkEventHeaderSize);
 static_assert(sizeof(SwifterKitNetworkBandwidths) == 32);
 static_assert(sizeof(SwifterKitNetworkHardwareCounts) == 88);
 static_assert(sizeof(SwifterKitNetworkPollerParameters) == 16);
-static_assert(sizeof(SwifterKitNetworkTransmitMetadata) == 72);
+static_assert(sizeof(SwifterKitNetworkTransmitMetadata) == kSwifterKitNetworkTransmitMetadataSize);
 static_assert(sizeof(SwifterKitNetworkBatchHeader) == 8);
 static_assert(sizeof(SwifterKitNetworkReceivePacket) == 40);
 static_assert(sizeof(SwifterKitNetworkTransmitCompletion) == 24);

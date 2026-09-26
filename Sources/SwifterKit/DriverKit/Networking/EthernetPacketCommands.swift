@@ -2,7 +2,7 @@ import Foundation
 
 extension DriverCommand {
   /// The most frames one receive or completion batch carries.
-  public static let ethernetMaximumBatch = 32
+  public static let ethernetMaximumBatch = RuntimeNetworkLimits.maximumBatch
 
   /// Injects hardware-received frames, each with its packet metadata, in one batch.
   ///
@@ -45,8 +45,9 @@ extension DriverCommand {
     payload.appendRuntimeInteger(UInt32(completions.count))
     payload.appendRuntimeInteger(UInt32(0))
     for completion in completions {
-      var flags: UInt32 = completion.timestamp == nil ? 0 : EthernetPacketFlag.hasTimestamp
-      if completion.traceEvent != nil { flags |= EthernetPacketFlag.hasTraceEvent }
+      var flags: UInt32 =
+        completion.timestamp == nil ? 0 : RuntimeNetworkPacketFlag.hasTimestamp.rawValue
+      if completion.traceEvent != nil { flags |= RuntimeNetworkPacketFlag.hasTraceEvent.rawValue }
       payload.appendRuntimeInteger(completion.requestID)
       payload.appendRuntimeInteger(completion.status)
       payload.appendRuntimeInteger(flags)

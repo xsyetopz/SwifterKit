@@ -67,7 +67,11 @@ void SwifterKitRuntimeService::DrainNetworkTransmits() {
         packet->retain();
         *pending = {identifier, packet};
         const uint32_t dataLength = static_cast<uint32_t>(sizeof(metadata)) + length;
-        SwifterKitNetworkEventHeader header = {2, identifier, length, dataLength};
+        SwifterKitNetworkEventHeader header = {
+            kSwifterKitNetworkEventTransmit,
+            identifier,
+            length,
+            dataLength};
         OSData* event = OSData::withCapacity(sizeof(header) + dataLength);
         const void* bytes = reinterpret_cast<const void*>(address + offset);
         bool ready = event != nullptr && event->appendBytes(&header, sizeof(header))

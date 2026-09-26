@@ -161,14 +161,24 @@ struct EthernetPacketsTests {
     }
     let protocolHeader = try source("SwifterKitRuntimeProtocol.h")
     #expect(
-      protocolHeader.contains("static_assert(sizeof(SwifterKitNetworkTransmitMetadata) == 72);")
-    )
-    #expect(protocolHeader.contains("static_assert(sizeof(SwifterKitNetworkReceivePacket) == 40);"))
-    #expect(
       protocolHeader.contains(
-        "kSwifterKitNetworkMaximumBatch = \(DriverCommand.ethernetMaximumBatch);"
+        "static_assert(sizeof(SwifterKitNetworkTransmitMetadata) == "
+          + "kSwifterKitNetworkTransmitMetadataSize);"
       )
     )
+    #expect(protocolHeader.contains("static_assert(sizeof(SwifterKitNetworkReceivePacket) == 40);"))
+    let schema = try source(RuntimeSchemaHeader.fileName)
+    #expect(schema.contains("kSwifterKitNetworkTransmitMetadataSize = 72;"))
+    #expect(
+      schema.contains("kSwifterKitNetworkMaximumBatch = \(DriverCommand.ethernetMaximumBatch);")
+    )
+    #expect(schema.contains("kSwifterKitNetworkTransmitFlags = 0x00FF;"))
+    #expect(schema.contains("kSwifterKitNetworkReceiveFlags = 0x0FA1;"))
+    #expect(schema.contains("kSwifterKitNetworkCompletionFlags = 0x0420;"))
+    #expect(schema.contains("kSwifterKitNetworkRxChecksumFlags = 0x0F00;"))
+    #expect(schema.contains("kSwifterKitNetworkLROFlags = 0x0003;"))
+    #expect(schema.contains("kSwifterKitNetworkEventInterfaceCommand = 16;"))
+    #expect(schema.contains("kSwifterKitNetworkQueueCount = 4;"))
     let metadata = try source("SwifterKitRuntimeNetworkMetadata.h")
     #expect(metadata.contains("__builtin_available(driverkit 23.0, *)"))
     #expect(metadata.contains("__builtin_available(driverkit 24.0, *)"))

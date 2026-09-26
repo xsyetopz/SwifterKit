@@ -72,14 +72,19 @@ struct NetworkingCapabilitiesGeneratorTests {
     let queues = try #require(rest.range(of: "networkTxCompletion->setEnable(false)"))
     #expect(disable.lowerBound < queues.lowerBound)
     #expect(setup.contains("mtu >= kSwifterKitEthernetMinimumMTU && mtu <= kSwifterKitEthernetMTU"))
-    #expect(setup.contains("NetworkControlEvent(12, changed, &mask, sizeof(mask))"))
+    #expect(setup.contains("kSwifterKitNetworkEventHardwareAssistsChanged,\n        changed,"))
     // supportsWakeOnMagicPacket alone lets the stack toggle WOMP through the assist mask.
     #expect(
       setup.contains("| (kSwifterKitEthernetWakeOnMagicPacket ? kIOUserNetworkHWAssistWOMP : 0U);")
     )
     #expect(setup.contains("if ((mask & ~kAdvertisedHardwareAssists) != 0)"))
     #expect(setup.contains("return kAdvertisedHardwareAssists;"))
-    #expect(setup.contains("NetworkControlEvent(6, (changed & kIOUserNetworkHWAssistWOMP) != 0"))
+    #expect(
+      setup.contains(
+        "kSwifterKitNetworkEventWakeOnMagicPacket,\n"
+          + "            (changed & kIOUserNetworkHWAssistWOMP) != 0"
+      )
+    )
     #expect(
       setup.contains(
         "> kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitNetworkEventHeader)"
@@ -100,9 +105,10 @@ struct NetworkingCapabilitiesGeneratorTests {
     #expect(
       protocolHeader.contains("static_assert(sizeof(SwifterKitNetworkHardwareCounts) == 88);")
     )
+    let schema = try source(RuntimeSchemaHeader.fileName, in: output)
     #expect(
-      protocolHeader.contains(
-        "kSwifterKitEthernetMaximumPollInterval = \(EthernetPacketPolling.maximumPollInterval);"
+      schema.contains(
+        "kSwifterKitEthernetMaximumPollInterval = \(EthernetPacketPolling.maximumPollInterval)ULL;"
       )
     )
     let client = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
