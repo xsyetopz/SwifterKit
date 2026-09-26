@@ -118,9 +118,18 @@ struct FastPathInterpreterTests {
           .compute(.v5, .add, .ringDeviceAddress(7, .low)),
         ]
       ),
+      FastPathProgram(
+        trigger: .command,
+        argumentCount: 2,
+        operations: [.enqueue(3, slots: [.v1, .v0]), .enqueue(3, slots: [.v0])]
+      ),
     ],
     barSizes: [0: 0x100, 2: 0x10],
-    rings: [FastPathRing(id: 7, entrySize: 16, entryCount: 4, direction: .deviceReads)]
+    rings: [FastPathRing(id: 7, entrySize: 16, entryCount: 4, direction: .deviceReads)],
+    dataQueues: [
+      FastPathDataQueue(id: 3, capacityBytes: 4096, maximumEntrySize: 16, direction: .toHost),
+      FastPathDataQueue(id: 4, capacityBytes: 4096, maximumEntrySize: 8, direction: .toExtension),
+    ]
   )
 
   /// The transcript of each valid run: status, emit flag, slots, then accesses in order.
@@ -149,6 +158,9 @@ struct FastPathInterpreterTests {
     "ring status=0 emitted=0 slots=5,AABBCCDD,AABBCCDD,2,1,23456000,0,0 log=S0+18/4=AABBCCDD"
       + " L0+18/4=AABBCCDD I0.0/4=10 P0.0/4=3 I0.0/4=3 P0.0/4=2 I0.0/4=2 A0+0/8=123456000"
       + " A0+0/8=123456000",
+    // Each enqueue hands the data queue its slots in order; the program's status is unaffected.
+    "enqueue status=0 emitted=0 slots=12345,1122334455667788,0,0,0,0,0,0"
+      + " log=Q0:1122334455667788:12345 Q0:12345",
   ]
 
   static let rejections = [
@@ -166,6 +178,9 @@ struct FastPathInterpreterTests {
     "ring-store-wide-constant", "ring-load-slot", "ring-load-unused", "ring-advance-index",
     "ring-advance-ring", "ring-operand-ring", "ring-operand-selector", "ring-entry-size",
     "ring-entry-count", "ring-bytes", "ring-direction", "ring-identifier", "ring-missing",
+    "enqueue-queue", "enqueue-to-extension", "enqueue-too-wide", "enqueue-zero", "enqueue-slot",
+    "enqueue-unused", "queue-capacity", "queue-entry-size", "queue-entry-over", "queue-direction",
+    "queue-identifier", "queue-duplicate", "queue-missing",
   ]
 
   static let invalidConfigurations = [
@@ -212,7 +227,7 @@ struct FastPathInterpreterTests {
     for name in Self.invalidConfigurations {
       #expect(lines["config-\(name)"] == "config-\(name) valid=0")
     }
-    #expect(lines["interrupt-program"] == "interrupt-program source3=7 source4=11 count=11")
+    #expect(lines["interrupt-program"] == "interrupt-program source3=7 source4=12 count=12")
     #expect(lines["deliver"] == "deliver always=1 never=0 emitted=1 silent=0 not-run=1 unknown=1")
     #expect(lines["command"] == "command matching=1 count=0 start=0 interrupt=0 missing=0")
     #expect(

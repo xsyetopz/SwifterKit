@@ -318,6 +318,7 @@ static constexpr uint32_t kSwifterKitEventTimer = 0x0E00;
 static constexpr uint32_t kSwifterKitEventWatchServices = 0x0E10;
 static constexpr uint32_t kSwifterKitEventWatchSystemState = 0x0E11;
 static constexpr uint32_t kSwifterKitEventFastPath = 0x0F00;
+static constexpr uint32_t kSwifterKitEventFastPathDataQueue = 0x0F01;
 
 static constexpr uint32_t kSwifterKitMaximumTimers = 16;
 static constexpr uint32_t kSwifterKitMaximumServiceWatches = 8;

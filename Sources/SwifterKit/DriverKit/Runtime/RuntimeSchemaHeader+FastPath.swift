@@ -49,6 +49,34 @@ extension RuntimeSchemaHeader {
           ("kSwifterKitFastPathRingConsumerOffset", "\(limits.ringConsumerOffset)"),
           ("kSwifterKitFastPathRingEntrySizeOffset", "\(limits.ringEntrySizeOffset)"),
           ("kSwifterKitFastPathRingEntryCountOffset", "\(limits.ringEntryCountOffset)"),
+          ("kSwifterKitFastPathMaximumDataQueues", "\(limits.maximumDataQueues)"),
+          (
+            "kSwifterKitFastPathMinimumDataQueueCapacity",
+            "\(limits.dataQueueCapacities.lowerBound)"
+          ),
+          (
+            "kSwifterKitFastPathMaximumDataQueueCapacity",
+            "\(limits.dataQueueCapacities.upperBound)"
+          ),
+          (
+            "kSwifterKitFastPathMinimumDataQueueEntrySize",
+            "\(limits.dataQueueEntrySizes.lowerBound)"
+          ),
+          (
+            "kSwifterKitFastPathMaximumDataQueueEntrySize",
+            "\(limits.dataQueueEntrySizes.upperBound)"
+          ), ("kSwifterKitFastPathMaximumDataQueueBytes", "\(limits.maximumDataQueueBytes)"),
+          ("kSwifterKitFastPathDataQueueHeaderSize", "\(limits.dataQueueHeaderSize)"),
+          ("kSwifterKitFastPathDataQueueProducerOffset", "\(limits.dataQueueProducerOffset)"),
+          ("kSwifterKitFastPathDataQueueConsumerOffset", "\(limits.dataQueueConsumerOffset)"),
+          ("kSwifterKitFastPathDataQueueEntryCountOffset", "\(limits.dataQueueEntryCountOffset)"),
+          ("kSwifterKitFastPathDataQueueStrideOffset", "\(limits.dataQueueStrideOffset)"),
+          (
+            "kSwifterKitFastPathDataQueueMaximumEntrySizeOffset",
+            "\(limits.dataQueueMaximumEntrySizeOffset)"
+          ), ("kSwifterKitFastPathDataQueueDirectionOffset", "\(limits.dataQueueDirectionOffset)"),
+          ("kSwifterKitFastPathDataQueueDropsOffset", "\(limits.dataQueueDropsOffset)"),
+          ("kSwifterKitFastPathDataQueueRecordHeaderSize", "\(limits.dataQueueRecordHeaderSize)"),
         ]
       ), enumeration("SwifterKitFastPathOpcode", type: "uint32_t", RuntimeFastPathOpcode.allCases),
       enumeration(
@@ -65,6 +93,11 @@ extension RuntimeSchemaHeader {
         "SwifterKitFastPathRingIndex",
         type: "uint32_t",
         RuntimeFastPathRingIndex.allCases
+      ),
+      enumeration(
+        "SwifterKitFastPathDataQueueDirection",
+        type: "uint32_t",
+        RuntimeFastPathDataQueueDirection.allCases
       ),
       enumeration(
         "SwifterKitFastPathComputeOperation",

@@ -39,9 +39,17 @@ A PCI reset through ``DriverContext`` can move BARs, so the next program resolve
 
 The extension stores an index with release ordering and loads it with acquire ordering. ``DriverContext/mapRing(_:)`` maps the same buffer into the host as ``DriverSharedMemory``, so Swift reads or fills entries in place; a host that writes an index must keep it below the entry count, and the interpreter masks what it reads. The ring allocation and DMA path is compile-checked only; the host test runs the ring operations against a fake ring.
 
+## Data queues
+
+``FastPathConfiguration/dataQueues`` declares up to eight ``FastPathDataQueue`` queues that move small entries between the extension and the host without a runtime command per entry. `IODataQueueDispatchSource` cannot share its memory with the host, because its `CopyMemory` is private, so each queue is a host ring the runtime owns: one `IOBufferMemoryDescriptor` that ``DriverContext/mapDataQueue(_:)`` maps into the host as a ``DriverDataQueue``. The extension allocates every host ring after the descriptor rings and before the start programs, and releases them after the stop programs.
+
+For a ``FastPathDataQueueDirection/toHost`` queue, ``FastPathOp/enqueue(_:slots:)`` appends one to eight slots, eight little-endian bytes each, as one entry. The entry is staged in an `IODataQueueDispatchSource` sized with `GetDataQueueEntryHeaderSize` to hold one more maximum-size entry than the host ring; a source that fails its `CanEnqueueData(maximumEntrySize, entryCount)` check refuses the fast path. The program checks `CanEnqueueData` and stages with `EnqueueWithCoalesce` on whatever queue ran it, and the run sends one `SendDataAvailable` however many entries it staged. On the runtime queue the DataAvailable handler drains every staging source completely with `IsDataAvailable` and `Dequeue`, publishes each entry into the host ring, and queues one ``FastPathDataQueueEvent`` per queue that published a batch. Enqueues are lossy like `emit`: an entry that finds the staging source or the host ring full is dropped and counted in the ring header, and the program continues. The event travels on the lossy event queue, so treat it as a hint and read until ``DriverDataQueue/dequeueValues()`` returns nil.
+
+``FastPathDataQueueLayout`` describes the host ring: a 64-byte header with the producer and consumer counts at offsets 0 and 4, the record count at 8, the record stride at 12, the maximum entry size at 16, the direction at 20, and the 64-bit drop count at 24, then records of ``FastPathDataQueue/recordStride`` bytes. The counts are free-running 32-bit values; record `n` lives at slot `n & (entryCount - 1)`. Each record holds its payload byte count, four zero bytes, and the payload. ``DriverDataQueue`` reads a record in place, checks the header's geometry against the mapping and the declaration, and throws ``FastPathDataQueueError`` when the producer is more than the record count ahead or a record claims more than the maximum entry size, so a corrupt index never moves an access outside the ring. The extension treats a host consumer count the same way: a ring whose counts are too far apart is full. ``FastPathDataQueueDirection/toExtension`` queues are allocated and mapped but not yet consumed. The staging and publishing path is compile-checked only; the portable reader and the interpreter's `enqueue` run in the package's tests.
+
 ## Limits
 
-``FastPathLimits`` bounds every configuration: at most 32 programs of at most 64 operations, polls of at most 10,000 reads with at most 1,000 µs between them, delays of at most 1,000 µs, and at most 10 ms of delay and worst-case poll waiting per program. Registers must be aligned to their width, lie inside a BAR size declared in ``FastPathConfiguration/barSizes``, and require ``DriverConfiguration/pciDevice``. Constants must fit the register they are written to. Rings need power-of-two entry sizes from 8 through 4096 bytes and counts from 2 through 65,536, unique identifiers of at most 24 bits, at most 4 MiB together with their headers, and ``DriverConfiguration/pciDevice``.
+``FastPathLimits`` bounds every configuration: at most 32 programs of at most 64 operations, polls of at most 10,000 reads with at most 1,000 µs between them, delays of at most 1,000 µs, and at most 10 ms of delay and worst-case poll waiting per program. Registers must be aligned to their width, lie inside a BAR size declared in ``FastPathConfiguration/barSizes``, and require ``DriverConfiguration/pciDevice``. Constants must fit the register they are written to. Rings need power-of-two entry sizes from 8 through 4096 bytes and counts from 2 through 65,536, unique identifiers of at most 24 bits, at most 4 MiB together with their headers, and ``DriverConfiguration/pciDevice``. Data queues need unique identifiers of at most 24 bits, power-of-two capacities from 4096 bytes through 1 MiB that hold at least two records, maximum entry sizes that are multiples of 8 from 8 through 64 bytes, and at most 4 MiB together with their headers; an `enqueue` names a to-host queue and at most as many slots as its maximum entry size holds.
 
 ``FastPathConfiguration/validate(for:)`` enforces each rule, and ``DriverExtensionGenerator`` refuses an invalid configuration with ``DriverExtensionGenerationError/invalidFastPathConfiguration(_:)``, carrying the ``FastPathError`` that names the program and operation. A configuration is never truncated or clamped.
 
@@ -62,6 +70,17 @@ The extension stores an index with release ordering and loads it with acquire or
 - ``FastPathRingAddressHalf``
 - ``FastPathRingIndex``
 - ``DriverContext/mapRing(_:)``
+
+### Data queues
+
+- ``FastPathDataQueue``
+- ``FastPathDataQueueDirection``
+- ``FastPathDataQueueLayout``
+- ``FastPathDataQueueEvent``
+- ``FastPathDataQueueError``
+- ``DriverDataQueue``
+- ``DriverContext/mapDataQueue(_:)``
+- ``DriverEvent/fastPathDataQueue()``
 
 ### Running programs
 

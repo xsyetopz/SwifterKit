@@ -6,7 +6,7 @@
 /// access, delay, and emitted value in order. Rejection lines report the status and the number of
 /// accesses, which must be zero because a malformed program never starts. Ring accesses log as
 /// `S`/`L` (store and load at a byte offset from entry 0), `I`/`P` (index read and set), and `A`
-/// (device address).
+/// (device address). A data queue `enqueue` logs as `Q` with the queue index and values.
 let fastPathInterpreterHarness = #"""
   #include <stdio.h>
   #include <stdlib.h>
@@ -97,6 +97,15 @@ let fastPathInterpreterHarness = #"""
               Log("A", ringIndex, 0, 8, 0x123456000);
               return 0x123456000;
           }
+          void Enqueue(uint32_t queue, const uint64_t* values, uint32_t count) {
+              accesses += 1;
+              length += snprintf(log + length, sizeof(log) - length, " Q%u", queue);
+              for (uint32_t index = 0; index < count; ++index) {
+                  length += snprintf(log + length, sizeof(log) - length, ":%llX",
+                      static_cast<unsigned long long>(values[index]));
+              }
+              Check();
+          }
           void Emit(const uint64_t* values, uint32_t count) {
               accesses += 1;
               length += snprintf(log + length, sizeof(log) - length, " E");
@@ -114,6 +123,7 @@ let fastPathInterpreterHarness = #"""
           SwifterKitFastPathTrigger triggers[kSwifterKitFastPathTriggerCount];
           SwifterKitFastPathBAR bars[kSwifterKitFastPathBARSizeCount];
           SwifterKitFastPathRing rings[kSwifterKitFastPathRingCount];
+          SwifterKitFastPathDataQueue queues[kSwifterKitFastPathDataQueueCount];
           SwifterKitFastPathTables view;
 
           Tables() {
@@ -122,9 +132,11 @@ let fastPathInterpreterHarness = #"""
               memcpy(triggers, kSwifterKitFastPathTriggers, sizeof(triggers));
               memcpy(bars, kSwifterKitFastPathBARSizes, sizeof(bars));
               memcpy(rings, kSwifterKitFastPathRings, sizeof(rings));
+              memcpy(queues, kSwifterKitFastPathDataQueues, sizeof(queues));
               view = {programs, kSwifterKitFastPathProgramCount, operations,
                   kSwifterKitFastPathOperationCount, triggers, kSwifterKitFastPathTriggerCount,
-                  bars, kSwifterKitFastPathBARSizeCount, rings, kSwifterKitFastPathRingCount};
+                  bars, kSwifterKitFastPathBARSizeCount, rings, kSwifterKitFastPathRingCount,
+                  queues, kSwifterKitFastPathDataQueueCount};
           }
           SwifterKitFastPathOperation& Op(uint32_t program, uint32_t index) {
               return operations[programs[program].operationStart + index];
@@ -216,12 +228,14 @@ let fastPathInterpreterHarness = #"""
           const uint64_t entry[] = {5, 0xAABBCCDD};
           Fake ring;
           Run("ring", 10, entry, 2, ring);
+          Fake enqueue;
+          Run("enqueue", 11, pair, 2, enqueue);
       }
 
       void Malformed() {
           using T = Tables;
           Reject("opcode-zero", 0, 2, [](T& t) { t.Op(0, 0).opcode = 0; });
-          Reject("opcode-unknown", 0, 2, [](T& t) { t.Op(0, 0).opcode = 13; });
+          Reject("opcode-unknown", 0, 2, [](T& t) { t.Op(0, 0).opcode = 14; });
           Reject("read-slot", 0, 2, [](T& t) { t.Op(0, 0).b = 8; });
           Reject("read-unused-c", 0, 2, [](T& t) { t.Op(0, 0).c = 1; });
           Reject("read-unused-immediate", 0, 2, [](T& t) { t.Op(0, 4).immediate2 = 1; });
@@ -303,6 +317,19 @@ let fastPathInterpreterHarness = #"""
           Reject("ring-direction", 10, 2, [](T& t) { t.rings[0].direction = 4; });
           Reject("ring-identifier", 10, 2, [](T& t) { t.rings[0].id = 0x1000000; });
           Reject("ring-missing", 10, 2, [](T& t) { t.view.ringCount = 0; });
+          Reject("enqueue-queue", 11, 2, [](T& t) { t.Op(11, 0).a = 2; });
+          Reject("enqueue-to-extension", 11, 2, [](T& t) { t.Op(11, 0).a = 1; });
+          Reject("enqueue-too-wide", 11, 2, [](T& t) { t.Op(11, 0).b = 3; });
+          Reject("enqueue-zero", 11, 2, [](T& t) { t.Op(11, 1).b = 0; });
+          Reject("enqueue-slot", 11, 2, [](T& t) { t.Op(11, 1).immediate1 = 8; });
+          Reject("enqueue-unused", 11, 2, [](T& t) { t.Op(11, 1).c = 1; });
+          Reject("queue-capacity", 11, 2, [](T& t) { t.queues[0].capacityBytes = 6144; });
+          Reject("queue-entry-size", 11, 2, [](T& t) { t.queues[0].maximumEntrySize = 12; });
+          Reject("queue-entry-over", 11, 2, [](T& t) { t.queues[0].maximumEntrySize = 72; });
+          Reject("queue-direction", 11, 2, [](T& t) { t.queues[1].direction = 2; });
+          Reject("queue-identifier", 11, 2, [](T& t) { t.queues[0].id = 0x1000000; });
+          Reject("queue-duplicate", 11, 2, [](T& t) { t.queues[1].id = 3; });
+          Reject("queue-missing", 11, 2, [](T& t) { t.view.dataQueueCount = 0; });
       }
 
       void Configurations() {

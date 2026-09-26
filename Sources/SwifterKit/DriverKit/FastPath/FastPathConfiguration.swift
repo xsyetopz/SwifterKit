@@ -16,16 +16,20 @@ public struct FastPathConfiguration: Sendable, Hashable {
   public let barSizes: [UInt8: UInt64]
   /// The descriptor rings the extension allocates for DMA when the fast path starts.
   public let rings: [FastPathRing]
+  /// The host-shared data queues the extension allocates when the fast path starts.
+  public let dataQueues: [FastPathDataQueue]
 
   /// Creates a fast-path configuration.
   public init(
     programs: [FastPathProgram],
     barSizes: [UInt8: UInt64] = [:],
-    rings: [FastPathRing] = []
+    rings: [FastPathRing] = [],
+    dataQueues: [FastPathDataQueue] = []
   ) {
     self.programs = programs
     self.barSizes = barSizes
     self.rings = rings
+    self.dataQueues = dataQueues
   }
 }
 
@@ -60,6 +64,14 @@ public enum FastPathLimits {
   public static let ringEntryCounts = RuntimeFastPathLimits.ringEntryCounts
   /// The most bytes every ring of a configuration occupies together, headers included.
   public static let maximumRingBytes = RuntimeFastPathLimits.maximumRingBytes
+  /// The most data queues in one configuration.
+  public static let maximumDataQueues = RuntimeFastPathLimits.maximumDataQueues
+  /// The allowed host ring capacities of a data queue, in bytes; each is a power of two.
+  public static let dataQueueCapacities = RuntimeFastPathLimits.dataQueueCapacities
+  /// The allowed maximum entry sizes of a data queue, in bytes; each is a multiple of 8.
+  public static let dataQueueEntrySizes = RuntimeFastPathLimits.dataQueueEntrySizes
+  /// The most bytes every data queue host ring occupies together, headers included.
+  public static let maximumDataQueueBytes = RuntimeFastPathLimits.maximumDataQueueBytes
 }
 
 /// Why a ``FastPathConfiguration`` was refused. `program` and `operation` are array indices.
@@ -128,4 +140,20 @@ public enum FastPathError: Error, Sendable, Hashable {
   case unknownRing(program: Int, operation: Int)
   /// A ring field is not aligned to its width or extends past the entry.
   case ringFieldOutOfBounds(program: Int, operation: Int)
+  /// The configuration has more than ``FastPathLimits/maximumDataQueues`` data queues.
+  case tooManyDataQueues(count: Int)
+  /// A data queue's identifier is above `0xFF_FFFF`, its capacity is not a power of two in
+  /// ``FastPathLimits/dataQueueCapacities``, its maximum entry size is not a multiple of 8 in
+  /// ``FastPathLimits/dataQueueEntrySizes``, or its capacity holds fewer than two records.
+  case invalidDataQueue(queue: UInt32)
+  /// Two data queues share an identifier.
+  case duplicateDataQueue(queue: UInt32)
+  /// The data queues together occupy more than ``FastPathLimits/maximumDataQueueBytes``.
+  case dataQueueBytesExceeded(bytes: UInt64)
+  /// An `enqueue` names a data queue the configuration does not declare, or one the host
+  /// produces.
+  case unknownDataQueue(program: Int, operation: Int)
+  /// An `enqueue` names no slots, more than ``FastPathLimits/maximumEmittedSlots``, or more bytes
+  /// than the queue's maximum entry size.
+  case invalidEnqueue(program: Int, operation: Int)
 }

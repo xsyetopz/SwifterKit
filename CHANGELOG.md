@@ -17,6 +17,13 @@ SwifterKit records user-visible changes in this file.
   must handle the new cases.
 - A client-memory type of kind 3 maps a fast-path ring instead of answering
   `kIOReturnUnsupported`.
+- **Breaking:** `FastPathOp` gains `enqueue`; `FastPathError` gains
+  `tooManyDataQueues`, `invalidDataQueue`, `duplicateDataQueue`,
+  `dataQueueBytesExceeded`, `unknownDataQueue`, and `invalidEnqueue`; and
+  `FastPathRuntimeError` gains `unknownDataQueue`. Exhaustive switches over
+  them must handle the new cases.
+- A client-memory type of kind 4 maps a fast-path data queue's host ring
+  instead of answering `kIOReturnUnsupported`.
 - **Breaking:** `DriverConnection` requires `mapMemory(type:readOnly:)`, which
   maps the memory the user client shares for a `CopyClientMemoryForType` type
   into the host and returns a `DriverSharedMemory`; custom connections must
@@ -287,6 +294,18 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- `FastPathConfiguration.dataQueues` declares up to eight host-shared
+  `FastPathDataQueue` rings, and `FastPathOp.enqueue(_:slots:)` appends one to
+  eight slots to a `.toHost` queue from any fast-path program. The extension
+  stages entries in an `IODataQueueDispatchSource` (`CanEnqueueData`, then
+  `EnqueueWithCoalesce`, with one `SendDataAvailable` per run), drains it on
+  the runtime queue with `IsDataAvailable` and `Dequeue` into a host ring laid
+  out by `FastPathDataQueueLayout`, and queues one `FastPathDataQueueEvent`
+  (event 0x0F01) per published batch. Entries that find either queue full are
+  dropped and counted. `DriverContext.mapDataQueue(_:)` maps the ring as a
+  `DriverDataQueue` whose reader checks the geometry, indices, and entry sizes
+  a corrupt producer could write. Host-to-extension queues are allocated and
+  mapped but not yet consumed.
 - `DriverContext.wrapClientMemory(_:direction:)` (opcode 0x050A) wraps 1 to 32
   `DriverClientMemorySegment` ranges of the host's own memory as a
   `DriverMemoryHandle` without copying. The runtime calls

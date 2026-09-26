@@ -45,6 +45,8 @@
 #if SWIFTERKIT_ENABLE_FAST_PATH
     #include <DriverKit/IOBufferMemoryDescriptor.h>
     #include <DriverKit/IODMACommand.h>
+    #include <DriverKit/IODataQueueDispatchSource.h>
+    #include <DriverKit/IODispatchQueue.h>
     #include <DriverKit/IOMemoryMap.h>
 
     #include "SwifterKitRuntimeFastPathInterpreter.h"
@@ -57,6 +59,19 @@ struct SwifterKitFastPathRingState {
     IODMACommand* dmaCommand = nullptr;
     uint64_t address = 0;
     uint64_t deviceAddress = 0;
+};
+
+// One host-shared data queue: the host ring's buffer and the extension's mapping of it, the
+// IODataQueueDispatchSource that stages entries between the fast path and the runtime queue,
+// the entries dropped so far, and whether the current run owes the source a DataAvailable
+// notification. See SwifterKitRuntimeFastPathDataQueues.cpp.
+struct SwifterKitFastPathDataQueueState {
+    IOBufferMemoryDescriptor* buffer = nullptr;
+    IOMemoryMap* map = nullptr;
+    IODataQueueDispatchSource* staging = nullptr;
+    uint64_t address = 0;
+    uint64_t drops = 0;
+    bool notify = false;
 };
 #endif
 
@@ -463,6 +478,9 @@ struct SwifterKitRuntimeService_IVars {
     uint8_t fastPathMemoryIndices[kSwifterKitFastPathBARCount] = {};
     uint64_t fastPathEventDrops = 0;
     SwifterKitFastPathRingState fastPathRings[kSwifterKitFastPathMaximumRings] = {};
+    SwifterKitFastPathDataQueueState fastPathDataQueues[kSwifterKitFastPathMaximumDataQueues] = {};
+    IODispatchQueue* fastPathDataQueueDispatch = nullptr;
+    OSAction* fastPathDataAvailableAction = nullptr;
 #endif
 };
 

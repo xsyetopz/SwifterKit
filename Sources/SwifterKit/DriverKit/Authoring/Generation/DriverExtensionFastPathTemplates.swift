@@ -9,6 +9,10 @@ extension DriverExtensionGenerator {
     // Validation keeps ring identifiers unique; the first one wins otherwise.
     let ringIndices = Dictionary(rings.enumerated().map { ($1.id, UInt32($0)) }) { first, _ in first
     }
+    let dataQueues = fastPath?.dataQueues ?? []
+    let queueIndices = Dictionary(dataQueues.enumerated().map { ($1.id, UInt32($0)) }) { first, _ in
+      first
+    }
     var operations: [String] = []
     var programRows: [String] = []
     var triggers: [String] = []
@@ -19,7 +23,9 @@ extension DriverExtensionGenerator {
           "\(program.delayBudgetMicroseconds)",
         ])
       )
-      operations += program.operations.map { fastPathRow($0, rings: ringIndices) }
+      operations += program.operations.map {
+        fastPathRow($0, rings: ringIndices, dataQueues: queueIndices)
+      }
       triggers.append(fastPathRow(program.trigger, program: index))
     }
     let bars = (fastPath?.barSizes ?? [:]).sorted { $0.key < $1.key }.map {
@@ -42,6 +48,17 @@ extension DriverExtensionGenerator {
         "kSwifterKitFastPathRings",
         rings.map {
           row(["\($0.id)", "\($0.entrySize)", "\($0.entryCount)", "\($0.direction.rawValue)"])
+        }
+      ),
+      table(
+        "SwifterKitFastPathDataQueue",
+        "kSwifterKitFastPathDataQueues",
+        dataQueues.map {
+          let direction: RuntimeFastPathDataQueueDirection =
+            $0.direction == .toHost ? .toHost : .toExtension
+          return row([
+            "\($0.id)", "\($0.capacityBytes)", "\($0.maximumEntrySize)", "\(direction.rawValue)",
+          ])
         }
       ),
     ].joined(separator: "\n")
@@ -74,7 +91,11 @@ extension DriverExtensionGenerator {
   }
 
   /// One `SwifterKitFastPathOperation` row, in the field use `RuntimeFastPathOpcode` documents.
-  private static func fastPathRow(_ operation: FastPathOp, rings: [UInt32: UInt32]) -> String {
+  private static func fastPathRow(
+    _ operation: FastPathOp,
+    rings: [UInt32: UInt32],
+    dataQueues: [UInt32: UInt32]
+  ) -> String {
     var fields: (a: UInt32, b: UInt32, c: UInt32) = (0, 0, 0)
     var immediates: [UInt64] = [0, 0, 0]
     let opcode: RuntimeFastPathOpcode
@@ -139,6 +160,13 @@ extension DriverExtensionGenerator {
       fields.a = rings[ring, default: 0]
       fields.b = encoded(index).rawValue
       (fields.c, immediates[1]) = encoded(operand, rings: rings)
+    case .enqueue(let queue, let slots):
+      opcode = .enqueue
+      fields.a = dataQueues[queue, default: 0]
+      fields.b = UInt32(slots.count)
+      immediates[1] = slots.enumerated().reduce(0) {
+        $0 | UInt64($1.element.rawValue) << (8 * UInt64($1.offset))
+      }
     }
     // An IOReturn reads best, and stays unsigned, in hex.
     let b = opcode == .fail ? RuntimeSchemaHeader.hex(fields.b, digits: 8) : "\(fields.b)"

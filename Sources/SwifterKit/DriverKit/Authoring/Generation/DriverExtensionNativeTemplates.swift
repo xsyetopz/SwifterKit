@@ -323,6 +323,18 @@ extension DriverExtensionGenerator {
           kern_return_t CopyFastPathRingMemory(
               uint32_t identifier,
               IOMemoryDescriptor** memory) LOCALONLY;
+          kern_return_t StartFastPathDataQueues() LOCALONLY;
+          void StopFastPathDataQueues() LOCALONLY;
+          void EnqueueFastPathData(
+              uint32_t queue,
+              const uint64_t* values,
+              uint32_t count) LOCALONLY;
+          void SignalFastPathDataQueues() LOCALONLY;
+          kern_return_t CopyFastPathDataQueueMemory(
+              uint32_t identifier,
+              IOMemoryDescriptor** memory) LOCALONLY;
+          virtual void FastPathDataAvailable(
+              OSAction* action) TYPE(IODataQueueDispatchSource::DataAvailable);
           kern_return_t FastPathCommand(
               uint32_t opcode,
               const uint8_t* payload,
@@ -346,7 +358,8 @@ extension DriverExtensionGenerator {
       \(interruptInclude)
       \(usb ? "#include <USBDriverKit/IOUSBHostDevice.iig>" : "")
       \(usb ? "#include <USBDriverKit/IOUSBHostPipe.iig>" : "")
-      \(networking ? "#include <DriverKit/IODataQueueDispatchSource.iig>" : "")
+      \(networking || configuration.fastPath != nil
+        ? "#include <DriverKit/IODataQueueDispatchSource.iig>" : "")
 
       #include "SwifterKitRuntimeProtocol.h"
 

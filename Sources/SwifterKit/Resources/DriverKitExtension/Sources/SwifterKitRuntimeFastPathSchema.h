@@ -28,6 +28,21 @@ static constexpr uint32_t kSwifterKitFastPathRingProducerOffset = 0;
 static constexpr uint32_t kSwifterKitFastPathRingConsumerOffset = 4;
 static constexpr uint32_t kSwifterKitFastPathRingEntrySizeOffset = 8;
 static constexpr uint32_t kSwifterKitFastPathRingEntryCountOffset = 12;
+static constexpr uint32_t kSwifterKitFastPathMaximumDataQueues = 8;
+static constexpr uint32_t kSwifterKitFastPathMinimumDataQueueCapacity = 4096;
+static constexpr uint32_t kSwifterKitFastPathMaximumDataQueueCapacity = 1048576;
+static constexpr uint32_t kSwifterKitFastPathMinimumDataQueueEntrySize = 8;
+static constexpr uint32_t kSwifterKitFastPathMaximumDataQueueEntrySize = 64;
+static constexpr uint32_t kSwifterKitFastPathMaximumDataQueueBytes = 4194304;
+static constexpr uint32_t kSwifterKitFastPathDataQueueHeaderSize = 64;
+static constexpr uint32_t kSwifterKitFastPathDataQueueProducerOffset = 0;
+static constexpr uint32_t kSwifterKitFastPathDataQueueConsumerOffset = 4;
+static constexpr uint32_t kSwifterKitFastPathDataQueueEntryCountOffset = 8;
+static constexpr uint32_t kSwifterKitFastPathDataQueueStrideOffset = 12;
+static constexpr uint32_t kSwifterKitFastPathDataQueueMaximumEntrySizeOffset = 16;
+static constexpr uint32_t kSwifterKitFastPathDataQueueDirectionOffset = 20;
+static constexpr uint32_t kSwifterKitFastPathDataQueueDropsOffset = 24;
+static constexpr uint32_t kSwifterKitFastPathDataQueueRecordHeaderSize = 8;
 
 enum class SwifterKitFastPathOpcode : uint32_t {
     Read = 1,
@@ -42,6 +57,7 @@ enum class SwifterKitFastPathOpcode : uint32_t {
     RingLoad = 10,
     RingStore = 11,
     RingAdvance = 12,
+    Enqueue = 13,
 };
 
 enum class SwifterKitFastPathOperandKind : uint32_t {
@@ -59,6 +75,11 @@ enum class SwifterKitFastPathRingAddressHalf : uint32_t {
 enum class SwifterKitFastPathRingIndex : uint32_t {
     Producer = 0,
     Consumer = 1,
+};
+
+enum class SwifterKitFastPathDataQueueDirection : uint32_t {
+    ToHost = 0,
+    ToExtension = 1,
 };
 
 enum class SwifterKitFastPathComputeOperation : uint32_t {
@@ -139,6 +160,14 @@ struct SwifterKitFastPathRing {
 };
 static_assert(sizeof(SwifterKitFastPathRing) == 16);
 
+struct SwifterKitFastPathDataQueue {
+    uint32_t id;
+    uint32_t capacityBytes;
+    uint32_t maximumEntrySize;
+    uint32_t direction;
+};
+static_assert(sizeof(SwifterKitFastPathDataQueue) == 16);
+
 struct SwifterKitFastPathRunRequest {
     uint32_t program;
     uint32_t argumentCount;
@@ -159,6 +188,13 @@ struct SwifterKitFastPathEvent {
     uint64_t values[8];
 };
 static_assert(sizeof(SwifterKitFastPathEvent) == 72);
+
+struct SwifterKitFastPathDataQueueEvent {
+    uint32_t id;
+    uint32_t published;
+    uint64_t droppedEntries;
+};
+static_assert(sizeof(SwifterKitFastPathDataQueueEvent) == 16);
 
 struct SwifterKitFastPathStatusReply {
     uint32_t status;

@@ -166,6 +166,10 @@ public enum FastPathOp: Sendable, Hashable {
   )
   /// Adds an operand to a ring index, wrapping by the entry count.
   case ringAdvance(UInt32, FastPathRingIndex, by: FastPathOperand)
+  /// Appends the slots' values, 8 little-endian bytes each in order, as one entry of the
+  /// ``FastPathDataQueueDirection/toHost`` data queue with this identifier. An entry that finds
+  /// the queue full is dropped and counted; the program continues either way.
+  case enqueue(UInt32, slots: [FastPathSlot])
 }
 
 /// What runs a fast-path program.

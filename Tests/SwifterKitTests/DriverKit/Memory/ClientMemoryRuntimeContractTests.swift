@@ -44,7 +44,7 @@ struct ClientMemoryRuntimeContractTests {
   }
 
   @Test
-  func serviceRefusesUnknownTypesMapsRingsAndReservesQueues() throws {
+  func serviceRefusesUnknownTypesAndMapsRingsAndDataQueues() throws {
     let clients = try Self.checkedIn("SwifterKitRuntimeClients.cpp")
     let copy = try section(
       of: clients,
@@ -58,17 +58,19 @@ struct ClientMemoryRuntimeContractTests {
       "return kIOReturnBadArgument;",
       ">> kSwifterKitClientMemoryKindShift;",
       "& kSwifterKitClientMemoryIdentifierMask;",
-      "kern_return_t result = kIOReturnBadArgument;",
+      "const kern_return_t result = [&]() -> kern_return_t {",
       "SwifterKitClientMemoryKind::MemoryBuffer",
       "if (identifier != 0) {",
-      "result = CopyMemoryForClient(client, identifier, memory);",
+      "return CopyMemoryForClient(client, identifier, memory);",
       "SwifterKitClientMemoryKind::PacketPool",
-      "readOnly = true;",
-      "result = CopyPacketPoolMemory(identifier, memory);",
+      "return CopyPacketPoolMemory(identifier, memory);",
       "SwifterKitClientMemoryKind::Ring",
-      "result = CopyFastPathRingMemory(identifier, memory);",
+      "return CopyFastPathRingMemory(identifier, memory);",
       "SwifterKitClientMemoryKind::DataQueue",
-      "result = kIOReturnUnsupported;",
+      "return CopyFastPathDataQueueMemory(identifier, memory);",
+      "return kIOReturnBadArgument;\n    }();",
+      "const bool readOnly =",
+      "kind == static_cast<uint32_t>(SwifterKitClientMemoryKind::PacketPool);",
       "if (result == kIOReturnSuccess && options != nullptr && readOnly) {",
       "*options |= kIOUserClientMemoryReadOnly;",
       "return result;"

@@ -104,6 +104,9 @@ public enum FastPathRuntimeError: Error, Sendable, Hashable {
   case invalidPayload
   /// The ring identifier is above `0xFF_FFFF` or not declared by the context's configuration.
   case unknownRing(UInt32)
+  /// The data queue identifier is above `0xFF_FFFF` or not declared by the context's
+  /// configuration.
+  case unknownDataQueue(UInt32)
 }
 
 extension DriverCommand {

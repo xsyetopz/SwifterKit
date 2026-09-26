@@ -79,7 +79,7 @@ struct ClientMemoryOwnershipContractTests {
       "descriptor->retain();"
     )
     let clients = try Self.checkedIn("SwifterKitRuntimeClients.cpp")
-    #expect(clients.contains("result = CopyMemoryForClient(client, identifier, memory);"))
+    #expect(clients.contains("return CopyMemoryForClient(client, identifier, memory);"))
     let userClient = try Self.checkedIn("SwifterKitRuntimeUserClient.cpp")
     #expect(
       userClient.contains("return ivars->service->CopyClientMemory(this, type, options, memory);")

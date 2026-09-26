@@ -41,6 +41,9 @@
 //   ordering because the host maps the same buffer through CopyFastPathRingMemory. Rings stay
 //   allocated while the device may hold their addresses: until StopFastPath, after the stop
 //   programs, completes their DMA and releases them.
+// - Host-shared data queues are created after the rings and released before them; see
+//   SwifterKitRuntimeFastPathDataQueues.cpp. A run that enqueued entries signals their staging
+//   sources once, before it releases fastPathLock.
 // - emit queues a fast-path event through the lossy EnqueueEvent path; an event the full queue
 //   rejects increments fastPathEventDrops, which Swift reads with FastPathStatus.
 
@@ -72,6 +75,8 @@ namespace {
         .barCount = kSwifterKitFastPathBARSizeCount,
         .rings = kSwifterKitFastPathRings,
         .ringCount = kSwifterKitFastPathRingCount,
+        .dataQueues = kSwifterKitFastPathDataQueues,
+        .dataQueueCount = kSwifterKitFastPathDataQueueCount,
     };
     // Rings start on a page so the host maps them from their first byte.
     constexpr uint64_t kRingAlignment = 4096;
@@ -194,6 +199,10 @@ namespace {
 
         [[nodiscard]] uint64_t RingDeviceAddress(uint32_t ring) const {
             return state->fastPathRings[ring % kSwifterKitFastPathMaximumRings].deviceAddress;
+        }
+
+        void Enqueue(uint32_t queue, const uint64_t* values, uint32_t count) const {
+            service->EnqueueFastPathData(queue, values, count);
         }
 
         void Emit(const uint64_t* values, uint32_t count) const {
@@ -368,6 +377,8 @@ namespace {
                 arguments,
                 argumentCount,
                 access);
+            // One DataAvailable per run, however many entries the program enqueued.
+            service->SignalFastPathDataQueues();
         }
         IOLockUnlock(state->fastPathLock);
         return result;
@@ -445,7 +456,13 @@ void SwifterKitRuntimeService::StartFastPath() {
         return;
     }
     IOLockLock(ivars->fastPathLock);
-    const kern_return_t prepared = PrepareFastPath(ivars);
+    kern_return_t prepared = PrepareFastPath(ivars);
+    if (prepared == kIOReturnSuccess) {
+        prepared = StartFastPathDataQueues();
+        if (prepared != kIOReturnSuccess) {
+            ReleaseRings(ivars);
+        }
+    }
     ivars->fastPathRunning = prepared == kIOReturnSuccess;
     ivars->fastPathRefusal = prepared;
     IOLockUnlock(ivars->fastPathLock);
@@ -469,6 +486,7 @@ void SwifterKitRuntimeService::StopFastPath() {
     IOLockLock(ivars->fastPathLock);
     ivars->fastPathRunning = false;
     ivars->fastPathRefusal = kIOReturnNotReady;
+    StopFastPathDataQueues();
     ReleaseRings(ivars);
     IOLockUnlock(ivars->fastPathLock);
 }

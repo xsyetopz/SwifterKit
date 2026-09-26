@@ -36,6 +36,24 @@ extension DriverContext {
     else { throw FastPathRuntimeError.unknownRing(id) }
     return try await mapMemory(type, readOnly: false, requiring: .pci)
   }
+
+  /// Maps a fast-path data queue's host ring into this process, header and records, without
+  /// copying.
+  ///
+  /// ``FastPathDataQueueLayout`` describes the bytes, and the returned reader checks them on
+  /// every access. The extension answers `kIOReturnNotReady` while its fast path is not running.
+  /// When the context has a ``fastPath`` configuration, a queue it does not declare is refused
+  /// before any request, and the ring's geometry must match the declaration.
+  public func mapDataQueue(_ id: UInt32) async throws -> DriverDataQueue {
+    let queue = fastPath?.dataQueues.first { $0.id == id }
+    guard fastPath == nil || queue != nil,
+      let type = RuntimeClientMemoryType(kind: .dataQueue, identifier: UInt64(id))
+    else { throw FastPathRuntimeError.unknownDataQueue(id) }
+    return DriverDataQueue(
+      memory: try await mapMemory(type, readOnly: false, requiring: []),
+      queue: queue
+    )
+  }
 }
 
 extension DriverCommand {

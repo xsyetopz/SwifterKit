@@ -333,4 +333,5 @@ enum RuntimeEventType: UInt32, CaseIterable {
   case watchServices = 0x0E10
   case watchSystemState = 0x0E11
   case fastPath = 0x0F00
+  case fastPathDataQueue = 0x0F01
 }

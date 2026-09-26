@@ -68,6 +68,8 @@ struct FastPathGenerationTests {
         static constexpr uint32_t kSwifterKitFastPathBARSizeCount = 2;
         static constexpr SwifterKitFastPathRing kSwifterKitFastPathRings[1] = {};
         static constexpr uint32_t kSwifterKitFastPathRingCount = 0;
+        static constexpr SwifterKitFastPathDataQueue kSwifterKitFastPathDataQueues[1] = {};
+        static constexpr uint32_t kSwifterKitFastPathDataQueueCount = 0;
         """
     )
   }
@@ -99,7 +101,12 @@ struct FastPathGenerationTests {
     #expect(header.contains("kSwifterKitFastPathMaximumRings = 8;"))
     #expect(header.contains("kSwifterKitFastPathRingHeaderSize = 64;"))
     #expect(header.contains("static_assert(sizeof(SwifterKitFastPathRing) == 16);"))
-    #expect(Set(RuntimeFastPathOpcode.allCases.map(\.rawValue)).count == 12)
+    #expect(header.contains("    Enqueue = 13,\n"))
+    #expect(header.contains("kSwifterKitFastPathMaximumDataQueues = 8;"))
+    #expect(header.contains("kSwifterKitFastPathDataQueueHeaderSize = 64;"))
+    #expect(header.contains("static_assert(sizeof(SwifterKitFastPathDataQueue) == 16);"))
+    #expect(header.contains("static_assert(sizeof(SwifterKitFastPathDataQueueEvent) == 16);"))
+    #expect(Set(RuntimeFastPathOpcode.allCases.map(\.rawValue)).count == 13)
   }
 
   /// Every operation kind, register width, operand kind, and condition, repeated to fill a program.
@@ -126,7 +133,29 @@ struct FastPathGenerationTests {
     .ringLoad(7, entry: .v1, fieldOffset: 4088, width: .bits64, into: .v2),
     .ringAdvance(3, .consumer, by: .ringIndex(3, .producer)),
     .write(FastPathRegister(bar: 0, offset: 8, width: .bits32), .ringDeviceAddress(7, .high)),
+    .enqueue(0xFF_FFFF, slots: FastPathSlot.allCases), .enqueue(1, slots: [.v3]),
   ]
+
+  /// The most data queues, with the smallest and largest capacities and entry sizes, both ways.
+  private static let dataQueues = (0..<UInt32(FastPathLimits.maximumDataQueues)).map { index in
+    switch index {
+    case 0:
+      FastPathDataQueue(
+        id: 0xFF_FFFF,
+        capacityBytes: 1_048_576,
+        maximumEntrySize: 64,
+        direction: .toHost
+      )
+    case 1: FastPathDataQueue(id: 1, capacityBytes: 4096, maximumEntrySize: 8, direction: .toHost)
+    default:
+      FastPathDataQueue(
+        id: index,
+        capacityBytes: 4096,
+        maximumEntrySize: 32,
+        direction: .toExtension
+      )
+    }
+  }
 
   /// The most rings, with the smallest and largest entry sizes and counts.
   private static let rings = (0..<UInt32(FastPathLimits.maximumRings)).map { id in
@@ -158,7 +187,8 @@ struct FastPathGenerationTests {
         )
       },
       barSizes: [0: 0x1000, 2: 0x100, 5: 0x20],
-      rings: rings
+      rings: rings,
+      dataQueues: dataQueues
     )
   }()
 
@@ -184,6 +214,10 @@ struct FastPathGenerationTests {
       #expect(configuration.contains("kSwifterKitFastPathTriggerCount = 32;"))
       #expect(configuration.contains("kSwifterKitFastPathBARSizeCount = 3;"))
       #expect(configuration.contains("kSwifterKitFastPathRingCount = 8;"))
+      #expect(configuration.contains("kSwifterKitFastPathDataQueueCount = 8;"))
+      let service = try source("SwifterKitRuntimeService.iig", in: output)
+      #expect(service.contains("#include <DriverKit/IODataQueueDispatchSource.iig>"))
+      #expect(service.contains("TYPE(IODataQueueDispatchSource::DataAvailable)"))
       try expectGeneratedExtensionBuilds(
         at: output,
         derivedData: root.appendingPathComponent("DerivedData")

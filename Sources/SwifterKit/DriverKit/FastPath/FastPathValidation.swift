@@ -23,9 +23,10 @@ extension FastPathConfiguration {
     if (usesRegisters || !barSizes.isEmpty) && !hasPCIDevice { throw .registersWithoutPCIDevice }
     let rings = try validatedRings()
     if !rings.isEmpty && !hasPCIDevice { throw .ringsWithoutPCIDevice }
+    let dataQueues = try validatedDataQueues()
     var interruptTriggers: Set<UInt32> = []
     for (index, program) in programs.enumerated() {
-      try program.validate(index: index, barSizes: barSizes, rings: rings)
+      try program.validate(index: index, barSizes: barSizes, rings: rings, dataQueues: dataQueues)
       if case .interrupt(let source, _) = program.trigger {
         guard interruptSources.contains(source) else {
           throw .unknownInterruptSource(program: index, sourceIndex: source)
@@ -81,7 +82,8 @@ extension FastPathProgram {
   func validate(
     index: Int,
     barSizes: [UInt8: UInt64],
-    rings: [UInt32: FastPathRing] = [:]
+    rings: [UInt32: FastPathRing] = [:],
+    dataQueues: [UInt32: FastPathDataQueue] = [:]
   ) throws(FastPathError) {
     guard !operations.isEmpty else { throw .emptyProgram(program: index) }
     guard operations.count <= FastPathLimits.maximumOperations else {
@@ -99,7 +101,8 @@ extension FastPathProgram {
         operation: position,
         remaining: operations.count - position - 1,
         barSizes: barSizes,
-        rings: rings
+        rings: rings,
+        dataQueues: dataQueues
       )
     }
     let budget = delayBudgetMicroseconds
@@ -116,7 +119,7 @@ extension FastPathOp {
     case .read(let register, _), .write(let register, _), .modify(let register, _, _),
       .poll(let register, _, _, _, _):
       register
-    case .compute, .delay, .skip, .emit, .fail, .ringLoad, .ringStore, .ringAdvance: nil
+    case .compute, .delay, .skip, .emit, .fail, .ringLoad, .ringStore, .ringAdvance, .enqueue: nil
     }
   }
 
@@ -157,7 +160,8 @@ extension FastPathOp {
     operation: Int,
     remaining: Int,
     barSizes: [UInt8: UInt64],
-    rings: [UInt32: FastPathRing] = [:]
+    rings: [UInt32: FastPathRing] = [:],
+    dataQueues: [UInt32: FastPathDataQueue] = [:]
   ) throws(FastPathError) {
     if let register {
       try register.validate(program: program, operation: operation, barSizes: barSizes)
@@ -212,6 +216,13 @@ extension FastPathOp {
       }
     case .fail(let status):
       guard status != 0 else { throw .invalidFailStatus(program: program, operation: operation) }
+    case .enqueue(let id, let slots):
+      guard let queue = dataQueues[id], queue.direction == .toHost else {
+        throw .unknownDataQueue(program: program, operation: operation)
+      }
+      guard (1...FastPathLimits.maximumEmittedSlots).contains(slots.count),
+        slots.count * 8 <= Int(queue.maximumEntrySize)
+      else { throw .invalidEnqueue(program: program, operation: operation) }
     }
     guard fits else { throw .valueExceedsWidth(program: program, operation: operation) }
   }

@@ -215,6 +215,35 @@ struct DriverRuntimeConnectionTests {
     #expect(ring.byteCount == 128)
   }
 
+  @Test
+  func mapsFastPathDataQueuesByIdentifier() async throws {
+    let backend = RuntimeMockConnection(capabilities: [])
+    let runtime = try await makeRuntime(backend: backend)
+    let queue = FastPathDataQueue(
+      id: 5,
+      capacityBytes: 4096,
+      maximumEntrySize: 8,
+      direction: .toHost
+    )
+    let fastPath = FastPathConfiguration(
+      programs: [FastPathProgram(trigger: .start, operations: [.enqueue(5, slots: [.v0])])],
+      dataQueues: [queue]
+    )
+    let context = await DriverContext(runtime: runtime, fastPath: fastPath)
+    let mapped = try await context.mapDataQueue(5)
+    #expect(mapped.queue == queue)
+    #expect(await backend.mappings.types == [0x0400_0005])
+    await #expect(throws: FastPathRuntimeError.unknownDataQueue(6)) {
+      try await context.mapDataQueue(6)
+    }
+    let unconfigured = await DriverContext(runtime: runtime)
+    await #expect(throws: FastPathRuntimeError.unknownDataQueue(0x100_0000)) {
+      try await unconfigured.mapDataQueue(0x100_0000)
+    }
+    #expect(try await unconfigured.mapDataQueue(9).queue == nil)
+    #expect(await backend.mappings.types == [0x0400_0005, 0x0400_0009])
+  }
+
   private func makeRuntime(
     backend: RuntimeMockConnection,
     requiring capabilities: RuntimeCapabilities = [],

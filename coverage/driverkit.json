@@ -7429,14 +7429,15 @@
 
           ],
           "name" : "IsDataAvailable",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "the runtime-queue DataAvailable handler loops while a to-host staging source has entries, so every staged entry reaches the host ring that mapDataQueue reads",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool IsDataAvailable()",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "mapDataQueue"
         },
         {
           "access" : "public",
@@ -7465,14 +7466,15 @@
 
           ],
           "name" : "CanEnqueueData",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "checks whether a fast-path enqueue fits the staging source before it is staged; an entry that does not fit is dropped and counted in the host ring header",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CanEnqueueData(uint32_t)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "enqueue"
         },
         {
           "access" : "public",
@@ -7483,14 +7485,15 @@
 
           ],
           "name" : "CanEnqueueData",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "checks after Create that a to-host FastPathDataQueue staging source holds as many maximum-size entries as its host ring; a source that cannot refuses the fast path",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CanEnqueueData(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "FastPathDataQueue"
         },
         {
           "access" : "public",
@@ -7609,14 +7612,15 @@
 
           ],
           "name" : "Dequeue",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "the runtime-queue DataAvailable handler takes each staged entry and publishes it into the host ring that mapDataQueue reads, or drops and counts it when the ring is full",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Dequeue(IODataQueueClientDequeueEntryBlock)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "mapDataQueue"
         },
         {
           "access" : "public",
@@ -7663,14 +7667,15 @@
 
           ],
           "name" : "EnqueueWithCoalesce",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "stages each fast-path enqueue from the interrupt or command that ran the program, deferring the DataAvailable notification so a run wakes the runtime queue once",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t EnqueueWithCoalesce(uint32_t, bool*, IODataQueueClientEnqueueEntryBlock)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "enqueue"
         },
         {
           "access" : "public",
@@ -7753,14 +7758,15 @@
 
           ],
           "name" : "GetDataQueueEntryHeaderSize",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "sizes each to-host FastPathDataQueue staging source: StartFastPathDataQueues creates it with room for one more maximum-size entry than the host ring holds, counting this per-entry header",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "size_t GetDataQueueEntryHeaderSize()",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "FastPathDataQueue"
         },
         {
           "access" : "private",
@@ -7807,14 +7813,15 @@
 
           ],
           "name" : "SendDataAvailable",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "sends the DataAvailable notification EnqueueWithCoalesce held back, once per fast-path run that enqueued entries, before the run releases the fast-path lock",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void SendDataAvailable()",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "enqueue"
         },
         {
           "access" : "public",

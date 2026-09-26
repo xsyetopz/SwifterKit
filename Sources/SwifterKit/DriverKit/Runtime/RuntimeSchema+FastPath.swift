@@ -44,6 +44,32 @@ enum RuntimeFastPathLimits {
   static let ringEntrySizeOffset = 8
   /// The header offset of the entry count, a `uint32_t`.
   static let ringEntryCountOffset = 12
+  /// The most host-shared data queues in one configuration.
+  static let maximumDataQueues = 8
+  /// The entry bytes of a data queue's host ring; a capacity must also be a power of two.
+  static let dataQueueCapacities = 4096...1_048_576
+  /// The payload bytes one data queue entry holds at most; a size must also be a multiple of 8.
+  static let dataQueueEntrySizes = 8...64
+  /// The most bytes every data queue host ring occupies together, headers included.
+  static let maximumDataQueueBytes = 4 * 1024 * 1024
+  /// The bytes of a data queue host ring's header, before record 0.
+  static let dataQueueHeaderSize = 64
+  /// The header offset of the producer's free-running record count, a `uint32_t`.
+  static let dataQueueProducerOffset = 0
+  /// The header offset of the consumer's free-running record count, a `uint32_t`.
+  static let dataQueueConsumerOffset = 4
+  /// The header offset of the record count, a power-of-two `uint32_t`.
+  static let dataQueueEntryCountOffset = 8
+  /// The header offset of the record stride in bytes, a power-of-two `uint32_t`.
+  static let dataQueueStrideOffset = 12
+  /// The header offset of the maximum entry payload size, a `uint32_t`.
+  static let dataQueueMaximumEntrySizeOffset = 16
+  /// The header offset of the ``RuntimeFastPathDataQueueDirection``, a `uint32_t`.
+  static let dataQueueDirectionOffset = 20
+  /// The header offset of the count of entries the extension dropped, a `uint64_t`.
+  static let dataQueueDropsOffset = 24
+  /// The bytes before a record's payload: its payload byte count, a `uint32_t`, then zero.
+  static let dataQueueRecordHeaderSize = 8
 }
 
 /// What one `SwifterKitFastPathOperation` row does.
@@ -68,6 +94,8 @@ enum RuntimeFastPathLimits {
 ///   `immediate0` field offset, `immediate1` operand.
 /// - `ringAdvance`: `a` ring index, `b` ``RuntimeFastPathRingIndex``, `c` operand kind,
 ///   `immediate1` operand.
+/// - `enqueue`: `a` data queue index into the data queue table, `b` slot count, `immediate1`
+///   slot indices, one per byte from the lowest.
 ///
 /// Unused fields are zero.
 enum RuntimeFastPathOpcode: UInt32, CaseIterable {
@@ -83,6 +111,15 @@ enum RuntimeFastPathOpcode: UInt32, CaseIterable {
   case ringLoad = 10
   case ringStore = 11
   case ringAdvance = 12
+  case enqueue = 13
+}
+
+/// Which way a host-shared data queue moves entries.
+enum RuntimeFastPathDataQueueDirection: UInt32, CaseIterable {
+  /// Fast-path `enqueue` operations produce; the host consumes.
+  case toHost = 0
+  /// The host produces; the extension consumes.
+  case toExtension = 1
 }
 
 /// How a `write` or `compute` row interprets its operand value.
@@ -217,6 +254,23 @@ struct RuntimeFastPathRow {
     ]
   )
 
+  /// One host-shared data queue: its identifier, host ring entry bytes, maximum entry payload
+  /// bytes, and ``RuntimeFastPathDataQueueDirection``.
+  static let dataQueue = Self(
+    name: "SwifterKitFastPathDataQueue",
+    fields: [
+      ("uint32_t", "id"), ("uint32_t", "capacityBytes"), ("uint32_t", "maximumEntrySize"),
+      ("uint32_t", "direction"),
+    ]
+  )
+
+  /// A `fastPathDataQueue` event, queued once per batch the extension publishes into a host
+  /// ring: the queue identifier, the entries published, and the queue's total dropped entries.
+  static let dataQueueEvent = Self(
+    name: "SwifterKitFastPathDataQueueEvent",
+    fields: [("uint32_t", "id"), ("uint32_t", "published"), ("uint64_t", "droppedEntries")]
+  )
+
   /// A `fastPathRun` command payload: the program index and its arguments, unused ones zero.
   static let runRequest = Self(
     name: "SwifterKitFastPathRunRequest",
@@ -242,6 +296,7 @@ struct RuntimeFastPathRow {
 
   /// Every row layout, in header order.
   static let all = [
-    program, operation, trigger, bar, ring, runRequest, runResult, event, statusReply,
+    program, operation, trigger, bar, ring, dataQueue, runRequest, runResult, event, dataQueueEvent,
+    statusReply,
   ]
 }

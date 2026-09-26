@@ -24,12 +24,15 @@
 //   uint32_t RingIndex(uint32_t ring, uint32_t index);
 //   void SetRingIndex(uint32_t ring, uint32_t index, uint32_t value);
 //   uint64_t RingDeviceAddress(uint32_t ring);
+//   void Enqueue(uint32_t queue, const uint64_t* values, uint32_t count);
 // `bar` is a BAR index below kSwifterKitFastPathBARCount, `width` is 1, 2, 4, or 8 bytes, and the
 // access lies inside the BAR's declared minimum size. `ring` is an index into the ring table,
 // `offset` is a byte offset from entry 0 aligned to `width` with the access inside the ring's
 // entries, `index` is a SwifterKitFastPathRingIndex value, and a stored index is below the entry
 // count. RingIndex may return any value; the interpreter masks it. RingDeviceAddress is the
-// device address of entry 0.
+// device address of entry 0. `queue` is an index into the data queue table naming a to-host
+// queue, and count * 8 bytes fit its maximum entry size; Enqueue is lossy and never fails the
+// program.
 
 static_assert((kSwifterKitFastPathSlotCount & (kSwifterKitFastPathSlotCount - 1)) == 0);
 
@@ -45,6 +48,8 @@ struct SwifterKitFastPathTables {
     uint32_t barCount;
     const SwifterKitFastPathRing* rings;
     uint32_t ringCount;
+    const SwifterKitFastPathDataQueue* dataQueues;
+    uint32_t dataQueueCount;
 };
 
 // The declared minimum size of each BAR; zero means the BAR is not declared.
@@ -127,6 +132,70 @@ inline bool SwifterKitFastPathIsValidRings(const SwifterKitFastPathTables& table
         bytes += kSwifterKitFastPathRingHeaderSize + uint64_t {ring.entrySize} * ring.entryCount;
     }
     return bytes <= kSwifterKitFastPathMaximumRingBytes;
+}
+
+// The bytes of one host ring record: the smallest power of two that holds the record header and
+// the queue's maximum entry.
+inline constexpr uint32_t SwifterKitFastPathDataQueueStride(
+    const SwifterKitFastPathDataQueue& queue) {
+    uint32_t stride = 1;
+    while (stride < kSwifterKitFastPathDataQueueRecordHeaderSize + queue.maximumEntrySize
+           && stride <= UINT32_MAX / 2) {
+        stride <<= 1U;
+    }
+    return stride;
+}
+
+// The records a queue's host ring holds.
+inline constexpr uint32_t SwifterKitFastPathDataQueueEntryCount(
+    const SwifterKitFastPathDataQueue& queue) {
+    return queue.capacityBytes / SwifterKitFastPathDataQueueStride(queue);
+}
+
+// Checks the data queue table: at most kSwifterKitFastPathMaximumDataQueues rows, unique
+// identifiers inside the client-memory identifier field, power-of-two capacities and
+// multiple-of-8 maximum entry sizes within the schema bounds, at least two records, a
+// SwifterKitFastPathDataQueueDirection value, and every host ring together within
+// kSwifterKitFastPathMaximumDataQueueBytes.
+inline bool SwifterKitFastPathIsValidDataQueues(const SwifterKitFastPathTables& tables) {
+    if (tables.dataQueueCount > kSwifterKitFastPathMaximumDataQueues) {
+        return false;
+    }
+    uint64_t bytes = 0;
+    for (uint32_t index = 0; index < tables.dataQueueCount; ++index) {
+        const SwifterKitFastPathDataQueue& queue = tables.dataQueues[index];
+        if (queue.id > kSwifterKitClientMemoryIdentifierMask
+            || !SwifterKitFastPathIsPowerOfTwo(queue.capacityBytes)
+            || queue.capacityBytes < kSwifterKitFastPathMinimumDataQueueCapacity
+            || queue.capacityBytes > kSwifterKitFastPathMaximumDataQueueCapacity
+            || queue.maximumEntrySize % 8 != 0
+            || queue.maximumEntrySize < kSwifterKitFastPathMinimumDataQueueEntrySize
+            || queue.maximumEntrySize > kSwifterKitFastPathMaximumDataQueueEntrySize
+            || SwifterKitFastPathDataQueueEntryCount(queue) < 2
+            || queue.direction
+                   > static_cast<uint32_t>(SwifterKitFastPathDataQueueDirection::ToExtension)) {
+            return false;
+        }
+        for (uint32_t earlier = 0; earlier < index; ++earlier) {
+            if (tables.dataQueues[earlier].id == queue.id) {
+                return false;
+            }
+        }
+        bytes += kSwifterKitFastPathDataQueueHeaderSize + uint64_t {queue.capacityBytes};
+    }
+    return bytes <= kSwifterKitFastPathMaximumDataQueueBytes;
+}
+
+// Returns the data queue table index of the queue with `id`, or dataQueueCount when none has it.
+inline uint32_t SwifterKitFastPathDataQueueNamed(
+    const SwifterKitFastPathTables& tables,
+    uint32_t id) {
+    for (uint32_t index = 0; index < tables.dataQueueCount; ++index) {
+        if (tables.dataQueues[index].id == id) {
+            return index;
+        }
+    }
+    return tables.dataQueueCount;
 }
 
 // Returns the ring table index of the ring with `id`, or ringCount when none has it.
@@ -222,9 +291,10 @@ namespace swifterkit_fast_path {
 
     // An emit row names `b` slots, one per byte of `immediate1` from the lowest; higher bytes
     // are zero.
-    inline bool IsValidEmit(const SwifterKitFastPathOperation& row) {
-        if (row.a != 0 || row.c != 0 || row.b == 0 || row.b > kSwifterKitFastPathSlotCount
-            || row.immediate0 != 0 || row.immediate2 != 0) {
+    // An emit or enqueue slot list: `b` slots named one per byte of `immediate1`, the rest zero.
+    inline bool IsValidSlotList(const SwifterKitFastPathOperation& row) {
+        if (row.c != 0 || row.b == 0 || row.b > kSwifterKitFastPathSlotCount || row.immediate0 != 0
+            || row.immediate2 != 0) {
             return false;
         }
         for (uint32_t index = 0; index < kSwifterKitFastPathSlotCount; ++index) {
@@ -273,7 +343,13 @@ namespace swifterkit_fast_path {
                        && row.c <= static_cast<uint32_t>(SwifterKitFastPathConditionTest::Nonzero)
                        && row.immediate0 == 0 && row.immediate2 == 0;
             case SwifterKitFastPathOpcode::Emit:
-                return IsValidEmit(row);
+                return row.a == 0 && IsValidSlotList(row);
+            case SwifterKitFastPathOpcode::Enqueue:
+                return row.a < tables.dataQueueCount
+                       && tables.dataQueues[row.a].direction
+                              == static_cast<uint32_t>(SwifterKitFastPathDataQueueDirection::ToHost)
+                       && uint64_t {row.b} * 8 <= tables.dataQueues[row.a].maximumEntrySize
+                       && IsValidSlotList(row);
             case SwifterKitFastPathOpcode::Fail:
                 return row.a == 0 && row.b != 0 && row.c == 0 && row.immediate0 == 0
                        && row.immediate1 == 0 && row.immediate2 == 0;
@@ -372,7 +448,8 @@ inline bool SwifterKitFastPathIsValidProgram(
     uint32_t program,
     const SwifterKitFastPathBARSizes& bars) {
     if (program >= tables.programCount || tables.programCount > kSwifterKitFastPathMaximumPrograms
-        || !SwifterKitFastPathIsValidRings(tables)) {
+        || !SwifterKitFastPathIsValidRings(tables)
+        || !SwifterKitFastPathIsValidDataQueues(tables)) {
         return false;
     }
     const SwifterKitFastPathProgram& row = tables.programs[program];
@@ -604,6 +681,16 @@ SwifterKitFastPathOutcome SwifterKitFastPathExecute(
                 }
                 access.Emit(values, operation.b);
                 outcome.emitted = true;
+                break;
+            }
+            case SwifterKitFastPathOpcode::Enqueue: {
+                uint64_t values[kSwifterKitFastPathSlotCount] = {};
+                for (uint32_t slot = 0; slot < operation.b && slot < kSwifterKitFastPathSlotCount;
+                     ++slot) {
+                    values[slot] = slots[SwifterKitFastPathSlot(
+                        operation.immediate1 >> (uint64_t {slot} * 8))];
+                }
+                access.Enqueue(operation.a, values, operation.b);
                 break;
             }
             case SwifterKitFastPathOpcode::Fail:
