@@ -7631,14 +7631,15 @@
 
           ],
           "name" : "DequeueWithCoalesce",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "removes each to-extension entry only after its dataAvailable program ran, deferring the DataServiced notification to the consumer",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DequeueWithCoalesce(bool*, IODataQueueClientDequeueEntryBlock)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "dataAvailable"
         },
         {
           "access" : "public",
@@ -7649,14 +7650,15 @@
 
           ],
           "name" : "Enqueue",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "the notifyDataQueue doorbell moves each bounds-checked record the host wrote into a to-extension host ring into its staging source; a full source leaves the record waiting and arms DataServiced",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Enqueue(uint32_t, IODataQueueClientEnqueueEntryBlock)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "notifyDataQueue"
         },
         {
           "access" : "public",
@@ -7686,14 +7688,15 @@
 
           ],
           "name" : "Peek",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "the to-extension DataAvailable handler copies the oldest staged entry's first words into v0 onward and runs the queue's dataAvailable program before removing the entry",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Peek(IODataQueueClientDequeueEntryBlock)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "dataAvailable"
         },
         {
           "access" : "public",
@@ -7722,14 +7725,15 @@
 
           ],
           "name" : "SetDataServicedHandler",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "each to-extension staging source gets a DataServiced handler before it is enabled, so records left waiting in the host ring move once the source frees space",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDataServicedHandler(OSAction*)",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "waitingEntries"
         },
         {
           "access" : "public",
@@ -7832,14 +7836,15 @@
 
           ],
           "name" : "SendDataServiced",
-          "note" : "deferred to the fast-path phase: a dext-side IODataQueue shared with the host needs a mapped ring and doorbells; events reach Swift through the runtime event queue today, and the NetworkingDriverKit packet queues own their data queues",
+          "note" : "sent after a coalesced dequeue reports that a doorbell found the staging source full, so the waiting host records move and a FastPathDataQueueEvent tells the host",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void SendDataServiced()",
-          "status" : "gap"
+          "status" : "fast-path",
+          "swiftSymbol" : "waitingEntries"
         },
         {
           "access" : "public",

@@ -26,6 +26,8 @@ struct FastPathDataQueueContractTests {
       "CanEnqueueData(row.maximumEntrySize, static_cast<uint32_t>(entries))",
       "return kIOReturnNoResources;",
       "SetDataAvailableHandler(state->fastPathDataAvailableAction)",
+      "!IsToHost(row)",
+      "SetDataServicedHandler(state->fastPathDataServicedAction)",
       "SwifterKitEnableSource(queue->staging)"
     )
     let start = try section(
@@ -37,8 +39,8 @@ struct FastPathDataQueueContractTests {
       in: start,
       "CopyDispatchQueue(kIOServiceDefaultQueueName",
       "CreateActionFastPathDataAvailable(0,",
+      "CreateActionFastPathDataServiced(0,",
       "PrepareHostRing(row, queue)",
-      "IsToHost(row)",
       "PrepareStaging(row, ivars, queue)",
       "ReleaseDataQueues(ivars);",
       "return kIOReturnNoResources;"
@@ -70,12 +72,17 @@ struct FastPathDataQueueContractTests {
     )
     try expectOrder(in: signal, "queue.notify", "SendDataAvailable();", "queue.notify = false;")
     let runtime = try Self.checkedIn("SwifterKitRuntimeFastPath.cpp")
-    let run = try section(of: runtime, from: "kern_return_t RunProgram(", to: "\n    }\n")
+    let run = try section(
+      of: runtime,
+      from: "kern_return_t ExecuteHoldingLock(",
+      to: "kern_return_t RunPrograms("
+    )
     try expectOrder(
       in: run,
-      "IOLockLock(state->fastPathLock);",
       "SwifterKitFastPathExecute(",
       "service->SignalFastPathDataQueues();",
+      "IOLockLock(state->fastPathLock);",
+      "ExecuteHoldingLock(",
       "IOLockUnlock(state->fastPathLock);"
     )
     #expect(run.components(separatedBy: "SignalFastPathDataQueues").count == 2)
@@ -155,7 +162,9 @@ struct FastPathDataQueueContractTests {
       "queue.staging->Cancel(nullptr);",
       "OSSafeReleaseNULL(queue.staging);",
       "OSSafeReleaseNULL(queue.buffer);",
-      "fastPathDataAvailableAction->Cancel(nullptr);"
+      "fastPathDataAvailableAction->Cancel(nullptr);",
+      "fastPathDataServicedAction->Cancel(nullptr);",
+      "OSSafeReleaseNULL(state->fastPathDataServicedAction);"
     )
   }
 

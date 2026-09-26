@@ -192,6 +192,11 @@ public enum FastPathTrigger: Sendable, Hashable {
   case interrupt(sourceIndex: UInt32, delivery: Delivery)
   /// When Swift runs the program.
   case command
+  /// Once for each entry of the ``FastPathDataQueueDirection/toExtension`` data queue with this
+  /// identifier, on the extension's runtime queue, with the entry's first
+  /// ``FastPathProgram/argumentCount`` little-endian 64-bit words in `v0` onward; words the entry
+  /// does not hold are zero. A queue has at most one such program.
+  case dataAvailable(UInt32)
 }
 
 /// A bounded sequence of fast-path operations and the trigger that runs it.

@@ -122,16 +122,20 @@ struct FastPathRuntimeContractTests {
       let runtime = try source("SwifterKitRuntimeFastPath.cpp", in: output)
       let run = try section(
         of: runtime,
-        from: "kern_return_t RunProgram(",
+        from: "kern_return_t ExecuteHoldingLock(",
         to: "kern_return_t RunPrograms("
       )
+      // The lock-held body runs the program; RunProgram wraps it in the lock.
       try expectOrder(
         in: run,
-        "IOLockLock(state->fastPathLock);",
         "state->fastPathRunning",
         "*outcome = SwifterKitFastPathExecute(",
+        "kern_return_t RunProgram(",
+        "IOLockLock(state->fastPathLock);",
+        "ExecuteHoldingLock(service, state, program, arguments, argumentCount, outcome);",
         "IOLockUnlock(state->fastPathLock);"
       )
+      #expect(run.components(separatedBy: "IOLockLock(").count == 2)
       #expect(
         runtime.contains(
           "SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Timeout)\n"

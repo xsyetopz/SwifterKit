@@ -173,6 +173,8 @@ struct FastPathGenerationTests {
       { .interrupt(sourceIndex: UInt32($0), delivery: .always) },
       { .interrupt(sourceIndex: UInt32($0), delivery: .never) },
       { .interrupt(sourceIndex: UInt32($0), delivery: .whenProgramEmits) },
+      // A distinct to-extension queue, ids 2 onward, for each data-available program.
+      { .dataAvailable(2 + UInt32($0 / 7)) },
     ]
     let operations = (0..<FastPathLimits.maximumOperations).map {
       everyOperation[$0 % everyOperation.count]
@@ -182,7 +184,8 @@ struct FastPathGenerationTests {
         let trigger = triggers[index % triggers.count](index)
         return FastPathProgram(
           trigger: trigger,
-          argumentCount: trigger == .command ? FastPathLimits.maximumArguments : 0,
+          argumentCount: trigger == .command || trigger == .dataAvailable(2 + UInt32(index / 7))
+            ? FastPathLimits.maximumArguments : 0,
           operations: operations
         )
       },
@@ -218,6 +221,8 @@ struct FastPathGenerationTests {
       let service = try source("SwifterKitRuntimeService.iig", in: output)
       #expect(service.contains("#include <DriverKit/IODataQueueDispatchSource.iig>"))
       #expect(service.contains("TYPE(IODataQueueDispatchSource::DataAvailable)"))
+      #expect(service.contains("TYPE(IODataQueueDispatchSource::DataServiced)"))
+      #expect(configuration.contains("{5, 2, 0, 6}"))
       try expectGeneratedExtensionBuilds(
         at: output,
         derivedData: root.appendingPathComponent("DerivedData")

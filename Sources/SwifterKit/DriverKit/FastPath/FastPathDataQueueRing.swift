@@ -20,6 +20,9 @@ public enum FastPathDataQueueError: Error, Sendable, Hashable {
   case full
   /// The entry is empty or larger than the queue's maximum entry size.
   case invalidEntry(byteCount: Int)
+  /// The host wrote to a ring whose header does not name
+  /// ``FastPathDataQueueDirection/toExtension``; the extension produces that ring's entries.
+  case notProducer
 }
 
 /// The portable single-producer, single-consumer logic over a data queue host ring's bytes,
@@ -186,6 +189,30 @@ public final class DriverDataQueue: Sendable {
         UInt64(littleEndian: payload.loadUnaligned(fromByteOffset: $0, as: UInt64.self))
       }
     }
+  }
+
+  /// Appends one entry to a ``FastPathDataQueueDirection/toExtension`` ring; call
+  /// ``DriverContext/notifyDataQueue(_:)`` after one or more appends so the extension takes them.
+  /// Throws ``FastPathDataQueueError/full`` when the extension has not taken enough entries yet,
+  /// and refuses an empty entry or one above the maximum entry size. Use one writer per queue: the
+  /// ring has a single producer.
+  public func enqueue(_ payload: UnsafeRawBufferPointer) throws {
+    try memory.withUnsafeMutableBytes { bytes in
+      let ring = try FastPathDataQueueRing(header: UnsafeRawBufferPointer(bytes), expecting: queue)
+      guard
+        FastPathDataQueueRing.load(
+          UnsafeRawBufferPointer(bytes),
+          FastPathDataQueueLayout.directionOffset
+        ) == RuntimeFastPathDataQueueDirection.toExtension.rawValue
+      else { throw FastPathDataQueueError.notProducer }
+      try ring.enqueue(bytes, payload)
+    }
+  }
+
+  /// Appends `values`, eight little-endian bytes each, as one entry; see ``enqueue(_:)``.
+  public func enqueueValues(_ values: [UInt64]) throws {
+    let bytes = values.flatMap { withUnsafeBytes(of: $0.littleEndian, Array.init) }
+    try bytes.withUnsafeBytes { try enqueue($0) }
   }
 
   /// The entries the extension dropped because the staging queue or this ring was full.

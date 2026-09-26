@@ -24,6 +24,11 @@ SwifterKit records user-visible changes in this file.
   them must handle the new cases.
 - A client-memory type of kind 4 maps a fast-path data queue's host ring
   instead of answering `kIOReturnUnsupported`.
+- **Breaking:** `FastPathTrigger` gains `dataAvailable`; `FastPathError` gains
+  `unknownDataAvailableQueue` and `duplicateDataAvailableTrigger`; and
+  `FastPathDataQueueError` gains `notProducer`. Exhaustive switches over them
+  must handle the new cases. `argumentsWithoutCommandTrigger` no longer
+  applies to `dataAvailable` programs.
 - **Breaking:** `DriverConnection` requires `mapMemory(type:readOnly:)`, which
   maps the memory the user client shares for a `CopyClientMemoryForType` type
   into the host and returns a `DriverSharedMemory`; custom connections must
@@ -304,8 +309,20 @@ SwifterKit records user-visible changes in this file.
   (event 0x0F01) per published batch. Entries that find either queue full are
   dropped and counted. `DriverContext.mapDataQueue(_:)` maps the ring as a
   `DriverDataQueue` whose reader checks the geometry, indices, and entry sizes
-  a corrupt producer could write. Host-to-extension queues are allocated and
-  mapped but not yet consumed.
+  a corrupt producer could write.
+- `.toExtension` data queues carry entries from the host: `DriverDataQueue`
+  `enqueue(_:)` and `enqueueValues(_:)` write the mapped host ring, and
+  `DriverContext.notifyDataQueue(_:)` (opcode 0x0F02) rings a doorbell the
+  extension answers once with a `FastPathDataQueueNotification`. The extension
+  bounds-checks every host-written index, size, and reserved word against its
+  own tables before reading a record, refuses a corrupt ring with
+  `kIOReturnIOError` and counts it, and moves records into an
+  `IODataQueueDispatchSource` with `Enqueue`. A
+  `FastPathTrigger.dataAvailable(_:)` program runs once per entry with its
+  first words in `v0` onward (`Peek`, then `DequeueWithCoalesce`). Records that
+  find the staging queue full wait in the host ring; `SetDataServicedHandler`
+  and `SendDataServiced` resume them once space frees, and a
+  `FastPathDataQueueEvent` tells the host.
 - `DriverContext.wrapClientMemory(_:direction:)` (opcode 0x050A) wraps 1 to 32
   `DriverClientMemorySegment` ranges of the host's own memory as a
   `DriverMemoryHandle` without copying. The runtime calls

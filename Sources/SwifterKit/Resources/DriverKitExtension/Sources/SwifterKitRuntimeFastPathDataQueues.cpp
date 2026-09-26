@@ -8,8 +8,10 @@
     #include <DriverKit/IOLib.h>
     #include <DriverKit/IOReturn.h>
     #include <DriverKit/OSAction.h>
+    #include <DriverKit/OSData.h>
 
     #include "SwifterKitRuntimeDispatchSources.h"
+    #include "SwifterKitRuntimeFastPathDataQueueTransfer.h"
     #include "SwifterKitRuntimeFastPathInterpreter.h"
     #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
@@ -25,10 +27,11 @@
 //   is written once at start; the kSwifterKitFastPathDataQueue*Offset constants place every
 //   field.
 // - StartFastPathDataQueues runs under fastPathLock after the rings are prepared and before any
-//   start program. It creates every host ring and, for to-host queues, a staging source sized
-//   with GetDataQueueEntryHeaderSize for one more entry than the host ring holds; a source whose
+//   start program. It creates every host ring and a staging source sized with
+//   GetDataQueueEntryHeaderSize for one more entry than the host ring holds; a source whose
 //   CanEnqueueData(maximumEntrySize, entryCount) check fails refuses the fast path, as does any
-//   allocation failure, and everything created so far is released.
+//   allocation failure, and everything created so far is released. A to-extension source also
+//   gets the DataServiced handler before it is enabled.
 // - An `enqueue` runs under fastPathLock on whatever queue ran the program (the interrupt queue
 //   for interrupt programs). It checks CanEnqueueData, then stages the entry with
 //   EnqueueWithCoalesce; an entry that does not fit is dropped and counted, because fast-path
@@ -43,6 +46,24 @@
 //   is stored with release ordering; the host's consumer index is loaded with acquire ordering.
 //   One fastPathDataQueue event per drained queue that published entries tells the host; the
 //   event queue is lossy, so the host reads until the ring is empty rather than counting events.
+// - A to-extension queue runs the other way. The host writes records into its host ring and
+//   sends a fastPathDataQueueNotify command. NotifyFastPathDataQueue, under fastPathLock, moves
+//   records into the staging source with Enqueue after SwifterKitFastPathTakeHostRecords has
+//   bounds-checked the ring (see SwifterKitRuntimeFastPathDataQueueTransfer.h), advances the
+//   consumer count with release ordering after each, and answers the command exactly once with
+//   what it moved, what still waits, and the queue's refusal count. A corrupt ring is answered
+//   with SwifterKitFastPathStatus::Corrupt and counted; nothing past the corrupt record is read.
+//   The hold is one bounded copy of at most entryCount records of at most 64 bytes each.
+// - Enqueue sends DataAvailable itself. The handler, after draining the to-host sources,
+//   consumes each to-extension source one entry per fastPathLock acquisition: Peek copies the
+//   entry's first words, the queue's data-available program runs on them, and only then
+//   DequeueWithCoalesce removes the entry. An entry no program ran for is dropped and counted.
+//   The hold is one program's budget, as for every other run; the lock is released between
+//   entries, and fastPathRunning and the source are re-read after each acquisition.
+// - Enqueue that finds the staging source full leaves the record in the host ring and marks the
+//   queue blocked. The source then arms DataServiced; when DequeueWithCoalesce reports it, the
+//   consumer calls SendDataServiced, and FastPathDataServiced, under fastPathLock, moves the
+//   waiting records and queues one fastPathDataQueue event that tells the host space freed.
 // - StopFastPathDataQueues runs under fastPathLock after fastPathRunning is cleared: it cancels
 //   every source and releases the host rings. A host mapping keeps its ring's memory alive.
 
@@ -56,6 +77,47 @@ namespace {
     bool IsToHost(const SwifterKitFastPathDataQueue& row) {
         return row.direction == static_cast<uint32_t>(SwifterKitFastPathDataQueueDirection::ToHost);
     }
+
+    uint32_t QueueIndex(uint32_t identifier) {
+        uint32_t index = 0;
+        while (index < kSwifterKitFastPathDataQueueCount && QueueRow(index).id != identifier) {
+            ++index;
+        }
+        return index;
+    }
+
+    // The DriverKit staging source behind SwifterKitRuntimeFastPathDataQueueTransfer.h.
+    struct Staging {
+        IODataQueueDispatchSource* source;
+
+        SwifterKitFastPathStagingResult Enqueue(const uint8_t* payload, uint32_t size) const {
+            const kern_return_t result = source->Enqueue(size, ^(void* data, size_t bytes) {
+              __builtin_memcpy(data, payload, bytes < size ? bytes : size);
+            });
+            if (result == kIOReturnSuccess) {
+                return SwifterKitFastPathStagingResult::Enqueued;
+            }
+            return result == kIOReturnOverrun ? SwifterKitFastPathStagingResult::Full
+                                              : SwifterKitFastPathStagingResult::Failed;
+        }
+
+        bool Peek(uint64_t* words) const {
+            return source->Peek(^(const void* data, size_t size) {
+              SwifterKitFastPathEntryWords(data, size, words);
+            }) == kIOReturnSuccess;
+        }
+
+        bool DequeueWithCoalesce(bool* sendDataServiced) const {
+            return source->DequeueWithCoalesce(
+                       sendDataServiced,
+                       ^([[maybe_unused]] const void* data, [[maybe_unused]] size_t size) {})
+                   == kIOReturnSuccess;
+        }
+
+        void SendDataServiced() const {
+            source->SendDataServiced();
+        }
+    };
 
     uint32_t* HeaderField(const SwifterKitFastPathDataQueueState& queue, uint32_t offset) {
         return SwifterKitMappedPointer<uint32_t>(queue.address + offset);
@@ -140,8 +202,8 @@ namespace {
         return kIOReturnSuccess;
     }
 
-    // Creates a to-host queue's staging source on the runtime queue and checks that it holds as
-    // many maximum-size entries as the host ring.
+    // Creates a queue's staging source on the runtime queue and checks that it holds as many
+    // maximum-size entries as the host ring.
     kern_return_t PrepareStaging(
         const SwifterKitFastPathDataQueue& row,
         const SwifterKitRuntimeService_IVars* state,
@@ -162,6 +224,9 @@ namespace {
             return kIOReturnNoResources;
         }
         result = queue->staging->SetDataAvailableHandler(state->fastPathDataAvailableAction);
+        if (result == kIOReturnSuccess && !IsToHost(row)) {
+            result = queue->staging->SetDataServicedHandler(state->fastPathDataServicedAction);
+        }
         return result == kIOReturnSuccess ? SwifterKitEnableSource(queue->staging) : result;
     }
 
@@ -179,6 +244,10 @@ namespace {
             (void)state->fastPathDataAvailableAction->Cancel(nullptr);
         }
         OSSafeReleaseNULL(state->fastPathDataAvailableAction);
+        if (state->fastPathDataServicedAction != nullptr) {
+            (void)state->fastPathDataServicedAction->Cancel(nullptr);
+        }
+        OSSafeReleaseNULL(state->fastPathDataServicedAction);
         OSSafeReleaseNULL(state->fastPathDataQueueDispatch);
     }
 
@@ -207,6 +276,44 @@ namespace {
         }
         return batch.published;
     }
+
+    // Moves a to-extension queue's waiting host records into its staging source; the caller
+    // holds fastPathLock.
+    SwifterKitFastPathTransfer Take(
+        const SwifterKitFastPathDataQueue& row,
+        SwifterKitFastPathDataQueueState* queue) {
+        Staging staging = {.source = queue->staging};
+        const SwifterKitFastPathTransfer transfer =
+            SwifterKitFastPathTakeHostRecords(row, queue->address, staging);
+        queue->blocked = transfer.blocked;
+        if (transfer.corrupt) {
+            queue->refusals += 1;
+        }
+        return transfer;
+    }
+
+    // Runs the data-available program on each entry of one to-extension staging source, taking
+    // fastPathLock once per entry.
+    void Consume(
+        SwifterKitRuntimeService* service,
+        SwifterKitRuntimeService_IVars* state,
+        uint32_t index) {
+        bool consumed = true;
+        while (consumed) {
+            IOLockLock(state->fastPathLock);
+            SwifterKitFastPathDataQueueState* queue = &state->fastPathDataQueues[index];
+            consumed = state->fastPathRunning && queue->staging != nullptr;
+            if (consumed) {
+                Staging staging = {.source = queue->staging};
+                consumed = SwifterKitFastPathConsumeEntry(staging, [&](const uint64_t* words) {
+                    if (!service->RunFastPathDataAvailable(index, words)) {
+                        CountDrop(queue);
+                    }
+                });
+            }
+            IOLockUnlock(state->fastPathLock);
+        }
+    }
 }  // namespace
 
 kern_return_t SwifterKitRuntimeService::StartFastPathDataQueues() {
@@ -218,13 +325,16 @@ kern_return_t SwifterKitRuntimeService::StartFastPathDataQueues() {
     if (result == kIOReturnSuccess) {
         result = CreateActionFastPathDataAvailable(0, &ivars->fastPathDataAvailableAction);
     }
+    if (result == kIOReturnSuccess) {
+        result = CreateActionFastPathDataServiced(0, &ivars->fastPathDataServicedAction);
+    }
     for (uint32_t index = 0;
          index < kSwifterKitFastPathDataQueueCount && result == kIOReturnSuccess;
          ++index) {
         const SwifterKitFastPathDataQueue& row = QueueRow(index);
         SwifterKitFastPathDataQueueState* queue = &ivars->fastPathDataQueues[index];
         result = PrepareHostRing(row, queue);
-        if (result == kIOReturnSuccess && IsToHost(row)) {
+        if (result == kIOReturnSuccess) {
             result = PrepareStaging(row, ivars, queue);
         }
     }
@@ -294,6 +404,79 @@ void SwifterKitRuntimeService::FastPathDataAvailable_Impl([[maybe_unused]] OSAct
         }
     }
     IOLockUnlock(ivars->fastPathLock);
+    for (uint32_t index = 0; index < kSwifterKitFastPathDataQueueCount; ++index) {
+        if (!IsToHost(QueueRow(index))) {
+            Consume(this, ivars, index);
+        }
+    }
+}
+
+void SwifterKitRuntimeService::FastPathDataServiced_Impl([[maybe_unused]] OSAction* action) {
+    if (ivars == nullptr || ivars->fastPathLock == nullptr) {
+        return;
+    }
+    IOLockLock(ivars->fastPathLock);
+    for (uint32_t index = 0; index < kSwifterKitFastPathDataQueueCount && ivars->fastPathRunning;
+         ++index) {
+        const SwifterKitFastPathDataQueue& row = QueueRow(index);
+        SwifterKitFastPathDataQueueState* queue = &ivars->fastPathDataQueues[index];
+        if (IsToHost(row) || queue->staging == nullptr || !queue->blocked) {
+            continue;
+        }
+        const SwifterKitFastPathTransfer transfer = Take(row, queue);
+        if (transfer.moved != 0) {
+            // Tells the host that the records it could not hand over were taken.
+            const SwifterKitFastPathDataQueueEvent event = {
+                .id = row.id,
+                .published = transfer.moved,
+                .droppedEntries = queue->drops,
+            };
+            (void)EnqueueEvent(kSwifterKitEventFastPathDataQueue, &event, sizeof(event));
+        }
+    }
+    IOLockUnlock(ivars->fastPathLock);
+}
+
+kern_return_t SwifterKitRuntimeService::NotifyFastPathDataQueue(
+    const uint8_t* payload,
+    uint32_t payloadLength,
+    OSData** response) {
+    SwifterKitFastPathDataQueueNotifyRequest request = {};
+    if (ivars == nullptr || ivars->fastPathLock == nullptr || response == nullptr
+        || payload == nullptr || payloadLength != sizeof(request)) {
+        return kIOReturnBadArgument;
+    }
+    __builtin_memcpy(&request, payload, sizeof(request));
+    if (request.reserved != 0) {
+        return kIOReturnBadArgument;
+    }
+    SwifterKitFastPathDataQueueNotifyReply reply = {};
+    IOLockLock(ivars->fastPathLock);
+    const uint32_t index = QueueIndex(request.id);
+    kern_return_t result = kIOReturnSuccess;
+    if (index >= kSwifterKitFastPathDataQueueCount || IsToHost(QueueRow(index))) {
+        result = kIOReturnBadArgument;
+    } else if (!ivars->fastPathRunning || ivars->fastPathDataQueues[index].staging == nullptr) {
+        result = kIOReturnNotReady;
+    } else {
+        SwifterKitFastPathDataQueueState* queue = &ivars->fastPathDataQueues[index];
+        const SwifterKitFastPathTransfer transfer = Take(QueueRow(index), queue);
+        reply = {
+            .status = SwifterKitFastPathStatusCode(
+                transfer.corrupt ? SwifterKitFastPathStatus::Corrupt
+                                 : SwifterKitFastPathStatus::Success),
+            .moved = transfer.moved,
+            .waiting = transfer.waiting,
+            .reserved = 0,
+            .refusals = queue->refusals,
+        };
+    }
+    IOLockUnlock(ivars->fastPathLock);
+    if (result != kIOReturnSuccess) {
+        return result;
+    }
+    *response = OSData::withBytes(&reply, sizeof(reply));
+    return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
 }
 
 kern_return_t SwifterKitRuntimeService::CopyFastPathDataQueueMemory(
@@ -303,10 +486,7 @@ kern_return_t SwifterKitRuntimeService::CopyFastPathDataQueueMemory(
         return kIOReturnNotReady;
     }
     IOLockLock(ivars->fastPathLock);
-    uint32_t index = 0;
-    while (index < kSwifterKitFastPathDataQueueCount && QueueRow(index).id != identifier) {
-        ++index;
-    }
+    const uint32_t index = QueueIndex(identifier);
     kern_return_t result = kIOReturnSuccess;
     if (index >= kSwifterKitFastPathDataQueueCount) {
         result = kIOReturnBadArgument;

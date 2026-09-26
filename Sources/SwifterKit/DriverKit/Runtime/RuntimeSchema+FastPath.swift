@@ -174,6 +174,9 @@ enum RuntimeFastPathTriggerKind: UInt32, CaseIterable {
   case interrupt = 3
   /// When Swift runs the program by index.
   case command = 4
+  /// For each entry of the to-extension data queue whose table index is in `source`, with the
+  /// entry's first words in `v0` onward.
+  case dataAvailable = 5
 }
 
 /// Whether an interrupt trigger still delivers the normal interrupt event after its program;
@@ -199,6 +202,9 @@ enum RuntimeFastPathStatus: UInt32, CaseIterable {
   case timeout = 0xE000_02D6
   /// The fast path has not started or has stopped: `kIOReturnNotReady`.
   case notReady = 0xE000_02D8
+  /// A to-extension data queue's host ring holds indices or a record the ring's layout does not
+  /// allow, so nothing more was taken from it: `kIOReturnIOError`.
+  case corrupt = 0xE000_02CA
 }
 
 /// A native table-row or payload layout: its C++ name and fields, all naturally aligned without
@@ -264,11 +270,29 @@ struct RuntimeFastPathRow {
     ]
   )
 
-  /// A `fastPathDataQueue` event, queued once per batch the extension publishes into a host
-  /// ring: the queue identifier, the entries published, and the queue's total dropped entries.
+  /// A `fastPathDataQueue` event, queued once per batch the extension publishes into a to-host
+  /// ring, or takes from a to-extension ring after its full staging queue freed space: the queue
+  /// identifier, the entries published or taken, and the queue's total dropped entries.
   static let dataQueueEvent = Self(
     name: "SwifterKitFastPathDataQueueEvent",
     fields: [("uint32_t", "id"), ("uint32_t", "published"), ("uint64_t", "droppedEntries")]
+  )
+
+  /// A `fastPathDataQueueNotify` command payload: the to-extension data queue's identifier.
+  static let dataQueueNotifyRequest = Self(
+    name: "SwifterKitFastPathDataQueueNotifyRequest",
+    fields: [("uint32_t", "id"), ("uint32_t", "reserved")]
+  )
+
+  /// A `fastPathDataQueueNotify` reply: ``RuntimeFastPathStatus/success`` or
+  /// ``RuntimeFastPathStatus/corrupt``, the entries taken from the host ring, the entries still
+  /// waiting in it because the staging queue is full, and the queue's total corrupt-ring refusals.
+  static let dataQueueNotifyReply = Self(
+    name: "SwifterKitFastPathDataQueueNotifyReply",
+    fields: [
+      ("uint32_t", "status"), ("uint32_t", "moved"), ("uint32_t", "waiting"),
+      ("uint32_t", "reserved"), ("uint64_t", "refusals"),
+    ]
   )
 
   /// A `fastPathRun` command payload: the program index and its arguments, unused ones zero.
@@ -297,6 +321,6 @@ struct RuntimeFastPathRow {
   /// Every row layout, in header order.
   static let all = [
     program, operation, trigger, bar, ring, dataQueue, runRequest, runResult, event, dataQueueEvent,
-    statusReply,
+    statusReply, dataQueueNotifyRequest, dataQueueNotifyReply,
   ]
 }

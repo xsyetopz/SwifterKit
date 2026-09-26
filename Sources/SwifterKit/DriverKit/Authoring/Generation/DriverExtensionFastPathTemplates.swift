@@ -26,7 +26,7 @@ extension DriverExtensionGenerator {
       operations += program.operations.map {
         fastPathRow($0, rings: ringIndices, dataQueues: queueIndices)
       }
-      triggers.append(fastPathRow(program.trigger, program: index))
+      triggers.append(fastPathRow(program.trigger, program: index, dataQueues: queueIndices))
     }
     let bars = (fastPath?.barSizes ?? [:]).sorted { $0.key < $1.key }.map {
       row(["\($0.key)", "0", "\($0.value)ULL"])
@@ -68,7 +68,11 @@ extension DriverExtensionGenerator {
     "    {" + fields.joined(separator: ", ") + "}"
   }
 
-  private static func fastPathRow(_ trigger: FastPathTrigger, program: Int) -> String {
+  private static func fastPathRow(
+    _ trigger: FastPathTrigger,
+    program: Int,
+    dataQueues: [UInt32: UInt32]
+  ) -> String {
     let kind: RuntimeFastPathTriggerKind
     var source: UInt32 = 0
     var delivery: UInt32 = 0
@@ -76,6 +80,9 @@ extension DriverExtensionGenerator {
     case .start: kind = .start
     case .stop: kind = .stop
     case .command: kind = .command
+    case .dataAvailable(let queue):
+      kind = .dataAvailable
+      source = dataQueues[queue, default: 0]
     case .interrupt(let sourceIndex, let value):
       kind = .interrupt
       source = sourceIndex

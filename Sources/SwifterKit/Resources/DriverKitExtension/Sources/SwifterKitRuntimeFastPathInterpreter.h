@@ -476,8 +476,8 @@ inline bool SwifterKitFastPathIsValidProgram(
 
 // Checks the whole configuration at start: the BAR table, one trigger per program naming that
 // program, known trigger kinds, an interrupt delivery only on interrupt triggers, interrupt
-// sources the extension configures and triggers at most once, arguments only on command
-// programs, and every program.
+// sources the extension configures and to-extension data queues each triggering at most once,
+// arguments only on command and data-available programs, and every program.
 inline bool SwifterKitFastPathIsValidConfiguration(
     const SwifterKitFastPathTables& tables,
     const uint32_t* interruptSources,
@@ -492,27 +492,36 @@ inline bool SwifterKitFastPathIsValidConfiguration(
         const SwifterKitFastPathTrigger& trigger = tables.triggers[index];
         const auto kind = static_cast<SwifterKitFastPathTriggerKind>(trigger.kind);
         const bool interrupt = kind == SwifterKitFastPathTriggerKind::Interrupt;
+        const bool dataAvailable = kind == SwifterKitFastPathTriggerKind::DataAvailable;
         if (trigger.program != index || trigger.kind == 0
-            || trigger.kind > static_cast<uint32_t>(SwifterKitFastPathTriggerKind::Command)
+            || trigger.kind > static_cast<uint32_t>(SwifterKitFastPathTriggerKind::DataAvailable)
             || (tables.programs[index].argumentCount != 0
-                && kind != SwifterKitFastPathTriggerKind::Command)
+                && kind != SwifterKitFastPathTriggerKind::Command && !dataAvailable)
             || !SwifterKitFastPathIsValidProgram(tables, index, *bars)) {
             return false;
         }
-        if (!interrupt) {
+        if (dataAvailable) {
+            if (trigger.source >= tables.dataQueueCount || trigger.delivery != 0
+                || tables.dataQueues[trigger.source].direction
+                       != static_cast<uint32_t>(
+                           SwifterKitFastPathDataQueueDirection::ToExtension)) {
+                return false;
+            }
+        } else if (!interrupt) {
             if (trigger.source != 0 || trigger.delivery != 0) {
                 return false;
             }
             continue;
-        }
-        bool configured = false;
-        for (uint32_t source = 0; source < interruptSourceCount; ++source) {
-            configured = configured || interruptSources[source] == trigger.source;
-        }
-        if (!configured || trigger.delivery == 0
-            || trigger.delivery
-                   > static_cast<uint32_t>(SwifterKitFastPathInterruptDelivery::WhenProgramEmits)) {
-            return false;
+        } else {
+            bool configured = false;
+            for (uint32_t source = 0; source < interruptSourceCount; ++source) {
+                configured = configured || interruptSources[source] == trigger.source;
+            }
+            if (!configured || trigger.delivery == 0
+                || trigger.delivery > static_cast<uint32_t>(
+                       SwifterKitFastPathInterruptDelivery::WhenProgramEmits)) {
+                return false;
+            }
         }
         for (uint32_t earlier = 0; earlier < index; ++earlier) {
             if (tables.triggers[earlier].kind == trigger.kind
@@ -524,18 +533,28 @@ inline bool SwifterKitFastPathIsValidConfiguration(
     return true;
 }
 
-// Returns the program an interrupt source triggers, or programCount when none does.
-inline uint32_t SwifterKitFastPathInterruptProgram(
+// Returns the program a trigger of `kind` with `source` runs, or programCount when none does.
+inline uint32_t SwifterKitFastPathTriggeredProgram(
     const SwifterKitFastPathTables& tables,
-    uint32_t sourceIndex) {
+    SwifterKitFastPathTriggerKind kind,
+    uint32_t source) {
     for (uint32_t index = 0; index < tables.triggerCount; ++index) {
-        if (tables.triggers[index].kind
-                == static_cast<uint32_t>(SwifterKitFastPathTriggerKind::Interrupt)
-            && tables.triggers[index].source == sourceIndex) {
+        if (tables.triggers[index].kind == static_cast<uint32_t>(kind)
+            && tables.triggers[index].source == source) {
             return index;
         }
     }
     return tables.programCount;
+}
+
+// Returns the program an interrupt source triggers, or programCount when none does.
+inline uint32_t SwifterKitFastPathInterruptProgram(
+    const SwifterKitFastPathTables& tables,
+    uint32_t sourceIndex) {
+    return SwifterKitFastPathTriggeredProgram(
+        tables,
+        SwifterKitFastPathTriggerKind::Interrupt,
+        sourceIndex);
 }
 
 // Whether the normal interrupt event still reaches Swift. `ran` is false when no program ran,

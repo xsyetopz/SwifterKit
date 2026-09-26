@@ -25,6 +25,7 @@ extension FastPathConfiguration {
     if !rings.isEmpty && !hasPCIDevice { throw .ringsWithoutPCIDevice }
     let dataQueues = try validatedDataQueues()
     var interruptTriggers: Set<UInt32> = []
+    var dataAvailableTriggers: Set<UInt32> = []
     for (index, program) in programs.enumerated() {
       try program.validate(index: index, barSizes: barSizes, rings: rings, dataQueues: dataQueues)
       if case .interrupt(let source, _) = program.trigger {
@@ -33,6 +34,14 @@ extension FastPathConfiguration {
         }
         guard interruptTriggers.insert(source).inserted else {
           throw .duplicateInterruptTrigger(program: index, sourceIndex: source)
+        }
+      }
+      if case .dataAvailable(let queue) = program.trigger {
+        guard dataQueues[queue]?.direction == .toExtension else {
+          throw .unknownDataAvailableQueue(program: index, queue: queue)
+        }
+        guard dataAvailableTriggers.insert(queue).inserted else {
+          throw .duplicateDataAvailableTrigger(program: index, queue: queue)
         }
       }
     }
@@ -92,8 +101,10 @@ extension FastPathProgram {
     guard (0...FastPathLimits.maximumArguments).contains(argumentCount) else {
       throw .invalidArgumentCount(program: index, count: argumentCount)
     }
-    if argumentCount > 0, trigger != .command {
-      throw .argumentsWithoutCommandTrigger(program: index)
+    switch trigger {
+    case .command, .dataAvailable: break
+    case .start, .stop, .interrupt:
+      guard argumentCount == 0 else { throw .argumentsWithoutCommandTrigger(program: index) }
     }
     for (position, operation) in operations.enumerated() {
       try operation.validate(

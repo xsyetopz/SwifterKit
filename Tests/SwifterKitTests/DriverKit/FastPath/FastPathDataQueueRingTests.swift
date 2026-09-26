@@ -32,6 +32,7 @@ struct FastPathDataQueueRingTests {
       set(FastPathDataQueueLayout.entryCountOffset, queue.entryCount)
       set(FastPathDataQueueLayout.strideOffset, queue.recordStride)
       set(FastPathDataQueueLayout.maximumEntrySizeOffset, queue.maximumEntrySize)
+      set(FastPathDataQueueLayout.directionOffset, queue.direction == .toHost ? 0 : 1)
     }
 
     deinit { pointer.deallocate() }
@@ -131,6 +132,69 @@ struct FastPathDataQueueRingTests {
     ring.set(FastPathDataQueueLayout.consumerOffset, 1)
     #expect(throws: FastPathDataQueueError.invalidIndices(producer: 0, consumer: 1)) {
       try queue.dequeueValues()
+    }
+  }
+
+  /// 4096 bytes of 64-byte records (32-byte entries) the host produces, so 64 records.
+  private static let inbound = FastPathDataQueue(
+    id: 4,
+    capacityBytes: 4096,
+    maximumEntrySize: 32,
+    direction: .toExtension
+  )
+
+  @Test
+  func hostWriterRoundTripsThroughTheConsumerAcrossTheWrap() throws {
+    let ring = Ring(Self.inbound)
+    let writer = DriverDataQueue(memory: ring.memory, queue: Self.inbound)
+    let reader = try FastPathDataQueueRing(
+      header: UnsafeRawBufferPointer(ring.pointer),
+      expecting: Self.inbound
+    )
+    for round in UInt64(0)..<3 {
+      for index in UInt64(0)..<64 { try writer.enqueueValues([round, index, ~index]) }
+      #expect(throws: FastPathDataQueueError.full) { try writer.enqueueValues([0]) }
+      for index in UInt64(0)..<64 {
+        let values = try reader.dequeue(ring.pointer) { payload in
+          (
+            payload.count,
+            (0..<3).map { payload.loadUnaligned(fromByteOffset: $0 * 8, as: UInt64.self) }
+          )
+        }
+        #expect(values?.0 == 24)
+        #expect(values?.1 == [round, index, ~index])
+      }
+    }
+    #expect(ring.get(FastPathDataQueueLayout.producerOffset) == 192)
+    #expect(ring.get(FastPathDataQueueLayout.consumerOffset) == 192)
+  }
+
+  @Test
+  func hostWriterRefusesCorruptIndicesWrongDirectionAndBadEntries() throws {
+    let ring = Ring(Self.inbound)
+    let writer = DriverDataQueue(memory: ring.memory, queue: Self.inbound)
+    ring.set(FastPathDataQueueLayout.producerOffset, 65)
+    #expect(throws: FastPathDataQueueError.invalidIndices(producer: 65, consumer: 0)) {
+      try writer.enqueueValues([1])
+    }
+    ring.set(FastPathDataQueueLayout.producerOffset, 0)
+    ring.set(FastPathDataQueueLayout.consumerOffset, 7)
+    #expect(throws: FastPathDataQueueError.invalidIndices(producer: 0, consumer: 7)) {
+      try writer.enqueueValues([1])
+    }
+    ring.set(FastPathDataQueueLayout.consumerOffset, 0)
+    #expect(throws: FastPathDataQueueError.invalidEntry(byteCount: 0)) {
+      try writer.enqueueValues([])
+    }
+    #expect(throws: FastPathDataQueueError.invalidEntry(byteCount: 40)) {
+      try writer.enqueueValues([1, 2, 3, 4, 5])
+    }
+    ring.set(FastPathDataQueueLayout.directionOffset, 0)
+    #expect(throws: FastPathDataQueueError.notProducer) { try writer.enqueueValues([1]) }
+    #expect(ring.get(FastPathDataQueueLayout.producerOffset) == 0)
+    let outbound = Ring()
+    #expect(throws: FastPathDataQueueError.notProducer) {
+      try DriverDataQueue(memory: outbound.memory).enqueueValues([1])
     }
   }
 

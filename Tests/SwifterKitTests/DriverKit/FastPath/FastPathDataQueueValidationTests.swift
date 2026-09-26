@@ -87,4 +87,55 @@ struct FastPathDataQueueValidationTests {
       with: .invalidEnqueue(program: 0, operation: 0)
     )
   }
+
+  private func validate(triggers: [FastPathTrigger], argumentCount: Int = 0) throws(FastPathError) {
+    try FastPathConfiguration(
+      programs: triggers.map {
+        FastPathProgram(
+          trigger: $0,
+          argumentCount: argumentCount,
+          operations: [.delay(microseconds: 1)]
+        )
+      },
+      dataQueues: Self.queues + [Self.queue(5, direction: .toExtension)]
+    ).validate(interruptSources: [], hasPCIDevice: false)
+  }
+
+  @Test
+  func dataAvailableTriggersNameOneToExtensionQueueEach() throws {
+    try validate(triggers: [.dataAvailable(4), .dataAvailable(5)], argumentCount: 4)
+    #expect(throws: FastPathError.unknownDataAvailableQueue(program: 1, queue: 9)) {
+      try validate(triggers: [.dataAvailable(4), .dataAvailable(9)])
+    }
+    #expect(throws: FastPathError.unknownDataAvailableQueue(program: 0, queue: 3)) {
+      try validate(triggers: [.dataAvailable(3)])
+    }
+    #expect(throws: FastPathError.duplicateDataAvailableTrigger(program: 2, queue: 4)) {
+      try validate(triggers: [.dataAvailable(4), .dataAvailable(5), .dataAvailable(4)])
+    }
+    #expect(throws: FastPathError.invalidArgumentCount(program: 0, count: 5)) {
+      try validate(triggers: [.dataAvailable(4)], argumentCount: 5)
+    }
+    #expect(throws: FastPathError.argumentsWithoutCommandTrigger(program: 0)) {
+      try validate(triggers: [.start], argumentCount: 1)
+    }
+  }
+
+  @Test
+  func dataAvailableTriggerRowNamesTheQueueTableIndex() throws {
+    let configuration = FastPathConfiguration(
+      programs: [
+        FastPathProgram(trigger: .command, operations: [.delay(microseconds: 1)]),
+        FastPathProgram(
+          trigger: .dataAvailable(4),
+          argumentCount: 2,
+          operations: [.enqueue(3, slots: [.v0, .v1])]
+        ),
+      ],
+      dataQueues: Self.queues
+    )
+    try configuration.validate(interruptSources: [], hasPCIDevice: false)
+    let tables = DriverExtensionGenerator.fastPathDeclarations(configuration)
+    #expect(tables.contains("    {5, 1, 0, 1}"))
+  }
 }

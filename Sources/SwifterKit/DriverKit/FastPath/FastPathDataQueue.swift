@@ -9,7 +9,12 @@ import Foundation
 /// `IODataQueueDispatchSource` from the interrupt or command that ran the program, publishes them
 /// into the host ring on its runtime queue, and queues one ``FastPathDataQueueEvent`` per
 /// published batch. Entries are lossy: one that finds the staging queue or the host ring full is
-/// dropped and counted in ``DriverDataQueue/droppedEntries()``.
+/// dropped and counted in ``DriverDataQueue/droppedEntries()``. For a
+/// ``FastPathDataQueueDirection/toExtension`` queue, the host appends with
+/// ``DriverDataQueue/enqueue(_:)`` and calls ``DriverContext/notifyDataQueue(_:)``; the extension
+/// moves the entries into its staging queue and runs the queue's
+/// ``FastPathTrigger/dataAvailable(_:)`` program once per entry. Those entries are never dropped
+/// for lack of space: they wait in the host ring until the extension has room.
 public struct FastPathDataQueue: Sendable, Hashable {
   /// The queue's identifier, unique in its configuration and at most `0xFF_FFFF`; operations and
   /// ``DriverContext/mapDataQueue(_:)`` name the queue by it.
@@ -57,7 +62,8 @@ public enum FastPathDataQueueDirection: Sendable, Hashable, CaseIterable {
   /// Fast-path programs produce entries with ``FastPathOp/enqueue(_:slots:)``; the host reads
   /// them.
   case toHost
-  /// The host produces entries; the extension consumes them.
+  /// The host produces entries with ``DriverDataQueue/enqueue(_:)``; the queue's
+  /// ``FastPathTrigger/dataAvailable(_:)`` program consumes them.
   case toExtension
 }
 
@@ -93,11 +99,12 @@ public enum FastPathDataQueueLayout {
   public static let recordHeaderSize = RuntimeFastPathLimits.dataQueueRecordHeaderSize
 }
 
-/// A ``FastPathDataQueue`` batch the extension published into its host ring.
+/// A ``FastPathDataQueue`` batch the extension published into a to-host ring, or took from a
+/// to-extension ring once its full staging queue freed space.
 public struct FastPathDataQueueEvent: Sendable, Hashable {
   /// The queue's identifier.
   public let queue: UInt32
-  /// The entries the batch published.
+  /// The entries the batch published or took.
   public let publishedEntries: UInt32
   /// Every entry the queue dropped so far.
   public let droppedEntries: UInt64
@@ -120,6 +127,90 @@ public struct FastPathDataQueueEvent: Sendable, Hashable {
       throw FastPathRuntimeError.invalidPayload
     }
     self.init(queue: queue, publishedEntries: published, droppedEntries: dropped)
+  }
+}
+
+/// How the extension answered ``DriverContext/notifyDataQueue(_:)``.
+public struct FastPathDataQueueNotification: Sendable, Hashable {
+  /// `kIOReturnSuccess` (zero), or `kIOReturnIOError` when the host ring's indices or a record's
+  /// size broke the ring's layout; the extension then took nothing more from the ring.
+  public let status: Int32
+  /// The entries the extension took from the host ring.
+  public let movedEntries: UInt32
+  /// The entries still in the host ring because the extension's staging queue is full. The
+  /// extension takes them once it frees space, then queues a ``FastPathDataQueueEvent``.
+  public let waitingEntries: UInt32
+  /// Every time the extension refused this queue's host ring as corrupt.
+  public let refusals: UInt64
+
+  /// Creates a data queue notification result.
+  public init(status: Int32, movedEntries: UInt32, waitingEntries: UInt32, refusals: UInt64) {
+    self.status = status
+    self.movedEntries = movedEntries
+    self.waitingEntries = waitingEntries
+    self.refusals = refusals
+  }
+
+  /// Whether the extension read the host ring without finding it corrupt.
+  public var succeeded: Bool { status == 0 }
+
+  init(runtimePayload: Data) throws {
+    guard runtimePayload.count == RuntimeFastPathRow.dataQueueNotifyReply.size,
+      try runtimePayload.readRuntimeInteger(at: 12) as UInt32 == 0
+    else { throw FastPathRuntimeError.invalidPayload }
+    let status: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
+    guard
+      status == RuntimeFastPathStatus.success.rawValue
+        || status == RuntimeFastPathStatus.corrupt.rawValue
+    else { throw FastPathRuntimeError.invalidPayload }
+    self.init(
+      status: Int32(bitPattern: status),
+      movedEntries: try runtimePayload.readRuntimeInteger(at: 4),
+      waitingEntries: try runtimePayload.readRuntimeInteger(at: 8),
+      refusals: try runtimePayload.readRuntimeInteger(at: 16)
+    )
+  }
+}
+
+extension DriverCommand {
+  /// Creates a notification that the host appended entries to a
+  /// ``FastPathDataQueueDirection/toExtension`` data queue.
+  ///
+  /// The identifier is checked against `configuration` when it is given: the queue must be
+  /// declared and produced by the host.
+  public static func notifyDataQueue(
+    _ id: UInt32,
+    in configuration: FastPathConfiguration? = nil
+  ) throws(FastPathRuntimeError) -> Self {
+    guard id <= RuntimeClientMemoryType.identifierMask else { throw .unknownDataQueue(id) }
+    if let configuration {
+      guard
+        configuration.dataQueues.contains(where: { $0.id == id && $0.direction == .toExtension })
+      else { throw .unknownDataQueue(id) }
+    }
+    var payload = Data(capacity: RuntimeFastPathRow.dataQueueNotifyRequest.size)
+    payload.appendRuntimeInteger(id)
+    payload.appendRuntimeInteger(UInt32(0))
+    return Self(
+      opcode: .fastPathDataQueueNotify,
+      payload: payload,
+      maximumResponseSize: RuntimeMessage.headerSize + RuntimeFastPathRow.dataQueueNotifyReply.size
+    )
+  }
+}
+
+extension DriverContext {
+  /// Tells the extension that ``DriverDataQueue/enqueue(_:)`` appended entries to a
+  /// ``FastPathDataQueueDirection/toExtension`` queue, and returns how many it took.
+  ///
+  /// The extension checks every index and record size in the host ring before it reads a record,
+  /// and moves entries into its staging queue, whose ``FastPathTrigger/dataAvailable(_:)``
+  /// program runs once per entry. The command is answered once, after the move. Entries that do
+  /// not fit wait in the host ring; the extension takes them when its staging queue frees space
+  /// and queues a ``FastPathDataQueueEvent`` then.
+  public func notifyDataQueue(_ id: UInt32) async throws -> FastPathDataQueueNotification {
+    let command = try DriverCommand.notifyDataQueue(id, in: fastPath)
+    return try FastPathDataQueueNotification(runtimePayload: await execute(command))
   }
 }
 

@@ -102,6 +102,7 @@ enum class SwifterKitFastPathTriggerKind : uint32_t {
     Stop = 2,
     Interrupt = 3,
     Command = 4,
+    DataAvailable = 5,
 };
 
 enum class SwifterKitFastPathInterruptDelivery : uint32_t {
@@ -116,6 +117,7 @@ enum class SwifterKitFastPathStatus : uint32_t {
     Rejected = 0xE00002C2,
     Timeout = 0xE00002D6,
     NotReady = 0xE00002D8,
+    Corrupt = 0xE00002CA,
 };
 
 struct SwifterKitFastPathProgram {
@@ -202,6 +204,21 @@ struct SwifterKitFastPathStatusReply {
     uint64_t droppedEvents;
 };
 static_assert(sizeof(SwifterKitFastPathStatusReply) == 16);
+
+struct SwifterKitFastPathDataQueueNotifyRequest {
+    uint32_t id;
+    uint32_t reserved;
+};
+static_assert(sizeof(SwifterKitFastPathDataQueueNotifyRequest) == 8);
+
+struct SwifterKitFastPathDataQueueNotifyReply {
+    uint32_t status;
+    uint32_t moved;
+    uint32_t waiting;
+    uint32_t reserved;
+    uint64_t refusals;
+};
+static_assert(sizeof(SwifterKitFastPathDataQueueNotifyReply) == 24);
 
 static constexpr uint64_t kSwifterKitMemoryMaximumHandle = 0xFFFFFF;
 static constexpr uint32_t kSwifterKitMemoryMaximumChainLength = 32;

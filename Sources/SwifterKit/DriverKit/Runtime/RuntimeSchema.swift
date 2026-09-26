@@ -301,6 +301,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case reporterRead = 0x0E21
   case fastPathRun = 0x0F00
   case fastPathStatus = 0x0F01
+  case fastPathDataQueueNotify = 0x0F02
 }
 
 /// Types of events the native extension queues for the Swift host.

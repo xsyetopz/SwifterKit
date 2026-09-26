@@ -43,7 +43,8 @@
 //   programs, completes their DMA and releases them.
 // - Host-shared data queues are created after the rings and released before them; see
 //   SwifterKitRuntimeFastPathDataQueues.cpp. A run that enqueued entries signals their staging
-//   sources once, before it releases fastPathLock.
+//   sources once, before it releases fastPathLock. Data-available programs run on the runtime
+//   queue under the same lock, one staged entry per acquisition.
 // - emit queues a fast-path event through the lossy EnqueueEvent path; an event the full queue
 //   rejects increments fastPathEventDrops, which Swift reads with FastPathStatus.
 
@@ -62,6 +63,9 @@ static_assert(
 static_assert(
     SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::NotReady)
     == static_cast<uint32_t>(kIOReturnNotReady));
+static_assert(
+    SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Corrupt)
+    == static_cast<uint32_t>(kIOReturnIOError));
 
 namespace {
     constexpr SwifterKitFastPathTables kTables = {
@@ -348,9 +352,10 @@ namespace {
         return result == kIOReturnSuccess ? PrepareRings(state, kTables) : result;
     }
 
-    // Runs one program under fastPathLock. Returns the fast path's refusal or stop status when
-    // it cannot run; otherwise kIOReturnSuccess with the program's own status in `outcome`.
-    kern_return_t RunProgram(
+    // Runs one program; the caller holds fastPathLock. Returns the fast path's refusal or stop
+    // status when it cannot run; otherwise kIOReturnSuccess with the program's own status in
+    // `outcome`.
+    kern_return_t ExecuteHoldingLock(
         SwifterKitRuntimeService* service,
         SwifterKitRuntimeService_IVars* state,
         uint32_t program,
@@ -358,7 +363,6 @@ namespace {
         uint32_t argumentCount,
         SwifterKitFastPathOutcome* outcome) {
         *outcome = {};
-        IOLockLock(state->fastPathLock);
         kern_return_t result = state->fastPathRunning ? kIOReturnSuccess : kIOReturnNotReady;
         // A PCI reset can move BARs; resolve them again before the next access.
         if (result == kIOReturnSuccess && state->fastPathBARsStale) {
@@ -380,6 +384,20 @@ namespace {
             // One DataAvailable per run, however many entries the program enqueued.
             service->SignalFastPathDataQueues();
         }
+        return result;
+    }
+
+    // Runs one program under fastPathLock.
+    kern_return_t RunProgram(
+        SwifterKitRuntimeService* service,
+        SwifterKitRuntimeService_IVars* state,
+        uint32_t program,
+        const uint64_t* arguments,
+        uint32_t argumentCount,
+        SwifterKitFastPathOutcome* outcome) {
+        IOLockLock(state->fastPathLock);
+        const kern_return_t result =
+            ExecuteHoldingLock(service, state, program, arguments, argumentCount, outcome);
         IOLockUnlock(state->fastPathLock);
         return result;
     }
@@ -522,6 +540,28 @@ void SwifterKitRuntimeService::InvalidateFastPathBARs() {
     IOLockUnlock(ivars->fastPathLock);
 }
 
+// The caller holds fastPathLock and passes a staged entry's first words; the program receives
+// as many as it declares arguments.
+bool SwifterKitRuntimeService::RunFastPathDataAvailable(uint32_t queue, const uint64_t* words) {
+    const uint32_t program = SwifterKitFastPathTriggeredProgram(
+        kTables,
+        SwifterKitFastPathTriggerKind::DataAvailable,
+        queue);
+    if (ivars == nullptr || program >= kTables.programCount) {
+        return false;
+    }
+    SwifterKitFastPathOutcome outcome = {};
+    return ExecuteHoldingLock(
+               this,
+               ivars,
+               program,
+               words,
+               kTables.programs[program].argumentCount,
+               &outcome)
+               == kIOReturnSuccess
+           && outcome.executed;
+}
+
 bool SwifterKitRuntimeService::RunFastPathInterrupt(uint32_t sourceIndex) {
     const uint32_t program = SwifterKitFastPathInterruptProgram(kTables, sourceIndex);
     if (ivars == nullptr || ivars->fastPathLock == nullptr || program >= kTables.programCount) {
@@ -549,6 +589,8 @@ kern_return_t SwifterKitRuntimeService::FastPathCommand(
     switch (static_cast<SwifterKitRuntimeOpcode>(opcode)) {
         case SwifterKitRuntimeOpcode::FastPathRun:
             return RunCommand(this, ivars, payload, payloadLength, response);
+        case SwifterKitRuntimeOpcode::FastPathDataQueueNotify:
+            return NotifyFastPathDataQueue(payload, payloadLength, response);
         case SwifterKitRuntimeOpcode::FastPathStatus: {
             if (payloadLength != 0) {
                 return kIOReturnBadArgument;

@@ -335,6 +335,15 @@ extension DriverExtensionGenerator {
               IOMemoryDescriptor** memory) LOCALONLY;
           virtual void FastPathDataAvailable(
               OSAction* action) TYPE(IODataQueueDispatchSource::DataAvailable);
+          virtual void FastPathDataServiced(
+              OSAction* action) TYPE(IODataQueueDispatchSource::DataServiced);
+          kern_return_t NotifyFastPathDataQueue(
+              const uint8_t* payload,
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+          bool RunFastPathDataAvailable(
+              uint32_t queue,
+              const uint64_t* words) LOCALONLY;
           kern_return_t FastPathCommand(
               uint32_t opcode,
               const uint8_t* payload,

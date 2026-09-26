@@ -64,14 +64,18 @@ struct SwifterKitFastPathRingState {
 // One host-shared data queue: the host ring's buffer and the extension's mapping of it, the
 // IODataQueueDispatchSource that stages entries between the fast path and the runtime queue,
 // the entries dropped so far, and whether the current run owes the source a DataAvailable
-// notification. See SwifterKitRuntimeFastPathDataQueues.cpp.
+// notification. A to-extension queue also counts the host rings it refused as corrupt and
+// whether host records wait for its full staging source. See
+// SwifterKitRuntimeFastPathDataQueues.cpp.
 struct SwifterKitFastPathDataQueueState {
     IOBufferMemoryDescriptor* buffer = nullptr;
     IOMemoryMap* map = nullptr;
     IODataQueueDispatchSource* staging = nullptr;
     uint64_t address = 0;
     uint64_t drops = 0;
+    uint64_t refusals = 0;
     bool notify = false;
+    bool blocked = false;
 };
 #endif
 
@@ -481,6 +485,7 @@ struct SwifterKitRuntimeService_IVars {
     SwifterKitFastPathDataQueueState fastPathDataQueues[kSwifterKitFastPathMaximumDataQueues] = {};
     IODispatchQueue* fastPathDataQueueDispatch = nullptr;
     OSAction* fastPathDataAvailableAction = nullptr;
+    OSAction* fastPathDataServicedAction = nullptr;
 #endif
 };
 

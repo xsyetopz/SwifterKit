@@ -344,7 +344,7 @@ let fastPathInterpreterHarness = #"""
           Configuration("delivery-on-command", three, 1, [](T& t) { t.triggers[0].delivery = 1; });
           Configuration("source-on-start", three, 1, [](T& t) { t.triggers[5].source = 1; });
           Configuration("kind-zero", three, 1, [](T& t) { t.triggers[5].kind = 0; });
-          Configuration("kind-unknown", three, 1, [](T& t) { t.triggers[5].kind = 5; });
+          Configuration("kind-unknown", three, 1, [](T& t) { t.triggers[5].kind = 6; });
           Configuration("program-mismatch", three, 1, [](T& t) { t.triggers[1].program = 0; });
           Configuration("duplicate-interrupt", three, 1, [](T& t) {
               t.triggers[4].kind = 3;

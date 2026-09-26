@@ -436,6 +436,7 @@ namespace {
                 return DispatchServiceCommand(context);
             case SwifterKitRuntimeOpcode::FastPathRun:
             case SwifterKitRuntimeOpcode::FastPathStatus:
+            case SwifterKitRuntimeOpcode::FastPathDataQueueNotify:
                 return DispatchFastPathCommand(context);
             case SwifterKitRuntimeOpcode::InterruptSetEnabled:
             case SwifterKitRuntimeOpcode::InterruptGetType:

@@ -288,6 +288,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     ReporterRead = 0x0E21,
     FastPathRun = 0x0F00,
     FastPathStatus = 0x0F01,
+    FastPathDataQueueNotify = 0x0F02,
 };
 
 static constexpr uint32_t kSwifterKitEventInterrupt = 0x0100;

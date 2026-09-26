@@ -86,7 +86,8 @@ public enum FastPathError: Error, Sendable, Hashable {
   case tooManyOperations(program: Int, count: Int)
   /// A program's argument count is negative or above ``FastPathLimits/maximumArguments``.
   case invalidArgumentCount(program: Int, count: Int)
-  /// A program that is not run by ``FastPathTrigger/command`` declares arguments.
+  /// A program that is not run by ``FastPathTrigger/command`` or
+  /// ``FastPathTrigger/dataAvailable(_:)`` declares arguments.
   case argumentsWithoutCommandTrigger(program: Int)
   /// An interrupt trigger names a provider index no ``InterruptSourceConfiguration`` declares.
   case unknownInterruptSource(program: Int, sourceIndex: UInt32)
@@ -153,6 +154,11 @@ public enum FastPathError: Error, Sendable, Hashable {
   /// An `enqueue` names a data queue the configuration does not declare, or one the host
   /// produces.
   case unknownDataQueue(program: Int, operation: Int)
+  /// A ``FastPathTrigger/dataAvailable(_:)`` trigger names a data queue the configuration does
+  /// not declare, or one the extension produces.
+  case unknownDataAvailableQueue(program: Int, queue: UInt32)
+  /// A second program is triggered by the same data queue.
+  case duplicateDataAvailableTrigger(program: Int, queue: UInt32)
   /// An `enqueue` names no slots, more than ``FastPathLimits/maximumEmittedSlots``, or more bytes
   /// than the queue's maximum entry size.
   case invalidEnqueue(program: Int, operation: Int)
