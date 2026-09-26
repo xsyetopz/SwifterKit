@@ -57,6 +57,9 @@ bool SwifterKitRuntimeAudioDevice::init(
     ivars = IONewZero(SwifterKitRuntimeAudioDevice_IVars, 1);
     if (ivars == nullptr)
         return false;
+    ivars->ringLock = IOLockAlloc();
+    if (ivars->ringLock == nullptr)
+        return false;
     ivars->service = service;
     service->retain();
     return true;
@@ -74,6 +77,8 @@ void SwifterKitRuntimeAudioDevice::free() {
         for (uint32_t index = 0; index < kSwifterKitAudioCustomPropertyCount; ++index)
             OSSafeReleaseNULL(ivars->customProperties[index]);
         OSSafeReleaseNULL(ivars->service);
+        if (ivars->ringLock != nullptr)
+            IOLockFree(ivars->ringLock);
     }
     IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioDevice_IVars, 1);
     super::free();
@@ -156,7 +161,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::Configure() {
     });
 }
 
-kern_return_t SwifterKitRuntimeAudioDevice::ReadStream(
+kern_return_t SwifterKitRuntimeAudioDevice::ReadMappedStream(
     const SwifterKitAudioTransferHeader* transfer,
     OSData** response) {
     if (transfer == nullptr || response == nullptr || transfer->length > 65512
@@ -183,7 +188,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::ReadStream(
     return kIOReturnSuccess;
 }
 
-kern_return_t SwifterKitRuntimeAudioDevice::WriteStream(
+kern_return_t SwifterKitRuntimeAudioDevice::WriteMappedStream(
     const SwifterKitAudioTransferHeader* transfer,
     const uint8_t* bytes) {
     if (transfer == nullptr || bytes == nullptr || transfer->length > 65472
@@ -255,6 +260,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::StopIO(IOUserAudioStartStopFlags fla
 kern_return_t SwifterKitRuntimeAudioDevice::PerformDeviceConfigurationChange(
     uint64_t changeAction,
     OSObject* changeInfo) {
+    if (changeAction == kSwifterKitAudioRingBufferChangeAction)
+        return ApplyRingBufferChange();
     if (changeAction != kSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const uint64_t sampleRateBits =
@@ -275,6 +282,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::AbortDeviceConfigurationChange(
     OSObject* changeInfo) {
     if (changeAction == kSampleRateChangeAction)
         __atomic_store_n(&ivars->pendingSampleRateBits, 0, __ATOMIC_RELEASE);
+    if (changeAction == kSwifterKitAudioRingBufferChangeAction)
+        __atomic_store_n(&ivars->pendingRingBuffer, 0, __ATOMIC_RELEASE);
     return super::AbortDeviceConfigurationChange(changeAction, changeInfo);
 }
 

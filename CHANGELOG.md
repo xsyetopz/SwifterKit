@@ -75,8 +75,9 @@ SwifterKit records user-visible changes in this file.
 - An audio box's `HandleChangeAcquireBox` returned success before
   `SetIsAcquired` ran, although `IOUserAudioBox` requires the acquired state
   to be updated when the callback reports success. The box now takes the
-  requested state before it queues the request, and rejecting the request with
-  `audioCompleteRequest` restores the previous state.
+  requested state before it queues the request, rejecting the request with
+  `audioCompleteRequest` restores the previous state, and a request for the
+  state the box already has succeeds without an event.
 - `HIDSubmitInputReport` called into the service without checking that the
   user client still had one, so a report sent after the service detached
   dereferenced a null pointer. It now returns `kIOReturnBadArgument`, as

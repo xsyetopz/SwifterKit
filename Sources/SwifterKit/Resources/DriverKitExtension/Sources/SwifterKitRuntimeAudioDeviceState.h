@@ -6,9 +6,13 @@
 #if SWIFTERKIT_ENABLE_AUDIO
     #include <AudioDriverKit/AudioDriverKit.h>
     #include <DriverKit/IOBufferMemoryDescriptor.h>
+    #include <DriverKit/IOLib.h>
     #include <DriverKit/IOMemoryMap.h>
 
 class SwifterKitRuntimeService;
+
+// PerformDeviceConfigurationChange action for StreamProperty ring-buffer resizing.
+constexpr uint64_t kSwifterKitAudioRingBufferChangeAction = 0x53574B52494E4742ULL;
 
 struct SwifterKitRuntimeAudioDevice_IVars {
     SwifterKitRuntimeService* service = nullptr;
@@ -27,6 +31,11 @@ struct SwifterKitRuntimeAudioDevice_IVars {
     uint32_t operation = UINT32_MAX;
     uint32_t frameCount = 0;
     uint64_t pendingSampleRateBits = 0;
+    // A ring-buffer change waiting for PerformDeviceConfigurationChange: the stream index in the
+    // high word and the frame capacity in the low word, or zero. ringLock guards maps and
+    // descriptors while stream reads and writes copy bytes and while a change swaps them.
+    uint64_t pendingRingBuffer = 0;
+    IOLock* ringLock = nullptr;
 };
 #endif
 #endif

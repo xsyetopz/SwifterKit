@@ -53,7 +53,7 @@ struct AudioDeviceCommandsTests {
     #expect(terminal.opcode == 0x0A24)
     let terminalBytes: [UInt8] = bytes(le(UInt32(1)), le(UInt32(4)), le(UInt64(0x6864_7068)))
     #expect(terminal.payload == Data(terminalBytes))
-    let ring = try DriverCommand.audioSetStreamProperty(index: 0, .ringBufferFrameCapacity(4_096))
+    let ring = try DriverCommand.audioSetStreamProperty(index: 0, .ringBufferFrameCapacity(65_536))
     #expect(try ring.payload.readRuntimeInteger(at: 4) as UInt32 == 6)
 
     let info = DriverCommand.audioControlInfo(identifier: 9)

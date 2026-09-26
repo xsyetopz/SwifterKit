@@ -71,6 +71,21 @@ namespace {
             0};
     }
 
+    // Bytes for frames of the stream's widest format, or zero when out of range.
+    uint64_t RingBufferBytes(uint32_t index, uint32_t frames) {
+        if (index >= kSwifterKitAudioStreamCount)
+            return 0;
+        const auto& config = kSwifterKitAudioStreams[index];
+        uint32_t bytesPerFrame = 0;
+        for (uint32_t format = 0; format < config.formatCount; ++format) {
+            const uint32_t candidate =
+                kSwifterKitAudioFormats[config.formatStart + format].bytesPerFrame;
+            bytesPerFrame = candidate > bytesPerFrame ? candidate : bytesPerFrame;
+        }
+        const uint64_t size = static_cast<uint64_t>(bytesPerFrame) * frames;
+        return size <= kMaximumRingBufferBytes ? size : 0;
+    }
+
     kern_return_t Respond(const void* bytes, uint32_t length, OSData** response) {
         OSData* data = OSData::withBytes(bytes, length);
         if (data == nullptr)
@@ -319,17 +334,32 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetStreamProperty(
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::ResizeStreamMemory(uint32_t index, uint32_t frames) {
-    if (frames < kSwifterKitAudioZeroTimestampPeriod || frames > 1'048'576)
+    if (frames < kSwifterKitAudioZeroTimestampPeriod || frames > 1'048'576
+        || RingBufferBytes(index, frames) == 0)
         return kIOReturnBadArgument;
-    const auto& config = kSwifterKitAudioStreams[index];
-    uint32_t bytesPerFrame = 0;
-    for (uint32_t format = 0; format < config.formatCount; ++format) {
-        const uint32_t candidate =
-            kSwifterKitAudioFormats[config.formatStart + format].bytesPerFrame;
-        bytesPerFrame = candidate > bytesPerFrame ? candidate : bytesPerFrame;
-    }
-    const uint64_t size = static_cast<uint64_t>(bytesPerFrame) * frames;
-    if (size == 0 || size > kMaximumRingBufferBytes)
+    // IOUserAudioStream.iig: SetIOMemoryDescriptor belongs in PerformDeviceConfigurationChange.
+    uint64_t expected = 0;
+    const uint64_t pending = static_cast<uint64_t>(index) << 32 | frames;
+    if (!__atomic_compare_exchange_n(
+            &ivars->pendingRingBuffer,
+            &expected,
+            pending,
+            false,
+            __ATOMIC_ACQ_REL,
+            __ATOMIC_ACQUIRE))
+        return kIOReturnBusy;
+    const kern_return_t result =
+        RequestDeviceConfigurationChange(kSwifterKitAudioRingBufferChangeAction, nullptr);
+    if (result != kIOReturnSuccess)
+        __atomic_store_n(&ivars->pendingRingBuffer, 0, __ATOMIC_RELEASE);
+    return result;
+}
+
+kern_return_t SwifterKitRuntimeAudioDevice::ApplyRingBufferChange() {
+    const uint64_t pending = __atomic_exchange_n(&ivars->pendingRingBuffer, 0, __ATOMIC_ACQ_REL);
+    const auto index = static_cast<uint32_t>(pending >> 32);
+    const uint64_t size = RingBufferBytes(index, static_cast<uint32_t>(pending));
+    if (pending == 0 || size == 0 || ivars->streams[index] == nullptr)
         return kIOReturnBadArgument;
     IOBufferMemoryDescriptor* descriptor = nullptr;
     IOMemoryMap* map = nullptr;
@@ -344,11 +374,38 @@ kern_return_t SwifterKitRuntimeAudioDevice::ResizeStreamMemory(uint32_t index, u
         OSSafeReleaseNULL(descriptor);
         return result;
     }
-    OSSafeReleaseNULL(ivars->maps[index]);
-    OSSafeReleaseNULL(ivars->descriptors[index]);
+    // Only the swap is locked; no AudioDriverKit call runs under ringLock.
+    IOLockLock(ivars->ringLock);
+    IOMemoryMap* oldMap = ivars->maps[index];
+    IOBufferMemoryDescriptor* oldDescriptor = ivars->descriptors[index];
     ivars->maps[index] = map;
     ivars->descriptors[index] = descriptor;
+    IOLockUnlock(ivars->ringLock);
+    OSSafeReleaseNULL(oldMap);
+    OSSafeReleaseNULL(oldDescriptor);
     return kIOReturnSuccess;
+}
+
+kern_return_t SwifterKitRuntimeAudioDevice::ReadStream(
+    const SwifterKitAudioTransferHeader* transfer,
+    OSData** response) {
+    if (ivars == nullptr)
+        return kIOReturnNotReady;
+    IOLockLock(ivars->ringLock);
+    const kern_return_t result = ReadMappedStream(transfer, response);
+    IOLockUnlock(ivars->ringLock);
+    return result;
+}
+
+kern_return_t SwifterKitRuntimeAudioDevice::WriteStream(
+    const SwifterKitAudioTransferHeader* transfer,
+    const uint8_t* bytes) {
+    if (ivars == nullptr)
+        return kIOReturnNotReady;
+    IOLockLock(ivars->ringLock);
+    const kern_return_t result = WriteMappedStream(transfer, bytes);
+    IOLockUnlock(ivars->ringLock);
+    return result;
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::CopyControlInfo(

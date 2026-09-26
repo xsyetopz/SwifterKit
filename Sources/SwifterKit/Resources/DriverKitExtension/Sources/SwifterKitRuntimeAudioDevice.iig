@@ -62,6 +62,12 @@ private:
         const SwifterKitAudioSelectorRemoval* request,
         const uint32_t* values) LOCALONLY;
     kern_return_t SetMemberAttachment(const SwifterKitAudioMemberAttachment* request) LOCALONLY;
+    kern_return_t ApplyRingBufferChange() LOCALONLY;
+    kern_return_t ReadMappedStream(const SwifterKitAudioTransferHeader* transfer, OSData** response)
+        LOCALONLY;
+    kern_return_t WriteMappedStream(
+        const SwifterKitAudioTransferHeader* transfer,
+        const uint8_t* bytes) LOCALONLY;
 
 protected:
     virtual kern_return_t StartIO(IOUserAudioStartStopFlags flags) LOCALONLY override;

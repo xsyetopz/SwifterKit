@@ -221,8 +221,12 @@ public enum AudioStreamProperty: Sendable, Hashable {
   case terminalType(AudioStreamTerminalType)
   /// `SetCurrentStreamFormat`, by index into the stream's available formats.
   case currentFormat(index: UInt32)
-  /// Replaces the ring buffer through `SetIOMemoryDescriptor` with one sized for this many
-  /// frames of the widest available format. The old contents are discarded.
+  /// Replaces the ring buffer with one sized for this many frames of the widest available
+  /// format. The runtime requests a device configuration change and calls
+  /// `SetIOMemoryDescriptor` when the host performs it, discarding the old contents. The
+  /// extension accepts from the device's ``AudioDeviceConfiguration/zeroTimestampPeriod`` up
+  /// to 1,048,576 frames and 16 MiB; a second change before the first is performed fails with
+  /// `kIOReturnBusy`.
   case ringBufferFrameCapacity(UInt32)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {

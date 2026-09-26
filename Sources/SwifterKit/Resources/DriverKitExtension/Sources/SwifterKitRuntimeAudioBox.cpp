@@ -68,6 +68,9 @@ kern_return_t SwifterKitRuntimeAudioBox::HandleChangeAcquireBox(bool acquire) {
     // Swift cannot be overwritten; a rejection from audioCompleteRequest restores the previous
     // state. Without a host the framework default applies.
     const bool previous = IsAcquired();
+    // Nothing changes, so there is nothing for Swift to accept or reject.
+    if (previous == acquire)
+        return kIOReturnSuccess;
     kern_return_t result = SetIsAcquired(acquire);
     if (result != kIOReturnSuccess)
         return result;

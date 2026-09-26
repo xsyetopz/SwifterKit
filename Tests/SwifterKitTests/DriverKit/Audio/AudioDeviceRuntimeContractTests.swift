@@ -25,6 +25,30 @@ struct AudioDeviceRuntimeContractTests {
         "SetPanningChannels(", "GetCustomPropertyInfo()", "RemoveStream(",
         "driver->RemoveCustomProperty(property)",
       ] { #expect(members.contains(call), "missing \(call)") }
+      let resize = try section(
+        of: members,
+        from: "::ResizeStreamMemory(",
+        to: "::ApplyRingBufferChange("
+      )
+      #expect(
+        resize.contains("RequestDeviceConfigurationChange(kSwifterKitAudioRingBufferChangeAction")
+      )
+      #expect(!resize.contains("SetIOMemoryDescriptor("))
+      let device = try source("SwifterKitRuntimeAudioDevice.cpp", in: output)
+      let perform = try section(
+        of: device,
+        from: "::PerformDeviceConfigurationChange(",
+        to: "::AbortDeviceConfigurationChange("
+      )
+      #expect(perform.contains("return ApplyRingBufferChange();"))
+      let apply = try section(of: members, from: "::ApplyRingBufferChange(", to: "::ReadStream(")
+      let swap = try section(
+        of: String(apply),
+        from: "IOLockLock(ivars->ringLock);",
+        to: "IOLockUnlock(ivars->ringLock);"
+      )
+      #expect(!swap.contains("SetIOMemoryDescriptor"))
+      #expect(members.contains("ReadMappedStream(transfer, response)"))
       let restore = try section(of: members, from: "case 7:", to: "default:")
       #expect(restore.contains("__DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5"))
       #expect(restore.contains("return kIOReturnUnsupported;"))
@@ -78,6 +102,8 @@ struct AudioDeviceRuntimeContractTests {
       let queue = try #require(handler.range(of: "BeginAudioRequest(")?.lowerBound)
       #expect(set < queue)
       #expect(handler.contains("(void)SetIsAcquired(previous);"))
+      let unchanged = try #require(handler.range(of: "if (previous == acquire)")?.lowerBound)
+      #expect(unchanged < queue)
 
       let requests = try source("SwifterKitRuntimeAudioRequests.cpp", in: output)
       let apply = try section(
