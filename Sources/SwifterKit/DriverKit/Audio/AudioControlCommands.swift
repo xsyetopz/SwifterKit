@@ -22,16 +22,10 @@ private func audioWireValues(of value: AudioControlValue) -> [UInt32] {
 
 extension AudioControlValue {
   init(runtimePayload: Data) throws {
-    guard runtimePayload.count >= 16 else { throw AudioRuntimeError.invalidPayload }
-    let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
-    let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
-    let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 12)
-    guard reserved == 0, count <= RuntimeAudioLimits.maximumSelectorItems,
-      runtimePayload.count == 16 + Int(count) * 4
-    else { throw AudioRuntimeError.invalidPayload }
-    let values: [UInt32] = try (0..<Int(count)).map {
-      try runtimePayload.readRuntimeInteger(at: 16 + $0 * 4)
-    }
+    let (kind, values) = try runtimePayload.readRuntimeControlWords(
+      maximumItems: RuntimeAudioLimits.maximumSelectorItems,
+      invalidPayload: AudioRuntimeError.invalidPayload
+    )
     switch RuntimeAudioValueKind(rawValue: kind) {
     case .boolean where values == [0]: self = .boolean(false)
     case .boolean where values == [1]: self = .boolean(true)
@@ -62,20 +56,16 @@ extension DriverCommand {
 
   /// Writes one typed control value.
   public static func audioSetControl(identifier: UInt32, value: AudioControlValue) throws -> Self {
-    let values = audioWireValues(of: value)
-    guard !values.isEmpty, values.count <= RuntimeAudioLimits.maximumSelectorItems else {
-      throw AudioRuntimeError.invalidControlValue
-    }
-    var payload = Data(capacity: 16 + values.count * 4)
-    payload.appendRuntimeInteger(identifier)
-    payload.appendRuntimeInteger(audioWireKind(of: value).rawValue)
-    payload.appendRuntimeInteger(UInt32(values.count))
-    payload.appendRuntimeInteger(UInt32(0))
-    for value in values { payload.appendRuntimeInteger(value) }
-    return Self(
+    Self(
       opcode: .audioSetControl,
       requiredCapabilities: .audio,
-      payload: payload,
+      payload: try .runtimeControlPayload(
+        identifier: identifier,
+        kind: audioWireKind(of: value).rawValue,
+        values: audioWireValues(of: value),
+        maximumItems: RuntimeAudioLimits.maximumSelectorItems,
+        invalidValue: AudioRuntimeError.invalidControlValue
+      ),
       maximumResponseSize: RuntimeMessage.headerSize
     )
   }
@@ -110,25 +100,15 @@ extension DriverCommand {
     qualifier: String,
     value: String?
   ) throws -> Self {
-    let qualifierBytes = Data(qualifier.utf8)
-    let valueBytes = value.map { Data($0.utf8) } ?? Data()
-    guard !qualifierBytes.isEmpty, qualifierBytes.count <= RuntimeAudioLimits.nameMaximumLength,
-      valueBytes.count <= RuntimeAudioLimits.customPropertyValueMaximumLength,
-      !qualifier.contains("\0"), value?.contains("\0") != true
-    else { throw AudioRuntimeError.invalidCustomPropertyValue }
-    var payload = Data(capacity: 16 + qualifierBytes.count + valueBytes.count)
-    payload.appendRuntimeInteger(identifier)
-    payload.appendRuntimeInteger(UInt32(qualifierBytes.count))
-    payload.appendRuntimeInteger(UInt32(valueBytes.count))
-    payload.appendRuntimeInteger(UInt32(0))
-    payload.append(qualifierBytes)
-    payload.append(valueBytes)
-    return Self(
+    try runtimeCustomPropertyCommand(
       opcode: opcode,
       requiredCapabilities: .audio,
-      payload: payload,
-      maximumResponseSize: RuntimeMessage.headerSize
-        + RuntimeAudioLimits.customPropertyValueMaximumLength
+      identifier: identifier,
+      qualifier: qualifier,
+      value: value,
+      nameMaximumLength: RuntimeAudioLimits.nameMaximumLength,
+      valueMaximumLength: RuntimeAudioLimits.customPropertyValueMaximumLength,
+      invalidValue: AudioRuntimeError.invalidCustomPropertyValue
     )
   }
 }

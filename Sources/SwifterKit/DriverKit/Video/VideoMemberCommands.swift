@@ -174,14 +174,10 @@ extension DriverCommand {
     streamIndex: UInt32,
     entry: VideoBufferQueueEntry
   ) throws -> Self {
-    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
-    guard entry.bufferIndex < videoMaximumBuffers else {
-      throw VideoRuntimeError.invalidBufferIndex
-    }
-    var payload = Data(capacity: 36)
-    payload.appendRuntimeInteger(streamIndex)
-    payload.append(videoEntryPayload(entry))
-    return videoMemberCommand(.videoEnqueueOutputBuffer, payload)
+    videoMemberCommand(
+      .videoEnqueueOutputBuffer,
+      try videoOutputEntryPayload(streamIndex: streamIndex, entry: entry)
+    )
   }
 
   /// Reads `IOUserVideoStream::GetMemoryObjectID` for a memory type, whose upper 16 bits are a

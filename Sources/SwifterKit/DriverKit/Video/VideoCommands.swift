@@ -59,14 +59,11 @@ extension DriverCommand {
     streamIndex: UInt32,
     entry: VideoBufferQueueEntry
   ) throws -> Self {
-    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
-    guard entry.bufferIndex < videoMaximumBuffers else {
-      throw VideoRuntimeError.invalidBufferIndex
-    }
-    var payload = Data(capacity: 36)
-    payload.appendRuntimeInteger(streamIndex)
-    payload.append(videoEntryPayload(entry))
-    return Self(opcode: .videoEnqueueOutput, requiredCapabilities: .video, payload: payload)
+    Self(
+      opcode: .videoEnqueueOutput,
+      requiredCapabilities: .video,
+      payload: try videoOutputEntryPayload(streamIndex: streamIndex, entry: entry)
+    )
   }
 
   /// Dequeues an input entry supplied by the host.
@@ -116,6 +113,21 @@ extension DriverCommand {
     for value in [streamIndex, bufferIndex, plane.rawValue, byteOffset, length, 0, 0, 0] {
       payload.appendRuntimeInteger(value)
     }
+    return payload
+  }
+
+  /// Encodes a stream index and an output entry after checking both against the runtime tables.
+  static func videoOutputEntryPayload(
+    streamIndex: UInt32,
+    entry: VideoBufferQueueEntry
+  ) throws -> Data {
+    guard streamIndex < videoMaximumStreams else { throw VideoRuntimeError.invalidStreamIndex }
+    guard entry.bufferIndex < videoMaximumBuffers else {
+      throw VideoRuntimeError.invalidBufferIndex
+    }
+    var payload = Data(capacity: 36)
+    payload.appendRuntimeInteger(streamIndex)
+    payload.append(videoEntryPayload(entry))
     return payload
   }
 

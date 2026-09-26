@@ -23,16 +23,10 @@ private func videoWireValues(of value: VideoControlValue) -> [UInt32] {
 
 extension VideoControlValue {
   init(runtimePayload: Data) throws {
-    guard runtimePayload.count >= 16 else { throw VideoRuntimeError.invalidPayload }
-    let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
-    let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
-    let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 12)
-    guard reserved == 0, count <= RuntimeVideoLimits.maximumSelectorItems,
-      runtimePayload.count == 16 + Int(count) * 4
-    else { throw VideoRuntimeError.invalidPayload }
-    let values: [UInt32] = try (0..<Int(count)).map {
-      try runtimePayload.readRuntimeInteger(at: 16 + $0 * 4)
-    }
+    let (kind, values) = try runtimePayload.readRuntimeControlWords(
+      maximumItems: RuntimeVideoLimits.maximumSelectorItems,
+      invalidPayload: VideoRuntimeError.invalidPayload
+    )
     switch RuntimeVideoValueKind(rawValue: kind) {
     case .boolean where values == [0]: self = .boolean(false)
     case .boolean where values == [1]: self = .boolean(true)
@@ -65,20 +59,16 @@ extension DriverCommand {
 
   /// Writes one typed control value.
   public static func videoSetControl(identifier: UInt32, value: VideoControlValue) throws -> Self {
-    let values = videoWireValues(of: value)
-    guard !values.isEmpty, values.count <= RuntimeVideoLimits.maximumSelectorItems else {
-      throw VideoRuntimeError.invalidControlValue
-    }
-    var payload = Data(capacity: 16 + values.count * 4)
-    payload.appendRuntimeInteger(identifier)
-    payload.appendRuntimeInteger(videoWireKind(of: value).rawValue)
-    payload.appendRuntimeInteger(UInt32(values.count))
-    payload.appendRuntimeInteger(UInt32(0))
-    for value in values { payload.appendRuntimeInteger(value) }
-    return Self(
+    Self(
       opcode: .videoSetControl,
       requiredCapabilities: .video,
-      payload: payload,
+      payload: try .runtimeControlPayload(
+        identifier: identifier,
+        kind: videoWireKind(of: value).rawValue,
+        values: videoWireValues(of: value),
+        maximumItems: RuntimeVideoLimits.maximumSelectorItems,
+        invalidValue: VideoRuntimeError.invalidControlValue
+      ),
       maximumResponseSize: RuntimeMessage.headerSize
     )
   }
@@ -113,25 +103,15 @@ extension DriverCommand {
     qualifier: String,
     value: String?
   ) throws -> Self {
-    let qualifierBytes = Data(qualifier.utf8)
-    let valueBytes = value.map { Data($0.utf8) } ?? Data()
-    guard !qualifierBytes.isEmpty, qualifierBytes.count <= RuntimeVideoLimits.nameMaximumLength,
-      valueBytes.count <= RuntimeVideoLimits.customPropertyValueMaximumLength,
-      !qualifier.contains("\0"), value?.contains("\0") != true
-    else { throw VideoRuntimeError.invalidCustomPropertyValue }
-    var payload = Data(capacity: 16 + qualifierBytes.count + valueBytes.count)
-    payload.appendRuntimeInteger(identifier)
-    payload.appendRuntimeInteger(UInt32(qualifierBytes.count))
-    payload.appendRuntimeInteger(UInt32(valueBytes.count))
-    payload.appendRuntimeInteger(UInt32(0))
-    payload.append(qualifierBytes)
-    payload.append(valueBytes)
-    return Self(
+    try runtimeCustomPropertyCommand(
       opcode: opcode,
       requiredCapabilities: .video,
-      payload: payload,
-      maximumResponseSize: RuntimeMessage.headerSize
-        + RuntimeVideoLimits.customPropertyValueMaximumLength
+      identifier: identifier,
+      qualifier: qualifier,
+      value: value,
+      nameMaximumLength: RuntimeVideoLimits.nameMaximumLength,
+      valueMaximumLength: RuntimeVideoLimits.customPropertyValueMaximumLength,
+      invalidValue: VideoRuntimeError.invalidCustomPropertyValue
     )
   }
 }
