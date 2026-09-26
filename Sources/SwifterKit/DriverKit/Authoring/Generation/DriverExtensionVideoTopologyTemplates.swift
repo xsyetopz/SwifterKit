@@ -53,7 +53,8 @@ extension DriverExtensionGenerator {
           uint32_t inputLatency;
           uint32_t outputLatency;
       };
-      static constexpr SwifterKitVideoBoxConfiguration kSwifterKitVideoBoxes[\(max(boxes.count, 1))] = {
+      static constexpr SwifterKitVideoBoxConfiguration
+          kSwifterKitVideoBoxes[\(max(boxes.count, 1))] = {
       \(boxRows)
       };
       static constexpr uint32_t kSwifterKitVideoBoxCount = \(boxes.count);
