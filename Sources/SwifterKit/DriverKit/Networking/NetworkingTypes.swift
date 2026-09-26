@@ -91,6 +91,9 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
   public let receivePacketCount: UInt32?
   /// Hybrid-polling parameters, or nil for interrupt-driven operation only.
   public let packetPolling: EthernetPacketPolling?
+  /// Service class of the transmit submission queue, or nil for none; applied on DriverKit 24
+  /// and later through `IOUserNetworkTxSubmissionQueue::Create(pool, owner, serviceClass, ...)`.
+  public let transmitServiceClass: EthernetServiceClass?
 
   /// The ``hardwareAssists`` bits as a typed set.
   public var assists: EthernetHardwareAssists { EthernetHardwareAssists(rawValue: hardwareAssists) }
@@ -119,7 +122,8 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
     packetTap: Bool = false,
     poolOptions: EthernetPacketPoolOptions = EthernetPacketPoolOptions(),
     receivePacketCount: UInt32? = nil,
-    packetPolling: EthernetPacketPolling? = nil
+    packetPolling: EthernetPacketPolling? = nil,
+    transmitServiceClass: EthernetServiceClass? = nil
   ) {
     self.hardwareAddress = hardwareAddress
     self.maximumTransferUnit = maximumTransferUnit
@@ -144,6 +148,7 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
     self.poolOptions = poolOptions
     self.receivePacketCount = receivePacketCount
     self.packetPolling = packetPolling
+    self.transmitServiceClass = transmitServiceClass
   }
 }
 
@@ -153,10 +158,18 @@ public struct EthernetTransmitRequest: Sendable, Hashable {
   public let requestID: UInt32
   /// Complete Ethernet frame supplied by the networking stack.
   public let frame: Data
+  /// Offload, timestamp, VLAN, and trace state the stack recorded on the packet.
+  public let metadata: EthernetTransmitMetadata
+
   /// Creates an outgoing frame request.
-  public init(requestID: UInt32, frame: Data) {
+  public init(
+    requestID: UInt32,
+    frame: Data,
+    metadata: EthernetTransmitMetadata = EthernetTransmitMetadata()
+  ) {
     self.requestID = requestID
     self.frame = frame
+    self.metadata = metadata
   }
 }
 
@@ -181,6 +194,9 @@ public enum EthernetEvent: Sendable, Hashable {
   case packetTap(EthernetPacketTapMode)
   /// The family handed over NIC proxy offload data.
   case nicProxyConfiguration(EthernetNICProxyConfiguration)
+  /// A private interface command waits for an answer through
+  /// ``DriverContext/completeEthernetInterfaceCommand(requestID:status:)``.
+  case interfaceCommand(EthernetInterfaceCommand)
 
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 16 else { throw EthernetRuntimeError.invalidPayload }
@@ -195,10 +211,18 @@ public enum EthernetEvent: Sendable, Hashable {
     switch kind {
     case 1: self = .interfaceEnabled(try Self.boolean(value, requestID: requestID, data: data))
     case 2:
-      guard requestID != 0, value == UInt32(data.count), !data.isEmpty else {
+      let size = EthernetTransmitMetadata.runtimeSize
+      guard requestID != 0, value != 0, Int(value) == data.count - size else {
         throw EthernetRuntimeError.invalidPayload
       }
-      self = .transmit(EthernetTransmitRequest(requestID: requestID, frame: data))
+      let metadata = try EthernetTransmitMetadata(runtimeData: Data(data.prefix(size)))
+      self = .transmit(
+        EthernetTransmitRequest(
+          requestID: requestID,
+          frame: Data(data.dropFirst(size)),
+          metadata: metadata
+        )
+      )
     case 3: self = .promiscuousMode(try Self.boolean(value, requestID: requestID, data: data))
     case 4:
       guard requestID == 0, value == UInt32(data.count / 6), data.count.isMultiple(of: 6) else {
@@ -253,6 +277,9 @@ public enum EthernetEvent: Sendable, Hashable {
         throw EthernetRuntimeError.invalidPayload
       }
       self = .nicProxyConfiguration(try EthernetNICProxyConfiguration(data: data))
+    case 16:
+      guard value == 0 else { throw EthernetRuntimeError.invalidPayload }
+      self = .interfaceCommand(try EthernetInterfaceCommand(requestID: requestID, data: data))
     default: throw EthernetRuntimeError.invalidEventKind(kind)
     }
   }
@@ -278,4 +305,6 @@ public enum EthernetRuntimeError: Error, Sendable, Equatable {
   case invalidLinkQuality
   case invalidBandwidths
   case invalidPollingParameters
+  case invalidBatch
+  case invalidPacketMetadata
 }

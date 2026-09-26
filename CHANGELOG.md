@@ -6,6 +6,11 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** transmit events carry a 72-byte packet metadata block before
+  the frame, `EthernetTransmitRequest` gains `metadata`, `EthernetEvent` gains
+  `interfaceCommand`, and `EthernetRuntimeError` gains `invalidBatch` and
+  `invalidPacketMetadata`. `packetBufferSize` may be at most 65,420 bytes so a
+  frame and its metadata fit in one event.
 - **Breaking:** `EthernetEvent` gains the `hardwareAssistsChanged`, `polling`,
   `packetTap`, and `nicProxyConfiguration` cases, and `EthernetRuntimeError`
   gains `invalidLinkStatus`, `invalidLinkQuality`, `invalidBandwidths`, and
@@ -63,6 +68,10 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- A transmit Swift completed with a nonzero status was freed back to the pool
+  instead of returning to the stack. It now carries the status through
+  `setCompletionStatus` and returns through the transmit completion queue, and
+  every packet returns to the pool it came from (`getPacketBufferPool`).
 - `xcodebuild analyze` no longer reports leaks of the timer source and action
   in `SwifterKitRuntimeTimers.cpp`. `SwifterKitReleaseSource` consumes the
   references it is given, and its parameters now say so with `os_consumed`, so
@@ -123,6 +132,18 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- NetworkingDriverKit packet metadata: `EthernetTransmitMetadata` on every
+  transmit, `EthernetReceiveMetadata` and `EthernetReceivedFrame` for
+  `ethernetReceive(frames:)` batches (opcode 0x0920), and
+  `EthernetTransmitCompletion` for `completeEthernetTransmits(_:)` (0x0921).
+- Queue control: `setEthernetQueueEnabled(_:enabled:)` (0x0922),
+  `purgeEthernetTransmitQueue()` (0x0923), `serviceEthernetTransmitQueue()`
+  (0x0924), and `EthernetDeviceConfiguration.transmitServiceClass` with
+  `EthernetServiceClass`.
+- `processInterfaceCommand` forwards private interface ioctls as
+  `EthernetEvent.interfaceCommand`, answered by
+  `completeEthernetInterfaceCommand(requestID:status:)` (0x0925) within two
+  seconds.
 - Ethernet capabilities: `EthernetDeviceConfiguration` takes typed hardware
   assists (`EthernetHardwareAssists`: checksum, TSO with `EthernetTSOOptions`,
   LRO, VLAN, timestamps, wake on magic packet, NIC proxy), feature flags, a

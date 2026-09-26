@@ -25,7 +25,8 @@ struct NetworkingTypesTests {
   func decodesTransmitAndControlEvents() throws {
     let transmit = DriverEvent(
       type: 0x0900,
-      payload: [2, 0, 0, 0, 9, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1, 2, 3]
+      payload: [2, 0, 0, 0, 9, 0, 0, 0, 3, 0, 0, 0, 75, 0, 0, 0] + [UInt8](repeating: 0, count: 72)
+        + [1, 2, 3]
     )
     #expect(
       try transmit.ethernet()

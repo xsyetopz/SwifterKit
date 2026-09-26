@@ -128,6 +128,7 @@ static constexpr bool kSwifterKitEthernetSoftwareVLAN = false;
 static constexpr uint16_t kSwifterKitEthernetTxHeadroom = 0;
 static constexpr uint16_t kSwifterKitEthernetTxTailroom = 0;
 static constexpr uint16_t kSwifterKitEthernetTxDataOffset = 0;
+static constexpr uint32_t kSwifterKitEthernetTxServiceClass = 0xFFFFFFFF;
 static constexpr uint32_t kSwifterKitEthernetSubFamily = 0;
 static constexpr char kSwifterKitEthernetBSDNamePrefix[] = "";
 static constexpr int32_t kSwifterKitEthernetBSDUnitNumber = -1;

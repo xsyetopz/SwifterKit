@@ -114,7 +114,23 @@ kern_return_t SwifterKitRuntimeService::StartNetwork() {
     }
     if (result == kIOReturnSuccess)
         result = CreateActionNetworkTxPacketAvailable(0, &ivars->networkTxAction);
-    if (result == kIOReturnSuccess)
+    // A transmit service class needs the DriverKit 24 Create; earlier systems use the plain one.
+    bool classified = false;
+    if (result == kIOReturnSuccess
+        && kSwifterKitEthernetTxServiceClass != kIOUserNetworkPacketServiceClassNone) {
+        if (__builtin_available(driverkit 24.0, *)) {
+            classified = true;
+            result = IOUserNetworkTxSubmissionQueue::Create(
+                ivars->networkPool,
+                this,
+                kSwifterKitEthernetTxServiceClass,
+                kSwifterKitEthernetQueueCapacity,
+                0,
+                ivars->networkQueue,
+                &ivars->networkTxSubmission);
+        }
+    }
+    if (result == kIOReturnSuccess && !classified)
         result = IOUserNetworkTxSubmissionQueue::Create(
             ivars->networkPool,
             this,

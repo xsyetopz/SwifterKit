@@ -290,6 +290,11 @@ struct SwifterKitRuntimeService_IVars {
     bool networkStopping = false;
     uint8_t networkAddress[6] = {};
     SwifterKitNetworkPendingTransmit networkTransmits[64] = {};
+    // The one private interface command waiting for Swift; changes only under networkLock.
+    uint32_t networkCommandID = 0;
+    uint32_t nextNetworkCommandID = 1;
+    int32_t networkCommandStatus = 0;
+    bool networkCommandAnswered = false;
 #endif
 #if SWIFTERKIT_ENABLE_MIDI
     IOUserMIDIDevice* midiDevice = nullptr;

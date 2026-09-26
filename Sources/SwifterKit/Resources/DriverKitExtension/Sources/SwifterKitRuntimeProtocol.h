@@ -204,6 +204,97 @@ struct __attribute__((packed)) SwifterKitNetworkEventHeader {
     uint32_t dataLength;
 };
 
+// Packet flags. Transmit metadata reports the Tx bits; a received packet sets the Rx bits.
+enum : uint32_t {
+    kSwifterKitNetworkPacketLinkMulticast = 1U << 0,
+    kSwifterKitNetworkPacketLinkBroadcast = 1U << 1,
+    kSwifterKitNetworkPacketTimestampRequested = 1U << 2,
+    kSwifterKitNetworkPacketTrafficBackground = 1U << 3,
+    kSwifterKitNetworkPacketTrafficRealtime = 1U << 4,
+    kSwifterKitNetworkPacketHasTimestamp = 1U << 5,
+    kSwifterKitNetworkPacketHasExpiryTime = 1U << 6,
+    kSwifterKitNetworkPacketHasVLANTag = 1U << 7,
+    kSwifterKitNetworkPacketHasDataOffset = 1U << 8,
+    kSwifterKitNetworkPacketHasLRO = 1U << 9,
+    kSwifterKitNetworkPacketHasTraceEvent = 1U << 10,
+    kSwifterKitNetworkPacketWake = 1U << 11,
+};
+
+static constexpr uint32_t kSwifterKitNetworkTransmitFlags = 0x00FF;
+static constexpr uint32_t kSwifterKitNetworkReceiveFlags = 0x0FA1;
+static constexpr uint32_t kSwifterKitNetworkCompletionFlags = 0x0420;
+static constexpr uint32_t kSwifterKitNetworkRxChecksumFlags = 0x0F00;
+static constexpr uint32_t kSwifterKitNetworkLROFlags = 0x0003;
+// The most frames one receive or completion batch carries.
+static constexpr uint32_t kSwifterKitNetworkMaximumBatch = 32;
+
+// Precedes each transmitted frame in a transmit event.
+struct __attribute__((packed)) SwifterKitNetworkTransmitMetadata {
+    uint32_t dataOffset;
+    uint32_t flags;
+    uint32_t serviceClass;
+    uint32_t traceID;
+    uint32_t checksumFlags;
+    uint16_t checksumStart;
+    uint16_t checksumStuff;
+    uint32_t offloadFlags;
+    uint32_t tsoFlags;
+    uint16_t tsoSegmentSize;
+    uint16_t maximumSegmentSize;
+    uint16_t vlanTag;
+    uint8_t linkHeaderLength;
+    uint8_t reserved;
+    uint64_t timestamp;
+    uint64_t expiryTime;
+    uint64_t memorySegmentOffset;
+    uint64_t dataIOVirtualAddress;
+};
+
+// Begins a receive or completion batch.
+struct __attribute__((packed)) SwifterKitNetworkBatchHeader {
+    uint32_t count;
+    uint32_t reserved;
+};
+
+// Precedes each frame in a receive batch.
+struct __attribute__((packed)) SwifterKitNetworkReceivePacket {
+    uint32_t length;
+    uint32_t dataOffset;
+    uint32_t flags;
+    uint32_t checksumFlags;
+    uint16_t checksumValue;
+    uint16_t vlanTag;
+    uint8_t linkHeaderLength;
+    uint8_t lroFlags;
+    uint8_t lroSegmentCount;
+    uint8_t reserved0;
+    uint32_t traceEvent;
+    uint32_t reserved1;
+    uint64_t timestamp;
+};
+
+// One entry of a completion batch.
+struct __attribute__((packed)) SwifterKitNetworkTransmitCompletion {
+    uint32_t requestID;
+    int32_t status;
+    uint32_t flags;
+    uint32_t traceEvent;
+    uint64_t timestamp;
+};
+
+struct __attribute__((packed)) SwifterKitNetworkQueueEnable {
+    uint32_t queue;
+    uint32_t enabled;
+};
+
+// A private SIOCSDRVSPEC or SIOCGDRVSPEC request. ifd_data is a pointer in the caller's address
+// space, so only the name, command, and length reach Swift.
+struct __attribute__((packed)) SwifterKitNetworkInterfaceCommand {
+    char name[16];
+    uint64_t command;
+    uint64_t length;
+};
+
 struct __attribute__((packed)) SwifterKitAudioTransferHeader {
     uint32_t streamIndex;
     uint32_t reserved0;
@@ -454,6 +545,12 @@ static_assert(sizeof(SwifterKitNetworkEventHeader) == 16);
 static_assert(sizeof(SwifterKitNetworkBandwidths) == 32);
 static_assert(sizeof(SwifterKitNetworkHardwareCounts) == 88);
 static_assert(sizeof(SwifterKitNetworkPollerParameters) == 16);
+static_assert(sizeof(SwifterKitNetworkTransmitMetadata) == 72);
+static_assert(sizeof(SwifterKitNetworkBatchHeader) == 8);
+static_assert(sizeof(SwifterKitNetworkReceivePacket) == 40);
+static_assert(sizeof(SwifterKitNetworkTransmitCompletion) == 24);
+static_assert(sizeof(SwifterKitNetworkQueueEnable) == 8);
+static_assert(sizeof(SwifterKitNetworkInterfaceCommand) == 32);
 static_assert(sizeof(SwifterKitAudioTransferHeader) == 24);
 static_assert(sizeof(SwifterKitAudioTimestamp) == 16);
 static_assert(sizeof(SwifterKitAudioIOState) == 32);

@@ -46,6 +46,7 @@
 		0D001D312AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */; };
 		0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */; };
 		0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */; };
+		0D00F0512AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00F0522AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp */; };
 		0D001D712AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */; };
 		0D00E0112AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0122AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp */; };
 		0D00E0212AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0222AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp */; };
@@ -120,6 +121,7 @@
 		0D001D122AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeMIDI.cpp; sourceTree = "<group>"; };
 		0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkSetup.cpp; sourceTree = "<group>"; };
 		0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkPackets.cpp; sourceTree = "<group>"; };
+		0D00F0522AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkControl.cpp; sourceTree = "<group>"; };
 		0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeLifecycle.cpp; sourceTree = "<group>"; };
 		0D00E0122AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeServiceProperties.cpp; sourceTree = "<group>"; };
 		0D00E0222AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeServiceControl.cpp; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				0D001D122AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp */,
 				0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */,
 				0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */,
+				0D00F0522AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp */,
 				0D001D722AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp */,
 				0D00E0122AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp */,
 				0D00E0222AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp */,
@@ -348,6 +351,7 @@
 				0D001D112AAAAAAA00000001 /* SwifterKitRuntimeMIDI.cpp in Sources */,
 				0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */,
 				0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */,
+				0D00F0512AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp in Sources */,
 				0D001D712AAAAAAA00000001 /* SwifterKitRuntimeLifecycle.cpp in Sources */,
 				0D00E0112AAAAAAA00000001 /* SwifterKitRuntimeServiceProperties.cpp in Sources */,
 				0D00E0212AAAAAAA00000001 /* SwifterKitRuntimeServiceControl.cpp in Sources */,

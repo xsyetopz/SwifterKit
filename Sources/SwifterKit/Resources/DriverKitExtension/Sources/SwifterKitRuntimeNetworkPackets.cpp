@@ -6,6 +6,7 @@
     #include <NetworkingDriverKit/IOUserNetworkPacketPoller.h>
     #include <NetworkingDriverKit/NetworkingDriverKit.h>
 
+    #include "SwifterKitRuntimeNetworkMetadata.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
 
@@ -36,11 +37,15 @@ void SwifterKitRuntimeService::DrainNetworkTransmits() {
         uint32_t length = packet->getDataLength();
         uint64_t address = packet->getDataVirtualAddress();
         uint16_t offset = packet->getDataOffset();
+        SwifterKitNetworkTransmitMetadata metadata = {};
         if (pending == nullptr || length == 0 || length > kSwifterKitEthernetPacketBufferSize
+            || length > kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitNetworkEventHeader)
+                            - sizeof(metadata)
             || address == 0) {
-            (void)ivars->networkPool->deallocatePacket(packet);
+            SwifterKitReturnNetworkPacket(packet);
             continue;
         }
+        SwifterKitReadTransmitMetadata(packet, &metadata);
         uint32_t identifier = 0;
         for (uint32_t attempt = 0; attempt <= 64 && identifier == 0; ++attempt) {
             uint32_t candidate = ivars->nextNetworkRequestID++;
@@ -56,15 +61,17 @@ void SwifterKitRuntimeService::DrainNetworkTransmits() {
                 identifier = candidate;
         }
         if (identifier == 0) {
-            (void)ivars->networkPool->deallocatePacket(packet);
+            SwifterKitReturnNetworkPacket(packet);
             continue;
         }
         packet->retain();
         *pending = {identifier, packet};
-        SwifterKitNetworkEventHeader header = {2, identifier, length, length};
-        OSData* event = OSData::withCapacity(sizeof(header) + length);
+        const uint32_t dataLength = static_cast<uint32_t>(sizeof(metadata)) + length;
+        SwifterKitNetworkEventHeader header = {2, identifier, length, dataLength};
+        OSData* event = OSData::withCapacity(sizeof(header) + dataLength);
         const void* bytes = reinterpret_cast<const void*>(address + offset);
         bool ready = event != nullptr && event->appendBytes(&header, sizeof(header))
+                     && event->appendBytes(&metadata, sizeof(metadata))
                      && event->appendBytes(bytes, length);
         kern_return_t result = ready ? EnqueueRequiredEvent(
                                            kSwifterKitEventNetwork,
@@ -75,7 +82,7 @@ void SwifterKitRuntimeService::DrainNetworkTransmits() {
         if (result != kIOReturnSuccess) {
             pending->requestID = 0;
             OSSafeReleaseNULL(pending->packet);
-            (void)ivars->networkPool->deallocatePacket(packet);
+            SwifterKitReturnNetworkPacket(packet);
         } else if ((ivars->networkTapMode & kSwifterKitEthernetTapOutput) != 0)
             bpfTapOutputPacket(kSwifterKitEthernetDataLinkType, packet, nullptr, 0);
     }
@@ -91,6 +98,8 @@ kern_return_t SwifterKitRuntimeService::NetworkCommand(
     if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkSetPolling)
         || opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkSetPollerParameters))
         return NetworkPollerCommand(opcode, payload, payloadLength);
+    if ((opcode & 0xFFF0U) == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReceivePackets))
+        return NetworkPacketCommand(opcode, payload, payloadLength);
     IOLockLock(ivars->networkLock);
     if (ivars->networkStopping || ivars->networkPool == nullptr) {
         IOLockUnlock(ivars->networkLock);
@@ -155,13 +164,12 @@ kern_return_t SwifterKitRuntimeService::NetworkCommand(
             if (packet == nullptr)
                 result = kIOReturnNotFound;
             else {
-                result = completion->status == 0 ? ivars->networkTxCompletion->EnqueuePacket(packet)
-                                                 : kIOReturnAborted;
+                // A failed transmit returns through the completion queue with its status.
+                SwifterKitCompleteTransmitPacket(packet, completion->status, 0, 0, 0);
+                result = ivars->networkTxCompletion->EnqueuePacket(packet);
                 if (result != kIOReturnSuccess)
-                    (void)ivars->networkPool->deallocatePacket(packet);
+                    SwifterKitReturnNetworkPacket(packet);
                 packet->release();
-                if (completion->status != 0)
-                    result = kIOReturnSuccess;
             }
         }
     } else if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportLink)) {

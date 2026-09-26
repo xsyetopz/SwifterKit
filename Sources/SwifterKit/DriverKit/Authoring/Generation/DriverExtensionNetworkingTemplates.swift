@@ -24,6 +24,7 @@ extension DriverExtensionGenerator {
       && (value.receivePacketCount.map { (8...1_024).contains($0) && $0 >= value.queueCapacity }
         ?? true)
       && (value.packetPolling?.isValid ?? true)
+      && (value.transmitServiceClass.map { EthernetServiceClass.all.contains($0) } ?? true)
   }
 
   private static func isValid(tso: EthernetTSOOptions?, assists: EthernetHardwareAssists) -> Bool {
@@ -75,6 +76,8 @@ extension DriverExtensionGenerator {
       static constexpr uint16_t kSwifterKitEthernetTxTailroom = \(ethernet?.transmitTailroom ?? 0);
       static constexpr uint16_t kSwifterKitEthernetTxDataOffset =
           \(ethernet?.transmitDataOffset ?? 0);
+      static constexpr uint32_t kSwifterKitEthernetTxServiceClass =
+          \(ethernet?.transmitServiceClass?.rawValue ?? 0xFFFF_FFFF);
       static constexpr uint32_t kSwifterKitEthernetSubFamily =
           \(ethernet?.interfaceSubFamily.rawValue ?? 0);
       static constexpr char kSwifterKitEthernetBSDNamePrefix[] =
@@ -115,6 +118,16 @@ extension DriverExtensionGenerator {
           void DrainNetworkTransmits() LOCALONLY;
           kern_return_t NetworkCommand(
               uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength) LOCALONLY;
+          kern_return_t NetworkPacketCommand(
+              uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength) LOCALONLY;
+          kern_return_t NetworkReceivePackets(
+              const uint8_t* payload,
+              uint32_t payloadLength) LOCALONLY;
+          kern_return_t NetworkCompleteTransmits(
               const uint8_t* payload,
               uint32_t payloadLength) LOCALONLY;
           kern_return_t NetworkPollerCommand(
@@ -163,6 +176,7 @@ extension DriverExtensionGenerator {
               ether_addr_t* address) LOCALONLY override;
           virtual kern_return_t setHardwareAddress(
               ether_addr_t* address) LOCALONLY override;
+          virtual kern_return_t processInterfaceCommand(ifdrv_t* command) LOCALONLY override;
       """
   }
 }

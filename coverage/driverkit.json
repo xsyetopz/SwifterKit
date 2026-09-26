@@ -20629,14 +20629,15 @@
 
           ],
           "name" : "processInterfaceCommand",
-          "note" : "needs a Swift answer inside the family's synchronous call (blocking reply with timeout, as SetPowerState does) or a fast-path table",
+          "note" : "delivers name, ifd_cmd, and ifd_len as EthernetEvent.interfaceCommand and waits up to two seconds for Swift's status; ifd_data points into the caller's address space and is not forwarded",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn processInterfaceCommand(ifdrv_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "completeEthernetInterfaceCommand"
         },
         {
           "access" : "public",
@@ -22341,7 +22342,8 @@
             "27.0"
           ],
           "signature" : "IOReturn clearTimestamp()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -22358,7 +22360,8 @@
             "27.0"
           ],
           "signature" : "IOReturn getExpiryTime(uint64_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22369,13 +22372,14 @@
 
           ],
           "name" : "getRxChecksumInfo",
+          "note" : "reads back the receive checksum a driver stored with setRxChecksumInfo; Swift supplies that value in EthernetReceiveMetadata.checksumFlags/checksumValue, so the runtime never needs to read it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn getRxChecksumInfo(IOUserNetworkPacketRxChecksumFlags*, uint16_t*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22392,7 +22396,8 @@
             "27.0"
           ],
           "signature" : "IOReturn getTSOInfo(uint16_t*, IOUserNetworkPacketTSOFlags*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22409,7 +22414,8 @@
             "27.0"
           ],
           "signature" : "IOReturn getTimestamp(uint64_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22426,7 +22432,8 @@
             "27.0"
           ],
           "signature" : "IOReturn getTxChecksumInfo(IOUserNetworkPacketTxChecksumFlags*, uint16_t*, uint16_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22473,13 +22480,14 @@
 
           ],
           "name" : "setDataOff",
+          "note" : "sets the offset alone; the runtime sets offset and length together with setDataOffAndLen (EthernetReceiveMetadata.dataOffset), which the SDK pairs with it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setDataOff(size_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22497,7 +22505,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setDataOffAndLen(size_t, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -22508,13 +22517,14 @@
 
           ],
           "name" : "setDataOffset",
+          "note" : "deprecated in the SDK (\"use setDataOff instead\"); setDataOffAndLen, and setDataOffsetAndLength before DriverKit 23, set the offset",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setDataOffset(uint16_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22525,13 +22535,15 @@
 
           ],
           "name" : "setDataOffsetAndLength",
+          "note" : "used before DriverKit 23, where setDataOffAndLen is unavailable",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setDataOffsetAndLength(uint16_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -22548,7 +22560,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setIsLinkMulticast(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -22565,7 +22578,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setLROInfo(IOUserNetworkPacketLROFlags, uint8_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -22600,7 +22614,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setRxChecksumInfo(IOUserNetworkPacketRxChecksumFlags, uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -22617,7 +22632,8 @@
             "27.0"
           ],
           "signature" : "IOReturn setTimestamp(uint64_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -22628,13 +22644,14 @@
 
           ],
           "name" : "withPool",
+          "note" : "packet factory behind IOUserNetworkPacketBufferPool::newPacket; the runtime uses the family's pools and packets and never subclasses either",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkPacket* withPool(IOUserNetworkPacketBufferPool*, IOUserNetworkPacketDescriptor*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22645,13 +22662,14 @@
 
           ],
           "name" : "getPacketBufferPool",
+          "note" : "returns every packet to the pool it came from",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkPacketBufferPool* getPacketBufferPool() const",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -22664,12 +22682,14 @@
 
           ],
           "name" : "getVlanTag",
+          "note" : "DriverKit 24 and later",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "bool getVlanTag(uint16_t*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22698,13 +22718,14 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "initializer behind the packet withPool factory; the runtime never subclasses the pool or the packet",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, IOUserNetworkPacketDescriptor*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22721,7 +22742,8 @@
             "27.0"
           ],
           "signature" : "bool isLinkBroadcast() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22738,7 +22760,8 @@
             "27.0"
           ],
           "signature" : "bool isLinkMulticast() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22755,7 +22778,8 @@
             "27.0"
           ],
           "signature" : "bool isTimestampRequested() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22772,7 +22796,8 @@
             "27.0"
           ],
           "signature" : "bool isTransportTrafficBackground() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22789,7 +22814,8 @@
             "27.0"
           ],
           "signature" : "bool isTransportTrafficRealtime() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -22801,13 +22827,14 @@
 
           ],
           "name" : "GetDataLength",
+          "note" : "deprecated in the SDK; getDataLength() replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetDataLength(uint32_t*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22819,13 +22846,14 @@
 
           ],
           "name" : "GetDataOffset",
+          "note" : "deprecated in the SDK; getDataOff() replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetDataOffset(uint16_t*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22837,13 +22865,14 @@
 
           ],
           "name" : "GetHeadroom",
+          "note" : "deprecated in the SDK without a replacement; the data offset (getDataOff, EthernetTransmitMetadata.dataOffset) locates the frame",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetHeadroom(uint8_t*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22855,13 +22884,14 @@
 
           ],
           "name" : "GetLinkHeaderLength",
+          "note" : "deprecated in the SDK; getLinkHeaderLength() replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetLinkHeaderLength(uint8_t*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22873,13 +22903,14 @@
 
           ],
           "name" : "GetMemorySegmentOffset",
+          "note" : "deprecated in the SDK; getMemorySegmentOffset() replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetMemorySegmentOffset(uint64_t*) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22891,13 +22922,14 @@
 
           ],
           "name" : "GetPacketBufferPool",
+          "note" : "deprecated in the SDK; getPacketBufferPool() replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t GetPacketBufferPool(IOUserNetworkPacketBufferPool**) const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22909,13 +22941,14 @@
 
           ],
           "name" : "SetDataLength",
+          "note" : "deprecated in the SDK; setDataLength(uint32_t) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDataLength(uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22927,13 +22960,14 @@
 
           ],
           "name" : "SetDataOffset",
+          "note" : "deprecated in the SDK; setDataOff replaces it, and the runtime sets the offset with setDataOffAndLen",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDataOffset(uint16_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22945,13 +22979,14 @@
 
           ],
           "name" : "SetHeadroom",
+          "note" : "deprecated in the SDK without a replacement; the data offset set through setDataOffAndLen (EthernetReceiveMetadata.dataOffset) positions the frame",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetHeadroom(uint8_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22963,13 +22998,14 @@
 
           ],
           "name" : "SetLinkHeaderLength",
+          "note" : "deprecated in the SDK; setLinkHeaderLength(uint8_t) replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetLinkHeaderLength(uint8_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -22981,13 +23017,15 @@
 
           ],
           "name" : "getDataOff",
+          "note" : "DriverKit 23 and later; getDataOffset() before",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "size_t getDataOff() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23022,7 +23060,8 @@
             "27.0"
           ],
           "signature" : "uint16_t getMSS() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23057,7 +23096,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getServiceClass() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23074,7 +23114,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getTraceID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23091,7 +23132,8 @@
             "27.0"
           ],
           "signature" : "uint32_t getTxCsumFlags() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23108,7 +23150,8 @@
             "27.0"
           ],
           "signature" : "uint64_t getDataIOVirtualAddress() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23143,7 +23186,8 @@
             "27.0"
           ],
           "signature" : "uint64_t getMemorySegmentOffset() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23160,7 +23204,8 @@
             "27.0"
           ],
           "signature" : "uint8_t getLinkHeaderLength() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitMetadata"
         },
         {
           "access" : "public",
@@ -23195,7 +23240,8 @@
             "27.0"
           ],
           "signature" : "void setCompletionStatus(IOReturn)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetTransmitCompletion"
         },
         {
           "access" : "public",
@@ -23207,12 +23253,14 @@
 
           ],
           "name" : "setVlanTag",
+          "note" : "DriverKit 24 and later",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "void setVlanTag(uint16_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -23229,7 +23277,8 @@
             "27.0"
           ],
           "signature" : "void setWakeFlag()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         },
         {
           "access" : "public",
@@ -23240,13 +23289,15 @@
 
           ],
           "name" : "traceEvent",
+          "note" : "also EthernetTransmitCompletion.traceEvent",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void traceEvent(uint32_t) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceiveMetadata"
         }
       ],
       "name" : "IOUserNetworkPacket",
@@ -24056,7 +24107,8 @@
             "27.0"
           ],
           "signature" : "IOReturn enqueuePackets(IOUserNetworkPacket**, uint32_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "completeEthernetTransmits"
         },
         {
           "access" : "public",
@@ -24067,13 +24119,14 @@
 
           ],
           "name" : "requestDequeue",
+          "note" : "runs the DequeueAction given to withPool (IOUserNetworkPacketQueue_IVars.dequeueAction); queues made through Create, as the runtime's are, have none",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn requestDequeue(void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24084,13 +24137,14 @@
 
           ],
           "name" : "requestEnqueue",
+          "note" : "runs the EnqueueAction given to withPool (IOUserNetworkPacketQueue_IVars.enqueueAction); queues made through Create, as the runtime's are, have none",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn requestEnqueue(void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24208,13 +24262,14 @@
 
           ],
           "name" : "SetDataQueue",
+          "note" : "Create builds and attaches each queue's data queue; the runtime reads it with CopyDataQueue to install the transmit handler",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDataQueue(IODataQueueDispatchSource*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24225,13 +24280,14 @@
 
           ],
           "name" : "SetEnable",
+          "note" : "deprecated in the SDK (\"use setEnable instead\"); setEnable(bool), exposed as setEthernetQueueEnabled, replaces it",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24242,13 +24298,14 @@
 
           ],
           "name" : "SetPacketBufferPool",
+          "note" : "Create binds each queue to the pool it is given; registerEthernetInterface then pairs the queues with the same transmit and receive pools",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetPacketBufferPool(IOUserNetworkPacketBufferPool*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24259,13 +24316,14 @@
 
           ],
           "name" : "SetPacketDirection",
+          "note" : "each Create-made queue class fixes its own direction (Tx/Rx submission/completion)",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetPacketDirection(IOUserNetworkPacketDirection)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24300,7 +24358,8 @@
             "27.0"
           ],
           "signature" : "uint32_t EnqueuePackets(IOUserNetworkPacket**, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "EthernetReceivedFrame"
         },
         {
           "access" : "public",
@@ -24343,12 +24402,13 @@
 
           ],
           "name" : "enqueuePackets",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn enqueuePackets(IOUserNetworkPacket**, uint32_t, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24359,12 +24419,13 @@
 
           ],
           "name" : "requestDequeue",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn requestDequeue(void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24375,12 +24436,13 @@
 
           ],
           "name" : "requestEnqueue",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn requestEnqueue(void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24391,12 +24453,13 @@
 
           ],
           "name" : "setEnable",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24407,12 +24470,13 @@
 
           ],
           "name" : "setPacketPoller",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24440,12 +24504,13 @@
 
           ],
           "name" : "CopyDataQueue",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopyDataQueue(IODataQueueDispatchSource**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24456,12 +24521,13 @@
 
           ],
           "name" : "DequeuePacket",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DequeuePacket(IOUserNetworkPacket**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24472,12 +24538,13 @@
 
           ],
           "name" : "EnqueuePacket",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t EnqueuePacket(IOUserNetworkPacket*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24488,12 +24555,13 @@
 
           ],
           "name" : "SetDataQueue",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetDataQueue(IODataQueueDispatchSource*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24504,12 +24572,13 @@
 
           ],
           "name" : "SetEnable",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetEnable(bool)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24520,12 +24589,13 @@
 
           ],
           "name" : "SetPacketBufferPool",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetPacketBufferPool(IOUserNetworkPacketBufferPool*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24536,12 +24606,13 @@
 
           ],
           "name" : "SetPacketDirection",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t SetPacketDirection(IOUserNetworkPacketDirection)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24552,12 +24623,13 @@
 
           ],
           "name" : "DequeuePackets",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t DequeuePackets(IOUserNetworkPacket**, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24568,12 +24640,13 @@
 
           ],
           "name" : "EnqueuePackets",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkPacketQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "uint32_t EnqueuePackets(IOUserNetworkPacket**, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24728,13 +24801,14 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkRxCompletionQueue* withPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueId, OSObject*, EnqueueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24763,13 +24837,14 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueId, OSObject*, EnqueueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24830,12 +24905,13 @@
 
           ],
           "name" : "setPacketPoller",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkRxCompletionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24846,12 +24922,13 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkRxCompletionQueueCompat* withPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, EnqueueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24879,12 +24956,13 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, EnqueueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -24895,12 +24973,13 @@
 
           ],
           "name" : "Create",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkRxCompletionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOUserNetworkPacketBufferPool*, OSObject*, uint32_t, uint32_t, IODispatchQueue*, IOUserNetworkRxCompletionQueueCompat**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25003,13 +25082,14 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkRxSubmissionQueue* withPool(IOUserNetworkPacketBufferPool*, uint32_t, uint32_t, IOUserNetworkPacketQueueId, OSObject*, DequeueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25038,13 +25118,14 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, uint32_t, uint32_t, IOUserNetworkPacketQueueId, OSObject*, DequeueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25124,12 +25205,13 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkRxSubmissionQueueCompat* withPool(IOUserNetworkPacketBufferPool*, uint32_t, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, DequeueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25157,12 +25239,13 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, uint32_t, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, DequeueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25173,12 +25256,13 @@
 
           ],
           "name" : "Create",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkRxSubmissionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOUserNetworkPacketBufferPool*, OSObject*, uint32_t, uint32_t, IODispatchQueue*, IOUserNetworkRxSubmissionQueueCompat**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25458,13 +25542,14 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkTxCompletionQueue* withPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueId, OSObject*, EnqueueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25493,13 +25578,14 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueId, OSObject*, EnqueueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25560,12 +25646,13 @@
 
           ],
           "name" : "setPacketPoller",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkTxCompletionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25576,12 +25663,13 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkTxCompletionQueueCompat* withPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, EnqueueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25609,12 +25697,13 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, EnqueueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25625,12 +25714,13 @@
 
           ],
           "name" : "Create",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkTxCompletionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOUserNetworkPacketBufferPool*, OSObject*, uint32_t, uint32_t, IODispatchQueue*, IOUserNetworkTxCompletionQueueCompat**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25733,13 +25823,14 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkTxSubmissionQueue* withPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueId, OSObject*, QueryFreeSpaceAction, DequeueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25750,13 +25841,14 @@
 
           ],
           "name" : "withPoolAndServiceClass",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkTxSubmissionQueue* withPoolAndServiceClass(IOUserNetworkPacketBufferPool*, IOUserNetworkServiceClass, uint32_t, IOUserNetworkPacketQueueId, OSObject*, QueryFreeSpaceAction, DequeueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25785,13 +25877,14 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, IOUserNetworkServiceClass, uint32_t, IOUserNetworkPacketQueueId, OSObject*, QueryFreeSpaceAction, DequeueAction, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25803,13 +25896,15 @@
 
           ],
           "name" : "Create",
+          "note" : "DriverKit 24 and later",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOUserNetworkPacketBufferPool*, OSObject*, IOUserNetworkServiceClass, uint32_t, uint32_t, IODispatchQueue*, IOUserNetworkTxSubmissionQueue**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "transmitServiceClass"
         },
         {
           "access" : "public",
@@ -25820,13 +25915,14 @@
 
           ],
           "name" : "Create",
+          "note" : "creates the transmit submission queue without a service class",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOUserNetworkPacketBufferPool*, OSObject*, uint32_t, uint32_t, IODispatchQueue*, IOUserNetworkTxSubmissionQueue**)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",
@@ -25861,7 +25957,8 @@
             "27.0"
           ],
           "signature" : "void purgePackets()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "purgeEthernetTransmitQueue"
         }
       ],
       "name" : "IOUserNetworkTxSubmissionQueue",
@@ -25886,12 +25983,13 @@
 
           ],
           "name" : "withPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkTxSubmissionQueueCompat* withPool(IOUserNetworkPacketBufferPool*, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, QueryFreeSpaceActionCompat, DequeueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25902,12 +26000,13 @@
 
           ],
           "name" : "withPoolAndServiceClass",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "IOUserNetworkTxSubmissionQueueCompat* withPoolAndServiceClass(IOUserNetworkPacketBufferPool*, IOUserNetworkServiceClass, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, QueryFreeSpaceActionCompat, DequeueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25935,12 +26034,13 @@
 
           ],
           "name" : "initWithPool",
+          "note" : "alternate factory that takes queue action callbacks; the runtime creates every queue through Create, and the family drives Create-made queues without actions",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWithPool(IOUserNetworkPacketBufferPool*, IOUserNetworkServiceClass, uint32_t, IOUserNetworkPacketQueueCompatId, OSObject*, QueryFreeSpaceActionCompat, DequeueActionCompat, void*, IOOptionBits)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25952,12 +26052,13 @@
 
           ],
           "name" : "Create",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkTxSubmissionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOUserNetworkPacketBufferPool*, OSObject*, IOUserNetworkServiceClass, uint32_t, uint32_t, IODispatchQueue*, IOUserNetworkTxSubmissionQueueCompat**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -25968,12 +26069,13 @@
 
           ],
           "name" : "Create",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkTxSubmissionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t Create(IOUserNetworkPacketBufferPool*, OSObject*, uint32_t, uint32_t, IODispatchQueue*, IOUserNetworkTxSubmissionQueueCompat**)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -26001,12 +26103,13 @@
 
           ],
           "name" : "purgePackets",
+          "note" : "Compat class that exists only from DriverKit 25 (absent from the 24.4 SDK) and derives from OSObject, not IOUserNetworkPacketQueue; the public registerEthernetInterface accepts only IOUserNetworkPacketQueue, so the runtime uses IOUserNetworkTxSubmissionQueue, whose matching member covers this one",
           "sdks" : [
             "25.5",
             "27.0"
           ],
           "signature" : "void purgePackets()",
-          "status" : "gap"
+          "status" : "excluded"
         }
       ],
       "name" : "IOUserNetworkTxSubmissionQueueCompat",

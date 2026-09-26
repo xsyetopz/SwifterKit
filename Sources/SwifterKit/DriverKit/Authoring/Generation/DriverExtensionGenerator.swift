@@ -252,7 +252,7 @@ public enum DriverExtensionGenerator {
     return address.count == 6 && address.contains { $0 != 0 } && address[0] & 1 == 0
       && (576...16_000).contains(value.maximumTransferUnit)
       && value.packetBufferSize >= value.maximumTransferUnit + 64
-      && value.packetBufferSize <= 65_480 && (8...1_024).contains(value.packetCount)
+      && value.packetBufferSize <= 65_420 && (8...1_024).contains(value.packetCount)
       && (1...1_024).contains(value.queueCapacity) && value.queueCapacity <= value.packetCount
       && !value.media.isEmpty && value.media.count <= 32
       && Set(value.media).count == value.media.count && value.media.contains(value.initialMedia)

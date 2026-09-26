@@ -320,6 +320,12 @@ namespace {
             case SwifterKitRuntimeOpcode::NetworkReportNICProxyLimits:
             case SwifterKitRuntimeOpcode::NetworkSetPolling:
             case SwifterKitRuntimeOpcode::NetworkSetPollerParameters:
+            case SwifterKitRuntimeOpcode::NetworkReceivePackets:
+            case SwifterKitRuntimeOpcode::NetworkCompleteTransmits:
+            case SwifterKitRuntimeOpcode::NetworkSetQueueEnabled:
+            case SwifterKitRuntimeOpcode::NetworkPurgeTransmitQueue:
+            case SwifterKitRuntimeOpcode::NetworkServiceTransmitQueue:
+            case SwifterKitRuntimeOpcode::NetworkCompleteInterfaceCommand:
 #if SWIFTERKIT_ENABLE_NETWORKING
                 if (service == nullptr) {
                     return kIOReturnNotReady;
