@@ -489,8 +489,10 @@ void SwifterKitRuntimeVideoDevice::RemoveControlsAndProperties() {
     if (ivars == nullptr)
         return;
     for (uint32_t index = 0; index < kSwifterKitVideoControlCount; ++index)
-        if (ivars->controls[index] != nullptr)
+        if (ivars->controls[index] != nullptr && !ivars->controlDetached[index]) {
             (void)RemoveControl(ivars->controls[index]);
+            ivars->controlDetached[index] = true;
+        }
     for (uint32_t index = 0; index < kSwifterKitVideoCustomPropertyCount; ++index)
         (void)SetCustomPropertyOwner(
             kSwifterKitVideoCustomProperties[index].identifier,

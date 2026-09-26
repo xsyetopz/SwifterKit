@@ -165,6 +165,11 @@ kern_return_t SwifterKitRuntimeService::VideoCommand(
     SwifterKitRuntimeVideoDevice* device = ivars->videoDevice;
     kern_return_t result = device == nullptr ? kIOReturnNotReady : kIOReturnUnsupported;
     if (device != nullptr
+        && opcode >= static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetDeviceState)
+        && opcode <= static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetStreamMemoryObjectID)) {
+        result = device->MemberCommand(opcode, payload, payloadLength, response);
+    } else if (
+        device != nullptr
         && (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoReadBuffer)
             || opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoWriteBuffer))) {
         if (payload == nullptr || payloadLength < sizeof(SwifterKitVideoTransferHeader))

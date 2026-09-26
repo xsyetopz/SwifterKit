@@ -4,6 +4,7 @@
 #include "SwifterKitRuntimeConfiguration.h"
 #if SWIFTERKIT_ENABLE_VIDEO
     #include <DriverKit/IOBufferMemoryDescriptor.h>
+    #include <DriverKit/IOLib.h>
     #include <DriverKit/IOMemoryMap.h>
     #include <VideoDriverKit/IOUserVideoBuffer.h>
     #include <VideoDriverKit/IOUserVideoControl.h>
@@ -25,6 +26,24 @@ struct SwifterKitRuntimeVideoDevice_IVars {
     IOMemoryMap* dataMaps[8][32] = {};
     IOMemoryMap* controlMaps[8][32] = {};
     uint64_t pendingSampleRateBits = 0;
+    // Live buffer sizing, identity, and attachment, which Swift can change after Configure.
+    // bufferLock guards these, the maps, the descriptors, and the pending change; no
+    // VideoDriverKit call runs under it.
+    IOLock* bufferLock = nullptr;
+    uint32_t dataCapacity[8] = {};
+    uint32_t controlCapacity[8] = {};
+    uint32_t bufferIDs[8][32] = {};
+    bool bufferDetached[8][32] = {};
+    bool streamDetached[8] = {};
+    bool controlDetached[64] = {};
+    // A stream or buffer change waiting for PerformDeviceConfigurationChange; kind zero is none.
+    uint32_t pendingChangeKind = 0;
+    uint32_t pendingChangeStream = 0;
+    uint32_t pendingChangeBuffer = 0;
+    uint64_t pendingChangeValue = 0;
 };
+
+// PerformDeviceConfigurationChange action for buffer, queue, and buffer-list changes.
+constexpr uint64_t kSwifterKitVideoMemberChangeAction = 0x53574B564D454D42ULL;
 #endif
 #endif

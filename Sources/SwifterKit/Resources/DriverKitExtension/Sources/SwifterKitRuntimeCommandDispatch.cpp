@@ -547,6 +547,20 @@ namespace {
             case SwifterKitRuntimeOpcode::VideoCompleteRequest:
             case SwifterKitRuntimeOpcode::VideoNotifyBufferQueue:
             case SwifterKitRuntimeOpcode::VideoSetCustomPropertyOwner:
+            case SwifterKitRuntimeOpcode::VideoGetDeviceState:
+            case SwifterKitRuntimeOpcode::VideoSetDeviceProperty:
+            case SwifterKitRuntimeOpcode::VideoSetPreferredChannelLayout:
+            case SwifterKitRuntimeOpcode::VideoGetStreamState:
+            case SwifterKitRuntimeOpcode::VideoSetStreamProperty:
+            case SwifterKitRuntimeOpcode::VideoGetBufferInfo:
+            case SwifterKitRuntimeOpcode::VideoSetBufferProperty:
+            case SwifterKitRuntimeOpcode::VideoGetControlInfo:
+            case SwifterKitRuntimeOpcode::VideoSetControlProperty:
+            case SwifterKitRuntimeOpcode::VideoRemoveSelectorItems:
+            case SwifterKitRuntimeOpcode::VideoGetCustomPropertyInfo:
+            case SwifterKitRuntimeOpcode::VideoSetMemberAttachment:
+            case SwifterKitRuntimeOpcode::VideoEnqueueOutputBuffer:
+            case SwifterKitRuntimeOpcode::VideoGetStreamMemoryObjectID:
                 return DispatchMediaCommand(context);
             case SwifterKitRuntimeOpcode::MIDISend:
                 return DispatchMIDICommand(context);

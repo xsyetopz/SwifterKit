@@ -96,7 +96,8 @@ struct __attribute__((packed)) SwifterKitVideoRequestAnswer {
     uint32_t reserved;
 };
 
-// Kind 1 BufferQueueChange, 2 OutputBufferNotification.
+// Kind 1 BufferQueueChange, 2 OutputBufferNotification, 3 the stream's SendBufferQueueChange
+// (change action zero).
 struct __attribute__((packed)) SwifterKitVideoQueueNotification {
     uint32_t kind;
     uint32_t streamIndex;
@@ -112,7 +113,8 @@ struct __attribute__((packed)) SwifterKitVideoPropertyOwner {
 
 // Kinds: 1 device started, 2 device stopped, 3 clock started, 4 clock stopped, 5 clock rate
 // changed, 6 box acquisition request, 7 clock sample-rate request, 8 clock stream format
-// changed (value is the stream object ID). Kinds 6 and 7 are required events with a nonzero
+// changed (value is the stream object ID), 9 device stream format changed (index zero, value is
+// the stream object ID). Kinds 6 and 7 are required events with a nonzero
 // request ID; the others carry request ID zero.
 struct __attribute__((packed)) SwifterKitVideoObjectEvent {
     uint32_t kind;
@@ -120,6 +122,154 @@ struct __attribute__((packed)) SwifterKitVideoObjectEvent {
     uint32_t requestID;
     uint32_t reserved;
     uint64_t value;
+};
+
+// Device, stream, buffer, control, and custom-property opcodes 0x0C20-0x0C2D.
+// SetDeviceProperty selectors: 1-3 can-be-default input, output, system output (0 or 1); 4-5
+// input and output safety offsets; 6 preferred stereo channels (left in the low word).
+struct __attribute__((packed)) SwifterKitVideoMemberValue {
+    uint32_t selector;
+    uint32_t reserved;
+    uint64_t value;
+};
+
+struct __attribute__((packed)) SwifterKitVideoDeviceState {
+    uint32_t objectID;
+    uint32_t canBeDefaultInput;
+    uint32_t canBeDefaultOutput;
+    uint32_t canBeDefaultSystemOutput;
+    uint32_t inputSafetyOffset;
+    uint32_t outputSafetyOffset;
+    uint32_t preferredLeft;
+    uint32_t preferredRight;
+    uint64_t inputSampleTime;
+    uint64_t inputHostTime;
+    uint64_t outputSampleTime;
+    uint64_t outputHostTime;
+};
+
+// Followed by count uint32_t channel labels.
+struct __attribute__((packed)) SwifterKitVideoChannelLayoutHeader {
+    uint32_t isInput;
+    uint32_t count;
+};
+
+// GetStreamState, GetControlInfo, and GetCustomPropertyInfo carry a zero argument; GetBufferInfo
+// carries the buffer index and GetStreamMemoryObjectID the memory type.
+struct __attribute__((packed)) SwifterKitVideoMemberRequest {
+    uint32_t identifier;
+    uint32_t argument;
+};
+
+// SetStreamProperty (identifier is the stream index) and SetControlProperty. Stream selectors:
+// 1 active, 2 starting channel, 3 terminal type, 4 current format index, 5 buffer capacities
+// (data bytes in the low word, control bytes in the high word), 6 queue entry count. Selectors 5
+// and 6 wait for PerformDeviceConfigurationChange. Control selectors: 1 slider range, 2 panning
+// channels, each with the first value in the low word.
+struct __attribute__((packed)) SwifterKitVideoMemberProperty {
+    uint32_t identifier;
+    uint32_t selector;
+    uint64_t value;
+};
+
+// SetBufferProperty selectors, both applied in PerformDeviceConfigurationChange: 1 buffer ID,
+// 2 attached to the stream (0 or 1).
+struct __attribute__((packed)) SwifterKitVideoBufferProperty {
+    uint32_t streamIndex;
+    uint32_t bufferIndex;
+    uint32_t selector;
+    uint32_t reserved;
+    uint64_t value;
+};
+
+struct __attribute__((packed)) SwifterKitVideoStreamFormat {
+    uint64_t frameRateBits;
+    uint64_t frameTimeValue;
+    uint32_t frameTimeScale;
+    uint32_t codec;
+    uint32_t codecFlags;
+    uint32_t width;
+    uint32_t height;
+    uint32_t reserved;
+};
+
+struct __attribute__((packed)) SwifterKitVideoQueueState {
+    uint32_t entryCount;
+    uint32_t headIndex;
+    uint32_t tailIndex;
+    uint32_t reserved;
+    uint64_t memoryLength;
+};
+
+// Followed by the current format, formatCount available formats, and bufferCount buffer IDs in
+// the order of GetBufferList.
+struct __attribute__((packed)) SwifterKitVideoStreamState {
+    uint32_t objectID;
+    uint32_t direction;
+    uint32_t terminalType;
+    uint32_t startingChannel;
+    uint32_t isActive;
+    uint32_t isAttached;
+    uint32_t formatCount;
+    uint32_t bufferCount;
+    uint32_t dataCapacity;
+    uint32_t controlCapacity;
+    SwifterKitVideoQueueState inputQueue;
+    SwifterKitVideoQueueState outputQueue;
+};
+
+struct __attribute__((packed)) SwifterKitVideoBufferInfo {
+    uint32_t objectID;
+    uint32_t classID;
+    uint32_t baseClassID;
+    uint32_t bufferID;
+    uint32_t isAttached;
+    uint32_t dataMemoryObjectID;
+    uint32_t controlMemoryObjectID;
+    uint32_t reserved;
+    uint64_t dataLength;
+    uint64_t controlLength;
+    uint64_t outputDataLength;
+    uint64_t outputControlLength;
+};
+
+// Followed by itemCount selector items: uint32_t value, uint32_t name length, name bytes.
+struct __attribute__((packed)) SwifterKitVideoControlInfo {
+    uint32_t objectID;
+    uint32_t kind;
+    uint32_t scope;
+    uint32_t element;
+    uint32_t isSettable;
+    uint32_t isAttached;
+    uint32_t sliderMinimum;
+    uint32_t sliderMaximum;
+    uint32_t panLeft;
+    uint32_t panRight;
+    uint32_t itemCount;
+    uint32_t owningDeviceID;
+};
+
+// Followed by count uint32_t selector values.
+struct __attribute__((packed)) SwifterKitVideoSelectorRemoval {
+    uint32_t identifier;
+    uint32_t count;
+};
+
+struct __attribute__((packed)) SwifterKitVideoCustomPropertyInfo {
+    uint32_t objectID;
+    uint32_t selector;
+    uint32_t propertyDataType;
+    uint32_t qualifierDataType;
+    uint32_t owner;
+    uint32_t reserved;
+};
+
+// Kind: 1 stream (identifier is its index), 2 control.
+struct __attribute__((packed)) SwifterKitVideoMemberAttachment {
+    uint32_t kind;
+    uint32_t identifier;
+    uint32_t attached;
+    uint32_t reserved;
 };
 
 enum : uint32_t {
@@ -136,6 +286,23 @@ enum : uint32_t {
     kSwifterKitVideoOwnerDetached = 0,
     kSwifterKitVideoOwnerDevice = 1,
     kSwifterKitVideoOwnerDriver = 2,
+    kSwifterKitVideoMaximumChannelLabels = 64,
+    kSwifterKitVideoMaximumSelectorItems = 32,
+    kSwifterKitVideoMaximumQueueEntries = 256,
+    kSwifterKitVideoMaximumDataCapacity = 67'108'864,
+    kSwifterKitVideoMaximumControlCapacity = 1'048'576,
 };
+
+static_assert(sizeof(SwifterKitVideoMemberValue) == 16);
+static_assert(sizeof(SwifterKitVideoDeviceState) == 64);
+static_assert(sizeof(SwifterKitVideoMemberRequest) == 8);
+static_assert(sizeof(SwifterKitVideoMemberProperty) == 16);
+static_assert(sizeof(SwifterKitVideoBufferProperty) == 24);
+static_assert(sizeof(SwifterKitVideoStreamFormat) == 40);
+static_assert(sizeof(SwifterKitVideoStreamState) == 88);
+static_assert(sizeof(SwifterKitVideoBufferInfo) == 64);
+static_assert(sizeof(SwifterKitVideoControlInfo) == 48);
+static_assert(sizeof(SwifterKitVideoCustomPropertyInfo) == 24);
+static_assert(sizeof(SwifterKitVideoMemberAttachment) == 16);
 
 #endif

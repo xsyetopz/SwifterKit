@@ -54,6 +54,9 @@ bool SwifterKitRuntimeVideoDevice::init(
     ivars = IONewZero(SwifterKitRuntimeVideoDevice_IVars, 1);
     if (ivars == nullptr)
         return false;
+    ivars->bufferLock = IOLockAlloc();
+    if (ivars->bufferLock == nullptr)
+        return false;
     ivars->service = service;
     service->retain();
     return true;
@@ -77,6 +80,8 @@ void SwifterKitRuntimeVideoDevice::free() {
         for (uint32_t index = 0; index < kSwifterKitVideoCustomPropertyCount; ++index)
             OSSafeReleaseNULL(ivars->customProperties[index]);
         OSSafeReleaseNULL(ivars->service);
+        if (ivars->bufferLock != nullptr)
+            IOLockFree(ivars->bufferLock);
     }
     IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoDevice_IVars, 1);
     super::free();
@@ -100,6 +105,10 @@ kern_return_t SwifterKitRuntimeVideoDevice::Configure() {
          result == kIOReturnSuccess && streamIndex < kSwifterKitVideoStreamCount;
          ++streamIndex) {
         const auto& config = kSwifterKitVideoStreams[streamIndex];
+        ivars->dataCapacity[streamIndex] = config.dataBufferCapacity;
+        ivars->controlCapacity[streamIndex] = config.controlBufferCapacity;
+        for (uint32_t bufferIndex = 0; bufferIndex < config.bufferCount; ++bufferIndex)
+            ivars->bufferIDs[streamIndex][bufferIndex] = bufferIndex;
         OSArray* bufferList = OSArray::withCapacity(config.bufferCount);
         result = bufferList == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
         for (uint32_t bufferIndex = 0;
@@ -194,17 +203,22 @@ kern_return_t SwifterKitRuntimeVideoDevice::ReadBuffer(
     const auto& config = kSwifterKitVideoStreams[transfer->streamIndex];
     if (transfer->bufferIndex >= config.bufferCount || transfer->plane > 1)
         return kIOReturnBadArgument;
+    // A buffer-capacity change swaps the maps under bufferLock.
+    IOLockLock(ivars->bufferLock);
     IOMemoryMap* map = transfer->plane == 0
                            ? ivars->dataMaps[transfer->streamIndex][transfer->bufferIndex]
                            : ivars->controlMaps[transfer->streamIndex][transfer->bufferIndex];
-    if (map == nullptr || map->GetAddress() == 0
-        || !IsValidRange(transfer->byteOffset, transfer->length, map->GetLength()))
-        return kIOReturnBadArgument;
-    *response = OSData::withBytes(
-        reinterpret_cast<const uint8_t*>(map->GetAddress() + map->GetOffset())
-            + transfer->byteOffset,
-        transfer->length);
-    return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+    kern_return_t result = kIOReturnBadArgument;
+    if (map != nullptr && map->GetAddress() != 0
+        && IsValidRange(transfer->byteOffset, transfer->length, map->GetLength())) {
+        *response = OSData::withBytes(
+            reinterpret_cast<const uint8_t*>(map->GetAddress() + map->GetOffset())
+                + transfer->byteOffset,
+            transfer->length);
+        result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+    }
+    IOLockUnlock(ivars->bufferLock);
+    return result;
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::WriteBuffer(
@@ -216,42 +230,62 @@ kern_return_t SwifterKitRuntimeVideoDevice::WriteBuffer(
     const auto& config = kSwifterKitVideoStreams[transfer->streamIndex];
     if (transfer->bufferIndex >= config.bufferCount || transfer->plane > 1)
         return kIOReturnBadArgument;
+    IOLockLock(ivars->bufferLock);
     IOMemoryMap* map = transfer->plane == 0
                            ? ivars->dataMaps[transfer->streamIndex][transfer->bufferIndex]
                            : ivars->controlMaps[transfer->streamIndex][transfer->bufferIndex];
-    if (map == nullptr || map->GetAddress() == 0
-        || !IsValidRange(transfer->byteOffset, transfer->length, map->GetLength()))
-        return kIOReturnBadArgument;
-    memcpy(
-        reinterpret_cast<uint8_t*>(map->GetAddress() + map->GetOffset()) + transfer->byteOffset,
-        bytes,
-        transfer->length);
-    return kIOReturnSuccess;
+    const bool valid = map != nullptr && map->GetAddress() != 0
+                       && IsValidRange(transfer->byteOffset, transfer->length, map->GetLength());
+    if (valid)
+        memcpy(
+            reinterpret_cast<uint8_t*>(map->GetAddress() + map->GetOffset()) + transfer->byteOffset,
+            bytes,
+            transfer->length);
+    IOLockUnlock(ivars->bufferLock);
+    return valid ? kIOReturnSuccess : kIOReturnBadArgument;
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::EnqueueOutput(
     uint32_t streamIndex,
     const SwifterKitVideoQueueEntry* entry) {
-    if (entry == nullptr || streamIndex >= kSwifterKitVideoStreamCount)
+    IOStreamBufferQueueEntry native = {};
+    const kern_return_t result = NativeEntry(streamIndex, entry, &native);
+    return result == kIOReturnSuccess ? ivars->streams[streamIndex]->enqueueOutputEntry(&native)
+                                      : result;
+}
+
+// Validates an output entry against the live buffer sizes and translates its buffer index into
+// the buffer's current IOStreamBufferID.
+kern_return_t SwifterKitRuntimeVideoDevice::NativeEntry(
+    uint32_t streamIndex,
+    const SwifterKitVideoQueueEntry* entry,
+    IOStreamBufferQueueEntry* native) {
+    if (entry == nullptr || native == nullptr || streamIndex >= kSwifterKitVideoStreamCount)
         return kIOReturnBadArgument;
     const auto& config = kSwifterKitVideoStreams[streamIndex];
     if (config.direction != 0 || entry->reserved[0] != 0 || entry->reserved[1] != 0
-        || entry->reserved[2] != 0 || entry->bufferID >= config.bufferCount
-        || !IsValidRange(entry->dataOffset, entry->dataLength, config.dataBufferCapacity)
-        || (entry->controlLength > 0
-            && !IsValidRange(
-                entry->controlOffset,
-                entry->controlLength,
-                config.controlBufferCapacity)))
+        || entry->reserved[2] != 0 || entry->bufferID >= config.bufferCount)
         return kIOReturnBadArgument;
-    IOStreamBufferQueueEntry native = {
-        entry->bufferID,
+    IOLockLock(ivars->bufferLock);
+    const uint32_t dataCapacity = ivars->dataCapacity[streamIndex];
+    const uint32_t controlCapacity = ivars->controlCapacity[streamIndex];
+    const uint32_t bufferID = ivars->bufferIDs[streamIndex][entry->bufferID];
+    const bool detached = ivars->bufferDetached[streamIndex][entry->bufferID];
+    IOLockUnlock(ivars->bufferLock);
+    if (detached)
+        return kIOReturnNotAttached;
+    if (!IsValidRange(entry->dataOffset, entry->dataLength, dataCapacity)
+        || (entry->controlLength > 0
+            && !IsValidRange(entry->controlOffset, entry->controlLength, controlCapacity)))
+        return kIOReturnBadArgument;
+    *native = {
+        bufferID,
         entry->dataOffset,
         entry->dataLength,
         entry->controlOffset,
         entry->controlLength,
         {0, 0, 0}};
-    return ivars->streams[streamIndex]->enqueueOutputEntry(&native);
+    return kIOReturnSuccess;
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::DequeueInput(uint32_t streamIndex, OSData** response) {
@@ -262,17 +296,23 @@ kern_return_t SwifterKitRuntimeVideoDevice::DequeueInput(uint32_t streamIndex, O
     const kern_return_t result = ivars->streams[streamIndex]->dequeueInputEntry(&entry);
     if (result != kIOReturnSuccess)
         return result;
+    // The host names buffers by IOStreamBufferID; Swift names them by index.
     const auto& config = kSwifterKitVideoStreams[streamIndex];
-    if (entry.bufferID >= config.bufferCount
-        || !IsValidRange(entry.dataOffset, entry.dataLength, config.dataBufferCapacity)
+    uint32_t bufferIndex = config.bufferCount;
+    IOLockLock(ivars->bufferLock);
+    for (uint32_t index = 0; index < config.bufferCount; ++index)
+        if (ivars->bufferIDs[streamIndex][index] == entry.bufferID)
+            bufferIndex = index;
+    const uint32_t dataCapacity = ivars->dataCapacity[streamIndex];
+    const uint32_t controlCapacity = ivars->controlCapacity[streamIndex];
+    IOLockUnlock(ivars->bufferLock);
+    if (bufferIndex >= config.bufferCount
+        || !IsValidRange(entry.dataOffset, entry.dataLength, dataCapacity)
         || (entry.controlLength > 0
-            && !IsValidRange(
-                entry.controlOffset,
-                entry.controlLength,
-                config.controlBufferCapacity)))
+            && !IsValidRange(entry.controlOffset, entry.controlLength, controlCapacity)))
         return kIOReturnError;
     const SwifterKitVideoQueueEntry wire = {
-        entry.bufferID,
+        bufferIndex,
         entry.dataOffset,
         entry.dataLength,
         entry.controlOffset,
@@ -322,6 +362,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::StopIO(IOUserVideoStartStopFlags fla
 kern_return_t SwifterKitRuntimeVideoDevice::PerformDeviceConfigurationChange(
     uint64_t changeAction,
     OSObject* changeInfo) {
+    if (changeAction == kSwifterKitVideoMemberChangeAction)
+        return ApplyMemberChange();
     if (changeAction != kSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const double sampleRate = __builtin_bit_cast(
@@ -339,7 +381,18 @@ kern_return_t SwifterKitRuntimeVideoDevice::AbortDeviceConfigurationChange(
     OSObject* changeInfo) {
     if (changeAction == kSampleRateChangeAction)
         __atomic_store_n(&ivars->pendingSampleRateBits, 0, __ATOMIC_RELEASE);
+    if (changeAction == kSwifterKitVideoMemberChangeAction) {
+        IOLockLock(ivars->bufferLock);
+        ivars->pendingChangeKind = 0;
+        IOLockUnlock(ivars->bufferLock);
+    }
     return super::AbortDeviceConfigurationChange(changeAction, changeInfo);
+}
+
+void SwifterKitRuntimeVideoDevice::StreamFormatChanged(IOUserVideoObjectID streamID) {
+    super::StreamFormatChanged(streamID);
+    if (ivars != nullptr)
+        (void)ivars->service->VideoObjectEvent(9, 0, streamID);
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::HandleChangeSampleRate(double sampleRate) {
@@ -354,11 +407,15 @@ kern_return_t SwifterKitRuntimeVideoDevice::NotifyBufferQueue(
     uint32_t kind,
     uint32_t streamIndex,
     uint64_t changeAction) {
-    if (ivars == nullptr || kind < 1 || kind > 2 || streamIndex >= kSwifterKitVideoStreamCount)
+    // Kind 3 is the stream's own SendBufferQueueChange, which takes no change action.
+    if (ivars == nullptr || kind < 1 || kind > 3 || streamIndex >= kSwifterKitVideoStreamCount
+        || (kind == 3 && changeAction != 0))
         return kIOReturnBadArgument;
     IOUserVideoStream* stream = ivars->streams[streamIndex];
     if (stream == nullptr)
         return kIOReturnNotReady;
+    if (kind == 3)
+        return stream->SendBufferQueueChange();
     return kind == 1 ? ivars->service->BufferQueueChange(
                            GetObjectID(),
                            changeAction,

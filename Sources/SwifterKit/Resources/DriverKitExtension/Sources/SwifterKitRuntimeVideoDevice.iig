@@ -3,7 +3,9 @@
 
 #include "SwifterKitRuntimeConfiguration.h"
 #include "SwifterKitRuntimeProtocol.h"
+#include "SwifterKitRuntimeVideoProtocol.h"
 #if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoBuffer.iig>
     #include <VideoDriverKit/IOUserVideoDevice.iig>
 
 class SwifterKitRuntimeService;
@@ -46,6 +48,43 @@ public:
         LOCALONLY;
     kern_return_t SetCustomPropertyOwner(uint32_t identifier, uint32_t owner) LOCALONLY;
     void RemoveControlsAndProperties() LOCALONLY;
+    kern_return_t MemberCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
+    kern_return_t CopyDeviceState(OSData** response) LOCALONLY;
+    kern_return_t SetDeviceProperty(const SwifterKitVideoMemberValue* request) LOCALONLY;
+    kern_return_t CopyStreamState(const SwifterKitVideoMemberRequest* request, OSData** response)
+        LOCALONLY;
+    kern_return_t SetStreamProperty(const SwifterKitVideoMemberProperty* request) LOCALONLY;
+    kern_return_t CopyBufferInfo(const SwifterKitVideoMemberRequest* request, OSData** response)
+        LOCALONLY;
+    kern_return_t SetBufferProperty(const SwifterKitVideoBufferProperty* request) LOCALONLY;
+    kern_return_t CopyControlInfo(const SwifterKitVideoMemberRequest* request, OSData** response)
+        LOCALONLY;
+    kern_return_t SetControlProperty(const SwifterKitVideoMemberProperty* request) LOCALONLY;
+    kern_return_t RemoveSelectorItems(
+        const SwifterKitVideoSelectorRemoval* request,
+        const uint8_t* values) LOCALONLY;
+    kern_return_t CopyCustomPropertyInfo(
+        const SwifterKitVideoMemberRequest* request,
+        OSData** response) LOCALONLY;
+    kern_return_t SetMemberAttachment(const SwifterKitVideoMemberAttachment* request) LOCALONLY;
+    kern_return_t EnqueueOutputBuffer(uint32_t streamIndex, const SwifterKitVideoQueueEntry* entry)
+        LOCALONLY;
+    kern_return_t RequestMemberChange(
+        uint32_t kind,
+        uint32_t stream,
+        uint32_t buffer,
+        uint64_t value) LOCALONLY;
+    kern_return_t ApplyMemberChange() LOCALONLY;
+    kern_return_t NativeEntry(
+        uint32_t streamIndex,
+        const SwifterKitVideoQueueEntry* entry,
+        IOStreamBufferQueueEntry* native) LOCALONLY;
+    kern_return_t ApplyBufferCapacity(uint32_t stream, uint64_t value) LOCALONLY;
+    kern_return_t ApplyBufferList(uint32_t stream, uint32_t buffer, bool attach) LOCALONLY;
 
 protected:
     virtual kern_return_t StartIO(IOUserVideoStartStopFlags flags) LOCALONLY override;
@@ -57,6 +96,7 @@ protected:
         uint64_t changeAction,
         OSObject* changeInfo) LOCALONLY override;
     virtual kern_return_t HandleChangeSampleRate(double sampleRate) LOCALONLY override;
+    virtual void StreamFormatChanged(IOUserVideoObjectID streamID) LOCALONLY override;
 };
 #endif
 #endif
