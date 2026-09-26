@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-// Packed payloads for the audio object, box, and clock-device opcodes 0x0A10-0x0A1D and the
+// Packed payloads for the audio object, box, and clock-device opcodes 0x0A10-0x0A1D, the
+// device, stream, control, and custom-property opcodes 0x0A20-0x0A29, and the
 // audioObject event 0x0A01. Every multi-byte field is little-endian, as in
 // SwifterKitRuntimeProtocol.h, and every reserved field must be zero.
 
@@ -104,6 +105,118 @@ struct __attribute__((packed)) SwifterKitAudioObjectEvent {
     uint64_t value;
 };
 
+// Device, stream, control, and custom-property opcodes 0x0A20-0x0A29.
+// SetDeviceProperty selectors: 1-3 can-be-default input, output, system output (0 or 1);
+// 4-5 input and output safety offsets; 6 preferred stereo channels (left in the low word);
+// 7 wants stream formats restored (0 or 1).
+struct __attribute__((packed)) SwifterKitAudioMemberValue {
+    uint32_t selector;
+    uint32_t reserved;
+    uint64_t value;
+};
+
+struct __attribute__((packed)) SwifterKitAudioDeviceState {
+    uint32_t objectID;
+    uint32_t canBeDefaultInput;
+    uint32_t canBeDefaultOutput;
+    uint32_t canBeDefaultSystemOutput;
+    uint32_t inputSafetyOffset;
+    uint32_t outputSafetyOffset;
+    uint32_t preferredLeft;
+    uint32_t preferredRight;
+    uint64_t inputSampleTime;
+    uint64_t inputHostTime;
+    uint64_t outputSampleTime;
+    uint64_t outputHostTime;
+};
+
+// Followed by count uint32_t channel labels.
+struct __attribute__((packed)) SwifterKitAudioChannelLayoutHeader {
+    uint32_t isInput;
+    uint32_t count;
+};
+
+// GetStreamState, GetControlInfo, and GetCustomPropertyInfo requests.
+struct __attribute__((packed)) SwifterKitAudioMemberRequest {
+    uint32_t identifier;
+    uint32_t reserved;
+};
+
+// SetStreamProperty (identifier is the stream index) and SetControlProperty. Stream selectors:
+// 1 active, 2 latency, 3 starting channel, 4 terminal type, 5 current format index, 6 ring
+// buffer frame capacity. Control selectors: 1 slider range, 2 panning channels, each with the
+// first value in the low word.
+struct __attribute__((packed)) SwifterKitAudioMemberProperty {
+    uint32_t identifier;
+    uint32_t selector;
+    uint64_t value;
+};
+
+struct __attribute__((packed)) SwifterKitAudioStreamFormat {
+    uint64_t sampleRateBits;
+    uint32_t formatID;
+    uint32_t formatFlags;
+    uint32_t bytesPerPacket;
+    uint32_t framesPerPacket;
+    uint32_t bytesPerFrame;
+    uint32_t channelsPerFrame;
+    uint32_t bitsPerChannel;
+    uint32_t reserved;
+};
+
+// Followed by the current format and formatCount available formats.
+struct __attribute__((packed)) SwifterKitAudioStreamState {
+    uint32_t objectID;
+    uint32_t direction;
+    uint32_t terminalType;
+    uint32_t startingChannel;
+    uint32_t latency;
+    uint32_t isActive;
+    uint32_t isAttached;
+    uint32_t formatCount;
+    uint64_t memoryLength;
+};
+
+// Followed by itemCount selector items: uint32_t value, uint32_t name length, name bytes.
+struct __attribute__((packed)) SwifterKitAudioControlInfo {
+    uint32_t objectID;
+    uint32_t kind;
+    uint32_t scope;
+    uint32_t element;
+    uint32_t isSettable;
+    uint32_t isAttached;
+    uint32_t sliderMinimum;
+    uint32_t sliderMaximum;
+    uint32_t panLeft;
+    uint32_t panRight;
+    uint32_t itemCount;
+    uint32_t reserved;
+};
+
+// Followed by count uint32_t selector values.
+struct __attribute__((packed)) SwifterKitAudioSelectorRemoval {
+    uint32_t identifier;
+    uint32_t count;
+};
+
+// Owner: 0 detached, 1 device, 2 driver.
+struct __attribute__((packed)) SwifterKitAudioCustomPropertyInfo {
+    uint32_t objectID;
+    uint32_t selector;
+    uint32_t propertyDataType;
+    uint32_t qualifierDataType;
+    uint32_t owner;
+    uint32_t reserved;
+};
+
+// Kind: 1 stream (identifier is its index), 2 control, 3 custom property.
+struct __attribute__((packed)) SwifterKitAudioMemberAttachment {
+    uint32_t kind;
+    uint32_t identifier;
+    uint32_t owner;
+    uint32_t reserved;
+};
+
 enum : uint32_t {
     kSwifterKitAudioTargetDriver = 0,
     kSwifterKitAudioTargetDevice = 1,
@@ -115,6 +228,11 @@ enum : uint32_t {
     kSwifterKitAudioMaximumSampleRates = 64,
     kSwifterKitAudioEventBoxRequest = 6,
     kSwifterKitAudioEventClockRequest = 7,
+    kSwifterKitAudioOwnerDetached = 0,
+    kSwifterKitAudioOwnerDevice = 1,
+    kSwifterKitAudioOwnerDriver = 2,
+    kSwifterKitAudioMaximumChannelLabels = 64,
+    kSwifterKitAudioMaximumSelectorItems = 32,
 };
 
 static_assert(sizeof(SwifterKitAudioObjectTarget) == 8);
@@ -128,5 +246,16 @@ static_assert(sizeof(SwifterKitAudioClockState) == 80);
 static_assert(sizeof(SwifterKitAudioClockTimestamp) == 24);
 static_assert(sizeof(SwifterKitAudioRequestAnswer) == 16);
 static_assert(sizeof(SwifterKitAudioObjectEvent) == 24);
+static_assert(sizeof(SwifterKitAudioMemberValue) == 16);
+static_assert(sizeof(SwifterKitAudioDeviceState) == 64);
+static_assert(sizeof(SwifterKitAudioChannelLayoutHeader) == 8);
+static_assert(sizeof(SwifterKitAudioMemberRequest) == 8);
+static_assert(sizeof(SwifterKitAudioMemberProperty) == 16);
+static_assert(sizeof(SwifterKitAudioStreamFormat) == 40);
+static_assert(sizeof(SwifterKitAudioStreamState) == 40);
+static_assert(sizeof(SwifterKitAudioControlInfo) == 48);
+static_assert(sizeof(SwifterKitAudioSelectorRemoval) == 8);
+static_assert(sizeof(SwifterKitAudioCustomPropertyInfo) == 24);
+static_assert(sizeof(SwifterKitAudioMemberAttachment) == 16);
 
 #endif

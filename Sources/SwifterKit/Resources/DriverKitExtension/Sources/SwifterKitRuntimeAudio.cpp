@@ -190,6 +190,11 @@ kern_return_t SwifterKitRuntimeService::AudioCommand(
         }
     } else if (
         device != nullptr
+        && opcode >= static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetDeviceState)
+        && opcode <= static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioSetMemberAttachment)) {
+        result = device->MemberCommand(opcode, payload, payloadLength, response);
+    } else if (
+        device != nullptr
         && (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetCustomProperty)
             || opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioSetCustomProperty))) {
         if (payload == nullptr || payloadLength < sizeof(SwifterKitAudioCustomPropertyHeader))

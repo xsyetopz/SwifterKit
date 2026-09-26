@@ -17,6 +17,10 @@ struct SwifterKitRuntimeAudioDevice_IVars {
     IOMemoryMap* maps[8] = {};
     IOUserAudioControl* controls[64] = {};
     IOUserAudioCustomProperty* customProperties[32] = {};
+    // Zero means attached to the device, as configured; see SwifterKitRuntimeAudioMembers.cpp.
+    bool streamDetached[8] = {};
+    bool controlDetached[64] = {};
+    uint8_t propertyPlacement[32] = {};
     uint64_t sequence = 0;
     uint64_t sampleTime = 0;
     uint64_t hostTime = 0;

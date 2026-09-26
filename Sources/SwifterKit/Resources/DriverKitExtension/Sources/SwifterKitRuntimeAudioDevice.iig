@@ -1,6 +1,7 @@
 #ifndef SwifterKitRuntimeAudioDevice_h
 #define SwifterKitRuntimeAudioDevice_h
 
+#include "SwifterKitRuntimeAudioProtocol.h"
 #include "SwifterKitRuntimeConfiguration.h"
 #include "SwifterKitRuntimeProtocol.h"
 #if SWIFTERKIT_ENABLE_AUDIO
@@ -22,6 +23,11 @@ public:
 
     kern_return_t Configure() LOCALONLY;
     void RemoveControlsAndProperties() LOCALONLY;
+    kern_return_t MemberCommand(
+        uint32_t opcode,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) LOCALONLY;
     kern_return_t ReadStream(const SwifterKitAudioTransferHeader* transfer, OSData** response)
         LOCALONLY;
     kern_return_t WriteStream(const SwifterKitAudioTransferHeader* transfer, const uint8_t* bytes)
@@ -42,6 +48,20 @@ public:
     kern_return_t SetCustomProperty(
         const SwifterKitAudioCustomPropertyHeader* request,
         const uint8_t* bytes) LOCALONLY;
+
+private:
+    kern_return_t SetDeviceProperty(const SwifterKitAudioMemberValue* request) LOCALONLY;
+    kern_return_t CopyStreamState(const SwifterKitAudioMemberRequest* request, OSData** response)
+        LOCALONLY;
+    kern_return_t SetStreamProperty(const SwifterKitAudioMemberProperty* request) LOCALONLY;
+    kern_return_t ResizeStreamMemory(uint32_t index, uint32_t frames) LOCALONLY;
+    kern_return_t CopyControlInfo(const SwifterKitAudioMemberRequest* request, OSData** response)
+        LOCALONLY;
+    kern_return_t SetControlProperty(const SwifterKitAudioMemberProperty* request) LOCALONLY;
+    kern_return_t RemoveSelectorItems(
+        const SwifterKitAudioSelectorRemoval* request,
+        const uint32_t* values) LOCALONLY;
+    kern_return_t SetMemberAttachment(const SwifterKitAudioMemberAttachment* request) LOCALONLY;
 
 protected:
     virtual kern_return_t StartIO(IOUserAudioStartStopFlags flags) LOCALONLY override;

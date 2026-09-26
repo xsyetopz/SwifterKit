@@ -156,17 +156,6 @@ kern_return_t SwifterKitRuntimeAudioDevice::Configure() {
     });
 }
 
-void SwifterKitRuntimeAudioDevice::RemoveControlsAndProperties() {
-    if (ivars == nullptr)
-        return;
-    for (uint32_t index = 0; index < kSwifterKitAudioControlCount; ++index)
-        if (ivars->controls[index] != nullptr)
-            (void)RemoveControl(ivars->controls[index]);
-    for (uint32_t index = 0; index < kSwifterKitAudioCustomPropertyCount; ++index)
-        if (ivars->customProperties[index] != nullptr)
-            (void)RemoveCustomProperty(ivars->customProperties[index]);
-}
-
 kern_return_t SwifterKitRuntimeAudioDevice::ReadStream(
     const SwifterKitAudioTransferHeader* transfer,
     OSData** response) {
