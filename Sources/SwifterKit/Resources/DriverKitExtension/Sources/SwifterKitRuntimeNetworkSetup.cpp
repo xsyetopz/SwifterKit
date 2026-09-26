@@ -248,9 +248,12 @@ MediaWord SwifterKitRuntimeService::getInitialMedia() {
 kern_return_t SwifterKitRuntimeService::handleChosenMedia(MediaWord media) {
     return NetworkControlEvent(9, media);
 }
+// The family reaches this from SetPowerState, which SwifterKitRuntimeServicePower acknowledges
+// through super once Swift answers. The Swift notification is best effort: super always runs,
+// exactly once, and its result is returned, so a full event queue never stalls the transition.
 kern_return_t SwifterKitRuntimeService::setPowerState(unsigned long state, IOService* device) {
-    kern_return_t result = NetworkControlEvent(10, static_cast<uint32_t>(state));
-    return result == kIOReturnSuccess ? super::setPowerState(state, device) : result;
+    (void)NetworkControlEvent(10, static_cast<uint32_t>(state));
+    return super::setPowerState(state, device);
 }
 kern_return_t SwifterKitRuntimeService::getHardwareAddress(ether_addr_t* address) {
     if (address == nullptr || ivars == nullptr || ivars->networkLock == nullptr)

@@ -48,6 +48,22 @@ struct NetworkingGeneratorTests {
     #expect(service.contains("NetworkTxPacketAvailable"))
     #expect(service.contains("setInterfaceEnable"))
 
+    // The family's power change is acknowledged through super whether or not Swift is notified,
+    // and never through SUPERDISPATCH here, which SwifterKitRuntimeServicePower already owns.
+    let setup = try String(
+      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeNetworkSetup.cpp"),
+      encoding: .utf8
+    )
+    let power = try #require(
+      setup.range(of: "SwifterKitRuntimeService::setPowerState(")?.upperBound
+    )
+    let powerEnd = try #require(setup.range(of: "\n}", range: power..<setup.endIndex)?.lowerBound)
+    let powerBody = setup[power..<powerEnd]
+    #expect(powerBody.contains("(void)NetworkControlEvent(10, static_cast<uint32_t>(state));"))
+    #expect(powerBody.contains("return super::setPowerState(state, device);"))
+    #expect(!powerBody.contains("SUPERDISPATCH"))
+    #expect(!powerBody.contains("?"))
+
     try expectGeneratedExtensionBuilds(
       at: output,
       derivedData: root.appendingPathComponent("DerivedData")

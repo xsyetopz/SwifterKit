@@ -66,6 +66,9 @@ SwifterKit records user-visible changes in this file.
   the error without completing the request. A request whose identifier matches
   an outstanding one is still refused with `kIOReturnExclusiveAccess` and no
   completion, because completing it would answer the outstanding request.
+- An Ethernet extension now acknowledges each power change through the
+  superclass even when the Swift notification cannot be queued. Before this, a
+  full required-event queue skipped the superclass and stalled the transition.
 - Block-storage unmap requests, host `setReport` reports, and received MIDI
   words are now checked against the event-queue payload limit, 65,508 bytes,
   before they are queued. Before this, the checks allowed payloads up to 24
