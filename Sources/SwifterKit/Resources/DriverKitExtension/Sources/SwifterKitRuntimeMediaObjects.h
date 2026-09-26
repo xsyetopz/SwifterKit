@@ -427,6 +427,8 @@ kern_return_t
     const bool flag = value == 1;
     switch (selector) {
         case Family::kBoxPropertyTransport:
+            // Transport types are open uint32_t FourCCs; the SDK enumerates only common values.
+            // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
             return box->SetTransportType(static_cast<typename Family::TransportType>(value));
         case Family::kBoxPropertyHasAudio:
             return box->SetHasAudio(flag);

@@ -21,6 +21,8 @@ namespace {
         return {
             format.sampleRate,
             static_cast<IOUserAudioFormatID>(format.formatID),
+            // Format flags OR IOUserAudioFormatFlags bits, so most name no enumerator.
+            // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
             static_cast<IOUserAudioFormatFlags>(format.formatFlags),
             format.bytesPerPacket,
             format.framesPerPacket,

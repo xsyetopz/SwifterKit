@@ -66,6 +66,9 @@ kern_return_t SwifterKitRuntimeVideoStream::HandleChangeCurrentStreamFormat(
     const IOUserVideoStreamBasicDescription* format) {
     if (format == nullptr || format->mReserved1 != 0 || format->mReserved2 != 0)
         return kIOReturnBadArgument;
+    // init rejects out-of-range indices; checking here lets analysis see the bound too.
+    if (ivars->streamIndex >= kSwifterKitVideoStreamCount)
+        return kIOReturnInternalError;
     const auto& stream = kSwifterKitVideoStreams[ivars->streamIndex];
     bool supported = false;
     for (uint32_t index = 0; index < stream.formatCount; ++index) {

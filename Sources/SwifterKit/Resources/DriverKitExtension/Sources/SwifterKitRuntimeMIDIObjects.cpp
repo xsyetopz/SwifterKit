@@ -114,7 +114,7 @@ namespace {
         return key->name == nullptr ? kIOReturnBadArgument : kIOReturnSuccess;
     }
 
-    kern_return_t EncodeResponse(OSObject* value, OSData** response) {
+    kern_return_t EncodeResponse(const OSObject* value, OSData** response) {
         OSData* data = OSData::withCapacity(64);
         if (data == nullptr) {
             return kIOReturnNoMemory;
@@ -250,8 +250,9 @@ namespace {
                 return kIOReturnBadArgument;
             }
             const OSSharedPtr<OSDictionary> properties = object->GetProperties();
-            OSDictionary* empty = properties ? nullptr : OSDictionary::withCapacity(1);
-            OSObject* value = properties ? static_cast<OSObject*>(properties.get()) : empty;
+            const OSDictionary* empty = properties ? nullptr : OSDictionary::withCapacity(1);
+            const OSObject* value =
+                properties ? static_cast<const OSObject*>(properties.get()) : empty;
             const kern_return_t result =
                 value == nullptr ? kIOReturnNoMemory : EncodeResponse(value, response);
             OSSafeReleaseNULL(empty);

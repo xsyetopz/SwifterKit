@@ -301,7 +301,7 @@ kern_return_t SwifterKitDecodeMIDIValue(const uint8_t* bytes, uint32_t length, O
     return kIOReturnSuccess;
 }
 
-kern_return_t SwifterKitEncodeMIDIValue(OSObject* value, OSData* data) {
+kern_return_t SwifterKitEncodeMIDIValue(const OSObject* value, OSData* data) {
     if (value == nullptr || data == nullptr) {
         return kIOReturnBadArgument;
     }

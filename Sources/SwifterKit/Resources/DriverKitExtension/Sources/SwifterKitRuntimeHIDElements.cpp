@@ -27,7 +27,10 @@ namespace {
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize
         - sizeof(SwifterKitRuntimeCommandHeader) - sizeof(SwifterKitHIDReportRequest);
 
-    IOHIDElement* FindElement(const OSArray* elements, uint32_t cookie) {
+    // Returns an element the array still owns; OSArray::getObject does not retain.
+    DRIVERKIT_RETURNS_NOT_RETAINED IOHIDElement* FindElement(
+        const OSArray* elements,
+        uint32_t cookie) {
         if (elements == nullptr || cookie == 0) {
             return nullptr;
         }

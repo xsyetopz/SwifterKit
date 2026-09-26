@@ -23,6 +23,6 @@ kern_return_t SwifterKitDecodeMIDIValue(const uint8_t* bytes, uint32_t length, O
 
 // Appends the encoding of `value` to `data`, failing with kIOReturnNoSpace when the encoding
 // would not fit in one runtime response and kIOReturnUnsupported for other OSObject types.
-kern_return_t SwifterKitEncodeMIDIValue(OSObject* value, OSData* data);
+kern_return_t SwifterKitEncodeMIDIValue(const OSObject* value, OSData* data);
 
 #endif
