@@ -187,11 +187,14 @@ extension DriverContext {
     }
   }
 
-  /// Creates a target; DriverKit returns after the target exists.
+  /// Requests a target; returns once the extension has validated the properties and queued the
+  /// create.
   ///
-  /// DriverKit runs the call on its auxiliary queue and calls back into the extension while it
-  /// creates the target, so keep handling ``DriverEvent/scsiController()`` events, including
-  /// ``SCSIControllerEvent/initializeTarget(_:)`` and parallel tasks, while this call is pending.
+  /// The extension runs `UserCreateTargetForID` on its own queue, because DriverKit probes the
+  /// new target with parallel tasks that Swift completes through the same connection. Keep
+  /// handling ``DriverEvent/scsiController()`` events, including
+  /// ``SCSIControllerEvent/initializeTarget(_:)`` and parallel tasks, and check
+  /// ``scsiTargetPresent(_:)`` to learn when the target exists.
   public func scsiCreateTarget(
     _ target: UInt64,
     properties: [SCSIProtocolPropertyKey: String] = [:]

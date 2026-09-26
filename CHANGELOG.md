@@ -80,6 +80,12 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- `scsiCreateTarget` called `UserCreateTargetForID` on the user client's
+  queue. DriverKit starts the new target inside that call and waits for its
+  INQUIRY, which Swift can only poll and complete through the same, blocked,
+  queue, so the create stalled until INQUIRY timed out. The extension now runs
+  the create on its own queue, and `scsiCreateTarget` returns once the
+  properties are validated and the create is queued.
 - The video runtime attached and detached streams, set safety offsets, and set
   clock latencies directly. `IOUserVideoDriver.iig` allows changes that affect
   IO or the device's structure only in `PerformDeviceConfigurationChange`.

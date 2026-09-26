@@ -71,6 +71,7 @@ void SwifterKitRuntimeService::free() {
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
         StopSCSI();
         IOLockFreeZero(ivars->scsiLock);
+        OSSafeReleaseNULL(ivars->scsiTargetQueue);
 #endif
 #if SWIFTERKIT_ENABLE_AUDIO
         StopAudio();

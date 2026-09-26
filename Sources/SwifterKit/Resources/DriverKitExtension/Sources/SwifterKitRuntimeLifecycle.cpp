@@ -1,3 +1,4 @@
+#include <DriverKit/IODispatchQueue.h>
 #include <DriverKit/IOLib.h>
 #include <DriverKit/OSArray.h>
 
@@ -17,6 +18,7 @@ auto SwifterKitRuntimeService::init() -> bool {
     ivars->dispatchLock = IOLockAlloc();
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     ivars->scsiLock = IOLockAlloc();
+    (void)IODispatchQueue::Create("SwifterKit SCSI Targets", 0, 0, &ivars->scsiTargetQueue);
 #endif
 #if SWIFTERKIT_ENABLE_AUDIO
     ivars->audioLock = IOLockAlloc();
@@ -51,7 +53,7 @@ auto SwifterKitRuntimeService::init() -> bool {
     return ivars->eventLock != nullptr && ivars->events != nullptr
            && ivars->requiredEvents != nullptr && ivars->dispatchLock != nullptr
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
-           && ivars->scsiLock != nullptr
+           && ivars->scsiLock != nullptr && ivars->scsiTargetQueue != nullptr
 #endif
 #if SWIFTERKIT_ENABLE_AUDIO
            && ivars->audioLock != nullptr && ivars->audioRequestLock != nullptr

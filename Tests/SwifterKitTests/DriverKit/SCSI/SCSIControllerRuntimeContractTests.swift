@@ -33,10 +33,11 @@ struct SCSIControllerRuntimeContractTests {
     try withGeneratedExtension { output in
       let control = try source("SwifterKitRuntimeSCSIControl.cpp", in: output)
       for call in [
-        "UserTargetPresentForID(target, &present)", "UserCreateTargetForID(target, properties)",
-        "UserDestroyTargetForID(target)", "UserSetHBAProperties(properties)",
-        "UserSetTargetProperties(target, properties)", "UserRemoveHBAProperties(keys)",
-        "UserRemoveTargetProperties(target, keys)", "UserCallMediaParametersHaveChanged()",
+        "UserTargetPresentForID(target, &present)",
+        "UserCreateTargetForID(target, targetProperties)", "UserDestroyTargetForID(target)",
+        "UserSetHBAProperties(properties)", "UserSetTargetProperties(target, properties)",
+        "UserRemoveHBAProperties(keys)", "UserRemoveTargetProperties(target, keys)",
+        "UserCallMediaParametersHaveChanged()",
         "UserGetDataBuffer(request->fTargetID, request->fControllerTaskIdentifier, buffer)",
       ] { #expect(control.contains(call)) }
       // Controller-wide properties reject a target identifier.
@@ -100,6 +101,30 @@ struct SCSIControllerRuntimeContractTests {
         "kIOMinimumSegmentAlignmentByteCountKey", "kIOMaximumSegmentAddressableBitCountKey",
         "kIOMinimumHBADataAlignmentMaskKey", "kIOHierarchicalLogicalUnitSupportKey",
       ] { #expect(constraints.contains(key)) }
+    }
+  }
+
+  @Test
+  func createsTargetsAwayFromTheUserClientQueue() throws {
+    try withGeneratedExtension { output in
+      let control = try source("SwifterKitRuntimeSCSIControl.cpp", in: output)
+      let create = try section(
+        of: control,
+        from: "case SwifterKitRuntimeOpcode::SCSICreateTarget:",
+        to: "case SwifterKitRuntimeOpcode::SCSIDestroyTarget:"
+      )
+      let queued = try #require(create.range(of: "scsiTargetQueue->DispatchAsync(^{")?.lowerBound)
+      let call = try #require(
+        create.range(of: "UserCreateTargetForID(target, targetProperties)")?.lowerBound
+      )
+      #expect(queued < call)
+      #expect(create.contains("targetProperties->release();"))
+      #expect(create.contains("retain();") && create.contains("release();"))
+
+      let lifecycle = try source("SwifterKitRuntimeLifecycle.cpp", in: output)
+      #expect(lifecycle.contains("IODispatchQueue::Create(\"SwifterKit SCSI Targets\""))
+      let service = try source("SwifterKitRuntimeService.cpp", in: output)
+      #expect(service.contains("OSSafeReleaseNULL(ivars->scsiTargetQueue);"))
     }
   }
 

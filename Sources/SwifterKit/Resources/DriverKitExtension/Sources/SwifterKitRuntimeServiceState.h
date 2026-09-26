@@ -1,6 +1,7 @@
 #ifndef SwifterKitRuntimeServiceState_h
 #define SwifterKitRuntimeServiceState_h
 
+#include <DriverKit/IODispatchQueue.h>
 #include <DriverKit/IOLib.h>
 #include <DriverKit/IOTimerDispatchSource.h>
 #include <DriverKit/OSAction.h>
@@ -297,6 +298,8 @@ struct SwifterKitRuntimeService_IVars {
 #endif
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     IOLock* scsiLock = nullptr;
+    // Runs UserCreateTargetForID away from the user client's queue; see SCSIControlCommand.
+    IODispatchQueue* scsiTargetQueue = nullptr;
     uint32_t nextSCSIRequestID = 1;
     uint32_t nextSCSITaskMapID = 1;
     SwifterKitSCSIPendingTask scsiTasks[256] = {};

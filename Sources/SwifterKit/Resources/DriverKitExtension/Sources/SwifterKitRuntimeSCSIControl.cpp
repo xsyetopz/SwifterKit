@@ -3,6 +3,7 @@
 
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
 
+    #include <DriverKit/IODispatchQueue.h>
     #include <DriverKit/IOLib.h>
     #include <DriverKit/OSArray.h>
     #include <DriverKit/OSData.h>
@@ -168,9 +169,24 @@ kern_return_t SwifterKitRuntimeService::SCSIControlCommand(
             return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
         }
         case SwifterKitRuntimeOpcode::SCSICreateTarget:
+            // UserCreateTargetForID starts the target, and the kernel then waits for INQUIRY
+            // through UserProcessParallelTask. Swift polls that task and completes it through
+            // this user client, whose queue would stay blocked in the create until INQUIRY
+            // timed out. The create runs on scsiTargetQueue; the command returns once it is
+            // queued, after the properties are validated.
             result = ParseProperties(payload, payloadLength, true, &target, &properties, nullptr);
+            if (result == kIOReturnSuccess && ivars->scsiTargetQueue == nullptr) {
+                result = kIOReturnNotReady;
+            }
             if (result == kIOReturnSuccess) {
-                result = UserCreateTargetForID(target, properties);
+                OSDictionary* targetProperties = properties;
+                properties = nullptr;
+                retain();
+                ivars->scsiTargetQueue->DispatchAsync(^{
+                  (void)UserCreateTargetForID(target, targetProperties);
+                  targetProperties->release();
+                  release();
+                });
             }
             break;
         case SwifterKitRuntimeOpcode::SCSIDestroyTarget:
