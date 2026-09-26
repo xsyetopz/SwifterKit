@@ -1,5 +1,5 @@
-// Memory-pool wire constants: handle range, composition bounds, and the client-memory type
-// encoding that `IOConnectMapMemory64` passes to the runtime user client's
+// Memory-pool wire constants: handle range, composition bounds, release status, and the
+// client-memory type encoding that `IOConnectMapMemory64` passes to the runtime user client's
 // `CopyClientMemoryForType`.
 //
 // `RuntimeSchemaHeader` renders these into `SwifterKitRuntimeFastPathSchema.h`, which
@@ -23,6 +23,16 @@ enum RuntimeMemoryLimits {
   static let clientHeaderSize = 8
   /// The bytes of one segment: a 64-bit address and a 64-bit length, as `IOAddressSegment`.
   static let clientSegmentSize = 16
+}
+
+/// The `IOReturn` values memory commands answer with that Swift maps to a typed error. The
+/// extension asserts each against its `IOReturn.h` name.
+enum RuntimeMemoryStatus: UInt32, CaseIterable {
+  /// A release names an entry that a subrange or chain still uses: `kIOReturnBusy`.
+  case inUse = 0xE000_02D5
+
+  /// The status as the transport reports it in ``DriverKitError/Kind/ioReturn(_:)``.
+  var ioReturn: Int32 { Int32(bitPattern: rawValue) }
 }
 
 /// What a client-memory type maps, stored in its top bits.
@@ -82,6 +92,11 @@ extension RuntimeSchemaHeader {
             ),
           ]
         )
+      ),
+      enumeration(
+        "SwifterKitMemoryStatus",
+        type: "uint32_t",
+        cases: RuntimeMemoryStatus.allCases.map { (nativeName($0), hex($0.rawValue, digits: 8)) }
       ),
       enumeration("SwifterKitClientMemoryKind", type: "uint32_t", RuntimeClientMemoryKind.allCases),
       enumeration("SwifterKitPacketPool", type: "uint32_t", RuntimePacketPool.allCases),

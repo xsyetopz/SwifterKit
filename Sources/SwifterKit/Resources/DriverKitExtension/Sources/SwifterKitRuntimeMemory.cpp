@@ -16,6 +16,10 @@
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
 
+// Swift maps this status to DriverMemoryError.inUse.
+static_assert(
+    static_cast<uint32_t>(SwifterKitMemoryStatus::InUse) == static_cast<uint32_t>(kIOReturnBusy));
+
 namespace {
     constexpr uint32_t kMaximumMemoryEntries = 64;
 
@@ -60,9 +64,35 @@ namespace {
         return entry->composed;
     }
 
+    // The live entry that owns `memory`; each entry's descriptor is its own object. The fields
+    // are compared directly because an entry owns one or the other.
+    SwifterKitMemoryEntry* FindMemoryByDescriptor(
+        SwifterKitRuntimeService_IVars* state,
+        const OSObject* memory) {
+        if (memory == nullptr) {
+            return nullptr;
+        }
+        for (auto& entry : state->memoryEntries) {
+            if (entry.handle != 0 && (entry.descriptor == memory || entry.composed == memory)) {
+                return &entry;
+            }
+        }
+        return nullptr;
+    }
+
+    // Callers other than StopMemory release only entries without dependents. StopMemory may
+    // release a source first, so a source this entry names can already be gone.
     void ReleaseMemoryEntry(SwifterKitRuntimeService_IVars* state, SwifterKitMemoryEntry* entry) {
         if (state == nullptr || entry == nullptr) {
             return;
+        }
+        const uint32_t sourceCount = entry->sources == nullptr ? 0 : entry->sources->getCount();
+        for (uint32_t index = 0; index < sourceCount; ++index) {
+            SwifterKitMemoryEntry* source =
+                FindMemoryByDescriptor(state, entry->sources->getObject(index));
+            if (source != nullptr && source->dependents != 0) {
+                --source->dependents;
+            }
         }
         // Only allocated buffers count against the pool's total size.
         const bool wasAllocated = entry->handle != 0 && entry->descriptor != nullptr;
@@ -130,8 +160,9 @@ namespace {
     }
 
     // Finishes a subrange or chain whose creation returned `result` into `entry->composed`:
-    // retains the sources, maps the result into the extension when DriverKit can, and answers
-    // with the new handle. Any failure leaves the entry free.
+    // retains the sources and counts the entry as their dependent, maps the result into the
+    // extension when DriverKit can, and answers with the new handle. Any failure leaves the entry
+    // free and the sources' counts as they were.
     kern_return_t FinishComposedEntry(
         SwifterKitRuntimeService_IVars* state,
         SwifterKitMemoryEntry* entry,
@@ -152,6 +183,10 @@ namespace {
         for (uint32_t index = 0; result == kIOReturnSuccess && index < sourceCount; ++index) {
             if (!entry->sources->setObject(sources[index])) {
                 result = kIOReturnNoMemory;
+            } else if (SwifterKitMemoryEntry* source =
+                           FindMemoryByDescriptor(state, sources[index]);
+                       source != nullptr) {
+                ++source->dependents;
             }
         }
         if (result != kIOReturnSuccess) {
@@ -283,7 +318,9 @@ namespace {
 // described with CreateMemoryDescriptorFromClient while `client`'s ExternalMethod runs. The entry
 // takes a buffer slot but none of the byte budget, which counts only buffers the extension
 // allocates; its length is fixed. The descriptor references the host's pages, so the host must
-// keep them allocated until it releases the entry and everything composed from it.
+// keep them allocated until it releases the entry, which answers kIOReturnBusy while a subrange
+// or chain still uses it. A host detach does not release entries; only MemoryRelease and
+// StopMemory do.
 kern_return_t SwifterKitRuntimeService::WrapClientMemory(
     IOUserClient* client,
     const uint8_t* payload,
@@ -388,6 +425,18 @@ void SwifterKitRuntimeService::StopMemory() {
         return;
     }
     const MemoryLockGuard guard(ivars->memoryLock);
+    // Leaves first: every pass releases the entries nothing composes, which frees their sources
+    // for the next pass. Composition names only existing entries, so a live entry always has a
+    // leaf below it; the final sweep releases whatever remains regardless of dependents.
+    for (bool released = true; released;) {
+        released = false;
+        for (auto& entry : ivars->memoryEntries) {
+            if (entry.handle != 0 && entry.dependents == 0) {
+                ReleaseMemoryEntry(ivars, &entry);
+                released = true;
+            }
+        }
+    }
     for (auto& entry : ivars->memoryEntries) {
         ReleaseMemoryEntry(ivars, &entry);
     }
@@ -476,6 +525,10 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
                 return kIOReturnNotFound;
             }
             if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::MemoryRelease)) {
+                // A subrange or chain still describes this memory: release it first.
+                if (entry->dependents != 0) {
+                    return kIOReturnBusy;
+                }
                 ReleaseMemoryEntry(ivars, entry);
                 return kIOReturnSuccess;
             }

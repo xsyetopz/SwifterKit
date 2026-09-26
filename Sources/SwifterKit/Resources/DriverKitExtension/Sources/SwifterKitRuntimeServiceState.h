@@ -250,12 +250,15 @@ struct SwifterKitMemoryEntry {
     uint32_t direction = 0;
     uint32_t alignment = 0;
     // An allocated buffer owns `descriptor`; a subrange or chain owns `composed` instead and
-    // retains its source descriptors in `sources`, so releasing a source entry leaves it valid.
+    // retains its source descriptors in `sources`. `dependents` counts the subranges and chains
+    // whose `sources` name this entry, once per occurrence; releasing an entry with dependents
+    // answers kIOReturnBusy, and StopMemory releases dependents before their sources.
     IOBufferMemoryDescriptor* descriptor = nullptr;
     IOMemoryDescriptor* composed = nullptr;
     OSArray* sources = nullptr;
     IOMemoryMap* map = nullptr;
     IODMACommand* dmaCommand = nullptr;
+    uint32_t dependents = 0;
 };
 #endif
 

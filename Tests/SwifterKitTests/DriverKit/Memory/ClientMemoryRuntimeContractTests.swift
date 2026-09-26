@@ -4,8 +4,8 @@ import Testing
 @testable import SwifterKit
 
 /// The generated extension's client-memory wiring: the user client forwards each mapping once,
-/// the service validates the type and identifier, subranges and chains retain their sources,
-/// and memory- and networking-enabled extensions build.
+/// the service validates the type and identifier, subranges and chains retain their sources and
+/// keep them from being released, and memory- and networking-enabled extensions build.
 @Suite
 struct ClientMemoryRuntimeContractTests {
   private static func checkedIn(_ name: String) throws -> String {
@@ -74,6 +74,83 @@ struct ClientMemoryRuntimeContractTests {
       "return result;"
     )
     #expect(!copy.contains("default:"))
+  }
+
+  @Test
+  func releaseRefusesUsedSourcesAndStopReleasesCompositionsFirst() throws {
+    let memory = try Self.checkedIn("SwifterKitRuntimeMemory.cpp")
+    #expect(
+      memory.contains(
+        "static_cast<uint32_t>(SwifterKitMemoryStatus::InUse) == "
+          + "static_cast<uint32_t>(kIOReturnBusy)"
+      )
+    )
+    // A composition counts once per source it retains, and releasing it undoes exactly that.
+    let finish = try section(
+      of: memory,
+      from: "kern_return_t FinishComposedEntry(",
+      to: "kern_return_t CreateMemorySubrange("
+    )
+    try expectOrder(
+      in: finish,
+      "if (!entry->sources->setObject(sources[index])) {",
+      "} else if (SwifterKitMemoryEntry* source =",
+      "FindMemoryByDescriptor(state, sources[index]);",
+      "++source->dependents;",
+      "AssignMemoryHandle(state, entry);"
+    )
+    let release = try section(
+      of: memory,
+      from: "void ReleaseMemoryEntry(",
+      to: "SwifterKitMemoryEntry* FreeMemoryEntry("
+    )
+    try expectOrder(
+      in: release,
+      "entry->sources->getCount()",
+      "FindMemoryByDescriptor(state, entry->sources->getObject(index));",
+      "if (source != nullptr && source->dependents != 0) {",
+      "--source->dependents;",
+      "OSSafeReleaseNULL(entry->sources);"
+    )
+    let command = try section(
+      of: memory,
+      from: "case SwifterKitRuntimeOpcode::MemoryRelease:",
+      to: "case SwifterKitRuntimeOpcode::MemorySetLength:"
+    )
+    try expectOrder(
+      in: command,
+      "return kIOReturnNotFound;",
+      "if (entry->dependents != 0) {",
+      "return kIOReturnBusy;",
+      "ReleaseMemoryEntry(ivars, entry);"
+    )
+    // Teardown releases leaves pass by pass, then sweeps every slot regardless of dependents.
+    let stop = try section(
+      of: memory,
+      from: "void SwifterKitRuntimeService::StopMemory() {",
+      to: "kern_return_t SwifterKitRuntimeService::MemoryCommand("
+    )
+    try expectOrder(
+      in: stop,
+      "const MemoryLockGuard guard(ivars->memoryLock);",
+      "for (bool released = true; released;) {",
+      "if (entry.handle != 0 && entry.dependents == 0) {",
+      "ReleaseMemoryEntry(ivars, &entry);",
+      "released = true;",
+      "for (auto& entry : ivars->memoryEntries) {",
+      "ReleaseMemoryEntry(ivars, &entry);",
+      "OSSafeReleaseNULL(ivars->memoryProvider);"
+    )
+    // A host detach leaves memory entries to MemoryRelease and StopMemory.
+    let events = try Self.checkedIn("SwifterKitRuntimeEvents.cpp")
+    let detach = try section(
+      of: events,
+      from: "void SwifterKitRuntimeService::DetachEventClient(",
+      to: "auto SwifterKitRuntimeService::CopyNextEvent("
+    )
+    #expect(!detach.contains("StopMemory") && !detach.contains("ReleaseMemory"))
+    let state = try Self.checkedIn("SwifterKitRuntimeServiceState.h")
+    #expect(state.contains("    uint32_t dependents = 0;\n"))
   }
 
   @Test

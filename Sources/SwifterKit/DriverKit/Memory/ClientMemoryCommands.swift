@@ -84,8 +84,11 @@ extension DriverContext {
   /// but none of the pool's byte budget, and its length cannot change.
   ///
   /// The memory must stay allocated, and must not be unmapped or reused, until
-  /// ``releaseMemory(_:)`` returns for this handle and every subrange or chain built from it;
-  /// ``DriverHostMemory/wrap(in:direction:)`` keeps its allocation alive for that long.
+  /// ``releaseMemory(_:)`` succeeds for this handle, which it refuses with
+  /// ``DriverMemoryError/inUse`` while a subrange or chain built from it exists. The extension
+  /// keeps the entry after this process's connection closes.
+  /// ``DriverHostMemory/wrap(in:direction:)`` keeps its allocation alive for that long. A
+  /// ``mapMemory(_:)`` mapping of the handle outlives its release, so unmap it first.
   public func wrapClientMemory(
     _ segments: [DriverClientMemorySegment],
     direction: DriverMemoryDirection

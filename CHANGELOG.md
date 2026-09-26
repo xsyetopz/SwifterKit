@@ -6,8 +6,9 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
-- **Breaking:** `DriverMemoryError` gains `invalidSegmentCount` and
-  `invalidSegment`, so exhaustive switches over it must handle the new cases.
+- **Breaking:** `DriverMemoryError` gains `invalidSegmentCount`,
+  `invalidSegment`, and `inUse`, so exhaustive switches over it must handle the
+  new cases.
 - **Breaking:** `FastPathOp` gains `ringLoad`, `ringStore`, and `ringAdvance`;
   `FastPathOperand` gains `ringDeviceAddress` and `ringIndex`; `FastPathError`
   gains `tooManyRings`, `invalidRing`, `duplicateRing`, `ringBytesExceeded`,
@@ -294,8 +295,12 @@ SwifterKit records user-visible changes in this file.
   composes into subranges and chains like a buffer, takes one buffer slot,
   and does not count toward the pool's byte budget. Segment counts, empty
   segments, and address overflow are refused in Swift and again in the
-  extension. `DriverHostMemory` allocates zeroed, page-aligned host memory
-  and keeps it alive while the extension uses it.
+  extension. `DriverHostMemory` allocates zeroed, page-aligned host memory;
+  after `wrap(in:direction:)` the runtime connection holds it until
+  `releaseMemory(_:)` succeeds for the handle, and the last reference frees
+  the pages once that release has succeeded. A wrap still unreleased when its
+  connection closes keeps its pages for the life of the process, because the
+  extension keeps its memory entries after the host detaches.
 - Fast-path rings: `FastPathConfiguration.rings` declares up to eight
   `FastPathRing` values (power-of-two entry sizes of 8-4096 bytes and counts
   of 2-65536, at most 4 MiB together, PCI device required). At fast-path start
@@ -329,6 +334,10 @@ SwifterKit records user-visible changes in this file.
   `CreateSubMemoryDescriptor` and `CreateWithMemoryDescriptors`. A composed
   entry retains its sources, may narrow but never widen their direction, and
   maps into the host, prepares for DMA, and reads or writes like a buffer.
+  Releasing a source that a subrange or chain still uses answers
+  `kIOReturnBusy`, which `releaseMemory(_:)` throws as
+  `DriverMemoryError.inUse`; stopping the service releases compositions before
+  their sources.
 - `DriverConfiguration.fastPath` declares `FastPathConfiguration` programs:
   bounded, data-only register sequences (`read`, `write`, `modify`, `compute`,
   `poll`, `delay`, forward `skip`, `emit`, `fail`) run from start, stop,

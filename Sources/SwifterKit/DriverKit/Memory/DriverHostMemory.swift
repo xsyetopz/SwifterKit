@@ -1,22 +1,28 @@
 import Foundation
 
-// @unchecked Sendable: the pointer and length never change, `lock` guards `wrapped`, and the
+// @unchecked Sendable: the pointer and length never change, `lock` guards `wraps`, and the
 // bytes are shared memory whose ordering the caller owns, as for `DriverSharedMemory`.
 /// Page-aligned memory this process allocates for ``DriverContext/wrapClientMemory(_:direction:)``.
 ///
-/// The allocation is zeroed. Until ``wrap(in:direction:)`` succeeds it is freed with this object;
-/// once wrapped, it is never freed, because a subrange or chain built from the handle can keep
-/// the extension's descriptor, and so the device's access, alive after the handle is released,
-/// and the host has no point at which reusing the pages is safe. Accesses through
-/// ``withUnsafeMutableBytes(_:)`` race with the device like any shared DMA memory, so order them
-/// with the device's own protocol.
+/// The allocation is zeroed. ``wrap(in:direction:)`` wraps it, and the runtime connection holds
+/// this object until ``DriverContext/releaseMemory(_:)`` succeeds for the returned handle, which
+/// the extension refuses with ``DriverMemoryError/inUse`` while a subrange or chain built from
+/// it exists. The pages are freed when the last reference goes away with no wrap outstanding,
+/// so unmap any ``DriverSharedMemory`` from ``DriverContext/mapMemory(_:)`` of the handle, or of
+/// a subrange or chain built from it, before releasing it: that mapping outlives the release.
+/// A wrap whose handle was never released, including one outstanding when its connection
+/// closed, keeps the pages allocated for the life of the process: the extension keeps its
+/// entry after the host detaches, until the handle is released or the service stops, and the
+/// host cannot observe the stop. Accesses through ``withUnsafeMutableBytes(_:)`` race with the
+/// device like any shared DMA memory, so order them with the device's own protocol.
 public final class DriverHostMemory: @unchecked Sendable {
   /// The allocation's first byte, on a page boundary.
   private let base: UnsafeMutableRawPointer
   /// The allocation's size in bytes, a whole number of pages.
   public let length: Int
   private let lock = NSLock()
-  private var wrapped = false
+  /// Wraps whose release the extension has not confirmed.
+  private var wraps = 0
 
   /// Allocates at least `minimumLength` zeroed bytes, rounded up to whole pages.
   ///
@@ -30,32 +36,41 @@ public final class DriverHostMemory: @unchecked Sendable {
   }
 
   deinit {
-    // Wrapped pages stay allocated for the life of the process; see the type's discussion.
-    if !wrapped { base.deallocate() }
+    // An unreleased wrap may still be described by the extension; see the type's discussion.
+    if wraps == 0 { base.deallocate() }
   }
 
   /// Wraps the whole allocation as a runtime memory entry with
-  /// ``DriverContext/wrapClientMemory(_:direction:)`` and keeps the pages allocated from then on.
+  /// ``DriverContext/wrapClientMemory(_:direction:)``.
+  ///
+  /// The context's runtime connection keeps this object, and so the pages, alive until a
+  /// release of the returned handle succeeds.
   public func wrap(
     in context: DriverContext,
     direction: DriverMemoryDirection
   ) async throws -> DriverMemoryHandle {
-    let handle = try await context.wrapClientMemory([segment], direction: direction)
-    markWrapped()
-    return handle
+    try await context.wrapHostMemory(self, direction: direction)
   }
 
-  private func markWrapped() {
+  /// Records a wrap the extension answered.
+  func beginWrap() {
     lock.lock()
-    wrapped = true
+    wraps += 1
     lock.unlock()
   }
 
-  /// Whether a wrap succeeded, so the pages outlive this object.
+  /// Records that the extension released a wrap's handle.
+  func endWrap() {
+    lock.lock()
+    wraps -= 1
+    lock.unlock()
+  }
+
+  /// Whether a wrap's handle is still unreleased, so the pages outlive this object.
   public var isWrapped: Bool {
     lock.lock()
     defer { lock.unlock() }
-    return wrapped
+    return wraps != 0
   }
 
   /// The segment covering the whole allocation.

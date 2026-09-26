@@ -177,6 +177,10 @@ static constexpr uint32_t kSwifterKitMemoryClientSegmentSize = 16;
 static constexpr uint32_t kSwifterKitClientMemoryKindShift = 24;
 static constexpr uint32_t kSwifterKitClientMemoryIdentifierMask = 0xFFFFFF;
 
+enum class SwifterKitMemoryStatus : uint32_t {
+    InUse = 0xE00002D5,
+};
+
 enum class SwifterKitClientMemoryKind : uint32_t {
     MemoryBuffer = 1,
     PacketPool = 2,

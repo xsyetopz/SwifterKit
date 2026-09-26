@@ -13,6 +13,9 @@ public actor DriverRuntimeConnection {
   private var session: DriverSession?
   private var nextRequestID: UInt64 = 1
   private let maximumResponseSize: Int
+  /// Host allocations wrapped through this connection, by handle, held until a release of the
+  /// handle succeeds.
+  private var wrappedHostMemory: [UInt64: DriverHostMemory] = [:]
 
   private init(session: DriverSession, maximumResponseSize: Int) {
     self.session = session
@@ -54,7 +57,31 @@ public actor DriverRuntimeConnection {
     guard response.kind == .response else {
       throw DriverRuntimeError.unexpectedMessageKind(response.kind)
     }
+    if command.opcode == RuntimeOpcode.memoryRelease.rawValue,
+      let handle: UInt64 = try? command.payload.readRuntimeInteger(at: 0)
+    {
+      // The extension no longer describes these pages, so the host may reuse them.
+      wrappedHostMemory.removeValue(forKey: handle)?.endWrap()
+    }
     return response.payload
+  }
+
+  /// Wraps `memory` and holds it until a release of the returned handle succeeds.
+  ///
+  /// Closing the connection drops the hold without ending the wrap: the extension keeps the
+  /// entry after the host detaches, so the allocation keeps its pages.
+  func wrapHostMemory(
+    _ memory: DriverHostMemory,
+    direction: DriverMemoryDirection
+  ) async throws -> DriverMemoryHandle {
+    let handle = try DriverMemoryHandle(
+      runtimePayload: await execute(.wrapClientMemory([memory.segment], direction: direction))
+    )
+    memory.beginWrap()
+    // A handle this connection still holds can only return after another client released it;
+    // the earlier allocation then keeps its pages for good, which is safe.
+    wrappedHostMemory[handle.rawValue] = memory
+    return handle
   }
 
   /// Registers for event notifications and returns the extension's events as they arrive.
@@ -111,6 +138,7 @@ public actor DriverRuntimeConnection {
   public func close() async {
     guard let session else { return }
     self.session = nil
+    wrappedHostMemory = [:]
     await session.close()
   }
 
