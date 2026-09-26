@@ -415,7 +415,9 @@ public enum DriverExtensionGenerator {
     }
     // Audio and video system daemons open the family user-client types, which
     // bypass SwifterKitRuntimeUserClient. The runtime client still checks the
-    // host's userclient-access entitlement for this bundle identifier.
+    // host's userclient-access entitlement for this bundle identifier. Audio keeps
+    // allow-any: current coreaudiod holds driver-access for family.audio, but that was
+    // not confirmed for every macOS release audio extensions support (12 and later).
     if configuration.capabilities.contains(.audio) {
       entitlements["com.apple.developer.driverkit.family.audio"] = true
       entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] = true
