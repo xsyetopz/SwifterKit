@@ -20629,14 +20629,14 @@
 
           ],
           "name" : "processInterfaceCommand",
-          "note" : "private SIOCSDRVSPEC/SIOCGDRVSPEC requests are answered through ifd_data inside the family's synchronous call, which a Swift host cannot reply to; the family default stays",
+          "note" : "needs a Swift answer inside the family's synchronous call (blocking reply with timeout, as SetPowerState does) or a fast-path table",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn processInterfaceCommand(ifdrv_t*)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
@@ -23415,14 +23415,14 @@
 
           ],
           "name" : "CopyMemoryDescriptor",
-          "note" : "pools are mapped into the extension (PoolFlagMapToDext) and frames reach Swift by copy in runtime messages, so the pool descriptor never crosses the user-client boundary",
+          "note" : "fast-path: map the packet pool into the host for zero-copy frames; frames reach Swift by copy today",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopyMemoryDescriptor(IOMemoryDescriptor**)",
-          "status" : "excluded"
+          "status" : "gap"
         },
         {
           "access" : "public",
