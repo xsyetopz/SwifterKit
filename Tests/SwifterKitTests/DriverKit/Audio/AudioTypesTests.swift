@@ -83,5 +83,28 @@ struct AudioTypesTests {
     #expect(throws: AudioRuntimeError.invalidPayload) {
       try DriverEvent(type: 0x0A00, payload: []).audio()
     }
+    for kind: UInt32 in [0, 6] {
+      var event = Data()
+      event.appendRuntimeInteger(kind)
+      event.appendRuntimeInteger(UInt32(0))
+      event.appendRuntimeInteger(UInt64(0))
+      #expect(throws: AudioRuntimeError.invalidEventKind(kind)) {
+        try DriverEvent(type: 0x0A00, payload: Array(event)).audio()
+      }
+    }
+  }
+
+  @Test
+  func schemaCarriesTheAudioWireValues() {
+    let schema = RuntimeSchemaHeader.render()
+    #expect(schema.contains("kSwifterKitAudioMaximumWriteLength = 65472;"))
+    #expect(schema.contains("kSwifterKitAudioMaximumReadLength = 65512;"))
+    #expect(schema.contains("kSwifterKitAudioValueStereoPan = 6;"))
+    #expect(schema.contains("kSwifterKitAudioControlStereoPan = 5;"))
+    #expect(schema.contains("kSwifterKitAudioObjectEventClockRequest = 7;"))
+    #expect(schema.contains("kSwifterKitAudioClockPropertyWantsControlsRestored = 10;"))
+    #expect(schema.contains("kSwifterKitAudioBoxStateAll = 0x3F;"))
+    #expect(schema.contains("kSwifterKitAudioClockStateAll = 0x1F;"))
+    #expect(schema.contains("kSwifterKitAudioObjectTableCount = 4;"))
   }
 }

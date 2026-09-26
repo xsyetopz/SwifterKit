@@ -186,7 +186,11 @@ struct AudioObjectCommandsTests {
     #expect(throws: AudioRuntimeError.invalidPayload) { try event(6, 0, 0, 1).audioObject() }
     #expect(throws: AudioRuntimeError.invalidPayload) { try event(1, 0, 5, 1).audioObject() }
     #expect(throws: AudioRuntimeError.invalidPayload) { try event(6, 0, 1, 2).audioObject() }
-    #expect(throws: AudioRuntimeError.invalidEventKind(8)) { try event(8, 0, 0, 0).audioObject() }
+    for kind: UInt32 in [0, 8] {
+      #expect(throws: AudioRuntimeError.invalidEventKind(kind)) {
+        try event(kind, 0, 0, 0).audioObject()
+      }
+    }
     #expect(try DriverEvent(type: 0x0A00, payload: []).audioObject() == nil)
   }
 }

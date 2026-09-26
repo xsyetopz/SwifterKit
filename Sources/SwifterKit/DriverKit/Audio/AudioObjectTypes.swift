@@ -19,11 +19,11 @@ public enum AudioObjectTarget: Sendable, Hashable {
 
   var runtimeFields: (kind: UInt32, index: UInt32) {
     switch self {
-    case .driver: (0, 0)
-    case .device: (1, 0)
-    case .box(let index): (2, index)
-    case .clockDevice(let index): (3, index)
-    case .object(let objectID): (4, objectID)
+    case .driver: (RuntimeAudioTargetKind.driver.rawValue, 0)
+    case .device: (RuntimeAudioTargetKind.device.rawValue, 0)
+    case .box(let index): (RuntimeAudioTargetKind.box.rawValue, index)
+    case .clockDevice(let index): (RuntimeAudioTargetKind.clock.rawValue, index)
+    case .object(let objectID): (RuntimeAudioTargetKind.object.rawValue, objectID)
     }
   }
 
@@ -119,7 +119,8 @@ public struct AudioObjectInfo: Sendable, Hashable {
     let uidLength = Int(try runtimePayload.readRuntimeInteger(at: 24) as UInt32)
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 28)
     let base = runtimePayload.startIndex
-    guard reserved == 0, nameLength <= 255, uidLength <= 255,
+    let maximum = RuntimeAudioLimits.nameMaximumLength
+    guard reserved == 0, nameLength <= maximum, uidLength <= maximum,
       runtimePayload.count == 32 + nameLength + uidLength,
       let name = String(
         data: runtimePayload[(base + 32)..<(base + 32 + nameLength)],
@@ -160,24 +161,27 @@ public enum AudioObjectEvent: Sendable, Hashable {
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 12)
     let value: UInt64 = try runtimePayload.readRuntimeInteger(at: 16)
     guard reserved == 0 else { throw AudioRuntimeError.invalidPayload }
-    let requested = kind == 6 || kind == 7
+    guard let eventKind = RuntimeAudioObjectEventKind(rawValue: kind) else {
+      throw AudioRuntimeError.invalidEventKind(kind)
+    }
+    let requested = eventKind == .boxRequest || eventKind == .clockRequest
     guard requested == (requestID != 0) else { throw AudioRuntimeError.invalidPayload }
-    switch kind {
-    case 1: self = .deviceStarted(objectID: index, flags: value)
-    case 2: self = .deviceStopped(objectID: index, flags: value)
-    case 3: self = .clockDeviceStarted(index: index, flags: value)
-    case 4: self = .clockDeviceStopped(index: index, flags: value)
-    case 5: self = .clockDeviceSampleRateChanged(index: index, sampleRate: .init(bitPattern: value))
-    case 6:
+    switch eventKind {
+    case .deviceStarted: self = .deviceStarted(objectID: index, flags: value)
+    case .deviceStopped: self = .deviceStopped(objectID: index, flags: value)
+    case .clockStarted: self = .clockDeviceStarted(index: index, flags: value)
+    case .clockStopped: self = .clockDeviceStopped(index: index, flags: value)
+    case .clockRateChanged:
+      self = .clockDeviceSampleRateChanged(index: index, sampleRate: .init(bitPattern: value))
+    case .boxRequest:
       guard value <= 1 else { throw AudioRuntimeError.invalidPayload }
       self = .boxAcquisitionRequested(requestID: requestID, box: index, acquire: value == 1)
-    case 7:
+    case .clockRequest:
       self = .clockDeviceSampleRateRequested(
         requestID: requestID,
         index: index,
         sampleRate: Double(bitPattern: value)
       )
-    default: throw AudioRuntimeError.invalidEventKind(kind)
     }
   }
 }

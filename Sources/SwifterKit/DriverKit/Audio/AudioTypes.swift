@@ -257,23 +257,26 @@ public enum AudioEvent: Sendable, Hashable {
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 4 else { throw AudioRuntimeError.invalidPayload }
     let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
-    switch kind {
-    case 1...3:
+    guard let eventKind = RuntimeAudioEventKind(rawValue: kind) else {
+      throw AudioRuntimeError.invalidEventKind(kind)
+    }
+    switch eventKind {
+    case .started, .stopped, .sampleRateChanged:
       guard runtimePayload.count == 16 else { throw AudioRuntimeError.invalidPayload }
       let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let value: UInt64 = try runtimePayload.readRuntimeInteger(at: 8)
       guard reserved == 0 else { throw AudioRuntimeError.invalidPayload }
-      switch kind {
-      case 1: self = .started(flags: value)
-      case 2: self = .stopped(flags: value)
+      switch eventKind {
+      case .started: self = .started(flags: value)
+      case .stopped: self = .stopped(flags: value)
       default: self = .sampleRateChanged(Double(bitPattern: value))
       }
-    case 4:
+    case .controlChanged:
       guard runtimePayload.count >= 20 else { throw AudioRuntimeError.invalidPayload }
       let identifier: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let value = try AudioControlValue(runtimePayload: Data(runtimePayload.dropFirst(4)))
       self = .controlChanged(identifier: identifier, value: value)
-    case 5:
+    case .customPropertyChanged:
       guard runtimePayload.count >= 20 else { throw AudioRuntimeError.invalidPayload }
       let identifier: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
       let qualifierLength: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
@@ -281,13 +284,14 @@ public enum AudioEvent: Sendable, Hashable {
       let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 16)
       let qualifierEnd = 20 + Int(qualifierLength)
       let valueEnd = qualifierEnd + Int(valueLength)
-      guard reserved == 0, qualifierLength > 0, qualifierLength <= 255, valueLength <= 4_096,
+      guard reserved == 0, qualifierLength > 0,
+        qualifierLength <= RuntimeAudioLimits.nameMaximumLength,
+        valueLength <= RuntimeAudioLimits.customPropertyValueMaximumLength,
         valueEnd == runtimePayload.count,
         let qualifier = String(data: runtimePayload[20..<qualifierEnd], encoding: .utf8),
         let value = String(data: runtimePayload[qualifierEnd..<valueEnd], encoding: .utf8)
       else { throw AudioRuntimeError.invalidPayload }
       self = .customPropertyChanged(identifier: identifier, qualifier: qualifier, value: value)
-    default: throw AudioRuntimeError.invalidEventKind(kind)
     }
   }
 }

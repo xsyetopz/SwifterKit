@@ -80,16 +80,17 @@ extension DriverExtensionGenerator {
       + value.clockDevices.flatMap { [$0.deviceUID, $0.modelUID, $0.manufacturerUID, $0.name] }
     let uids = [value.deviceUID] + value.boxes.map(\.uid) + value.clockDevices.map(\.deviceUID)
     let owned = value.boxes.flatMap(\.clockDevices)
-    guard strings.allSatisfy({ !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }),
-      Set(uids).count == uids.count, value.boxes.filter(\.ownsDevice).count <= 1,
-      Set(owned).count == owned.count, owned.allSatisfy({ Int($0) < value.clockDevices.count })
+    guard strings.allSatisfy(isValidAudioName), Set(uids).count == uids.count,
+      value.boxes.filter(\.ownsDevice).count <= 1, Set(owned).count == owned.count,
+      owned.allSatisfy({ Int($0) < value.clockDevices.count })
     else { return false }
     return value.clockDevices.allSatisfy { clock in
-      (1...16).contains(clock.sampleRates.count)
+      (1...RuntimeAudioLimits.maximumSampleRates).contains(clock.sampleRates.count)
         && Set(clock.sampleRates).count == clock.sampleRates.count
-        && clock.sampleRates.allSatisfy { $0.isFinite && (8_000...768_000).contains($0) }
+        && clock.sampleRates.allSatisfy(DriverCommand.isValidAudioRate)
         && clock.sampleRates.contains(clock.initialSampleRate)
-        && (16...1_048_576).contains(clock.zeroTimestampPeriod)
+        && (RuntimeAudioLimits.minimumZeroTimestampPeriod...RuntimeAudioLimits.maximumFrameCount)
+          .contains(Int(clock.zeroTimestampPeriod))
         && clock.clockAlgorithm.rawValue != 0
     }
   }

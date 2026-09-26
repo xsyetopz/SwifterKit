@@ -76,11 +76,16 @@ kern_return_t SwifterKitRuntimeService::AudioControlValueEvent(
     uint32_t kind,
     const uint32_t* values,
     uint32_t count) {
-    if (identifier == 0 || kind < 1 || kind > 6 || values == nullptr || count == 0 || count > 32
-        || (kind != 4 && count != 1))
+    if (identifier == 0 || kind < kSwifterKitAudioValueBoolean
+        || kind > kSwifterKitAudioValueStereoPan || values == nullptr || count == 0
+        || count > kSwifterKitAudioMaximumSelectorItems
+        || (kind != kSwifterKitAudioValueSelector && count != 1))
         return kIOReturnBadArgument;
-    uint8_t payload[sizeof(SwifterKitAudioControlEventHeader) + 32 * sizeof(uint32_t)] = {};
-    const SwifterKitAudioControlEventHeader header = {4, identifier, kind, count, 0};
+    uint8_t payload
+        [sizeof(SwifterKitAudioControlEventHeader)
+         + kSwifterKitAudioMaximumSelectorItems * sizeof(uint32_t)] = {};
+    const SwifterKitAudioControlEventHeader header =
+        {kSwifterKitAudioEventControlChanged, identifier, kind, count, 0};
     memcpy(payload, &header, sizeof(header));
     memcpy(payload + sizeof(header), values, count * sizeof(uint32_t));
     return EnqueueRequiredEvent(
@@ -95,12 +100,15 @@ kern_return_t SwifterKitRuntimeService::AudioCustomPropertyEvent(
     uint32_t qualifierLength,
     const uint8_t* value,
     uint32_t valueLength) {
-    if (identifier == 0 || qualifier == nullptr || qualifierLength == 0 || qualifierLength > 255
-        || value == nullptr || valueLength > 4096)
+    if (identifier == 0 || qualifier == nullptr || qualifierLength == 0
+        || qualifierLength > kSwifterKitAudioNameMaximumLength || value == nullptr
+        || valueLength > kSwifterKitAudioCustomPropertyValueMaximumLength)
         return kIOReturnBadArgument;
-    uint8_t payload[sizeof(SwifterKitAudioCustomPropertyEventHeader) + 255 + 4096] = {};
+    uint8_t payload
+        [sizeof(SwifterKitAudioCustomPropertyEventHeader) + kSwifterKitAudioNameMaximumLength
+         + kSwifterKitAudioCustomPropertyValueMaximumLength] = {};
     const SwifterKitAudioCustomPropertyEventHeader header =
-        {5, identifier, qualifierLength, valueLength, 0};
+        {kSwifterKitAudioEventCustomPropertyChanged, identifier, qualifierLength, valueLength, 0};
     memcpy(payload, &header, sizeof(header));
     memcpy(payload + sizeof(header), qualifier, qualifierLength);
     memcpy(payload + sizeof(header) + qualifierLength, value, valueLength);

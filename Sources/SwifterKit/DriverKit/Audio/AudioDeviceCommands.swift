@@ -2,9 +2,9 @@ import Foundation
 
 extension DriverCommand {
   /// The largest stream table, control-selector list, and channel layout the runtime accepts.
-  static let audioMaximumStreams: UInt32 = 8
-  static let audioMaximumSelectorItems = 32
-  static let audioMaximumChannelLabels = 64
+  static let audioMaximumStreams = UInt32(RuntimeAudioLimits.maximumStreams)
+  static let audioMaximumSelectorItems = RuntimeAudioLimits.maximumSelectorItems
+  static let audioMaximumChannelLabels = RuntimeAudioLimits.maximumChannelLabels
 
   /// Reads device state that has no other typed reader.
   public static func audioDeviceState() -> Self {
@@ -59,7 +59,8 @@ extension DriverCommand {
       opcode: .audioGetStreamState,
       requiredCapabilities: .audio,
       payload: audioIdentifierPayload(index),
-      maximumResponseSize: RuntimeMessage.headerSize + 80 + 16 * 40
+      maximumResponseSize: RuntimeMessage.headerSize + 80 + RuntimeAudioLimits.maximumStreamFormats
+        * 40
     )
   }
 
@@ -71,9 +72,11 @@ extension DriverCommand {
     guard index < audioMaximumStreams else { throw AudioRuntimeError.invalidStreamIndex }
     switch property {
     case .startingChannel(let channel) where channel == 0,
-      .currentFormat(let channel) where channel >= 16:
+      .currentFormat(let channel) where channel >= RuntimeAudioLimits.maximumStreamFormats:
       throw AudioRuntimeError.invalidPayload
-    case .ringBufferFrameCapacity(let frames) where !(16...1_048_576).contains(frames):
+    case .ringBufferFrameCapacity(let frames)
+    where !(RuntimeAudioLimits.minimumZeroTimestampPeriod...RuntimeAudioLimits.maximumFrameCount)
+      .contains(Int(frames)):
       throw AudioRuntimeError.invalidPayload
     default: break
     }
@@ -96,7 +99,8 @@ extension DriverCommand {
       opcode: .audioGetControlInfo,
       requiredCapabilities: .audio,
       payload: audioIdentifierPayload(identifier),
-      maximumResponseSize: RuntimeMessage.headerSize + 48 + audioMaximumSelectorItems * (8 + 255)
+      maximumResponseSize: RuntimeMessage.headerSize + 48 + audioMaximumSelectorItems
+        * (8 + RuntimeAudioLimits.nameMaximumLength)
     )
   }
 

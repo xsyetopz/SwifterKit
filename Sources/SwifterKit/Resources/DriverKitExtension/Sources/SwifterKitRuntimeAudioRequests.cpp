@@ -71,14 +71,20 @@ kern_return_t SwifterKitRuntimeService::StartDevice(
     IOUserAudioStartStopFlags flags) {
     const kern_return_t result = super::StartDevice(objectID, flags);
     if (result == kIOReturnSuccess)
-        (void)AudioObjectEvent(1, objectID, static_cast<uint64_t>(flags));
+        (void)AudioObjectEvent(
+            kSwifterKitAudioObjectEventDeviceStarted,
+            objectID,
+            static_cast<uint64_t>(flags));
     return result;
 }
 
 kern_return_t SwifterKitRuntimeService::StopDevice(
     IOUserAudioObjectID objectID,
     IOUserAudioStartStopFlags flags) {
-    (void)AudioObjectEvent(2, objectID, static_cast<uint64_t>(flags));
+    (void)AudioObjectEvent(
+        kSwifterKitAudioObjectEventDeviceStopped,
+        objectID,
+        static_cast<uint64_t>(flags));
     return super::StopDevice(objectID, flags);
 }
 
@@ -206,7 +212,7 @@ kern_return_t SwifterKitRuntimeService::ApplyAudioRequest(
     int32_t failure) {
     auto* box = OSDynamicCast(SwifterKitRuntimeAudioBox, object);
     auto* clock = OSDynamicCast(SwifterKitRuntimeAudioClockDevice, object);
-    if (kind == kSwifterKitAudioEventBoxRequest && box != nullptr) {
+    if (kind == kSwifterKitAudioObjectEventBoxRequest && box != nullptr) {
         // HandleChangeAcquireBox already applied the requested state; a rejection restores it.
         kern_return_t result = box->SetIsAcquired(accept ? value != 0 : value == 0);
         const kern_return_t failed = box->SetAcquisitionFailure(
@@ -215,7 +221,7 @@ kern_return_t SwifterKitRuntimeService::ApplyAudioRequest(
                            : kIOReturnError);
         return result == kIOReturnSuccess ? failed : result;
     }
-    if (kind == kSwifterKitAudioEventClockRequest && clock != nullptr)
+    if (kind == kSwifterKitAudioObjectEventClockRequest && clock != nullptr)
         return clock->FinishSampleRateRequest(
             __builtin_bit_cast(double, value),
             __builtin_bit_cast(double, previous),

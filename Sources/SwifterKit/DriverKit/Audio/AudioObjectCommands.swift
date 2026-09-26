@@ -7,7 +7,7 @@ extension DriverCommand {
       opcode: .audioGetObjectInfo,
       requiredCapabilities: .audio,
       payload: try audioTargetPayload(target),
-      maximumResponseSize: RuntimeMessage.headerSize + 32 + 255 + 255
+      maximumResponseSize: RuntimeMessage.headerSize + 32 + RuntimeAudioLimits.nameMaximumLength * 2
     )
   }
 
@@ -37,7 +37,7 @@ extension DriverCommand {
       opcode: .audioGetElementName,
       requiredCapabilities: .audio,
       payload: try audioElementPayload(target, kind, element, scope, length: 0),
-      maximumResponseSize: RuntimeMessage.headerSize + 255
+      maximumResponseSize: RuntimeMessage.headerSize + RuntimeAudioLimits.nameMaximumLength
     )
   }
 
@@ -65,9 +65,10 @@ extension DriverCommand {
     _ target: AudioObjectTarget,
     selectors: [UInt32]
   ) throws -> Self {
-    guard target != .driver, (1...32).contains(selectors.count), !selectors.contains(0) else {
-      throw AudioRuntimeError.invalidPropertySelectors
-    }
+    guard target != .driver,
+      (1...RuntimeAudioLimits.maximumChangedProperties).contains(selectors.count),
+      !selectors.contains(0)
+    else { throw AudioRuntimeError.invalidPropertySelectors }
     var payload = try audioTargetPayload(target)
     payload.appendRuntimeInteger(UInt32(selectors.count))
     payload.appendRuntimeInteger(UInt32(0))
@@ -136,7 +137,8 @@ extension DriverCommand {
       opcode: .audioGetClockDeviceState,
       requiredCapabilities: .audio,
       payload: try audioTargetPayload(target),
-      maximumResponseSize: RuntimeMessage.headerSize + 80 + 64 * 8
+      maximumResponseSize: RuntimeMessage.headerSize + 80 + RuntimeAudioLimits
+        .maximumReportedSampleRates * 8
     )
   }
 
@@ -145,7 +147,10 @@ extension DriverCommand {
     _ index: UInt32,
     _ property: AudioClockDeviceProperty
   ) throws -> Self {
-    if case .zeroTimestampPeriod(let period) = property, !(16...1_048_576).contains(period) {
+    if case .zeroTimestampPeriod(let period) = property,
+      !(RuntimeAudioLimits.minimumZeroTimestampPeriod...RuntimeAudioLimits.maximumFrameCount)
+        .contains(Int(period))
+    {
       throw AudioRuntimeError.invalidPayload
     }
     let fields = property.runtimeFields
@@ -162,8 +167,8 @@ extension DriverCommand {
     _ index: UInt32,
     _ sampleRates: [Double]
   ) throws -> Self {
-    guard (1...16).contains(sampleRates.count), Set(sampleRates).count == sampleRates.count,
-      sampleRates.allSatisfy({ $0.isFinite && (8_000...768_000).contains($0) })
+    guard (1...RuntimeAudioLimits.maximumSampleRates).contains(sampleRates.count),
+      Set(sampleRates).count == sampleRates.count, sampleRates.allSatisfy(isValidAudioRate)
     else { throw AudioRuntimeError.invalidSampleRates }
     var payload = try audioTargetPayload(.clockDevice(index))
     payload.appendRuntimeInteger(UInt32(sampleRates.count))
@@ -199,9 +204,7 @@ extension DriverCommand {
     _ index: UInt32,
     _ sampleRate: Double
   ) throws -> Self {
-    guard sampleRate.isFinite, (8_000...768_000).contains(sampleRate) else {
-      throw AudioRuntimeError.invalidSampleRates
-    }
+    guard isValidAudioRate(sampleRate) else { throw AudioRuntimeError.invalidSampleRates }
     return Self(
       opcode: .audioRequestClockSampleRate,
       requiredCapabilities: .audio,
@@ -236,6 +239,13 @@ extension DriverCommand {
       payload: payload,
       maximumResponseSize: RuntimeMessage.headerSize
     )
+  }
+
+  static func isValidAudioRate(_ rate: Double) -> Bool {
+    rate.isFinite
+      && (RuntimeAudioLimits.minimumSampleRate...RuntimeAudioLimits.maximumSampleRate).contains(
+        rate
+      )
   }
 
   private static func audioTargetPayload(_ target: AudioObjectTarget) throws -> Data {
@@ -276,9 +286,8 @@ extension DriverCommand {
 
   private static func audioName(_ name: String) throws -> Data {
     let bytes = Data(name.utf8)
-    guard !bytes.isEmpty, bytes.count <= 255, !bytes.contains(0) else {
-      throw AudioRuntimeError.invalidName
-    }
+    guard !bytes.isEmpty, bytes.count <= RuntimeAudioLimits.nameMaximumLength, !bytes.contains(0)
+    else { throw AudioRuntimeError.invalidName }
     return bytes
   }
 }
@@ -304,9 +313,9 @@ extension DriverContext {
     let data = try await execute(
       .audioElementName(target, kind: kind, element: element, scope: scope)
     )
-    guard data.count <= 255, let name = String(data: data, encoding: .utf8) else {
-      throw AudioRuntimeError.invalidPayload
-    }
+    guard data.count <= RuntimeAudioLimits.nameMaximumLength,
+      let name = String(data: data, encoding: .utf8)
+    else { throw AudioRuntimeError.invalidPayload }
     return name
   }
 

@@ -134,15 +134,18 @@ public enum AudioDeviceProperty: Sendable, Hashable {
   case wantsStreamFormatsRestored(Bool)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
-    switch self {
-    case .canBeDefaultInput(let flag): (1, flag ? 1 : 0)
-    case .canBeDefaultOutput(let flag): (2, flag ? 1 : 0)
-    case .canBeDefaultSystemOutput(let flag): (3, flag ? 1 : 0)
-    case .inputSafetyOffset(let frames): (4, UInt64(frames))
-    case .outputSafetyOffset(let frames): (5, UInt64(frames))
-    case .preferredStereoChannels(let pair): (6, UInt64(pair.left) | UInt64(pair.right) << 32)
-    case .wantsStreamFormatsRestored(let flag): (7, flag ? 1 : 0)
-    }
+    let fields: (RuntimeAudioDeviceProperty, UInt64) =
+      switch self {
+      case .canBeDefaultInput(let flag): (.canBeDefaultInput, flag ? 1 : 0)
+      case .canBeDefaultOutput(let flag): (.canBeDefaultOutput, flag ? 1 : 0)
+      case .canBeDefaultSystemOutput(let flag): (.canBeDefaultSystemOutput, flag ? 1 : 0)
+      case .inputSafetyOffset(let frames): (.inputSafetyOffset, UInt64(frames))
+      case .outputSafetyOffset(let frames): (.outputSafetyOffset, UInt64(frames))
+      case .preferredStereoChannels(let pair):
+        (.preferredStereoChannels, UInt64(pair.left) | UInt64(pair.right) << 32)
+      case .wantsStreamFormatsRestored(let flag): (.wantsStreamFormatsRestored, flag ? 1 : 0)
+      }
+    return (fields.0.rawValue, fields.1)
   }
 }
 
@@ -183,9 +186,9 @@ public struct AudioStreamState: Sendable, Hashable {
     let active: UInt32 = try runtimePayload.readRuntimeInteger(at: 20)
     let attached: UInt32 = try runtimePayload.readRuntimeInteger(at: 24)
     let count = Int(try runtimePayload.readRuntimeInteger(at: 28) as UInt32)
-    guard active <= 1, attached <= 1, count <= 16, runtimePayload.count == 80 + count * 40 else {
-      throw AudioRuntimeError.invalidPayload
-    }
+    guard active <= 1, attached <= 1, count <= RuntimeAudioLimits.maximumStreamFormats,
+      runtimePayload.count == 80 + count * 40
+    else { throw AudioRuntimeError.invalidPayload }
     isActive = active == 1
     isAttached = attached == 1
     memoryLength = try runtimePayload.readRuntimeInteger(at: 32)
@@ -230,14 +233,16 @@ public enum AudioStreamProperty: Sendable, Hashable {
   case ringBufferFrameCapacity(UInt32)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
-    switch self {
-    case .isActive(let flag): (1, flag ? 1 : 0)
-    case .latency(let frames): (2, UInt64(frames))
-    case .startingChannel(let channel): (3, UInt64(channel))
-    case .terminalType(let type): (4, UInt64(type.rawValue))
-    case .currentFormat(let index): (5, UInt64(index))
-    case .ringBufferFrameCapacity(let frames): (6, UInt64(frames))
-    }
+    let fields: (RuntimeAudioStreamProperty, UInt64) =
+      switch self {
+      case .isActive(let flag): (.isActive, flag ? 1 : 0)
+      case .latency(let frames): (.latency, UInt64(frames))
+      case .startingChannel(let channel): (.startingChannel, UInt64(channel))
+      case .terminalType(let type): (.terminalType, UInt64(type.rawValue))
+      case .currentFormat(let index): (.currentFormat, UInt64(index))
+      case .ringBufferFrameCapacity(let frames): (.ringBufferFrameCapacity, UInt64(frames))
+      }
+    return (fields.0.rawValue, fields.1)
   }
 }
 
@@ -288,7 +293,8 @@ public struct AudioControlInfo: Sendable, Hashable {
     let right: UInt32 = try runtimePayload.readRuntimeInteger(at: 36)
     let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 40)
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 44)
-    guard settable <= 1, attached <= 1, reserved == 0, count <= 32, kind == .selector || count == 0,
+    guard settable <= 1, attached <= 1, reserved == 0,
+      count <= RuntimeAudioLimits.maximumSelectorItems, kind == .selector || count == 0,
       kind != .slider || minimum <= maximum
     else { throw AudioRuntimeError.invalidPayload }
     isSettable = settable == 1
@@ -301,7 +307,7 @@ public struct AudioControlInfo: Sendable, Hashable {
       let value: UInt32 = try runtimePayload.readRuntimeInteger(at: offset)
       let length = Int(try runtimePayload.readRuntimeInteger(at: offset + 4) as UInt32)
       let end = offset + 8 + length
-      guard length <= 255, end <= runtimePayload.count,
+      guard length <= RuntimeAudioLimits.nameMaximumLength, end <= runtimePayload.count,
         let name = String(data: runtimePayload[(offset + 8)..<end], encoding: .utf8)
       else { throw AudioRuntimeError.invalidPayload }
       items.append(AudioSelectorValue(value: value, name: name))
@@ -321,8 +327,16 @@ public enum AudioControlProperty: Sendable, Hashable {
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
     switch self {
-    case .sliderRange(let range): (1, UInt64(range.lowerBound) | UInt64(range.upperBound) << 32)
-    case .panningChannels(let pair): (2, UInt64(pair.left) | UInt64(pair.right) << 32)
+    case .sliderRange(let range):
+      (
+        RuntimeAudioControlProperty.sliderRange.rawValue,
+        UInt64(range.lowerBound) | UInt64(range.upperBound) << 32
+      )
+    case .panningChannels(let pair):
+      (
+        RuntimeAudioControlProperty.panningChannels.rawValue,
+        UInt64(pair.left) | UInt64(pair.right) << 32
+      )
     }
   }
 }
@@ -363,9 +377,10 @@ public enum AudioMember: Sendable, Hashable {
 
   var runtimeFields: (kind: UInt32, identifier: UInt32) {
     switch self {
-    case .stream(let index): (1, index)
-    case .control(let identifier): (2, identifier)
-    case .customProperty(let identifier): (3, identifier)
+    case .stream(let index): (RuntimeAudioMemberKind.stream.rawValue, index)
+    case .control(let identifier): (RuntimeAudioMemberKind.control.rawValue, identifier)
+    case .customProperty(let identifier):
+      (RuntimeAudioMemberKind.customProperty.rawValue, identifier)
     }
   }
 }

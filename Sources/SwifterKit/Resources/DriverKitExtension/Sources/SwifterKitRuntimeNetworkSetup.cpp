@@ -196,7 +196,11 @@ kern_return_t SwifterKitRuntimeService::StartNetwork() {
         ivars->networkRxCompletion};
     // The family reads the address back through getHardwareAddress.
     if (result == kIOReturnSuccess)
-        result = registerEthernetInterface(queues, 4, ivars->networkPool, ivars->networkRxPool);
+        result = registerEthernetInterface(
+            queues,
+            kSwifterKitNetworkQueueCount,
+            ivars->networkPool,
+            ivars->networkRxPool);
     if (result == kIOReturnSuccess && kSwifterKitEthernetPacketTap)
         result = bpfAttach(kSwifterKitEthernetDataLinkType, kSwifterKitEthernetHeaderLength);
     if (result == kIOReturnSuccess && kSwifterKitEthernetPolling

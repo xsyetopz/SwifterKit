@@ -111,12 +111,18 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::RequestSampleRate(double sample
 kern_return_t SwifterKitRuntimeAudioClockDevice::StartIO(IOUserAudioStartStopFlags flags) {
     const kern_return_t result = super::StartIO(flags);
     if (result == kIOReturnSuccess)
-        (void)ivars->service->AudioObjectEvent(3, ivars->index, static_cast<uint64_t>(flags));
+        (void)ivars->service->AudioObjectEvent(
+            kSwifterKitAudioObjectEventClockStarted,
+            ivars->index,
+            static_cast<uint64_t>(flags));
     return result;
 }
 
 kern_return_t SwifterKitRuntimeAudioClockDevice::StopIO(IOUserAudioStartStopFlags flags) {
-    (void)ivars->service->AudioObjectEvent(4, ivars->index, static_cast<uint64_t>(flags));
+    (void)ivars->service->AudioObjectEvent(
+        kSwifterKitAudioObjectEventClockStopped,
+        ivars->index,
+        static_cast<uint64_t>(flags));
     return super::StopIO(flags);
 }
 
@@ -148,7 +154,7 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::PerformDeviceConfigurationChang
         IsAvailableSampleRate(sampleRate) ? SetSampleRate(sampleRate) : kIOReturnBadArgument;
     if (result == kIOReturnSuccess)
         result = ivars->service->AudioObjectEvent(
-            5,
+            kSwifterKitAudioObjectEventClockRateChanged,
             ivars->index,
             __builtin_bit_cast(uint64_t, sampleRate));
     return result;
@@ -178,7 +184,7 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::HandleChangeSampleRate(double s
         return result;
     result = ivars->service->BeginAudioRequest(
         this,
-        kSwifterKitAudioEventClockRequest,
+        kSwifterKitAudioObjectEventClockRequest,
         ivars->index,
         __builtin_bit_cast(uint64_t, sampleRate),
         __builtin_bit_cast(uint64_t, previous));
@@ -197,7 +203,7 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::FinishSampleRateRequest(
         return kIOReturnNotReady;
     if (accept)
         return ivars->service->AudioObjectEvent(
-            5,
+            kSwifterKitAudioObjectEventClockRateChanged,
             ivars->index,
             __builtin_bit_cast(uint64_t, requested));
     // Outside the callback the rate changes only through a device configuration change, and a

@@ -103,25 +103,33 @@ extension DriverExtensionGenerator {
     var initialStart = 0
     let controls = audio.controls.map { control -> String in
       let metadata = control.metadata
+      typealias Kind = RuntimeAudioControlKind
       var fields: [UInt32]
       switch control {
-      case .boolean(let value): fields = [1, value.initialValue ? 1 : 0, 0, 1, 0, 0, 0, 0, 0]
+      case .boolean(let value):
+        fields = [Kind.boolean.rawValue, value.initialValue ? 1 : 0, 0, 1, 0, 0, 0, 0, 0]
       case .level(let value):
         fields = [
-          2, value.initialDecibels.bitPattern, value.minimumDecibels.bitPattern,
+          Kind.level.rawValue, value.initialDecibels.bitPattern, value.minimumDecibels.bitPattern,
           value.maximumDecibels.bitPattern, 0, 0, 0, 0, 0,
         ]
       case .selector(let value):
         fields = [
-          3, 0, 0, 0, 0, UInt32(selectorStart), UInt32(value.values.count), UInt32(initialStart),
-          UInt32(value.initialValues.count),
+          Kind.selector.rawValue, 0, 0, 0, 0, UInt32(selectorStart), UInt32(value.values.count),
+          UInt32(initialStart), UInt32(value.initialValues.count),
         ]
         selectorStart += value.values.count
         initialStart += value.initialValues.count
       case .slider(let value):
-        fields = [4, value.initialValue, value.minimumValue, value.maximumValue, 0, 0, 0, 0, 0]
+        fields = [
+          Kind.slider.rawValue, value.initialValue, value.minimumValue, value.maximumValue, 0, 0, 0,
+          0, 0,
+        ]
       case .stereoPan(let value):
-        fields = [5, value.initialValue.bitPattern, 0, 0, value.leftChannel, 0, 0, 0, 0]
+        fields = [
+          Kind.stereoPan.rawValue, value.initialValue.bitPattern, 0, 0, value.leftChannel, 0, 0, 0,
+          0,
+        ]
       }
       let auxiliary1: UInt32
       if case .stereoPan(let value) = control {

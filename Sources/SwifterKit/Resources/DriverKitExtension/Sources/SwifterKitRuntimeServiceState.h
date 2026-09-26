@@ -308,13 +308,13 @@ struct SwifterKitRuntimeService_IVars {
     SwifterKitRuntimeAudioDevice* audioDevice = nullptr;
     // Boxes and clock devices by configuration index, and the box (index + 1) that owns the
     // device or each clock device; zero means unowned. All guarded by audioLock.
-    SwifterKitRuntimeAudioBox* audioBoxes[4] = {};
-    SwifterKitRuntimeAudioClockDevice* audioClockDevices[4] = {};
+    SwifterKitRuntimeAudioBox* audioBoxes[kSwifterKitAudioObjectTableCount] = {};
+    SwifterKitRuntimeAudioClockDevice* audioClockDevices[kSwifterKitAudioObjectTableCount] = {};
     uint8_t audioDeviceOwner = 0;
-    uint8_t audioClockOwners[4] = {};
+    uint8_t audioClockOwners[kSwifterKitAudioObjectTableCount] = {};
     // Requests Swift must answer, guarded by audioRequestLock.
     IOLock* audioRequestLock = nullptr;
-    SwifterKitAudioPendingRequest audioRequests[8] = {};
+    SwifterKitAudioPendingRequest audioRequests[kSwifterKitAudioPendingRequestCount] = {};
     uint32_t nextAudioRequestID = 1;
     bool audioRequestsStopped = true;
     IOTimerDispatchSource* audioRequestTimer = nullptr;

@@ -59,8 +59,9 @@ namespace {
 
     // Copies a bounded, NUL-free name from a payload into an OSString.
     OSString* CopyName(const uint8_t* bytes, uint32_t length) {
-        char name[256] = {};
-        if (bytes == nullptr || length == 0 || length > 255 || memchr(bytes, 0, length) != nullptr)
+        char name[kSwifterKitAudioNameMaximumLength + 1] = {};
+        if (bytes == nullptr || length == 0 || length > kSwifterKitAudioNameMaximumLength
+            || memchr(bytes, 0, length) != nullptr)
             return nullptr;
         memcpy(name, bytes, length);
         return OSString::withCString(name);
@@ -68,7 +69,7 @@ namespace {
 
     kern_return_t AppendName(OSData* data, const OSSharedPtr<OSString>& name, uint32_t* length) {
         *length = name ? static_cast<uint32_t>(name->getLength()) : 0;
-        if (*length > 255)
+        if (*length > kSwifterKitAudioNameMaximumLength)
             return kIOReturnNoSpace;
         return *length == 0 || data->appendBytes(name->getCStringNoCopy(), *length)
                    ? kIOReturnSuccess
@@ -143,7 +144,8 @@ namespace {
                     uid = box->GetUID();
                 }
             }
-            OSData* data = OSData::withCapacity(sizeof(header) + 510);
+            OSData* data =
+                OSData::withCapacity(sizeof(header) + 2 * kSwifterKitAudioNameMaximumLength);
             if (data == nullptr)
                 return kIOReturnNoMemory;
             kern_return_t result =
@@ -189,8 +191,10 @@ namespace {
                 name->release();
                 return result;
             }
-            IOUserAudioObjectPropertySelector selectors[32] = {};
-            if (header.count == 0 || header.count > 32 || bodyLength != header.count * 4ULL)
+            IOUserAudioObjectPropertySelector selectors[kSwifterKitAudioMaximumChangedProperties] =
+                {};
+            if (header.count == 0 || header.count > kSwifterKitAudioMaximumChangedProperties
+                || bodyLength != header.count * 4ULL)
                 return kIOReturnBadArgument;
             memcpy(selectors, body, header.count * 4ULL);
             for (uint32_t index = 0; index < header.count; ++index)
@@ -226,7 +230,7 @@ namespace {
         SwifterKitAudioElementNameHeader header = {};
         memcpy(&header, payload, sizeof(header));
         const bool setting = Is(opcode, Opcode::AudioSetElementName);
-        if (header.kind > 2
+        if (header.kind > kSwifterKitAudioElementNumber
             || (setting ? payloadLength != sizeof(header) + header.length
                         : payloadLength != sizeof(header) || header.length != 0))
             return kIOReturnBadArgument;
@@ -240,20 +244,22 @@ namespace {
             OSString* name = CopyName(payload + sizeof(header), header.length);
             if (name == nullptr)
                 return kIOReturnBadArgument;
-            const kern_return_t result =
-                header.kind == 0   ? object->SetElementName(element, scope, name)
-                : header.kind == 1 ? object->SetElementCategoryName(element, scope, name)
-                                   : object->SetElementNumberName(element, scope, name);
+            const kern_return_t result = header.kind == kSwifterKitAudioElementName
+                                             ? object->SetElementName(element, scope, name)
+                                         : header.kind == kSwifterKitAudioElementCategory
+                                             ? object->SetElementCategoryName(element, scope, name)
+                                             : object->SetElementNumberName(element, scope, name);
             name->release();
             return result;
         }
-        const OSSharedPtr<OSString> name = header.kind == 0 ? object->GetElementName(element, scope)
-                                           : header.kind == 1
+        const OSSharedPtr<OSString> name = header.kind == kSwifterKitAudioElementName
+                                               ? object->GetElementName(element, scope)
+                                           : header.kind == kSwifterKitAudioElementCategory
                                                ? object->GetElementCategoryName(element, scope)
                                                : object->GetElementNumberName(element, scope);
         if (!name || name->getLength() == 0)
             return kIOReturnSuccess;
-        return name->getLength() > 255
+        return name->getLength() > kSwifterKitAudioNameMaximumLength
                    ? kIOReturnNoSpace
                    : BytesResponse(name->getCStringNoCopy(), name->getLength(), response);
     }
@@ -281,9 +287,12 @@ namespace {
             const SwifterKitAudioBoxState boxState = {
                 box->GetObjectID(),
                 static_cast<uint32_t>(box->GetTransportType()),
-                (box->HasAudio() ? 0x1U : 0) | (box->HasMIDI() ? 0x2U : 0)
-                    | (box->HasVideo() ? 0x4U : 0) | (box->IsAcquirable() ? 0x8U : 0)
-                    | (box->IsAcquired() ? 0x10U : 0) | (box->IsProtected() ? 0x20U : 0),
+                (box->HasAudio() ? kSwifterKitAudioBoxStateHasAudio : 0)
+                    | (box->HasMIDI() ? kSwifterKitAudioBoxStateHasMIDI : 0)
+                    | (box->HasVideo() ? kSwifterKitAudioBoxStateHasVideo : 0)
+                    | (box->IsAcquirable() ? kSwifterKitAudioBoxStateIsAcquirable : 0)
+                    | (box->IsAcquired() ? kSwifterKitAudioBoxStateIsAcquired : 0)
+                    | (box->IsProtected() ? kSwifterKitAudioBoxStateIsProtected : 0),
                 box->GetAcquisitionFailure()};
             return BytesResponse(&boxState, sizeof(boxState), response);
         }
@@ -353,9 +362,12 @@ namespace {
             clockState.transport = static_cast<uint32_t>(clock->GetTransportType());
             clockState.transportState = static_cast<uint32_t>(clock->GetDeviceTransportState());
             clockState.flags =
-                (clock->GetClockIsStable() ? 0x1U : 0) | (clock->GetDeviceIsAlive() ? 0x2U : 0)
-                | (clock->GetDeviceIsRunning() ? 0x4U : 0) | (clock->GetIsHidden() ? 0x8U : 0)
-                | (clock->GetSupportsPrewarming() ? 0x10U : 0);
+                (clock->GetClockIsStable() ? kSwifterKitAudioClockStateClockIsStable : 0)
+                | (clock->GetDeviceIsAlive() ? kSwifterKitAudioClockStateIsAlive : 0)
+                | (clock->GetDeviceIsRunning() ? kSwifterKitAudioClockStateIsRunning : 0)
+                | (clock->GetIsHidden() ? kSwifterKitAudioClockStateIsHidden : 0)
+                | (clock->GetSupportsPrewarming() ? kSwifterKitAudioClockStateSupportsPrewarming
+                                                  : 0);
             clockState.inputLatency = clock->GetInputLatency();
             clockState.outputLatency = clock->GetOutputLatency();
             clockState.zeroTimestampPeriod = clock->GetZeroTimestampPeriod();
@@ -371,13 +383,15 @@ namespace {
             if (payloadLength < sizeof(header))
                 return kIOReturnBadArgument;
             memcpy(&header, payload, sizeof(header));
-            double rates[16] = {};
-            if (header.reserved != 0 || header.count == 0 || header.count > 16
+            double rates[kSwifterKitAudioMaximumSettableSampleRates] = {};
+            if (header.reserved != 0 || header.count == 0
+                || header.count > kSwifterKitAudioMaximumSettableSampleRates
                 || payloadLength != sizeof(header) + header.count * sizeof(double))
                 return kIOReturnBadArgument;
             memcpy(rates, payload + sizeof(header), header.count * sizeof(double));
             for (uint32_t index = 0; index < header.count; ++index) {
-                if (!(rates[index] >= 8000.0 && rates[index] <= 768000.0))
+                if (!(rates[index] >= kSwifterKitAudioMinimumSampleRate
+                      && rates[index] <= kSwifterKitAudioMaximumSampleRate))
                     return kIOReturnBadArgument;
                 for (uint32_t other = 0; other < index; ++other)
                     if (rates[other] == rates[index])
@@ -419,26 +433,29 @@ namespace {
 
     kern_return_t
         SetBoxProperty(SwifterKitRuntimeAudioBox* box, uint32_t selector, uint64_t value) {
-        if (selector == 0 || selector > 8 || (selector >= 2 && selector <= 7 && !IsBool(value))
-            || value > UINT32_MAX)
+        const bool boolean = selector >= kSwifterKitAudioBoxPropertyHasAudio
+                             && selector <= kSwifterKitAudioBoxPropertyIsProtected;
+        if (selector < kSwifterKitAudioBoxPropertyTransport
+            || selector > kSwifterKitAudioBoxPropertyAcquisitionFailure
+            || (boolean && !IsBool(value)) || value > UINT32_MAX)
             return kIOReturnBadArgument;
         if (box == nullptr)
             return kIOReturnNotFound;
         const bool flag = value == 1;
         switch (selector) {
-            case 1:
+            case kSwifterKitAudioBoxPropertyTransport:
                 return box->SetTransportType(static_cast<IOUserAudioTransportType>(value));
-            case 2:
+            case kSwifterKitAudioBoxPropertyHasAudio:
                 return box->SetHasAudio(flag);
-            case 3:
+            case kSwifterKitAudioBoxPropertyHasMIDI:
                 return box->SetHasMIDI(flag);
-            case 4:
+            case kSwifterKitAudioBoxPropertyHasVideo:
                 return box->SetHasVideo(flag);
-            case 5:
+            case kSwifterKitAudioBoxPropertyIsAcquirable:
                 return box->SetIsAcquirable(flag);
-            case 6:
+            case kSwifterKitAudioBoxPropertyIsAcquired:
                 return box->SetIsAcquired(flag);
-            case 7:
+            case kSwifterKitAudioBoxPropertyIsProtected:
                 return box->SetIsProtected(flag);
             default:
                 return box->SetAcquisitionFailure(
@@ -450,29 +467,36 @@ namespace {
         SwifterKitRuntimeAudioClockDevice* clock,
         uint32_t selector,
         uint64_t value) {
-        const bool boolean = selector == 3 || selector == 4 || selector == 5 || selector == 10;
-        if (selector == 0 || selector > 10 || value > UINT32_MAX || (boolean && !IsBool(value))
-            || (selector == 9 && (value < 16 || value > 1048576)))
+        const bool boolean = selector == kSwifterKitAudioClockPropertyClockIsStable
+                             || selector == kSwifterKitAudioClockPropertyIsAlive
+                             || selector == kSwifterKitAudioClockPropertyIsHidden
+                             || selector == kSwifterKitAudioClockPropertyWantsControlsRestored;
+        if (selector < kSwifterKitAudioClockPropertyClockDomain
+            || selector > kSwifterKitAudioClockPropertyWantsControlsRestored || value > UINT32_MAX
+            || (boolean && !IsBool(value))
+            || (selector == kSwifterKitAudioClockPropertyZeroTimestampPeriod
+                && (value < kSwifterKitAudioMinimumZeroTimestampPeriod
+                    || value > kSwifterKitAudioMaximumFrameCount)))
             return kIOReturnBadArgument;
         if (clock == nullptr)
             return kIOReturnNotFound;
         const auto number = static_cast<uint32_t>(value);
         switch (selector) {
-            case 1:
+            case kSwifterKitAudioClockPropertyClockDomain:
                 return clock->SetClockDomain(number);
-            case 2:
+            case kSwifterKitAudioClockPropertyClockAlgorithm:
                 return clock->SetClockAlgorithm(static_cast<IOUserAudioClockAlgorithm>(number));
-            case 3:
+            case kSwifterKitAudioClockPropertyClockIsStable:
                 return clock->SetClockIsStable(number == 1);
-            case 4:
+            case kSwifterKitAudioClockPropertyIsAlive:
                 return clock->SetDeviceIsAlive(number == 1);
-            case 5:
+            case kSwifterKitAudioClockPropertyIsHidden:
                 return clock->SetIsHidden(number == 1);
-            case 6:
-            case 7:
-            case 9:
+            case kSwifterKitAudioClockPropertyInputLatency:
+            case kSwifterKitAudioClockPropertyOutputLatency:
+            case kSwifterKitAudioClockPropertyZeroTimestampPeriod:
                 return SwifterKitRequestAudioMemberChange(clock, selector, 0, number);
-            case 8:
+            case kSwifterKitAudioClockPropertyTransport:
                 return clock->SetTransportType(static_cast<IOUserAudioTransportType>(number));
             default:
     #if defined(__DRIVERKIT_25_5) && __DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5

@@ -4,9 +4,11 @@ extension DriverCommand {
   /// Reads raw bytes from an AudioDriverKit stream ring buffer.
   public static func audioReadStream(index: UInt32, byteOffset: UInt64, length: Int) throws -> Self
   {
-    guard index < 8 else { throw AudioRuntimeError.invalidStreamIndex }
+    guard index < audioMaximumStreams else { throw AudioRuntimeError.invalidStreamIndex }
     guard length > 0 else { throw AudioRuntimeError.invalidTransferRange }
-    guard length <= 65_472 else { throw AudioRuntimeError.transferTooLarge }
+    guard length <= RuntimeAudioLimits.maximumWriteLength else {
+      throw AudioRuntimeError.transferTooLarge
+    }
     return Self(
       opcode: .audioReadStream,
       requiredCapabilities: .audio,
@@ -18,9 +20,11 @@ extension DriverCommand {
   /// Writes raw bytes into an AudioDriverKit stream ring buffer.
   public static func audioWriteStream(index: UInt32, byteOffset: UInt64, bytes: Data) throws -> Self
   {
-    guard index < 8 else { throw AudioRuntimeError.invalidStreamIndex }
+    guard index < audioMaximumStreams else { throw AudioRuntimeError.invalidStreamIndex }
     guard !bytes.isEmpty else { throw AudioRuntimeError.invalidTransferRange }
-    guard bytes.count <= 65_472 else { throw AudioRuntimeError.transferTooLarge }
+    guard bytes.count <= RuntimeAudioLimits.maximumWriteLength else {
+      throw AudioRuntimeError.transferTooLarge
+    }
     var payload = audioTransferPayload(
       index: index,
       byteOffset: byteOffset,

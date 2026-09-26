@@ -102,7 +102,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::Configure() {
          ++index) {
         const auto& config = kSwifterKitAudioStreams[index];
         uint32_t maximumBytesPerFrame = 0;
-        IOUserAudioStreamBasicDescription formats[16] = {};
+        IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats] = {};
         for (uint32_t formatIndex = 0; formatIndex < config.formatCount; ++formatIndex) {
             const auto& source = kSwifterKitAudioFormats[config.formatStart + formatIndex];
             formats[formatIndex] = NativeFormat(source);
@@ -164,7 +164,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::Configure() {
 kern_return_t SwifterKitRuntimeAudioDevice::ReadMappedStream(
     const SwifterKitAudioTransferHeader* transfer,
     OSData** response) {
-    if (transfer == nullptr || response == nullptr || transfer->length > 65512
+    if (transfer == nullptr || response == nullptr
+        || transfer->length > kSwifterKitAudioMaximumReadLength
         || transfer->streamIndex >= kSwifterKitAudioStreamCount)
         return kIOReturnBadArgument;
     IOMemoryMap* map = ivars->maps[transfer->streamIndex];
@@ -191,7 +192,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::ReadMappedStream(
 kern_return_t SwifterKitRuntimeAudioDevice::WriteMappedStream(
     const SwifterKitAudioTransferHeader* transfer,
     const uint8_t* bytes) {
-    if (transfer == nullptr || bytes == nullptr || transfer->length > 65472
+    if (transfer == nullptr || bytes == nullptr
+        || transfer->length > kSwifterKitAudioMaximumWriteLength
         || transfer->streamIndex >= kSwifterKitAudioStreamCount)
         return kIOReturnBadArgument;
     IOMemoryMap* map = ivars->maps[transfer->streamIndex];
@@ -248,12 +250,16 @@ kern_return_t SwifterKitRuntimeAudioDevice::RequestSampleRate(double sampleRate)
 kern_return_t SwifterKitRuntimeAudioDevice::StartIO(IOUserAudioStartStopFlags flags) {
     const kern_return_t result = super::StartIO(flags);
     if (result == kIOReturnSuccess)
-        (void)ivars->service->AudioControlEvent(1, static_cast<uint64_t>(flags));
+        (void)ivars->service->AudioControlEvent(
+            kSwifterKitAudioEventStarted,
+            static_cast<uint64_t>(flags));
     return result;
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::StopIO(IOUserAudioStartStopFlags flags) {
-    (void)ivars->service->AudioControlEvent(2, static_cast<uint64_t>(flags));
+    (void)ivars->service->AudioControlEvent(
+        kSwifterKitAudioEventStopped,
+        static_cast<uint64_t>(flags));
     return super::StopIO(flags);
 }
 
@@ -275,7 +281,9 @@ kern_return_t SwifterKitRuntimeAudioDevice::PerformDeviceConfigurationChange(
          ++index)
         result = ivars->streams[index]->DeviceSampleRateChanged(sampleRate);
     if (result == kIOReturnSuccess)
-        result = ivars->service->AudioControlEvent(3, __builtin_bit_cast(uint64_t, sampleRate));
+        result = ivars->service->AudioControlEvent(
+            kSwifterKitAudioEventSampleRateChanged,
+            __builtin_bit_cast(uint64_t, sampleRate));
     return result;
 }
 
@@ -297,7 +305,9 @@ kern_return_t SwifterKitRuntimeAudioDevice::HandleChangeSampleRate(double sample
          ++index)
         result = ivars->streams[index]->DeviceSampleRateChanged(sampleRate);
     if (result == kIOReturnSuccess)
-        result = ivars->service->AudioControlEvent(3, __builtin_bit_cast(uint64_t, sampleRate));
+        result = ivars->service->AudioControlEvent(
+            kSwifterKitAudioEventSampleRateChanged,
+            __builtin_bit_cast(uint64_t, sampleRate));
     return result;
 }
 #endif

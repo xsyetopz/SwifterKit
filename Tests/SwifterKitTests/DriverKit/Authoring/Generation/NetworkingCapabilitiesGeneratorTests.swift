@@ -58,7 +58,9 @@ struct NetworkingCapabilitiesGeneratorTests {
     // Registration uses the two-pool form, and each pool is checked against its size.
     #expect(
       setup.contains(
-        "registerEthernetInterface(queues, 4, ivars->networkPool, ivars->networkRxPool)"
+        "registerEthernetInterface(\n            queues,\n"
+          + "            kSwifterKitNetworkQueueCount,\n"
+          + "            ivars->networkPool,\n            ivars->networkRxPool);"
       )
     )
     #expect(setup.contains("options.poolFlags = kSwifterKitEthernetPoolFlags | PoolFlagMapToDext;"))

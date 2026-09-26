@@ -3,12 +3,15 @@
 
 #include <stdint.h>
 
+#include "SwifterKitRuntimeSchema.h"
+
 // Packed payloads for the audio object, box, and clock-device opcodes 0x0A10-0x0A1D, the
 // device, stream, control, and custom-property opcodes 0x0A20-0x0A29, and the
 // audioObject event 0x0A01. Every multi-byte field is little-endian, as in
 // SwifterKitRuntimeProtocol.h, and every reserved field must be zero.
 
-// Target kinds: 0 driver, 1 device, 2 box (index), 3 clock device (index), 4 object (ID).
+// kind is a kSwifterKitAudioTarget value; index selects a box or clock device, or holds an
+// object ID.
 struct __attribute__((packed)) SwifterKitAudioObjectTarget {
     uint32_t kind;
     uint32_t index;
@@ -94,9 +97,8 @@ struct __attribute__((packed)) SwifterKitAudioRequestAnswer {
     uint32_t reserved;
 };
 
-// Kinds: 1 device started, 2 device stopped, 3 clock started, 4 clock stopped, 5 clock rate
-// changed, 6 box acquisition request, 7 clock sample-rate request. Kinds 6 and 7 are required
-// events with a nonzero request ID; the others carry request ID zero.
+// kind is a kSwifterKitAudioObjectEvent value. BoxRequest and ClockRequest are required events
+// with a nonzero request ID; the others carry request ID zero.
 struct __attribute__((packed)) SwifterKitAudioObjectEvent {
     uint32_t kind;
     uint32_t index;
@@ -106,9 +108,9 @@ struct __attribute__((packed)) SwifterKitAudioObjectEvent {
 };
 
 // Device, stream, control, and custom-property opcodes 0x0A20-0x0A29.
-// SetDeviceProperty selectors: 1-3 can-be-default input, output, system output (0 or 1);
-// 4-5 input and output safety offsets; 6 preferred stereo channels (left in the low word);
-// 7 wants stream formats restored (0 or 1).
+// SetDeviceProperty selectors are kSwifterKitAudioDeviceProperty values. The can-be-default and
+// wants-stream-formats-restored values are 0 or 1; preferred stereo channels carry the left
+// channel in the low word.
 struct __attribute__((packed)) SwifterKitAudioMemberValue {
     uint32_t selector;
     uint32_t reserved;
@@ -142,10 +144,9 @@ struct __attribute__((packed)) SwifterKitAudioMemberRequest {
     uint32_t reserved;
 };
 
-// SetStreamProperty (identifier is the stream index) and SetControlProperty. Stream selectors:
-// 1 active, 2 latency, 3 starting channel, 4 terminal type, 5 current format index, 6 ring
-// buffer frame capacity. Control selectors: 1 slider range, 2 panning channels, each with the
-// first value in the low word.
+// SetStreamProperty (identifier is the stream index, selector a kSwifterKitAudioStreamProperty
+// value) and SetControlProperty (selector a kSwifterKitAudioControlProperty value, with the first
+// value in the low word).
 struct __attribute__((packed)) SwifterKitAudioMemberProperty {
     uint32_t identifier;
     uint32_t selector;
@@ -199,7 +200,7 @@ struct __attribute__((packed)) SwifterKitAudioSelectorRemoval {
     uint32_t count;
 };
 
-// Owner: 0 detached, 1 device, 2 driver.
+// owner is a kSwifterKitAudioOwner value.
 struct __attribute__((packed)) SwifterKitAudioCustomPropertyInfo {
     uint32_t objectID;
     uint32_t selector;
@@ -209,30 +210,12 @@ struct __attribute__((packed)) SwifterKitAudioCustomPropertyInfo {
     uint32_t reserved;
 };
 
-// Kind: 1 stream (identifier is its index), 2 control, 3 custom property.
+// kind is a kSwifterKitAudioMember value; a stream's identifier is its index.
 struct __attribute__((packed)) SwifterKitAudioMemberAttachment {
     uint32_t kind;
     uint32_t identifier;
     uint32_t owner;
     uint32_t reserved;
-};
-
-enum : uint32_t {
-    kSwifterKitAudioTargetDriver = 0,
-    kSwifterKitAudioTargetDevice = 1,
-    kSwifterKitAudioTargetBox = 2,
-    kSwifterKitAudioTargetClock = 3,
-    kSwifterKitAudioTargetObject = 4,
-    kSwifterKitAudioObjectTableCount = 4,
-    kSwifterKitAudioPendingRequestCount = 8,
-    kSwifterKitAudioMaximumSampleRates = 64,
-    kSwifterKitAudioEventBoxRequest = 6,
-    kSwifterKitAudioEventClockRequest = 7,
-    kSwifterKitAudioOwnerDetached = 0,
-    kSwifterKitAudioOwnerDevice = 1,
-    kSwifterKitAudioOwnerDriver = 2,
-    kSwifterKitAudioMaximumChannelLabels = 64,
-    kSwifterKitAudioMaximumSelectorItems = 32,
 };
 
 static_assert(sizeof(SwifterKitAudioObjectTarget) == 8);

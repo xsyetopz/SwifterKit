@@ -2,23 +2,27 @@ import Foundation
 
 extension DriverExtensionGenerator {
   static func isValid(audio value: AudioDeviceConfiguration) -> Bool {
+    let limits = RuntimeAudioLimits.self
     let strings =
       [value.deviceUID, value.modelUID, value.manufacturerUID, value.name]
       + value.streams.map(\.name)
-    guard strings.allSatisfy({ !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }),
-      (1...16).contains(value.sampleRates.count),
+    guard strings.allSatisfy(isValidAudioName),
+      (1...limits.maximumSampleRates).contains(value.sampleRates.count),
       Set(value.sampleRates).count == value.sampleRates.count,
-      value.sampleRates.allSatisfy({ $0.isFinite && (8_000...768_000).contains($0) }),
+      value.sampleRates.allSatisfy(DriverCommand.isValidAudioRate),
       value.sampleRates.contains(value.initialSampleRate),
-      (16...1_048_576).contains(value.zeroTimestampPeriod), (1...8).contains(value.streams.count),
-      isValid(audioTopology: value)
+      (limits.minimumZeroTimestampPeriod...limits.maximumFrameCount).contains(
+        Int(value.zeroTimestampPeriod)
+      ), (1...limits.maximumStreams).contains(value.streams.count), isValid(audioTopology: value)
     else { return false }
 
     guard
       value.streams.allSatisfy({ stream in
-        guard (1...16).contains(stream.formats.count),
+        guard (1...limits.maximumStreamFormats).contains(stream.formats.count),
           Int(stream.initialFormatIndex) < stream.formats.count,
-          (value.zeroTimestampPeriod...1_048_576).contains(stream.ringBufferFrameCapacity)
+          (Int(value.zeroTimestampPeriod)...limits.maximumFrameCount).contains(
+            Int(stream.ringBufferFrameCapacity)
+          )
         else { return false }
         return stream.formats.allSatisfy { format in
           format.sampleRate.isFinite && value.sampleRates.contains(format.sampleRate)
@@ -26,9 +30,11 @@ extension DriverExtensionGenerator {
             && format.framesPerPacket > 0 && format.bytesPerFrame > 0
             && (1...64).contains(format.channelsPerFrame)
             && (1...64).contains(format.bitsPerChannel)
-            && UInt64(format.bytesPerFrame) * UInt64(stream.ringBufferFrameCapacity) <= 16_777_216
+            && Int(format.bytesPerFrame) * Int(stream.ringBufferFrameCapacity)
+              <= limits.maximumRingBufferSize
         }
-      }), value.controls.count <= 64, value.customProperties.count <= 32
+      }), value.controls.count <= limits.maximumControls,
+      value.customProperties.count <= limits.maximumCustomProperties
     else { return false }
 
     let controlIDs = value.controls.map { $0.metadata.identifier }
@@ -40,17 +46,15 @@ extension DriverExtensionGenerator {
       && value.customProperties.allSatisfy { property in
         property.selector != 0 && !property.values.isEmpty && property.values.count <= 32
           && property.values.allSatisfy { qualifier, data in
-            !qualifier.isEmpty && !qualifier.contains("\0") && !data.contains("\0")
-              && qualifier.utf8.count <= 255 && data.utf8.count <= 4_096
+            isValidAudioName(qualifier) && !data.contains("\0")
+              && data.utf8.count <= limits.customPropertyValueMaximumLength
           }
       }
   }
 
   static func isValid(audioControl value: AudioControlConfiguration) -> Bool {
     let metadata = value.metadata
-    guard !metadata.name.isEmpty, !metadata.name.contains("\0"), metadata.name.utf8.count < 256,
-      metadata.controlClass.rawValue != 0
-    else { return false }
+    guard isValidAudioName(metadata.name), metadata.controlClass.rawValue != 0 else { return false }
     switch value {
     case .boolean: return true
     case .level(let level):
@@ -60,11 +64,12 @@ extension DriverExtensionGenerator {
     case .selector(let selector):
       let values = selector.values.map(\.value)
       let names = selector.values.map(\.name)
-      return !values.isEmpty && values.count <= 32 && Set(values).count == values.count
-        && !selector.initialValues.isEmpty && selector.initialValues.count <= 32
+      let maximum = RuntimeAudioLimits.maximumSelectorItems
+      return !values.isEmpty && values.count <= maximum && Set(values).count == values.count
+        && !selector.initialValues.isEmpty && selector.initialValues.count <= maximum
         && Set(selector.initialValues).count == selector.initialValues.count
         && selector.initialValues.allSatisfy(Set(values).contains)
-        && names.allSatisfy { !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }
+        && names.allSatisfy(isValidAudioName)
     case .slider(let slider):
       return slider.minimumValue <= slider.initialValue
         && slider.initialValue <= slider.maximumValue
@@ -74,4 +79,8 @@ extension DriverExtensionGenerator {
     }
   }
 
+  /// Whether a configured name fits the extension's name buffers: non-empty and NUL-free.
+  static func isValidAudioName(_ name: String) -> Bool {
+    !name.isEmpty && !name.contains("\0") && name.utf8.count <= RuntimeAudioLimits.nameMaximumLength
+  }
 }

@@ -25,7 +25,6 @@ namespace {
     constexpr uint8_t kPlacementDevice = 0;
     constexpr uint8_t kPlacementDetached = 1;
     constexpr uint8_t kPlacementDriver = 2;
-    constexpr uint64_t kMaximumRingBufferBytes = 16'777'216;
 
     template<typename Type>
     const Type* Payload(const uint8_t* payload, uint32_t payloadLength) {
@@ -83,7 +82,7 @@ namespace {
             bytesPerFrame = candidate > bytesPerFrame ? candidate : bytesPerFrame;
         }
         const uint64_t size = static_cast<uint64_t>(bytesPerFrame) * frames;
-        return size <= kMaximumRingBufferBytes ? size : 0;
+        return size <= kSwifterKitAudioMaximumRingBufferSize ? size : 0;
     }
 
     kern_return_t Respond(const void* bytes, uint32_t length, OSData** response) {
@@ -224,35 +223,39 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetDeviceProperty(
     if (request == nullptr || request->reserved != 0)
         return kIOReturnBadArgument;
     const uint64_t value = request->value;
-    const bool isFlag = request->selector <= 3 || request->selector == 7;
-    if ((isFlag && value > 1) || (!isFlag && request->selector != 6 && value > UINT32_MAX))
+    const bool isFlag =
+        request->selector <= kSwifterKitAudioDevicePropertyCanBeDefaultSystemOutput
+        || request->selector == kSwifterKitAudioDevicePropertyWantsStreamFormatsRestored;
+    if ((isFlag && value > 1)
+        || (!isFlag && request->selector != kSwifterKitAudioDevicePropertyPreferredStereoChannels
+            && value > UINT32_MAX))
         return kIOReturnBadArgument;
     const auto low = static_cast<uint32_t>(value);
     const auto high = static_cast<uint32_t>(value >> 32);
     switch (request->selector) {
-        case 1:
+        case kSwifterKitAudioDevicePropertyCanBeDefaultInput:
             return SetCanBeDefaultInputDevice(value != 0);
-        case 2:
+        case kSwifterKitAudioDevicePropertyCanBeDefaultOutput:
             return SetCanBeDefaultOutputDevice(value != 0);
-        case 3:
+        case kSwifterKitAudioDevicePropertyCanBeDefaultSystemOutput:
             return SetCanBeDefaultSystemOutputDevice(value != 0);
-        case 4:
+        case kSwifterKitAudioDevicePropertyInputSafetyOffset:
             return SwifterKitRequestAudioMemberChange(
                 this,
                 kSwifterKitAudioChangeInputSafetyOffset,
                 0,
                 low);
-        case 5:
+        case kSwifterKitAudioDevicePropertyOutputSafetyOffset:
             return SwifterKitRequestAudioMemberChange(
                 this,
                 kSwifterKitAudioChangeOutputSafetyOffset,
                 0,
                 low);
-        case 6:
+        case kSwifterKitAudioDevicePropertyPreferredStereoChannels:
             if (low == 0 || high == 0 || low == high)
                 return kIOReturnBadArgument;
             return SetPreferredChannelsForStereo(low, high);
-        case 7:
+        case kSwifterKitAudioDevicePropertyWantsStreamFormatsRestored:
     #if defined(__DRIVERKIT_25_5) && __DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5
             SetWantsStreamFormatsRestored(value != 0);
             return kIOReturnSuccess;
@@ -274,10 +277,12 @@ kern_return_t SwifterKitRuntimeAudioDevice::CopyStreamState(
     auto* stream = ivars->streams[request->identifier];
     if (stream == nullptr)
         return kIOReturnNotReady;
-    IOUserAudioStreamBasicDescription formats[16] = {};
+    IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats] = {};
     const size_t available = stream->GetNumberAvailableStreamFormats();
-    const auto count = static_cast<uint32_t>(
-        stream->GetAvailableStreamFormats(formats, available < 16 ? available : 16));
+    const auto count = static_cast<uint32_t>(stream->GetAvailableStreamFormats(
+        formats,
+        available < kSwifterKitAudioMaximumStreamFormats ? available
+                                                         : kSwifterKitAudioMaximumStreamFormats));
     uint64_t memoryLength = 0;
     OSSharedPtr<IOMemoryDescriptor> memory = stream->GetIOMemoryDescriptor();
     if (memory && memory->GetLength(&memoryLength) != kIOReturnSuccess)
@@ -290,9 +295,10 @@ kern_return_t SwifterKitRuntimeAudioDevice::CopyStreamState(
         stream->GetLatency(),
         stream->GetStreamIsActive() ? 1U : 0U,
         ivars->streamDetached[request->identifier] ? 0U : 1U,
-        count > 16 ? 16 : count,
+        count > kSwifterKitAudioMaximumStreamFormats ? kSwifterKitAudioMaximumStreamFormats : count,
         memoryLength};
-    SwifterKitAudioStreamFormat wire[17] = {WireFormat(stream->GetCurrentStreamFormat())};
+    SwifterKitAudioStreamFormat wire[kSwifterKitAudioMaximumStreamFormats + 1] = {
+        WireFormat(stream->GetCurrentStreamFormat())};
     for (uint32_t index = 0; index < state.formatCount; ++index)
         wire[index + 1] = WireFormat(formats[index]);
     OSData* data = OSData::withCapacity(sizeof(state) + (state.formatCount + 1) * sizeof(wire[0]));
@@ -316,25 +322,27 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetStreamProperty(
     if (stream == nullptr)
         return kIOReturnNotReady;
     const uint64_t value = request->value;
-    if (value > UINT32_MAX || (request->selector == 1 && value > 1))
+    if (value > UINT32_MAX
+        || (request->selector == kSwifterKitAudioStreamPropertyIsActive && value > 1))
         return kIOReturnBadArgument;
     const auto word = static_cast<uint32_t>(value);
     switch (request->selector) {
-        case 1:
+        case kSwifterKitAudioStreamPropertyIsActive:
             return stream->SetStreamIsActive(word != 0);
-        case 2:
+        case kSwifterKitAudioStreamPropertyLatency:
             return stream->SetLatency(word);
-        case 3:
+        case kSwifterKitAudioStreamPropertyStartingChannel:
             return word == 0 ? kIOReturnBadArgument : stream->SetStartingChannel(word);
-        case 4:
+        case kSwifterKitAudioStreamPropertyTerminalType:
             return stream->SetTerminalType(static_cast<IOUserAudioStreamTerminalType>(word));
-        case 5: {
-            IOUserAudioStreamBasicDescription formats[16] = {};
-            const size_t count = stream->GetAvailableStreamFormats(formats, 16);
+        case kSwifterKitAudioStreamPropertyCurrentFormat: {
+            IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats] = {};
+            const size_t count =
+                stream->GetAvailableStreamFormats(formats, kSwifterKitAudioMaximumStreamFormats);
             return word < count ? stream->SetCurrentStreamFormat(&formats[word])
                                 : kIOReturnBadArgument;
         }
-        case 6:
+        case kSwifterKitAudioStreamPropertyRingBufferFrameCapacity:
             return ResizeStreamMemory(index, word);
         default:
             return kIOReturnBadArgument;
@@ -342,7 +350,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetStreamProperty(
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::ResizeStreamMemory(uint32_t index, uint32_t frames) {
-    if (frames < kSwifterKitAudioZeroTimestampPeriod || frames > 1'048'576
+    if (frames < kSwifterKitAudioZeroTimestampPeriod || frames > kSwifterKitAudioMaximumFrameCount
         || RingBufferBytes(index, frames) == 0)
         return kIOReturnBadArgument;
     // IOUserAudioStream.iig: SetIOMemoryDescriptor belongs in PerformDeviceConfigurationChange.
@@ -452,14 +460,15 @@ kern_return_t SwifterKitRuntimeAudioDevice::CopyControlInfo(
             count < kSwifterKitAudioMaximumSelectorItems ? count
                                                          : kSwifterKitAudioMaximumSelectorItems));
     }
-    OSData* data = OSData::withCapacity(sizeof(info) + info.itemCount * (8 + 255));
+    OSData* data = OSData::withCapacity(
+        sizeof(info) + info.itemCount * (8 + kSwifterKitAudioNameMaximumLength));
     bool appended = data != nullptr && data->appendBytes(&info, sizeof(info));
     for (uint32_t item = 0; appended && item < info.itemCount; ++item) {
         const char* name = items[item].m_name ? items[item].m_name->getCStringNoCopy() : "";
-        const size_t length = strnlen(name, 256);
+        const size_t length = strnlen(name, kSwifterKitAudioNameMaximumLength + 1);
         const uint32_t header[2] = {items[item].m_value, static_cast<uint32_t>(length)};
-        appended = length <= 255 && data->appendBytes(header, sizeof(header))
-                   && data->appendBytes(name, length);
+        appended = length <= kSwifterKitAudioNameMaximumLength
+                   && data->appendBytes(header, sizeof(header)) && data->appendBytes(name, length);
     }
     if (!appended) {
         OSSafeReleaseNULL(data);
@@ -479,13 +488,13 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetControlProperty(
     const auto low = static_cast<uint32_t>(request->value);
     const auto high = static_cast<uint32_t>(request->value >> 32);
     auto* control = ivars->controls[index];
-    if (request->selector == 1) {
+    if (request->selector == kSwifterKitAudioControlPropertySliderRange) {
         auto* slider = OSDynamicCast(IOUserAudioSliderControl, control);
         if (slider == nullptr || low > high)
             return kIOReturnBadArgument;
         return slider->SetRange(IOUserAudioSliderRange {low, high});
     }
-    if (request->selector == 2) {
+    if (request->selector == kSwifterKitAudioControlPropertyPanningChannels) {
         auto* pan = OSDynamicCast(IOUserAudioStereoPanControl, control);
         if (pan == nullptr || low == high)
             return kIOReturnBadArgument;
@@ -528,7 +537,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
         return kIOReturnBadArgument;
     const bool attach = request->owner != kSwifterKitAudioOwnerDetached;
     uint32_t index = request->identifier;
-    if (request->kind == 1) {
+    if (request->kind == kSwifterKitAudioMemberStream) {
         if (index >= kSwifterKitAudioStreamCount || request->owner == kSwifterKitAudioOwnerDriver)
             return kIOReturnBadArgument;
         if (ivars->streams[index] == nullptr)
@@ -541,7 +550,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
             index,
             attach ? 1 : 0);
     }
-    if (request->kind == 2) {
+    if (request->kind == kSwifterKitAudioMemberControl) {
         if (request->owner == kSwifterKitAudioOwnerDriver)
             return kIOReturnBadArgument;
         if (!FindControl(request->identifier, &index) || ivars->controls[index] == nullptr)
@@ -554,7 +563,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
             ivars->controlDetached[index] = !attach;
         return result;
     }
-    if (request->kind != 3)
+    if (request->kind != kSwifterKitAudioMemberCustomProperty)
         return kIOReturnBadArgument;
     if (!FindProperty(request->identifier, &index) || ivars->customProperties[index] == nullptr)
         return kIOReturnNotFound;

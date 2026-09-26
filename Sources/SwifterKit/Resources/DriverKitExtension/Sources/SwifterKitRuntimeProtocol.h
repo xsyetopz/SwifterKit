@@ -558,7 +558,7 @@ static_assert(sizeof(SwifterKitNetworkReceivePacket) == 40);
 static_assert(sizeof(SwifterKitNetworkTransmitCompletion) == 24);
 static_assert(sizeof(SwifterKitNetworkQueueEnable) == 8);
 static_assert(sizeof(SwifterKitNetworkInterfaceCommand) == 32);
-static_assert(sizeof(SwifterKitAudioTransferHeader) == 24);
+static_assert(sizeof(SwifterKitAudioTransferHeader) == kSwifterKitAudioTransferHeaderSize);
 static_assert(sizeof(SwifterKitAudioTimestamp) == 16);
 static_assert(sizeof(SwifterKitAudioIOState) == 32);
 static_assert(sizeof(SwifterKitAudioEvent) == 16);

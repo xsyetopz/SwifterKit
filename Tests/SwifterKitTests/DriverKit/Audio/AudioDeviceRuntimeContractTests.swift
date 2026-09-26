@@ -49,7 +49,11 @@ struct AudioDeviceRuntimeContractTests {
       )
       #expect(!swap.contains("SetIOMemoryDescriptor"))
       #expect(members.contains("ReadMappedStream(transfer, response)"))
-      let restore = try section(of: members, from: "case 7:", to: "default:")
+      let restore = try section(
+        of: members,
+        from: "case kSwifterKitAudioDevicePropertyWantsStreamFormatsRestored:",
+        to: "default:"
+      )
       #expect(restore.contains("__DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5"))
       #expect(restore.contains("return kIOReturnUnsupported;"))
       let teardown = try section(
@@ -119,14 +123,18 @@ struct AudioDeviceRuntimeContractTests {
   func appliesStreamOffsetAndLatencyChangesInsideADeviceConfigurationChange() throws {
     try withGeneratedExtension { output, _ in
       let members = try source("SwifterKitRuntimeAudioMembers.cpp", in: output)
-      let property = try section(of: members, from: "::SetDeviceProperty(", to: "case 6:")
+      let property = try section(
+        of: members,
+        from: "::SetDeviceProperty(",
+        to: "case kSwifterKitAudioDevicePropertyPreferredStereoChannels:"
+      )
       #expect(!property.contains("return SetInputSafetyOffset("))
       #expect(!property.contains("return SetOutputSafetyOffset("))
       #expect(property.contains("kSwifterKitAudioChangeInputSafetyOffset"))
       let attachment = try section(
         of: members,
         from: "::SetMemberAttachment(",
-        to: "if (request->kind == 2)"
+        to: "if (request->kind == kSwifterKitAudioMemberControl)"
       )
       #expect(!attachment.contains("AddStream("))
       #expect(attachment.contains("kSwifterKitAudioChangeStreamAttachment"))
@@ -146,7 +154,7 @@ struct AudioDeviceRuntimeContractTests {
       let clockSetter = try section(
         of: objects,
         from: "kern_return_t SetClockProperty(",
-        to: "case 8:"
+        to: "case kSwifterKitAudioClockPropertyTransport:"
       )
       #expect(!clockSetter.contains("SetInputLatency("))
       #expect(!clockSetter.contains("SetZeroTimeStampPeriod("))

@@ -154,13 +154,14 @@ public struct AudioBoxState: Sendable, Hashable {
     objectID = try runtimePayload.readRuntimeInteger(at: 0)
     transport = AudioTransport(rawValue: try runtimePayload.readRuntimeInteger(at: 4))
     let flags: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
-    guard flags & ~0x3F == 0 else { throw AudioRuntimeError.invalidPayload }
-    hasAudio = flags & 0x1 != 0
-    hasMIDI = flags & 0x2 != 0
-    hasVideo = flags & 0x4 != 0
-    isAcquirable = flags & 0x8 != 0
-    isAcquired = flags & 0x10 != 0
-    isProtected = flags & 0x20 != 0
+    typealias Flag = RuntimeAudioBoxState
+    guard flags & ~Flag.allBits == 0 else { throw AudioRuntimeError.invalidPayload }
+    hasAudio = flags & Flag.hasAudio.rawValue != 0
+    hasMIDI = flags & Flag.hasMIDI.rawValue != 0
+    hasVideo = flags & Flag.hasVideo.rawValue != 0
+    isAcquirable = flags & Flag.isAcquirable.rawValue != 0
+    isAcquired = flags & Flag.isAcquired.rawValue != 0
+    isProtected = flags & Flag.isProtected.rawValue != 0
     acquisitionFailure = try runtimePayload.readRuntimeInteger(at: 12)
   }
 }
@@ -178,16 +179,18 @@ public enum AudioBoxProperty: Sendable, Hashable {
   case acquisitionFailure(Int32)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
-    switch self {
-    case .transport(let value): (1, UInt64(value.rawValue))
-    case .hasAudio(let value): (2, value ? 1 : 0)
-    case .hasMIDI(let value): (3, value ? 1 : 0)
-    case .hasVideo(let value): (4, value ? 1 : 0)
-    case .isAcquirable(let value): (5, value ? 1 : 0)
-    case .isAcquired(let value): (6, value ? 1 : 0)
-    case .isProtected(let value): (7, value ? 1 : 0)
-    case .acquisitionFailure(let value): (8, UInt64(UInt32(bitPattern: value)))
-    }
+    let fields: (RuntimeAudioBoxProperty, UInt64) =
+      switch self {
+      case .transport(let value): (.transport, UInt64(value.rawValue))
+      case .hasAudio(let value): (.hasAudio, value ? 1 : 0)
+      case .hasMIDI(let value): (.hasMIDI, value ? 1 : 0)
+      case .hasVideo(let value): (.hasVideo, value ? 1 : 0)
+      case .isAcquirable(let value): (.isAcquirable, value ? 1 : 0)
+      case .isAcquired(let value): (.isAcquired, value ? 1 : 0)
+      case .isProtected(let value): (.isProtected, value ? 1 : 0)
+      case .acquisitionFailure(let value): (.acquisitionFailure, UInt64(UInt32(bitPattern: value)))
+      }
+    return (fields.0.rawValue, fields.1)
   }
 }
 
@@ -249,15 +252,17 @@ public struct AudioClockDeviceState: Sendable, Hashable {
     outputLatency = try runtimePayload.readRuntimeInteger(at: 68)
     zeroTimestampPeriod = try runtimePayload.readRuntimeInteger(at: 72)
     let count = Int(try runtimePayload.readRuntimeInteger(at: 76) as UInt32)
-    guard let transportState = AudioDeviceTransportState(rawValue: rawState), flags & ~0x1F == 0,
-      count <= 64, runtimePayload.count == 80 + count * 8
+    typealias Flag = RuntimeAudioClockState
+    guard let transportState = AudioDeviceTransportState(rawValue: rawState),
+      flags & ~Flag.allBits == 0, count <= RuntimeAudioLimits.maximumReportedSampleRates,
+      runtimePayload.count == 80 + count * 8
     else { throw AudioRuntimeError.invalidPayload }
     self.transportState = transportState
-    clockIsStable = flags & 0x1 != 0
-    isAlive = flags & 0x2 != 0
-    isRunning = flags & 0x4 != 0
-    isHidden = flags & 0x8 != 0
-    supportsPrewarming = flags & 0x10 != 0
+    clockIsStable = flags & Flag.clockIsStable.rawValue != 0
+    isAlive = flags & Flag.isAlive.rawValue != 0
+    isRunning = flags & Flag.isRunning.rawValue != 0
+    isHidden = flags & Flag.isHidden.rawValue != 0
+    supportsPrewarming = flags & Flag.supportsPrewarming.rawValue != 0
     availableSampleRates = try (0..<count).map {
       Double(bitPattern: try runtimePayload.readRuntimeInteger(at: 80 + $0 * 8))
     }
@@ -281,17 +286,19 @@ public enum AudioClockDeviceProperty: Sendable, Hashable {
   case wantsControlsRestored(Bool)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
-    switch self {
-    case .clockDomain(let value): (1, UInt64(value))
-    case .clockAlgorithm(let value): (2, UInt64(value.rawValue))
-    case .clockIsStable(let value): (3, value ? 1 : 0)
-    case .isAlive(let value): (4, value ? 1 : 0)
-    case .isHidden(let value): (5, value ? 1 : 0)
-    case .inputLatency(let value): (6, UInt64(value))
-    case .outputLatency(let value): (7, UInt64(value))
-    case .transport(let value): (8, UInt64(value.rawValue))
-    case .zeroTimestampPeriod(let value): (9, UInt64(value))
-    case .wantsControlsRestored(let value): (10, value ? 1 : 0)
-    }
+    let fields: (RuntimeAudioClockProperty, UInt64) =
+      switch self {
+      case .clockDomain(let value): (.clockDomain, UInt64(value))
+      case .clockAlgorithm(let value): (.clockAlgorithm, UInt64(value.rawValue))
+      case .clockIsStable(let value): (.clockIsStable, value ? 1 : 0)
+      case .isAlive(let value): (.isAlive, value ? 1 : 0)
+      case .isHidden(let value): (.isHidden, value ? 1 : 0)
+      case .inputLatency(let value): (.inputLatency, UInt64(value))
+      case .outputLatency(let value): (.outputLatency, UInt64(value))
+      case .transport(let value): (.transport, UInt64(value.rawValue))
+      case .zeroTimestampPeriod(let value): (.zeroTimestampPeriod, UInt64(value))
+      case .wantsControlsRestored(let value): (.wantsControlsRestored, value ? 1 : 0)
+      }
+    return (fields.0.rawValue, fields.1)
   }
 }

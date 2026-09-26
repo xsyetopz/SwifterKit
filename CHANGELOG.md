@@ -114,7 +114,14 @@ SwifterKit records user-visible changes in this file.
   event kinds, packet flags and their transmit, receive, completion, checksum,
   and LRO masks, the batch, poll-interval, and packet-queue bounds, the
   packet-tap directions, and the event-header and transmit-metadata sizes, from
-  which the largest `packetBufferSize` follows, come from it as well.
+  which the largest `packetBufferSize` follows, come from it as well, and the
+  Ethernet registration passes the schema's packet-queue count. The audio
+  object-target, event, object-event, control, control-value, member, owner,
+  and element-name kinds, the device, stream, control, box, and clock-device
+  property selectors, the box and clock state bits, and the table,
+  pending-request, sample-rate, name, custom-property, selector-item,
+  channel-label, stream, control, format, frame, ring-buffer, and transfer
+  bounds come from it too.
 - The queued `UserCreateTargetForID` discarded the result of enqueueing its
   required `SCSIControllerEvent.targetCreated` event, so a registered host that
   had let the required queue fill lost the event. The create's queue now

@@ -131,7 +131,11 @@ struct AudioObjectRuntimeContractTests {
       #expect(!handler.contains("RequestSampleRate(sampleRate)"))
 
       let finish = try section(of: clock, from: "::FinishSampleRateRequest(", to: "#endif")
-      #expect(finish.contains("AudioObjectEvent(\n            5,"))
+      #expect(
+        finish.contains(
+          "AudioObjectEvent(\n            kSwifterKitAudioObjectEventClockRateChanged,"
+        )
+      )
       #expect(finish.contains("GetSampleRate() == requested && IsAvailableSampleRate(previous)"))
       #expect(finish.contains("RequestSampleRate(previous)"))
 

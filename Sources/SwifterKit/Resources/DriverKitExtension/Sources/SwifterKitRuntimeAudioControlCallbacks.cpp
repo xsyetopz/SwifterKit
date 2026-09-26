@@ -73,8 +73,11 @@ void SwifterKitRuntimeAudioBooleanControl::free() {
 
 kern_return_t SwifterKitRuntimeAudioBooleanControl::HandleChangeControlValue(bool value) {
     const uint32_t rawValue = value ? 1 : 0;
-    const kern_return_t result =
-        ivars->service->AudioControlValueEvent(ivars->identifier, 1, &rawValue, 1);
+    const kern_return_t result = ivars->service->AudioControlValueEvent(
+        ivars->identifier,
+        kSwifterKitAudioValueBoolean,
+        &rawValue,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeControlValue(value) : result;
 }
 
@@ -106,15 +109,21 @@ void SwifterKitRuntimeAudioLevelControl::free() {
 
 kern_return_t SwifterKitRuntimeAudioLevelControl::HandleChangeDecibelValue(float value) {
     const uint32_t bits = FloatBits(value);
-    const kern_return_t result =
-        ivars->service->AudioControlValueEvent(ivars->identifier, 2, &bits, 1);
+    const kern_return_t result = ivars->service->AudioControlValueEvent(
+        ivars->identifier,
+        kSwifterKitAudioValueDecibels,
+        &bits,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeDecibelValue(value) : result;
 }
 
 kern_return_t SwifterKitRuntimeAudioLevelControl::HandleChangeScalarValue(float value) {
     const uint32_t bits = FloatBits(value);
-    const kern_return_t result =
-        ivars->service->AudioControlValueEvent(ivars->identifier, 3, &bits, 1);
+    const kern_return_t result = ivars->service->AudioControlValueEvent(
+        ivars->identifier,
+        kSwifterKitAudioValueScalar,
+        &bits,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeScalarValue(value) : result;
 }
 
@@ -145,11 +154,11 @@ void SwifterKitRuntimeAudioSelectorControl::free() {
 kern_return_t SwifterKitRuntimeAudioSelectorControl::HandleChangeSelectedValues(
     const IOUserAudioSelectorValue* values,
     size_t count) {
-    if (values == nullptr || count == 0 || count > 32)
+    if (values == nullptr || count == 0 || count > kSwifterKitAudioMaximumSelectorItems)
         return kIOReturnBadArgument;
     const kern_return_t result = ivars->service->AudioControlValueEvent(
         ivars->identifier,
-        4,
+        kSwifterKitAudioValueSelector,
         values,
         static_cast<uint32_t>(count));
     return result == kIOReturnSuccess ? super::HandleChangeSelectedValues(values, count) : result;
@@ -182,8 +191,11 @@ void SwifterKitRuntimeAudioSliderControl::free() {
 }
 
 kern_return_t SwifterKitRuntimeAudioSliderControl::HandleChangeControlValue(uint32_t value) {
-    const kern_return_t result =
-        ivars->service->AudioControlValueEvent(ivars->identifier, 5, &value, 1);
+    const kern_return_t result = ivars->service->AudioControlValueEvent(
+        ivars->identifier,
+        kSwifterKitAudioValueSlider,
+        &value,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeControlValue(value) : result;
 }
 
@@ -216,8 +228,11 @@ void SwifterKitRuntimeAudioStereoPanControl::free() {
 
 kern_return_t SwifterKitRuntimeAudioStereoPanControl::HandleChangeControlValue(float value) {
     const uint32_t bits = FloatBits(value);
-    const kern_return_t result =
-        ivars->service->AudioControlValueEvent(ivars->identifier, 6, &bits, 1);
+    const kern_return_t result = ivars->service->AudioControlValueEvent(
+        ivars->identifier,
+        kSwifterKitAudioValueStereoPan,
+        &bits,
+        1);
     return result == kIOReturnSuccess ? super::HandleChangeControlValue(value) : result;
 }
 

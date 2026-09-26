@@ -11,6 +11,8 @@
     #include <DriverKit/OSData.h>
     #include <string.h>
 
+    #include "SwifterKitRuntimeSchema.h"
+
 class SwifterKitRuntimeService;
 
 // PerformDeviceConfigurationChange action for StreamProperty ring-buffer resizing.
@@ -20,14 +22,19 @@ constexpr uint64_t kSwifterKitAudioRingBufferChangeAction = 0x53574B52494E4742UL
 // structure. IOUserAudioDriver.iig: "For changes to an IOUserAudioDevice's or
 // IOUserAudioClockDevice's state that will affect IO or its structure, the client should trigger a
 // request to the host using RequestDeviceConfigurationChange() ... It is only at this point that
-// the device can make the state change." The change travels in the request's change info.
+// the device can make the state change." The change travels in the request's change info; its
+// selector reuses the wire value of the member kind, device property, or clock property it
+// applies, which do not collide.
 constexpr uint64_t kSwifterKitAudioMemberChangeAction = 0x53574B4D454D4252ULL;
-constexpr uint32_t kSwifterKitAudioChangeStreamAttachment = 1;
-constexpr uint32_t kSwifterKitAudioChangeInputSafetyOffset = 4;
-constexpr uint32_t kSwifterKitAudioChangeOutputSafetyOffset = 5;
-constexpr uint32_t kSwifterKitAudioChangeInputLatency = 6;
-constexpr uint32_t kSwifterKitAudioChangeOutputLatency = 7;
-constexpr uint32_t kSwifterKitAudioChangeZeroTimeStampPeriod = 9;
+constexpr uint32_t kSwifterKitAudioChangeStreamAttachment = kSwifterKitAudioMemberStream;
+constexpr uint32_t kSwifterKitAudioChangeInputSafetyOffset =
+    kSwifterKitAudioDevicePropertyInputSafetyOffset;
+constexpr uint32_t kSwifterKitAudioChangeOutputSafetyOffset =
+    kSwifterKitAudioDevicePropertyOutputSafetyOffset;
+constexpr uint32_t kSwifterKitAudioChangeInputLatency = kSwifterKitAudioClockPropertyInputLatency;
+constexpr uint32_t kSwifterKitAudioChangeOutputLatency = kSwifterKitAudioClockPropertyOutputLatency;
+constexpr uint32_t kSwifterKitAudioChangeZeroTimeStampPeriod =
+    kSwifterKitAudioClockPropertyZeroTimestampPeriod;
 
 struct SwifterKitAudioMemberChange {
     uint32_t selector;
@@ -60,15 +67,15 @@ inline bool SwifterKitReadAudioMemberChange(OSObject* info, SwifterKitAudioMembe
 
 struct SwifterKitRuntimeAudioDevice_IVars {
     SwifterKitRuntimeService* service = nullptr;
-    IOUserAudioStream* streams[8] = {};
-    IOBufferMemoryDescriptor* descriptors[8] = {};
-    IOMemoryMap* maps[8] = {};
-    IOUserAudioControl* controls[64] = {};
-    IOUserAudioCustomProperty* customProperties[32] = {};
+    IOUserAudioStream* streams[kSwifterKitAudioMaximumStreams] = {};
+    IOBufferMemoryDescriptor* descriptors[kSwifterKitAudioMaximumStreams] = {};
+    IOMemoryMap* maps[kSwifterKitAudioMaximumStreams] = {};
+    IOUserAudioControl* controls[kSwifterKitAudioMaximumControls] = {};
+    IOUserAudioCustomProperty* customProperties[kSwifterKitAudioMaximumCustomProperties] = {};
     // Zero means attached to the device, as configured; see SwifterKitRuntimeAudioMembers.cpp.
-    bool streamDetached[8] = {};
-    bool controlDetached[64] = {};
-    uint8_t propertyPlacement[32] = {};
+    bool streamDetached[kSwifterKitAudioMaximumStreams] = {};
+    bool controlDetached[kSwifterKitAudioMaximumControls] = {};
+    uint8_t propertyPlacement[kSwifterKitAudioMaximumCustomProperties] = {};
     uint64_t sequence = 0;
     uint64_t sampleTime = 0;
     uint64_t hostTime = 0;
