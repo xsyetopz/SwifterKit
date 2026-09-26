@@ -24174,14 +24174,15 @@
 
           ],
           "name" : "setPacketPoller",
-          "note" : "IOUserNetworkPacketPoller.iig: updatePacketCounters \"is automatically called by an IOUserNetworkPacketQueue when a poller was successfully set via its <code>setPacketPoller()</code> method\", so attaching only moves the counter update into the queue. The runtime already calls updatePacketCounters itself for received frames after dropping networkLock, while every EnqueuePacket, EnqueuePackets, and enqueuePackets on the completion queues runs under networkLock, which a poll takes in DrainNetworkTransmits; an attached poller would count received frames twice and update the poller under that lock",
+          "note" : "Swift enables polling with setEthernetPolling; the runtime drives IOUserNetworkPacketPoller counters itself after releasing networkLock, which is what a queue-attached poller would do, so attaching as well would double-count and can deadlock",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "excluded"
+          "status" : "swift-api",
+          "swiftSymbol" : "setEthernetPolling"
         },
         {
           "access" : "public",
@@ -24786,14 +24787,15 @@
 
           ],
           "name" : "setPacketPoller",
-          "note" : "IOUserNetworkPacketPoller.iig: updatePacketCounters \"is automatically called by an IOUserNetworkPacketQueue when a poller was successfully set via its <code>setPacketPoller()</code> method\", so attaching only moves the counter update into the queue. The runtime already calls updatePacketCounters itself for received frames after dropping networkLock, while every EnqueuePacket, EnqueuePackets, and enqueuePackets on the completion queues runs under networkLock, which a poll takes in DrainNetworkTransmits; an attached poller would count received frames twice and update the poller under that lock",
+          "note" : "Swift enables polling with setEthernetPolling; the runtime drives IOUserNetworkPacketPoller counters itself after releasing networkLock, which is what a queue-attached poller would do, so attaching as well would double-count and can deadlock",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "excluded"
+          "status" : "swift-api",
+          "swiftSymbol" : "setEthernetPolling"
         },
         {
           "access" : "public",
@@ -25528,14 +25530,15 @@
 
           ],
           "name" : "setPacketPoller",
-          "note" : "IOUserNetworkPacketPoller.iig: updatePacketCounters \"is automatically called by an IOUserNetworkPacketQueue when a poller was successfully set via its <code>setPacketPoller()</code> method\", so attaching only moves the counter update into the queue. The runtime already calls updatePacketCounters itself for received frames after dropping networkLock, while every EnqueuePacket, EnqueuePackets, and enqueuePackets on the completion queues runs under networkLock, which a poll takes in DrainNetworkTransmits; an attached poller would count received frames twice and update the poller under that lock",
+          "note" : "Swift enables polling with setEthernetPolling; the runtime drives IOUserNetworkPacketPoller counters itself after releasing networkLock, which is what a queue-attached poller would do, so attaching as well would double-count and can deadlock",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setPacketPoller(IOUserNetworkPacketPoller*)",
-          "status" : "excluded"
+          "status" : "swift-api",
+          "swiftSymbol" : "setEthernetPolling"
         },
         {
           "access" : "public",
