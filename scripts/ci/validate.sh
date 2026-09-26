@@ -6,6 +6,8 @@ swiftlint lint --strict Sources Tests Package.swift
 swift test -Xswiftc -warnings-as-errors
 swift build -c release -Xswiftc -warnings-as-errors
 
+# Remove symbol graphs left by earlier builds or other toolchains so only this dump is found.
+find .build -type d -name symbolgraph -prune -exec rm -rf {} +
 swift package dump-symbol-graph --minimum-access-level public
 # Built test targets add their own symbol graph; DocC accepts only the library module.
 symbol_graph="$(find .build -type f -path '*/symbolgraph/SwifterKit.symbols.json' -print -quit)"
