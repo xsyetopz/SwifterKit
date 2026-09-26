@@ -54,6 +54,31 @@ struct SCSIControllerRuntimeContractTests {
   }
 
   @Test
+  func nativePropertyLimitsAndManagementKindsComeFromTheSchema() throws {
+    try withGeneratedExtension { output in
+      let header = try source(RuntimeSchemaHeader.fileName, in: output)
+      let limits = SCSIControllerLimits.self
+      #expect(
+        header.contains("kSwifterKitSCSIMaximumPropertyCount = \(limits.maximumPropertyCount);")
+      )
+      #expect(
+        header.contains(
+          "kSwifterKitSCSIPropertyKeyMaximumLength = \(limits.maximumPropertyKeyLength);"
+        )
+      )
+      #expect(
+        header.contains(
+          "kSwifterKitSCSIPropertyValueMaximumLength = \(limits.maximumPropertyValueLength);"
+        )
+      )
+      #expect(header.contains("enum class SwifterKitSCSIManagementKind : uint32_t {"))
+      let scsi = try source("SwifterKitRuntimeSCSI.cpp", in: output)
+      #expect(scsi.contains("using ManagementKind = SwifterKitSCSIManagementKind;"))
+      #expect(scsi.contains("ForwardManagement(this, ManagementKind::TargetReset,"))
+    }
+  }
+
+  @Test
   func releasesTaskBuffersOnEveryExitAndAnswersBundledTasks() throws {
     try withGeneratedExtension { output in
       let scsi = try source("SwifterKitRuntimeSCSI.cpp", in: output)

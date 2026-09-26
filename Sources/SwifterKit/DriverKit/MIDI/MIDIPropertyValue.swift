@@ -76,11 +76,11 @@ public enum MIDIPropertyKey: Sendable, Hashable {
     switch self {
     case .property(let property):
       guard property.rawValue != 0 else { throw MIDIRuntimeError.invalidPropertyKey }
-      payload.appendRuntimeInteger(UInt32(0))
+      payload.appendRuntimeInteger(RuntimeMIDIKeyKind.selector.rawValue)
       payload.appendRuntimeInteger(property.rawValue)
     case .custom(let key):
       let bytes = try MIDIPropertyValue.key(key)
-      payload.appendRuntimeInteger(UInt32(1))
+      payload.appendRuntimeInteger(RuntimeMIDIKeyKind.string.rawValue)
       payload.appendRuntimeInteger(UInt32(bytes.count))
       payload.append(bytes)
     }
@@ -109,18 +109,18 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
   public static func int32(_ value: Int32) -> Self { .number(Int64(value), bits: 32) }
 
   /// The deepest nesting of dictionaries and arrays, counting the outermost.
-  public static let maximumDepth = 4
+  public static let maximumDepth = RuntimeMIDIPropertyLimits.maximumDepth
   /// The most entries one dictionary or array holds.
-  public static let maximumEntries = 256
+  public static let maximumEntries = RuntimeMIDIPropertyLimits.maximumEntries
 
   func runtimePayload(depth: Int = 1) throws -> Data {
     var body = Data()
-    let type: UInt32
+    let type: RuntimeMIDIValueType
     switch self {
     case .string(let value):
       body = Data(value.utf8)
       guard !body.contains(0) else { throw MIDIRuntimeError.invalidPropertyValue }
-      type = 0
+      type = .string
     case .number(let value, let bits):
       guard [8, 16, 32, 64].contains(bits) else { throw MIDIRuntimeError.invalidPropertyValue }
       let limit = Int64(1) << (Int64(bits) - 1) &- 1
@@ -132,10 +132,10 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
       // The wire carries the low `bits` bits, as OSNumber stores them.
       let mask = bits == 64 ? UInt64.max : (UInt64(1) << UInt64(bits)) - 1
       body.appendRuntimeInteger(UInt64(bitPattern: value) & mask)
-      type = 1
+      type = .number
     case .data(let value):
       body = value
-      type = 3
+      type = .data
     case .dictionary(let entries):
       guard depth <= Self.maximumDepth, entries.count <= Self.maximumEntries else {
         throw MIDIRuntimeError.invalidPropertyValue
@@ -149,7 +149,7 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
         body.append(bytes)
         body.append(try entries[key, default: .data(Data())].runtimePayload(depth: depth + 1))
       }
-      type = 2
+      type = .dictionary
     case .array(let values):
       guard depth <= Self.maximumDepth, values.count <= Self.maximumEntries else {
         throw MIDIRuntimeError.invalidPropertyValue
@@ -157,13 +157,13 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
       body.appendRuntimeInteger(UInt32(values.count))
       body.appendRuntimeInteger(UInt32(0))
       for value in values { body.append(try value.runtimePayload(depth: depth + 1)) }
-      type = 4
+      type = .array
     }
     guard body.count <= RuntimeMessage.maximumSize - RuntimeMessage.headerSize else {
       throw MIDIRuntimeError.propertyValueTooLarge
     }
     var payload = Data(capacity: 8 + body.count)
-    payload.appendRuntimeInteger(type)
+    payload.appendRuntimeInteger(type.rawValue)
     payload.appendRuntimeInteger(UInt32(body.count))
     payload.append(body)
     return payload
@@ -180,20 +180,21 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
   }
 
   private static func decode(_ data: Data, at offset: inout Int, depth: Int) throws -> Self {
-    let type: UInt32 = try data.readRuntimeInteger(at: offset)
+    let rawType: UInt32 = try data.readRuntimeInteger(at: offset)
     let length = Int(try data.readRuntimeInteger(at: offset + 4) as UInt32)
     let start = offset + 8
     guard length <= data.count - start else { throw MIDIRuntimeError.invalidPayload }
     let end = start + length
     offset = end
+    let type = RuntimeMIDIValueType(rawValue: rawType)
     switch type {
-    case 0:
+    case .string?:
       let bytes = data[start..<end]
       guard !bytes.contains(0), let value = String(data: bytes, encoding: .utf8) else {
         throw MIDIRuntimeError.invalidPayload
       }
       return .string(value)
-    case 1:
+    case .number?:
       guard length == 16 else { throw MIDIRuntimeError.invalidPayload }
       let bits: UInt32 = try data.readRuntimeInteger(at: start)
       let reserved: UInt32 = try data.readRuntimeInteger(at: start + 4)
@@ -204,8 +205,8 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
       // OSNumber stores the low `bits` bits; sign-extend them.
       let shift = UInt64(64 - bits)
       return .number(Int64(bitPattern: raw << shift) >> shift, bits: bits)
-    case 3: return .data(Data(data[start..<end]))
-    case 2, 4:
+    case .data?: return .data(Data(data[start..<end]))
+    case .dictionary?, .array?:
       guard depth <= maximumDepth, length >= 8 else { throw MIDIRuntimeError.invalidPayload }
       let count = Int(try data.readRuntimeInteger(at: start) as UInt32)
       let reserved: UInt32 = try data.readRuntimeInteger(at: start + 4)
@@ -215,14 +216,16 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
       var values: [Self] = []
       var entries: [String: Self] = [:]
       for _ in 0..<count {
-        if type == 4 {
+        if type == .array {
           values.append(try decode(body, at: &cursor, depth: depth + 1))
           continue
         }
         let keyLength = Int(try body.readRuntimeInteger(at: cursor) as UInt32)
         let keyReserved: UInt32 = try body.readRuntimeInteger(at: cursor + 4)
         cursor += 8
-        guard keyReserved == 0, (1...255).contains(keyLength), keyLength <= body.count - cursor,
+        guard keyReserved == 0,
+          (1...RuntimeMIDIPropertyLimits.keyMaximumLength).contains(keyLength),
+          keyLength <= body.count - cursor,
           let key = String(data: body[cursor..<(cursor + keyLength)], encoding: .utf8),
           !key.utf8.contains(0), entries[key] == nil
         else { throw MIDIRuntimeError.invalidPayload }
@@ -230,16 +233,16 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
         entries[key] = try decode(body, at: &cursor, depth: depth + 1)
       }
       guard cursor == body.count else { throw MIDIRuntimeError.invalidPayload }
-      return type == 2 ? .dictionary(entries) : .array(values)
-    default: throw MIDIRuntimeError.invalidPayload
+      return type == .dictionary ? .dictionary(entries) : .array(values)
+    case nil: throw MIDIRuntimeError.invalidPayload
     }
   }
 
   static func key(_ key: String) throws -> Data {
     let bytes = Data(key.utf8)
-    guard !bytes.isEmpty, bytes.count <= 255, !bytes.contains(0) else {
-      throw MIDIRuntimeError.invalidPropertyKey
-    }
+    guard !bytes.isEmpty, bytes.count <= RuntimeMIDIPropertyLimits.keyMaximumLength,
+      !bytes.contains(0)
+    else { throw MIDIRuntimeError.invalidPropertyKey }
     return bytes
   }
 }

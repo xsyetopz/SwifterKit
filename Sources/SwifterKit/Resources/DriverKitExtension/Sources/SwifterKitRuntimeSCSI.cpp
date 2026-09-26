@@ -14,17 +14,12 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    constexpr uint32_t kSCSIInitializeTarget = 1;
-    constexpr uint32_t kSCSIAbortTask = 2;
-    constexpr uint32_t kSCSIAbortTaskSet = 3;
-    constexpr uint32_t kSCSIClearACA = 4;
-    constexpr uint32_t kSCSIClearTaskSet = 5;
-    constexpr uint32_t kSCSILogicalUnitReset = 6;
-    constexpr uint32_t kSCSITargetReset = 7;
+    // SwifterKitSCSIManagementKind comes from RuntimeSchema+Storage.swift.
+    using ManagementKind = SwifterKitSCSIManagementKind;
 
     kern_return_t EnqueueManagement(
         SwifterKitRuntimeService* service,
-        uint32_t kind,
+        ManagementKind kind,
         uint64_t target,
         uint64_t logicalUnit,
         uint64_t taskTag) {
@@ -32,7 +27,7 @@ namespace {
             return kIOReturnNotReady;
         }
         const SwifterKitSCSIManagementEvent event = {
-            .kind = kind,
+            .kind = static_cast<uint32_t>(kind),
             .reserved = 0,
             .targetIdentifier = target,
             .logicalUnit = logicalUnit,
@@ -43,7 +38,7 @@ namespace {
 
     kern_return_t ForwardManagement(
         SwifterKitRuntimeService* service,
-        uint32_t kind,
+        ManagementKind kind,
         uint64_t target,
         uint64_t logicalUnit,
         uint64_t taskTag,
@@ -132,7 +127,7 @@ kern_return_t SwifterKitRuntimeService::UserDoesHBASupportSCSIParallelFeature_Im
 
 kern_return_t SwifterKitRuntimeService::UserInitializeTargetForID_Impl(
     SCSITargetIdentifier targetID) {
-    return EnqueueManagement(this, kSCSIInitializeTarget, targetID, 0, 0);
+    return EnqueueManagement(this, ManagementKind::InitializeTarget, targetID, 0, 0);
 }
 
 kern_return_t SwifterKitRuntimeService::UserDoesHBAPerformAutoSense_Impl(bool* result) {
@@ -156,41 +151,53 @@ kern_return_t SwifterKitRuntimeService::UserAbortTaskRequest_Impl(
     uint64_t logicalUnit,
     uint64_t taskTag,
     uint32_t* response) {
-    return ForwardManagement(this, kSCSIAbortTask, target, logicalUnit, taskTag, response);
+    return ForwardManagement(
+        this,
+        ManagementKind::AbortTask,
+        target,
+        logicalUnit,
+        taskTag,
+        response);
 }
 
 kern_return_t SwifterKitRuntimeService::UserAbortTaskSetRequest_Impl(
     uint64_t target,
     uint64_t logicalUnit,
     uint32_t* response) {
-    return ForwardManagement(this, kSCSIAbortTaskSet, target, logicalUnit, 0, response);
+    return ForwardManagement(this, ManagementKind::AbortTaskSet, target, logicalUnit, 0, response);
 }
 
 kern_return_t SwifterKitRuntimeService::UserClearACARequest_Impl(
     uint64_t target,
     uint64_t logicalUnit,
     uint32_t* response) {
-    return ForwardManagement(this, kSCSIClearACA, target, logicalUnit, 0, response);
+    return ForwardManagement(this, ManagementKind::ClearACA, target, logicalUnit, 0, response);
 }
 
 kern_return_t SwifterKitRuntimeService::UserClearTaskSetRequest_Impl(
     uint64_t target,
     uint64_t logicalUnit,
     uint32_t* response) {
-    return ForwardManagement(this, kSCSIClearTaskSet, target, logicalUnit, 0, response);
+    return ForwardManagement(this, ManagementKind::ClearTaskSet, target, logicalUnit, 0, response);
 }
 
 kern_return_t SwifterKitRuntimeService::UserLogicalUnitResetRequest_Impl(
     uint64_t target,
     uint64_t logicalUnit,
     uint32_t* response) {
-    return ForwardManagement(this, kSCSILogicalUnitReset, target, logicalUnit, 0, response);
+    return ForwardManagement(
+        this,
+        ManagementKind::LogicalUnitReset,
+        target,
+        logicalUnit,
+        0,
+        response);
 }
 
 kern_return_t SwifterKitRuntimeService::UserTargetResetRequest_Impl(
     uint64_t target,
     uint32_t* response) {
-    return ForwardManagement(this, kSCSITargetReset, target, 0, 0, response);
+    return ForwardManagement(this, ManagementKind::TargetReset, target, 0, 0, response);
 }
 
 kern_return_t SwifterKitRuntimeService::UserReportInitiatorIdentifier_Impl(uint64_t* identifier) {

@@ -18,9 +18,7 @@
 // destruction, HBA and target properties, media-parameter changes, and access to the data
 // buffers fetched for pending tasks. Each command answers its runtime request exactly once.
 namespace {
-    constexpr uint32_t kMaximumPropertyCount = 32;
-    constexpr uint16_t kMaximumKeyLength = 127;
-    constexpr uint16_t kMaximumValueLength = 1'024;
+    // The property count, key, and value limits come from RuntimeSchema+Storage.swift.
     // The longest wait between attempts to queue a target-creation result.
     constexpr uint32_t kMaximumRetryDelayMilliseconds = 64;
 
@@ -46,7 +44,7 @@ namespace {
             return kIOReturnBadArgument;
         }
         const auto* header = reinterpret_cast<const SwifterKitSCSIPropertyHeader*>(payload);
-        if (header->reserved != 0 || header->count > kMaximumPropertyCount
+        if (header->reserved != 0 || header->count > kSwifterKitSCSIMaximumPropertyCount
             || (header->count == 0 && !allowsEmpty)) {
             return kIOReturnBadArgument;
         }
@@ -66,8 +64,8 @@ namespace {
             offset += sizeof(entry);
             const char* key = reinterpret_cast<const char*>(payload + offset);
             const char* value = key + entry.keyLength;
-            if (entry.keyLength == 0 || entry.keyLength > kMaximumKeyLength
-                || entry.valueLength > kMaximumValueLength
+            if (entry.keyLength == 0 || entry.keyLength > kSwifterKitSCSIPropertyKeyMaximumLength
+                || entry.valueLength > kSwifterKitSCSIPropertyValueMaximumLength
                 || (names != nullptr && entry.valueLength != 0)
                 || payloadLength - offset < uint32_t {entry.keyLength} + entry.valueLength
                 || memchr(key, 0, entry.keyLength) != nullptr

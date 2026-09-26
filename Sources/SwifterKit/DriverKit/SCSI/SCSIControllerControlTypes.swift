@@ -94,11 +94,11 @@ public struct SCSIControllerConstraints: Sendable, Hashable {
 /// Limits of the SCSI controller property and task-data commands.
 public enum SCSIControllerLimits {
   /// The most properties one set or remove call carries.
-  public static let maximumPropertyCount = 32
+  public static let maximumPropertyCount = RuntimeSCSILimits.maximumPropertyCount
   /// The longest property key, in UTF-8 bytes.
-  public static let maximumPropertyKeyLength = 127
+  public static let maximumPropertyKeyLength = RuntimeSCSILimits.propertyKeyMaximumLength
   /// The longest property value, in UTF-8 bytes.
-  public static let maximumPropertyValueLength = 1_024
+  public static let maximumPropertyValueLength = RuntimeSCSILimits.propertyValueMaximumLength
   /// The most task-data bytes one read returns.
   public static let maximumTaskDataReadLength =
     RuntimeMessage.maximumSize - RuntimeMessage.headerSize

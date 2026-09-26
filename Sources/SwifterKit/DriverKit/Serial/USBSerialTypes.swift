@@ -65,10 +65,10 @@ public enum USBSerialEvent: Sendable, Hashable {
     let length: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
     let bytes = Array(runtimePayload.dropFirst(8))
     guard Int(length) == bytes.count else { throw SerialRuntimeError.invalidPayload }
-    switch kind {
-    case 1: self = .receivedPacket(bytes)
-    case 2: self = .interruptPacket(bytes)
-    default: throw SerialRuntimeError.invalidEventKind(kind)
+    switch RuntimeUSBSerialPacketKind(rawValue: kind) {
+    case .received?: self = .receivedPacket(bytes)
+    case .interrupt?: self = .interruptPacket(bytes)
+    case nil: throw SerialRuntimeError.invalidEventKind(kind)
     }
   }
 }

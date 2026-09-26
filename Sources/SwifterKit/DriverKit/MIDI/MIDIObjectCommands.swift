@@ -6,16 +6,16 @@ extension DriverCommand {
     midiCommand(
       .midiGetObjectInfo,
       try midiTargetPayload(target),
-      responseSize: RuntimeMessage.headerSize + 24 + 255
+      responseSize: RuntimeMessage.headerSize + 24 + RuntimeMIDIObjectLimits.nameMaximumLength
     )
   }
 
   /// Renames a MIDIDriverKit object, or the driver, with `SetName`.
   public static func midiSetObjectName(_ target: MIDIObjectTarget, name: String) throws -> Self {
     let bytes = Data(name.utf8)
-    guard !bytes.isEmpty, bytes.count <= 255, !bytes.contains(0) else {
-      throw MIDIRuntimeError.invalidName
-    }
+    guard !bytes.isEmpty, bytes.count <= RuntimeMIDIObjectLimits.nameMaximumLength,
+      !bytes.contains(0)
+    else { throw MIDIRuntimeError.invalidName }
     var payload = try midiTargetPayload(target)
     payload.appendRuntimeInteger(UInt32(bytes.count))
     payload.appendRuntimeInteger(UInt32(0))

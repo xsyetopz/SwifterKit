@@ -357,4 +357,71 @@ enum class SwifterKitPropertyTag : uint8_t {
 static constexpr uint32_t kSwifterKitPropertyMaximumDepth = 8;
 static constexpr uint32_t kSwifterKitPropertyNameMaximumLength = 127;
 
+enum class SwifterKitSCSIManagementKind : uint32_t {
+    InitializeTarget = 1,
+    AbortTask = 2,
+    AbortTaskSet = 3,
+    ClearACA = 4,
+    ClearTaskSet = 5,
+    LogicalUnitReset = 6,
+    TargetReset = 7,
+};
+static constexpr uint32_t kSwifterKitSCSIMaximumPropertyCount = 32;
+static constexpr uint16_t kSwifterKitSCSIPropertyKeyMaximumLength = 127;
+static constexpr uint16_t kSwifterKitSCSIPropertyValueMaximumLength = 1024;
+
+enum class SwifterKitBlockStorageRequestKind : uint32_t {
+    Eject = 1,
+    Synchronize = 2,
+    Unmap = 3,
+    Read = 4,
+    Write = 5,
+};
+
+enum class SwifterKitSerialEventKind : uint32_t {
+    Activate = 1,
+    Deactivate = 2,
+    ReceiveSpaceAvailable = 3,
+    TransmitDataAvailable = 4,
+    ResetFIFO = 5,
+    SendBreak = 6,
+    ProgramUART = 7,
+    ProgramBaudRate = 8,
+    ProgramModemControl = 9,
+    ProgramLatencyTimer = 10,
+    ProgramFlowControl = 11,
+};
+
+enum class SwifterKitUSBSerialPacketKind : uint32_t {
+    Received = 1,
+    Interrupt = 2,
+};
+
+enum class SwifterKitMIDIEventKind : uint32_t {
+    StartIO = 1,
+    StopIO = 2,
+    Received = 3,
+};
+
+static constexpr uint32_t kSwifterKitMIDITargetDriver = 0;
+static constexpr uint32_t kSwifterKitMIDITargetDevice = 1;
+static constexpr uint32_t kSwifterKitMIDITargetEntity = 2;
+static constexpr uint32_t kSwifterKitMIDITargetSource = 3;
+static constexpr uint32_t kSwifterKitMIDITargetDestination = 4;
+static constexpr uint32_t kSwifterKitMIDITargetObject = 5;
+static constexpr uint32_t kSwifterKitMIDIKeySelector = 0;
+static constexpr uint32_t kSwifterKitMIDIKeyString = 1;
+static constexpr uint32_t kSwifterKitMIDIDriverClass = 0xFFFFFFFF;
+static constexpr uint32_t kSwifterKitMIDIMaximumListedObjects = 64;
+static constexpr uint32_t kSwifterKitMIDINameMaximumLength = 255;
+
+static constexpr uint32_t kSwifterKitMIDIValueString = 0;
+static constexpr uint32_t kSwifterKitMIDIValueNumber = 1;
+static constexpr uint32_t kSwifterKitMIDIValueDictionary = 2;
+static constexpr uint32_t kSwifterKitMIDIValueData = 3;
+static constexpr uint32_t kSwifterKitMIDIValueArray = 4;
+static constexpr uint32_t kSwifterKitMIDIPropertyMaximumDepth = 4;
+static constexpr uint32_t kSwifterKitMIDIPropertyMaximumEntries = 256;
+static constexpr uint32_t kSwifterKitMIDIPropertyKeyMaximumLength = 255;
+
 #endif

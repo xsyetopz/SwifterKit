@@ -20,12 +20,12 @@ public enum MIDIObjectTarget: Sendable, Hashable {
 
   var runtimeFields: (kind: UInt32, index: UInt32) {
     switch self {
-    case .driver: (0, 0)
-    case .device: (1, 0)
-    case .entity: (2, 0)
-    case .source(let index): (3, index)
-    case .destination(let index): (4, index)
-    case .object(let objectID): (5, objectID)
+    case .driver: (RuntimeMIDITargetKind.driver.rawValue, 0)
+    case .device: (RuntimeMIDITargetKind.device.rawValue, 0)
+    case .entity: (RuntimeMIDITargetKind.entity.rawValue, 0)
+    case .source(let index): (RuntimeMIDITargetKind.source.rawValue, index)
+    case .destination(let index): (RuntimeMIDITargetKind.destination.rawValue, index)
+    case .object(let objectID): (RuntimeMIDITargetKind.object.rawValue, objectID)
     }
   }
 
@@ -83,7 +83,7 @@ public struct MIDIObjectInfo: Sendable, Hashable {
   /// The object name, or an empty string when none is set.
   public let name: String
 
-  static let driverClass: UInt32 = 0xFFFF_FFFF
+  static let driverClass = RuntimeMIDIObjectLimits.driverClass
 
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 24 else { throw MIDIRuntimeError.invalidPayload }
@@ -93,7 +93,8 @@ public struct MIDIObjectInfo: Sendable, Hashable {
     let rawBase: UInt32 = try runtimePayload.readRuntimeInteger(at: 12)
     let nameLength = Int(try runtimePayload.readRuntimeInteger(at: 16) as UInt32)
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 20)
-    guard reserved == 0, objectID != 0, nameLength <= 255, runtimePayload.count == 24 + nameLength,
+    guard reserved == 0, objectID != 0, nameLength <= RuntimeMIDIObjectLimits.nameMaximumLength,
+      runtimePayload.count == 24 + nameLength,
       (rawClass == Self.driverClass) == (rawBase == Self.driverClass),
       let name = String(data: runtimePayload.suffix(nameLength), encoding: .utf8)
     else { throw MIDIRuntimeError.invalidPayload }
@@ -163,7 +164,7 @@ public enum MIDIMember: Sendable, Hashable {
 /// Decodes `u32 value, u32 count, count × u32 object ID` responses.
 enum MIDIObjectIDList {
   /// The most object IDs one list response carries.
-  static let maximumCount = 64
+  static let maximumCount = RuntimeMIDIObjectLimits.maximumListedObjects
 
   static func decode(_ payload: Data) throws -> (UInt32, [UInt32]) {
     guard payload.count >= 8 else { throw MIDIRuntimeError.invalidPayload }

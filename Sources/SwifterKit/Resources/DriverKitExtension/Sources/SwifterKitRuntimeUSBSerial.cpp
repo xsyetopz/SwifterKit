@@ -15,10 +15,8 @@
 // larger than one event is split into consecutive events in order.
 
 namespace {
-    enum class USBSerialPacketKind : uint32_t {
-        Received = 1,
-        Interrupt = 2,
-    };
+    // SwifterKitUSBSerialPacketKind comes from RuntimeSchema+Storage.swift.
+    using USBSerialPacketKind = SwifterKitUSBSerialPacketKind;
 
     struct __attribute__((packed)) USBSerialPacketHeader {
         uint32_t kind;

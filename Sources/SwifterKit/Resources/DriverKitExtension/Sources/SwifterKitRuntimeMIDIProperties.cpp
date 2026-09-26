@@ -12,17 +12,7 @@
     #include "SwifterKitRuntimeSchema.h"
 
 namespace {
-    enum MIDIValueType : uint32_t {
-        kMIDIValueString = 0,
-        kMIDIValueNumber = 1,
-        kMIDIValueDictionary = 2,
-        kMIDIValueData = 3,
-        kMIDIValueArray = 4,
-    };
-
-    constexpr uint32_t kMaximumDepth = 4;
-    constexpr uint32_t kMaximumEntries = 256;
-    constexpr uint32_t kMaximumKeyLength = 255;
+    // The value types and the depth, entry, and key limits come from RuntimeSchema+MIDI.swift.
     constexpr uint32_t kMaximumEncodedLength =
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize;
 
@@ -67,16 +57,16 @@ namespace {
         uint32_t length,
         uint32_t depth,
         OSObject** value) {
-        if (depth > kMaximumDepth || length < 8) {
+        if (depth > kSwifterKitMIDIPropertyMaximumDepth || length < 8) {
             return kIOReturnBadArgument;
         }
         const uint32_t count = ReadU32(body);
-        if (ReadU32(body + 4) != 0 || count > kMaximumEntries) {
+        if (ReadU32(body + 4) != 0 || count > kSwifterKitMIDIPropertyMaximumEntries) {
             return kIOReturnBadArgument;
         }
         OSDictionary* dictionary = nullptr;
         OSArray* array = nullptr;
-        if (type == kMIDIValueDictionary) {
+        if (type == kSwifterKitMIDIValueDictionary) {
             dictionary = OSDictionary::withCapacity(count == 0 ? 1 : count);
         } else {
             array = OSArray::withCapacity(count == 0 ? 1 : count);
@@ -95,7 +85,8 @@ namespace {
                 }
                 const uint32_t keyLength = ReadU32(body + cursor);
                 if (ReadU32(body + cursor + 4) != 0 || keyLength == 0
-                    || keyLength > kMaximumKeyLength || keyLength > length - cursor - 8) {
+                    || keyLength > kSwifterKitMIDIPropertyKeyMaximumLength
+                    || keyLength > length - cursor - 8) {
                     result = kIOReturnBadArgument;
                     break;
                 }
@@ -149,13 +140,13 @@ namespace {
         *offset = start + bodyLength;
         OSObject* object = nullptr;
         switch (type) {
-            case kMIDIValueString:
+            case kSwifterKitMIDIValueString:
                 object = MakeString(body, bodyLength);
                 if (object == nullptr) {
                     return kIOReturnBadArgument;
                 }
                 break;
-            case kMIDIValueNumber: {
+            case kSwifterKitMIDIValueNumber: {
                 if (bodyLength != 16) {
                     return kIOReturnBadArgument;
                 }
@@ -168,12 +159,12 @@ namespace {
                 object = OSNumber::withNumber(raw, bits);
                 break;
             }
-            case kMIDIValueData:
+            case kSwifterKitMIDIValueData:
                 object =
                     bodyLength == 0 ? OSData::withCapacity(1) : OSData::withBytes(body, bodyLength);
                 break;
-            case kMIDIValueDictionary:
-            case kMIDIValueArray:
+            case kSwifterKitMIDIValueDictionary:
+            case kSwifterKitMIDIValueArray:
                 return DecodeContainer(type, body, bodyLength, depth, value);
             default:
                 return kIOReturnBadArgument;
@@ -205,7 +196,8 @@ namespace {
         auto* dictionary = OSDynamicCast(OSDictionary, value);
         auto* array = OSDynamicCast(OSArray, value);
         const uint32_t count = dictionary != nullptr ? dictionary->getCount() : array->getCount();
-        if (depth > kMaximumDepth || count > kMaximumEntries) {
+        if (depth > kSwifterKitMIDIPropertyMaximumDepth
+            || count > kSwifterKitMIDIPropertyMaximumEntries) {
             return kIOReturnNoSpace;
         }
         OSData* body = OSData::withCapacity(64);
@@ -217,7 +209,7 @@ namespace {
             dictionary->iterateObjects(^bool(OSObject* key, OSObject* member) {
               auto* name = OSDynamicCast(OSString, key);
               const size_t keyLength = name == nullptr ? 0 : name->getLength();
-              if (keyLength == 0 || keyLength > kMaximumKeyLength) {
+              if (keyLength == 0 || keyLength > kSwifterKitMIDIPropertyKeyMaximumLength) {
                   result = kIOReturnUnsupported;
                   return true;
               }
@@ -236,7 +228,8 @@ namespace {
               return result != kIOReturnSuccess;
             });
         }
-        const uint32_t type = dictionary != nullptr ? kMIDIValueDictionary : kMIDIValueArray;
+        const uint32_t type =
+            dictionary != nullptr ? kSwifterKitMIDIValueDictionary : kSwifterKitMIDIValueArray;
         if (result == kIOReturnSuccess) {
             result = AppendHeader(data, type, static_cast<uint32_t>(body->getLength()));
         }
@@ -254,7 +247,7 @@ namespace {
                 return kIOReturnNoSpace;
             }
             kern_return_t result =
-                AppendHeader(data, kMIDIValueString, static_cast<uint32_t>(length));
+                AppendHeader(data, kSwifterKitMIDIValueString, static_cast<uint32_t>(length));
             return result == kIOReturnSuccess ? Append(data, string->getCStringNoCopy(), length)
                                               : result;
         }
@@ -265,7 +258,7 @@ namespace {
             }
             const uint32_t header[2] = {static_cast<uint32_t>(bits), 0};
             const uint64_t raw = number->unsigned64BitValue() & WidthMask(bits);
-            kern_return_t result = AppendHeader(data, kMIDIValueNumber, 16);
+            kern_return_t result = AppendHeader(data, kSwifterKitMIDIValueNumber, 16);
             if (result == kIOReturnSuccess) {
                 result = Append(data, header, sizeof(header));
             }
@@ -277,7 +270,7 @@ namespace {
                 return kIOReturnNoSpace;
             }
             kern_return_t result =
-                AppendHeader(data, kMIDIValueData, static_cast<uint32_t>(length));
+                AppendHeader(data, kSwifterKitMIDIValueData, static_cast<uint32_t>(length));
             return result == kIOReturnSuccess ? Append(data, bytes->getBytesNoCopy(), length)
                                               : result;
         }

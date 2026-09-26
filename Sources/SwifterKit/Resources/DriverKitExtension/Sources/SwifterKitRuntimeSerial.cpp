@@ -10,19 +10,8 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    enum class SerialEventKind : uint32_t {
-        Activate = 1,
-        Deactivate = 2,
-        ReceiveSpaceAvailable = 3,
-        TransmitDataAvailable = 4,
-        ResetFIFO = 5,
-        SendBreak = 6,
-        ProgramUART = 7,
-        ProgramBaudRate = 8,
-        ProgramModemControl = 9,
-        ProgramLatencyTimer = 10,
-        ProgramFlowControl = 11,
-    };
+    // SwifterKitSerialEventKind comes from RuntimeSchema+Storage.swift.
+    using SerialEventKind = SwifterKitSerialEventKind;
 
     kern_return_t MapDescriptor(IOMemoryDescriptor* descriptor, IOMemoryMap** map) {
         if (descriptor == nullptr || map == nullptr) {

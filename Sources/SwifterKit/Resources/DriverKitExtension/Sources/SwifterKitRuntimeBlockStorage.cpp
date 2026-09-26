@@ -10,13 +10,8 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    enum class BlockStorageRequestKind : uint32_t {
-        Eject = 1,
-        Synchronize = 2,
-        Unmap = 3,
-        Read = 4,
-        Write = 5,
-    };
+    // SwifterKitBlockStorageRequestKind comes from RuntimeSchema+Storage.swift.
+    using BlockStorageRequestKind = SwifterKitBlockStorageRequestKind;
 
     struct __attribute__((packed)) SynchronizeRequest {
         SwifterKitBlockStorageRequestHeader header;

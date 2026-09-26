@@ -98,7 +98,12 @@ SwifterKit records user-visible changes in this file.
   written by hand in both the Swift sources and the native Dispatch, Reporting,
   and Service protocol headers. They are now declared once in the Swift runtime
   schema and emitted into the generated `SwifterKitRuntimeSchema.h`, which
-  `RuntimeSchemaTests` checks for drift and for native redeclarations.
+  `RuntimeSchemaTests` checks for drift and for native redeclarations. The SCSI
+  management kinds and property limits, the block-storage request kinds, the
+  serial event and USB serial packet kinds, and the MIDI event, target, key, and
+  value kinds with the MIDI driver class, listed-object, name, and property
+  limits, which the SCSI, BlockStorage, Serial, USBSerial, and MIDI runtime
+  sources and their Swift decoders each spelled out, come from the same schema.
 - The queued `UserCreateTargetForID` discarded the result of enqueueing its
   required `SCSIControllerEvent.targetCreated` event, so a registered host that
   had let the required queue fill lost the event. The create's queue now

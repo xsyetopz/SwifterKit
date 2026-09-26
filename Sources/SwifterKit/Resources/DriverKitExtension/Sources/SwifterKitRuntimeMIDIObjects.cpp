@@ -16,20 +16,8 @@
 namespace {
     using Opcode = SwifterKitRuntimeOpcode;
 
-    // Target kinds match MIDIObjectTarget.runtimeFields in Swift.
-    enum MIDITargetKind : uint32_t {
-        kMIDITargetDriver = 0,
-        kMIDITargetDevice = 1,
-        kMIDITargetEntity = 2,
-        kMIDITargetSource = 3,
-        kMIDITargetDestination = 4,
-        kMIDITargetObject = 5,
-    };
-
-    // Stands in for a class ID on the driver, which is not an IOUserMIDIObject.
-    constexpr uint32_t kMIDIDriverClass = 0xFFFF'FFFF;
-    // The most object IDs one list response carries, as MIDIObjectIDList in Swift.
-    constexpr uint32_t kMaximumListedObjects = 64;
+    // The target kinds, key kinds, driver class marker, listed-object limit, and name limit
+    // come from RuntimeSchema+MIDI.swift.
 
     struct __attribute__((packed)) MIDIObjectInfoHeader {
         uint32_t objectID;
@@ -57,7 +45,7 @@ namespace {
         SwifterKitRuntimeService_IVars* state,
         uint32_t kind,
         uint32_t index) {
-        if (kind == kMIDITargetObject) {
+        if (kind == kSwifterKitMIDITargetObject) {
             if (index == 0) {
                 return nullptr;
             }
@@ -69,13 +57,14 @@ namespace {
         }
         IOUserMIDIObject* object = nullptr;
         IOLockLock(state->midiLock);
-        if (kind == kMIDITargetDevice && index == 0) {
+        if (kind == kSwifterKitMIDITargetDevice && index == 0) {
             object = state->midiDevice;
-        } else if (kind == kMIDITargetEntity && index == 0) {
+        } else if (kind == kSwifterKitMIDITargetEntity && index == 0) {
             object = state->midiEntity;
-        } else if (kind == kMIDITargetSource && index < kSwifterKitMIDISourceCount) {
+        } else if (kind == kSwifterKitMIDITargetSource && index < kSwifterKitMIDISourceCount) {
             object = state->midiSources[index];
-        } else if (kind == kMIDITargetDestination && index < kSwifterKitMIDIDestinationCount) {
+        } else if (
+            kind == kSwifterKitMIDITargetDestination && index < kSwifterKitMIDIDestinationCount) {
             object = state->midiDestinations[index];
         }
         if (object != nullptr) {
@@ -85,9 +74,9 @@ namespace {
         return object;
     }
 
-    // Reads a bounded, NUL-free string of `length` bytes.
-    OSString* CopyString(const uint8_t* bytes, uint32_t length) {
-        if (length == 0 || length > 255 || memchr(bytes, 0, length) != nullptr) {
+    // Reads a NUL-free string of 1...maximumLength bytes.
+    OSString* CopyString(const uint8_t* bytes, uint32_t length, uint32_t maximumLength) {
+        if (length == 0 || length > maximumLength || memchr(bytes, 0, length) != nullptr) {
             return nullptr;
         }
         return OSString::withCString(reinterpret_cast<const char*>(bytes), length);
@@ -107,15 +96,15 @@ namespace {
         }
         const uint32_t kind = ReadU32(payload, 8);
         const uint32_t value = ReadU32(payload, 12);
-        if (kind == 0) {
+        if (kind == kSwifterKitMIDIKeySelector) {
             key->selector = value;
             key->end = 16;
             return value == 0 ? kIOReturnBadArgument : kIOReturnSuccess;
         }
-        if (kind != 1 || value > length - 16) {
+        if (kind != kSwifterKitMIDIKeyString || value > length - 16) {
             return kIOReturnBadArgument;
         }
-        key->name = CopyString(payload + 16, value);
+        key->name = CopyString(payload + 16, value, kSwifterKitMIDIPropertyKeyMaximumLength);
         key->end = 16 + value;
         return key->name == nullptr ? kIOReturnBadArgument : kIOReturnSuccess;
     }
@@ -140,8 +129,8 @@ namespace {
         OSSharedPtr<OSString> name;
         if (object == nullptr) {
             header.objectID = kIOUserMIDIObjectIDDriver;
-            header.classID = kMIDIDriverClass;
-            header.baseClassID = kMIDIDriverClass;
+            header.classID = kSwifterKitMIDIDriverClass;
+            header.baseClassID = kSwifterKitMIDIDriverClass;
             name = service->GetName();
         } else {
             header.objectID = object->GetObjectID();
@@ -151,7 +140,7 @@ namespace {
             name = object->GetName();
         }
         header.nameLength = name ? static_cast<uint32_t>(name->getLength()) : 0;
-        if (header.nameLength > 255) {
+        if (header.nameLength > kSwifterKitMIDINameMaximumLength) {
             return kIOReturnNoSpace;
         }
         OSData* data = OSData::withCapacity(sizeof(header) + header.nameLength);
@@ -169,7 +158,7 @@ namespace {
     kern_return_t ObjectIDList(uint32_t value, OSArray* first, OSArray* second, OSData** response) {
         const uint32_t firstCount = first == nullptr ? 0 : first->getCount();
         const uint32_t count = firstCount + (second == nullptr ? 0 : second->getCount());
-        if (count > kMaximumListedObjects) {
+        if (count > kSwifterKitMIDIMaximumListedObjects) {
             return kIOReturnNoSpace;
         }
         OSData* data = OSData::withCapacity(8 + count * 4);
@@ -211,13 +200,14 @@ namespace {
         const uint32_t index = ReadU32(payload, 4);
         const uint32_t attached = ReadU32(payload, 8);
         if (attached > 1 || ReadU32(payload, 12) != 0
-            || (kind != kMIDITargetEntity && kind != kMIDITargetSource
-                && kind != kMIDITargetDestination)) {
+            || (kind != kSwifterKitMIDITargetEntity && kind != kSwifterKitMIDITargetSource
+                && kind != kSwifterKitMIDITargetDestination)) {
             return kIOReturnBadArgument;
         }
         IOUserMIDIObject* member = CopyObject(service, state, kind, index);
-        const uint32_t ownerKind =
-            kind == kMIDITargetEntity ? kMIDITargetDevice : kMIDITargetEntity;
+        const uint32_t ownerKind = kind == kSwifterKitMIDITargetEntity
+                                       ? kSwifterKitMIDITargetDevice
+                                       : kSwifterKitMIDITargetEntity;
         IOUserMIDIObject* owner = CopyObject(service, state, ownerKind, 0);
         kern_return_t result = kIOReturnNotReady;
         if (member != nullptr && owner != nullptr) {
@@ -335,8 +325,11 @@ kern_return_t SwifterKitRuntimeService::MIDIObjectCommand(
             return kIOReturnBadArgument;
         }
         const bool device = Is(opcode, Opcode::MIDIGetDeviceState);
-        IOUserMIDIObject* object =
-            CopyObject(this, ivars, device ? kMIDITargetDevice : kMIDITargetEntity, 0);
+        IOUserMIDIObject* object = CopyObject(
+            this,
+            ivars,
+            device ? kSwifterKitMIDITargetDevice : kSwifterKitMIDITargetEntity,
+            0);
         if (object == nullptr) {
             return kIOReturnNotReady;
         }
@@ -363,7 +356,7 @@ kern_return_t SwifterKitRuntimeService::MIDIObjectCommand(
     }
     const uint32_t kind = ReadU32(payload, 0);
     const uint32_t index = ReadU32(payload, 4);
-    const bool driver = kind == kMIDITargetDriver;
+    const bool driver = kind == kSwifterKitMIDITargetDriver;
     if (driver && index != 0) {
         return kIOReturnBadArgument;
     }
@@ -379,7 +372,7 @@ kern_return_t SwifterKitRuntimeService::MIDIObjectCommand(
         const uint32_t nameLength = payloadLength >= 16 ? ReadU32(payload, 8) : 0;
         OSString* name =
             payloadLength >= 16 && ReadU32(payload, 12) == 0 && nameLength == payloadLength - 16
-                ? CopyString(payload + 16, nameLength)
+                ? CopyString(payload + 16, nameLength, kSwifterKitMIDINameMaximumLength)
                 : nullptr;
         if (name != nullptr) {
             result = driver ? SetName(name) : object->SetName(name);

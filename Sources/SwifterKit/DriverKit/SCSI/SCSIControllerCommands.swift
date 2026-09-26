@@ -80,24 +80,24 @@ extension SCSIControllerEvent {
     let target: UInt64 = try data.readRuntimeInteger(at: 8)
     let logicalUnit: UInt64 = try data.readRuntimeInteger(at: 16)
     let taskTag: UInt64 = try data.readRuntimeInteger(at: 24)
-    switch kind {
-    case 1: self = .initializeTarget(target)
-    case 2:
+    switch RuntimeSCSIManagementKind(rawValue: kind) {
+    case .initializeTarget?: self = .initializeTarget(target)
+    case .abortTask?:
       self = .taskManagement(
         .abortTask(targetIdentifier: target, logicalUnit: logicalUnit, taskTag: taskTag)
       )
-    case 3:
+    case .abortTaskSet?:
       self = .taskManagement(.abortTaskSet(targetIdentifier: target, logicalUnit: logicalUnit))
-    case 4:
+    case .clearACA?:
       self = .taskManagement(
         .clearAutoContingentAllegiance(targetIdentifier: target, logicalUnit: logicalUnit)
       )
-    case 5:
+    case .clearTaskSet?:
       self = .taskManagement(.clearTaskSet(targetIdentifier: target, logicalUnit: logicalUnit))
-    case 6:
+    case .logicalUnitReset?:
       self = .taskManagement(.logicalUnitReset(targetIdentifier: target, logicalUnit: logicalUnit))
-    case 7: self = .taskManagement(.targetReset(targetIdentifier: target))
-    default: throw SCSIControllerRuntimeError.invalidEventKind(kind)
+    case .targetReset?: self = .taskManagement(.targetReset(targetIdentifier: target))
+    case nil: throw SCSIControllerRuntimeError.invalidEventKind(kind)
     }
   }
 }

@@ -154,14 +154,14 @@ public enum SerialEvent: Sendable, Hashable {
     guard runtimePayload.count == 16 else { throw SerialRuntimeError.invalidPayload }
     let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
     let value: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
-    switch kind {
-    case 1: self = .activate
-    case 2: self = .deactivate
-    case 3: self = .receiveSpaceAvailable
-    case 4: self = .transmitDataAvailable
-    case 5: self = .resetFIFO(transmit: value & 1 != 0, receive: value & 2 != 0)
-    case 6: self = .sendBreak(value != 0)
-    case 7:
+    switch RuntimeSerialEventKind(rawValue: kind) {
+    case .activate?: self = .activate
+    case .deactivate?: self = .deactivate
+    case .receiveSpaceAvailable?: self = .receiveSpaceAvailable
+    case .transmitDataAvailable?: self = .transmitDataAvailable
+    case .resetFIFO?: self = .resetFIFO(transmit: value & 1 != 0, receive: value & 2 != 0)
+    case .sendBreak?: self = .sendBreak(value != 0)
+    case .programUART?:
       guard let parity = SerialParity(rawValue: runtimePayload[10]) else {
         throw SerialRuntimeError.invalidPayload
       }
@@ -173,11 +173,11 @@ public enum SerialEvent: Sendable, Hashable {
           parity: parity
         )
       )
-    case 8: self = .programBaudRate(value)
-    case 9:
+    case .programBaudRate?: self = .programBaudRate(value)
+    case .programModemControl?:
       self = .programModemControl(dataTerminalReady: value & 1 != 0, requestToSend: value & 2 != 0)
-    case 10: self = .programLatencyTimer(value)
-    case 11:
+    case .programLatencyTimer?: self = .programLatencyTimer(value)
+    case .programFlowControl?:
       self = .programFlowControl(
         SerialFlowControlConfiguration(
           flags: value,
@@ -185,7 +185,7 @@ public enum SerialEvent: Sendable, Hashable {
           xoff: runtimePayload[9]
         )
       )
-    default: throw SerialRuntimeError.invalidEventKind(kind)
+    case nil: throw SerialRuntimeError.invalidEventKind(kind)
     }
   }
 }

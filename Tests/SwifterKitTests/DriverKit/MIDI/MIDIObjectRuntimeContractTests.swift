@@ -74,8 +74,20 @@ struct MIDIObjectRuntimeContractTests {
         "RemoveSource(source)", "AddDestination(destination)", "RemoveDestination(destination)",
       ] { #expect(objects.contains(call), Comment(rawValue: call)) }
       let properties = try source("SwifterKitRuntimeMIDIProperties.cpp", in: output)
-      #expect(properties.contains("kMaximumDepth = 4"))
-      #expect(properties.contains("kMaximumEntries = 256"))
+      let header = try source(RuntimeSchemaHeader.fileName, in: output)
+      #expect(
+        header.contains("kSwifterKitMIDIPropertyMaximumDepth = \(MIDIPropertyValue.maximumDepth);")
+      )
+      #expect(
+        header.contains(
+          "kSwifterKitMIDIPropertyMaximumEntries = \(MIDIPropertyValue.maximumEntries);"
+        )
+      )
+      #expect(
+        header.contains("kSwifterKitMIDIMaximumListedObjects = \(MIDIObjectIDList.maximumCount);")
+      )
+      #expect(properties.contains("depth > kSwifterKitMIDIPropertyMaximumDepth"))
+      #expect(objects.contains("count > kSwifterKitMIDIMaximumListedObjects"))
       #expect(properties.contains("dictionary->getObject(key) != nullptr"))
       #expect(
         properties.contains("kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize")

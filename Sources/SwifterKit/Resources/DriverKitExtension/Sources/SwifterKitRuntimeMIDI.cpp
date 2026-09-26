@@ -15,11 +15,8 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
-    enum class MIDIEventKind : uint32_t {
-        StartIO = 1,
-        StopIO = 2,
-        Received = 3,
-    };
+    // SwifterKitMIDIEventKind comes from RuntimeSchema+MIDI.swift.
+    using MIDIEventKind = SwifterKitMIDIEventKind;
 
     OSString* MakeString(const char* value) {
         return value == nullptr ? nullptr : OSString::withCString(value);

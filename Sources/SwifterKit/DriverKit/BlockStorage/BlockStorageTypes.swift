@@ -151,18 +151,19 @@ public enum BlockStorageRequest: Sendable, Hashable {
     guard runtimePayload.count >= 8 else { throw BlockStorageRuntimeError.invalidPayload }
     let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
     let requestID: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
-    switch kind {
-    case 1:
+    let requestKind = RuntimeBlockStorageRequestKind(rawValue: kind)
+    switch requestKind {
+    case .eject?:
       guard runtimePayload.count == 8 else { throw BlockStorageRuntimeError.invalidPayload }
       self = .eject(requestID: requestID)
-    case 2:
+    case .synchronize?:
       guard runtimePayload.count == 24 else { throw BlockStorageRuntimeError.invalidPayload }
       self = .synchronize(
         requestID: requestID,
         startBlock: try runtimePayload.readRuntimeInteger(at: 8),
         blockCount: try runtimePayload.readRuntimeInteger(at: 16)
       )
-    case 3:
+    case .unmap?:
       guard runtimePayload.count >= 16 else { throw BlockStorageRuntimeError.invalidPayload }
       let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
       let expected = 16 + Int(count) * 16
@@ -179,7 +180,7 @@ public enum BlockStorageRequest: Sendable, Hashable {
         )
       }
       self = .unmap(requestID: requestID, ranges: ranges)
-    case 4, 5:
+    case .read?, .write?:
       guard runtimePayload.count == 48 else { throw BlockStorageRuntimeError.invalidPayload }
       let options = BlockStorageOptions(
         rawValue: try runtimePayload.readRuntimeInteger(at: 40) as UInt32
@@ -195,8 +196,8 @@ public enum BlockStorageRequest: Sendable, Hashable {
         blockCount: try runtimePayload.readRuntimeInteger(at: 32),
         options: options
       )
-      self = kind == 4 ? .read(request) : .write(request)
-    default: throw BlockStorageRuntimeError.invalidRequestKind(kind)
+      self = requestKind == .read ? .read(request) : .write(request)
+    case nil: throw BlockStorageRuntimeError.invalidRequestKind(kind)
     }
   }
 }

@@ -14,7 +14,9 @@ class OSObject;
 //   type 2 dictionary: u32 count, u32 reserved, count × (u32 keyLength, u32 reserved, key, value)
 //   type 3 data: raw bytes
 //   type 4 array: u32 count, u32 reserved, count × value
-// Containers nest at most four deep and hold at most 256 entries.
+// Containers nest at most kSwifterKitMIDIPropertyMaximumDepth deep and hold at most
+// kSwifterKitMIDIPropertyMaximumEntries entries; keys hold at most
+// kSwifterKitMIDIPropertyKeyMaximumLength bytes. RuntimeSchema+MIDI.swift declares all three.
 
 // Decodes exactly one value filling `length` bytes into a new OSObject the caller releases.
 kern_return_t SwifterKitDecodeMIDIValue(const uint8_t* bytes, uint32_t length, OSObject** value);

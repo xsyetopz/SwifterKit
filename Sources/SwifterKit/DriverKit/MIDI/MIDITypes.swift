@@ -82,14 +82,14 @@ public enum MIDIEvent: Sendable, Hashable {
       runtimePayload.count == 16 + Int(wordCount) * 4
     else { throw MIDIRuntimeError.invalidPayload }
 
-    switch kind {
-    case 1:
+    switch RuntimeMIDIEventKind(rawValue: kind) {
+    case .startIO?:
       guard endpoint == 0, wordCount == 0 else { throw MIDIRuntimeError.invalidPayload }
       self = .startIO
-    case 2:
+    case .stopIO?:
       guard endpoint == 0, wordCount == 0 else { throw MIDIRuntimeError.invalidPayload }
       self = .stopIO
-    case 3:
+    case .received?:
       guard wordCount > 0 else { throw MIDIRuntimeError.invalidPayload }
       var words: [UInt32] = []
       words.reserveCapacity(Int(wordCount))
@@ -97,7 +97,7 @@ public enum MIDIEvent: Sendable, Hashable {
         words.append(try runtimePayload.readRuntimeInteger(at: 16 + index * 4))
       }
       self = .received(MIDIUniversalPacketData(endpointIndex: endpoint, words: words))
-    default: throw MIDIRuntimeError.invalidEventKind(kind)
+    case nil: throw MIDIRuntimeError.invalidEventKind(kind)
     }
   }
 }
