@@ -6604,13 +6604,14 @@
 
           ],
           "name" : "DoAsyncUnmap",
+          "note" : "the inherited LOCAL implementation maps the range buffer and passes the ranges to DoAsyncUnmapPriv, which the runtime overrides to forward unmap requests to Swift as BlockStorageRequest.unmap; overriding DoAsyncUnmap too would bypass that path",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DoAsyncUnmap(uint32_t, IOMemoryDescriptor*, uint32_t)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "private",
@@ -18071,7 +18072,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetBaseClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -18088,7 +18090,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -18277,7 +18280,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetBaseClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -18294,7 +18298,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -18329,7 +18334,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSArray> GetEntities() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiDeviceState"
         },
         {
           "access" : "public",
@@ -18346,7 +18352,8 @@
             "27.0"
           ],
           "signature" : "bool GetDeviceIsRunning() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiDeviceState"
         },
         {
           "access" : "public",
@@ -18435,7 +18442,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveEntity(IOUserMIDIEntity*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -18470,7 +18478,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetProperties"
         },
         {
           "access" : "public",
@@ -18779,13 +18788,14 @@
 
           ],
           "name" : "GetWorkQueue",
+          "note" : "returns the driver's default dispatch queue; the MIDI runtime schedules no work of its own on it, and a dispatch queue has no Swift representation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSharedPtr<IODispatchQueue> GetWorkQueue() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -18802,7 +18812,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOUserMIDIObject> GetMIDIObjectForObjectID(IOUserMIDIObjectID) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -18819,7 +18830,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetName() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19458,7 +19470,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetBaseClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19475,7 +19488,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19486,13 +19500,14 @@
 
           ],
           "name" : "init",
+          "note" : "OSObject lifecycle hook; the generated runtime creates endpoints only through IOUserMIDIEntity::Create, which calls init",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool init(IOUserMIDIDriver*, OSString*, IOUserMIDIProtocolID)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -19609,7 +19624,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetBaseClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19626,7 +19642,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19697,7 +19714,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSArray> GetDestinations() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiEntityMembers"
         },
         {
           "access" : "public",
@@ -19714,7 +19732,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSArray> GetSources() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiEntityMembers"
         },
         {
           "access" : "public",
@@ -19749,7 +19768,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AddDestination(IOUserMIDIDestination*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -19766,7 +19786,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t AddSource(IOUserMIDISource*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -19783,7 +19804,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveDestination(IOUserMIDIDestination*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -19800,7 +19822,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveSource(IOUserMIDISource*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -19817,7 +19840,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetProperties"
         },
         {
           "access" : "public",
@@ -19934,7 +19958,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetBaseClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19951,7 +19976,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19968,7 +19994,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIObjectID GetObjectID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19985,7 +20012,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIObjectID GetOwnerObjectID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -19996,13 +20024,14 @@
 
           ],
           "name" : "GetWorkQueue",
+          "note" : "returns the queue MIDIDriverKit uses to serialize the object's own getters and setters; the runtime calls those members directly, and a dispatch queue has no Swift representation",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "OSSharedPtr<IODispatchQueue> GetWorkQueue() const",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -20019,7 +20048,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSDictionary> GetProperties() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiProperties"
         },
         {
           "access" : "public",
@@ -20036,7 +20066,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<OSString> GetName() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -20065,13 +20096,14 @@
 
           ],
           "name" : "init",
+          "note" : "OSObject lifecycle hook; the generated runtime creates MIDI objects only through the Create factories, which call init",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool init(IOUserMIDIDriver*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -20088,7 +20120,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyProperty(IOUserMIDIProperty, OSObject**) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiCopyProperty"
         },
         {
           "access" : "public",
@@ -20105,7 +20138,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t CopyProperty(OSString*, OSObject**) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiCopyProperty"
         },
         {
           "access" : "public",
@@ -20122,7 +20156,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t GetPropertyType(IOUserMIDIProperty, IOUserMIDIPropertyType*) const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiPropertyType"
         },
         {
           "access" : "public",
@@ -20139,7 +20174,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetName(OSString*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetObjectName"
         },
         {
           "access" : "public",
@@ -20156,7 +20192,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetProperties"
         },
         {
           "access" : "public",
@@ -20173,7 +20210,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetProperty(IOUserMIDIProperty, OSObject*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetProperty"
         },
         {
           "access" : "public",
@@ -20190,7 +20228,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetProperty(OSString*, OSObject*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiSetProperty"
         },
         {
           "access" : "public",
@@ -20469,7 +20508,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetBaseClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -20486,7 +20526,8 @@
             "27.0"
           ],
           "signature" : "IOUserMIDIClassID GetClassID() const",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "midiObjectInfo"
         },
         {
           "access" : "public",
@@ -28388,13 +28429,14 @@
 
           ],
           "name" : "initWith",
+          "note" : "OSObject lifecycle hook; DriverKit constructs the IOUserSerial service, and the runtime maps the queue memory through ConnectQueues",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "bool initWith(IOBufferMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",

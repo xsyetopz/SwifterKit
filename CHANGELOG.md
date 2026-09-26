@@ -78,6 +78,13 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- The MIDI runtime wrote its device, entity, source, and destination pointers
+  in `StartMIDI` and `StopMIDI` on the service queue while `midiSend`,
+  `StartIO`, and `StopIO` read them from other queues without
+  synchronization. A `midiLock` now guards them; readers retain the object
+  they use, and destination I/O blocks never take the lock. A `StartMIDI` that
+  fails after adding the device to the driver now removes it again.
+
 - A clock device's `HandleChangeSampleRate`, in both AudioDriverKit and
   VideoDriverKit, reported success after queuing the Swift request, and without
   a host after only requesting a configuration change, although the headers
@@ -169,6 +176,19 @@ SwifterKit records user-visible changes in this file.
   outstanding until the service stopped.
 
 ### Added
+
+- MIDIDriverKit object, property, and membership support on opcodes
+  0x0810-0x0819: `midiObjectInfo`, `midiSetObjectName`, `midiPropertyType`,
+  `midiCopyProperty`, `midiSetProperty`, `midiProperties`,
+  `midiSetProperties`, `midiDeviceState`, `midiEntityMembers`, and
+  `midiSetMemberAttachment` on `DriverContext`, with `MIDIObjectTarget`,
+  `MIDIClassID`, `MIDIObjectInfo`, `MIDIProperty`, `MIDIPropertyKey`,
+  `MIDIPropertyType`, `MIDIPropertyValue`, `MIDIDeviceState`,
+  `MIDIEntityMembers`, and `MIDIMember`. `MIDIRuntimeError` gains
+  `invalidObjectTarget`, `invalidName`, `invalidPropertyKey`,
+  `invalidPropertyValue`, and `propertyValueTooLarge`. Every MIDIDriverKit,
+  BlockStorageDeviceDriverKit, and SerialDriverKit member is now covered or
+  excluded with a reason.
 
 - VideoDriverKit device, stream, buffer, control, and custom-property support
   on opcodes 0x0C20-0x0C2D: `videoDeviceState`, `videoSetDeviceProperty`,
