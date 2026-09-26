@@ -55,6 +55,30 @@ struct BlockStorageGeneratorTests {
     #expect(service.contains("BlockStorageCommand"))
     #expect(service.contains("PCICommand"))
 
+    // Requests the runtime cannot take complete through Complete or CompleteIO, except a
+    // duplicate identifier, which would otherwise answer the outstanding request.
+    let storage = try String(
+      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeBlockStorage.cpp"),
+      encoding: .utf8
+    )
+    let queue = try #require(storage.range(of: "kern_return_t QueueRequest(")?.upperBound)
+    let queueBody = storage[queue...]
+    let duplicate = try #require(
+      queueBody.range(of: "result == kIOReturnExclusiveAccess")?.upperBound
+    )
+    let reject = try #require(
+      queueBody.range(of: "return RejectRequest(service, requestID, isIO, result);")?.lowerBound
+    )
+    #expect(duplicate < reject)
+    let asyncStart = try #require(storage.range(of: "::DoAsyncEjectMedia_Impl(")?.lowerBound)
+    let asyncEnd = try #require(storage.range(of: "::GetDeviceParams_Impl(")?.lowerBound)
+    let requests = storage[asyncStart..<asyncEnd]
+    #expect(!requests.contains("return kIOReturnBadArgument;"))
+    #expect(!requests.contains("return kIOReturnUnsupported;"))
+    #expect(!requests.contains("return kIOReturnNoSpace;"))
+    #expect(!requests.contains("return kIOReturnNoMemory;"))
+    #expect(requests.contains("return RejectRequest(this, requestID, true, kIOReturnBadArgument);"))
+
     try expectGeneratedExtensionBuilds(
       at: output,
       derivedData: root.appendingPathComponent("DerivedData")

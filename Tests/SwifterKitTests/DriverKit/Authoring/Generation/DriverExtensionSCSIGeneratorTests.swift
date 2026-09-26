@@ -59,6 +59,26 @@ struct SCSIGeneratorTests {
     let taskFailure = scsi[enqueueFailure...]
     #expect(taskFailure.contains("CompleteWithDeliveryFailure(this, completion, request);"))
     #expect(scsi.contains(": kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE;"))
+    // A task the runtime cannot take is completed, not returned as an error.
+    let task = try #require(scsi.range(of: "::UserProcessParallelTask_Impl(")?.lowerBound)
+    let taskBody = scsi[task...]
+    #expect(!taskBody.contains("return kIOReturnNoSpace;"))
+    let full = try #require(taskBody.range(of: "if (pending == nullptr) {")?.upperBound)
+    let fullBody = try #require(
+      taskBody.range(of: "return kIOReturnSuccess;", range: full..<taskBody.endIndex)
+    )
+    #expect(
+      taskBody[full..<fullBody.lowerBound].contains(
+        "CompleteWithDeliveryFailure(this, completion, request);"
+      )
+    )
+    let inProcess = try #require(
+      taskBody.range(of: "*response = kSCSIServiceResponse_Request_In_Process;")?.lowerBound
+    )
+    let version = try #require(
+      taskBody.range(of: "request.version != kScsiUserParallelTaskCurrentVersion1")?.lowerBound
+    )
+    #expect(inProcess < version)
 
     let project = try String(
       contentsOf: output.appendingPathComponent("SwifterKitRuntime.xcodeproj/project.pbxproj"),

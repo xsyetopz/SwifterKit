@@ -57,6 +57,31 @@ struct DriverExtensionRuntimeContractTests {
   }
 
   @Test
+  func eventProducersCheckTheEventQueueBound() throws {
+    try withGeneratedExtension { output in
+      let checks = [
+        (
+          "SwifterKitRuntimeHID.cpp",
+          "length64 > kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitHIDReportHeader)"
+        ),
+        (
+          "SwifterKitRuntimeMIDI.cpp",
+          "(kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitMIDIEventHeader))"
+        ),
+        (
+          "SwifterKitRuntimeBlockStorage.cpp",
+          "payloadLength > kSwifterKitMaximumEventPayloadLength"
+        ),
+      ]
+      for (name, check) in checks {
+        let text = try source(name, in: output)
+        #expect(text.contains(check), "\(name)")
+        #expect(!text.contains("kSwifterKitRuntimeMaximumMessageSize"), "\(name)")
+      }
+    }
+  }
+
+  @Test
   func requiredEventsHaveReservedCapacityAndPollFirst() throws {
     try withGeneratedExtension { output in
       let state = try source("SwifterKitRuntimeServiceState.h", in: output)
@@ -75,12 +100,13 @@ struct DriverExtensionRuntimeContractTests {
         events.range(of: "TakeFirst(ivars->events)", range: copy..<events.endIndex)?.lowerBound
       )
       #expect(required < lossy)
+      let protocolHeader = try source("SwifterKitRuntimeProtocol.h", in: output)
       #expect(
-        events.contains(
+        protocolHeader.contains(
           "kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);"
         )
       )
-      #expect(events.contains("payloadLength > kMaximumEventPayloadLength"))
+      #expect(events.contains("payloadLength > kSwifterKitMaximumEventPayloadLength"))
 
       let lossyEnqueue = try section(
         of: events,
@@ -114,9 +140,16 @@ struct DriverExtensionRuntimeContractTests {
       let enqueue = try #require(queue.range(of: "EnqueueRequiredEvent(")?.upperBound)
       let tail = queue[enqueue...]
       #expect(tail.contains("if (RemovePendingRequest(state, requestID))"))
-      #expect(tail.contains("service->CompleteIO(requestID, 0, result);"))
-      #expect(tail.contains("service->Complete(requestID, result);"))
+      #expect(tail.contains("(void)RejectRequest(service, requestID, isIO, result);"))
       #expect(!tail.contains("return result;"))
+      let reject = try section(
+        of: block,
+        from: "kern_return_t RejectRequest(",
+        to: "kern_return_t QueueRequest("
+      )
+      #expect(reject.contains("service->CompleteIO(requestID, 0, status);"))
+      #expect(reject.contains("service->Complete(requestID, status);"))
+      #expect(reject.contains("return kIOReturnSuccess;"))
     }
   }
 

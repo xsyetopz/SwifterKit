@@ -82,6 +82,8 @@ Memory operations use opaque ``DriverMemoryHandle`` values and bounded read/writ
 
 Several device families forward work that Swift must complete explicitly. Complete an Ethernet transmit through ``DriverContext/completeEthernetTransmit(requestID:status:)``, a block-storage request through ``DriverContext/completeBlockStorageRequest(requestID:status:)`` or ``DriverContext/completeBlockStorageIO(requestID:bytesTransferred:status:)``, and an SCSI task through ``DriverContext/completeSCSIParallelTask(_:)``. Keep the matching request identifier or completion object until the transport result is known.
 
+A block-storage request or SCSI task that the extension cannot take (invalid arguments, a full request table, or a payload over the event limit) is completed by the extension with a failure status, so it never reaches Swift and never needs a Swift completion. The one exception is a block-storage request whose identifier matches one still outstanding: the extension refuses it with `kIOReturnExclusiveAccess` and no completion, because completing that identifier would answer the outstanding request.
+
 ## Raw service access
 
 ``DriverClient`` and ``DriverSession`` are separate from the generated runtime protocol. They enumerate IOKit services and invoke raw user-client external methods through ``DriverRequest`` and ``DriverResponse``. Use those APIs only when a capability-specific ``DriverContext`` method does not describe the operation you need.

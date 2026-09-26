@@ -10,6 +10,11 @@
 // DriverExtensionGenerator replaces this placeholder with the configured capability bits.
 static constexpr uint64_t kSwifterKitRuntimeCapabilities = 0;
 
+// The largest event payload: a poll response carries the runtime header, the event type, and the
+// payload. The event queues reject anything larger, so producers check this same bound first.
+static constexpr uint32_t kSwifterKitMaximumEventPayloadLength =
+    kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);
+
 struct __attribute__((packed)) SwifterKitRuntimeHeader {
     uint32_t magic;
     uint16_t version;

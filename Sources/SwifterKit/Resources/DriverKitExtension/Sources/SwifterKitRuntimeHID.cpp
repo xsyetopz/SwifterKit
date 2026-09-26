@@ -332,8 +332,7 @@ kern_return_t SwifterKitRuntimeService::setReport(
     uint64_t length64 = 0;
     kern_return_t result = report->GetLength(&length64);
     if (result != kIOReturnSuccess || length64 == 0
-        || length64 > kSwifterKitRuntimeMaximumMessageSize - sizeof(SwifterKitHIDReportHeader)
-                          - sizeof(uint32_t)) {
+        || length64 > kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitHIDReportHeader)) {
         return kIOReturnBadArgument;
     }
 
@@ -377,8 +376,8 @@ kern_return_t SwifterKitRuntimeService::handleReport(
     IOHIDReportType reportType,
     IOOptionBits options) {
     if (kSwifterKitHIDDeliversDeviceInputReports && report != nullptr && reportLength != 0
-        && reportLength <= kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize
-                               - sizeof(uint32_t) - sizeof(SwifterKitHIDReportHeader)) {
+        && reportLength
+               <= kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitHIDReportHeader)) {
         const SwifterKitHIDReportHeader header = {
             .timestamp = timestamp,
             .reportType = static_cast<uint32_t>(reportType),

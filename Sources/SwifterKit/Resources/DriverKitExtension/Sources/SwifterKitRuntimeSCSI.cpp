@@ -196,10 +196,18 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
     uint32_t* response,
     OSAction* completion) {
     if (ivars == nullptr || ivars->scsiLock == nullptr || response == nullptr
-        || completion == nullptr || request.version != kScsiUserParallelTaskCurrentVersion1
+        || completion == nullptr) {
+        return kIOReturnBadArgument;
+    }
+    // The header defines no meaning for an error return, so every task that can be answered is
+    // answered through its completion, exactly once: a task this runtime cannot take completes
+    // with a delivery failure and reports Request_In_Process, as an enqueue failure does.
+    *response = kSCSIServiceResponse_Request_In_Process;
+    if (request.version != kScsiUserParallelTaskCurrentVersion1
         || request.fSCSIParallelFeatureRequestCount > kSCSIParallelFeature_TotalFeatureCount
         || request.fCommandSize == 0 || request.fCommandSize > kSCSICDBSize_Maximum) {
-        return kIOReturnBadArgument;
+        CompleteWithDeliveryFailure(this, completion, request);
+        return kIOReturnSuccess;
     }
 
     SwifterKitSCSIParallelTaskEvent event = {};
@@ -231,8 +239,10 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
         }
     }
     if (pending == nullptr) {
+        // Every task slot is taken; the completion was not retained or stored.
         IOLockUnlock(ivars->scsiLock);
-        return kIOReturnNoSpace;
+        CompleteWithDeliveryFailure(this, completion, request);
+        return kIOReturnSuccess;
     }
     event.requestID = ivars->nextSCSIRequestID++;
     if (ivars->nextSCSIRequestID == 0) {
@@ -268,7 +278,6 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
             completion->release();
         }
     }
-    *response = kSCSIServiceResponse_Request_In_Process;
     return kIOReturnSuccess;
 }
 

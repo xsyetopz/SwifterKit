@@ -83,6 +83,22 @@ namespace {
         return removed;
     }
 
+    // The IOUserBlockStorageDevice header defines no meaning for an error return from DoAsync*,
+    // so a request this runtime cannot take is answered through Complete or CompleteIO with the
+    // failure status, exactly once, and the call returns success.
+    kern_return_t RejectRequest(
+        SwifterKitRuntimeService* service,
+        uint32_t requestID,
+        bool isIO,
+        kern_return_t status) {
+        if (isIO) {
+            service->CompleteIO(requestID, 0, status);
+        } else {
+            service->Complete(requestID, status);
+        }
+        return kIOReturnSuccess;
+    }
+
     kern_return_t QueueRequest(
         SwifterKitRuntimeService* service,
         SwifterKitRuntimeService_IVars* state,
@@ -92,8 +108,14 @@ namespace {
         const void* event,
         uint32_t eventLength) {
         kern_return_t result = AddPendingRequest(state, requestID, isIO, maximumByteCount);
-        if (result != kIOReturnSuccess) {
+        if (result == kIOReturnExclusiveAccess) {
+            // The ID belongs to a request still outstanding. Completing it here would answer that
+            // request, and Swift's later answer would complete the same ID again, so the
+            // duplicate is refused without a completion.
             return result;
+        }
+        if (result != kIOReturnSuccess) {
+            return RejectRequest(service, requestID, isIO, result);
         }
         result = service->EnqueueRequiredEvent(kSwifterKitEventBlockStorage, event, eventLength);
         if (result == kIOReturnSuccess) {
@@ -103,11 +125,7 @@ namespace {
         // with the enqueue failure instead of leaving it outstanding. When
         // StopBlockStorage already took the entry, it has completed the request.
         if (RemovePendingRequest(state, requestID)) {
-            if (isIO) {
-                service->CompleteIO(requestID, 0, result);
-            } else {
-                service->Complete(requestID, result);
-            }
+            (void)RejectRequest(service, requestID, isIO, result);
         }
         return kIOReturnSuccess;
     }
@@ -208,7 +226,7 @@ kern_return_t SwifterKitRuntimeService::BlockStorageCommand(
 
 kern_return_t SwifterKitRuntimeService::DoAsyncEjectMedia_Impl(uint32_t requestID) {
     if (!kSwifterKitBlockIsEjectable) {
-        return kIOReturnUnsupported;
+        return RejectRequest(this, requestID, false, kIOReturnUnsupported);
     }
     const SwifterKitBlockStorageRequestHeader request = {
         .kind = static_cast<uint32_t>(BlockStorageRequestKind::Eject),
@@ -223,7 +241,7 @@ kern_return_t SwifterKitRuntimeService::DoAsyncSynchronize_Impl(
     uint64_t blockCount) {
     if (blockCount == 0 || lba >= kSwifterKitBlockCount
         || blockCount > kSwifterKitBlockCount - lba) {
-        return kIOReturnBadArgument;
+        return RejectRequest(this, requestID, false, kIOReturnBadArgument);
     }
     const SynchronizeRequest request = {
         .header =
@@ -243,18 +261,18 @@ kern_return_t SwifterKitRuntimeService::DoAsyncUnmapPriv(
     uint32_t rangeCount) {
     if (!kSwifterKitBlockSupportsUnmap || rangeCount == 0
         || rangeCount > kSwifterKitBlockMaximumUnmapRegionCount || ranges == nullptr) {
-        return kIOReturnBadArgument;
+        return RejectRequest(this, requestID, false, kIOReturnBadArgument);
     }
     for (uint32_t index = 0; index < rangeCount; ++index) {
         if (ranges[index].numOfBlocks == 0 || ranges[index].startBlock >= kSwifterKitBlockCount
             || ranges[index].numOfBlocks > kSwifterKitBlockCount - ranges[index].startBlock) {
-            return kIOReturnBadArgument;
+            return RejectRequest(this, requestID, false, kIOReturnBadArgument);
         }
     }
     const uint64_t payloadLength =
         sizeof(UnmapRequestHeader) + static_cast<uint64_t>(rangeCount) * sizeof(BlockRange);
-    if (payloadLength > kSwifterKitRuntimeMaximumMessageSize - sizeof(uint32_t)) {
-        return kIOReturnNoSpace;
+    if (payloadLength > kSwifterKitMaximumEventPayloadLength) {
+        return RejectRequest(this, requestID, false, kIOReturnNoSpace);
     }
     const UnmapRequestHeader header = {
         .header =
@@ -269,7 +287,7 @@ kern_return_t SwifterKitRuntimeService::DoAsyncUnmapPriv(
     if (data == nullptr || !data->appendBytes(&header, sizeof(header))
         || !data->appendBytes(ranges, rangeCount * sizeof(BlockRange))) {
         OSSafeReleaseNULL(data);
-        return kIOReturnNoMemory;
+        return RejectRequest(this, requestID, false, kIOReturnNoMemory);
     }
     const kern_return_t result = QueueRequest(
         this,
@@ -297,7 +315,7 @@ kern_return_t SwifterKitRuntimeService::DoAsyncReadWrite_Impl(
         || byteCount != blockCount * kSwifterKitBlockSize
         || (options & ~kIOUserStorageOptionForceUnitAccess) != 0
         || ((options & kIOUserStorageOptionForceUnitAccess) != 0 && !kSwifterKitBlockSupportsFUA)) {
-        return kIOReturnBadArgument;
+        return RejectRequest(this, requestID, true, kIOReturnBadArgument);
     }
     const SwifterKitBlockStorageIORequest request = {
         .kind = static_cast<uint32_t>(

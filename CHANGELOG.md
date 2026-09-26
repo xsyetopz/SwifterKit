@@ -56,6 +56,20 @@ SwifterKit records user-visible changes in this file.
   it. The extension holds the PCI device across the reset, since termination
   can stop the service concurrently. Before this, the documentation said the
   response might never arrive.
+- A SCSI parallel task that the extension cannot take, because every task slot
+  is in use or the task is malformed, now completes with a delivery failure
+  and reports `Request_In_Process`. Before this, the extension returned an
+  error without setting the task's response or completing it.
+- A block-storage request that the extension cannot take, because the request
+  table is full or its arguments are invalid, now completes through `Complete`
+  or `CompleteIO` with the failure status. Before this, the extension returned
+  the error without completing the request. A request whose identifier matches
+  an outstanding one is still refused with `kIOReturnExclusiveAccess` and no
+  completion, because completing it would answer the outstanding request.
+- Block-storage unmap requests, host `setReport` reports, and received MIDI
+  words are now checked against the event-queue payload limit, 65,508 bytes,
+  before they are queued. Before this, the checks allowed payloads up to 24
+  bytes larger, which the event queue then rejected.
 - A serial extension whose start fails after its queues are connected now
   disconnects them before the service stops.
 - A generated `IOUserHIDDevice` or `IOUserUSBHostHIDDevice` that accepts

@@ -46,10 +46,6 @@
 //   next host, as they do before the first host connects.
 
 namespace {
-    // A poll response carries the runtime header, the event type, and the payload.
-    constexpr uint32_t kMaximumEventPayloadLength =
-        kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);
-
     // Takes the registered client for one notification when the flag is armed.
     // The caller holds eventLock and sends the notification after dropping it.
     SwifterKitRuntimeUserClient* TakeNotificationTarget(SwifterKitRuntimeService_IVars* state) {
@@ -77,7 +73,7 @@ namespace {
         uint32_t payloadLength) {
         if (state == nullptr || state->eventLock == nullptr || queue == nullptr
             || (payloadLength != 0 && payload == nullptr)
-            || payloadLength > kMaximumEventPayloadLength) {
+            || payloadLength > kSwifterKitMaximumEventPayloadLength) {
             return kIOReturnBadArgument;
         }
 

@@ -173,8 +173,7 @@ kern_return_t SwifterKitRuntimeService::MIDIReceived(
     const uint32_t* words,
     uint32_t wordCount) {
     if (words == nullptr || wordCount == 0 || destinationIndex >= kSwifterKitMIDIDestinationCount
-        || wordCount > (kSwifterKitRuntimeMaximumMessageSize - sizeof(uint32_t)
-                        - sizeof(SwifterKitMIDIEventHeader))
+        || wordCount > (kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitMIDIEventHeader))
                            / sizeof(uint32_t)) {
         return kIOReturnBadArgument;
     }
