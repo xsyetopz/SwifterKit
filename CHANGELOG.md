@@ -136,6 +136,7 @@ SwifterKit records user-visible changes in this file.
   transmit, `EthernetReceiveMetadata` and `EthernetReceivedFrame` for
   `ethernetReceive(frames:)` batches (opcode 0x0920), and
   `EthernetTransmitCompletion` for `completeEthernetTransmits(_:)` (0x0921).
+  VLAN tags need an extension built with the DriverKit 25.5 SDK or newer.
 - Queue control: `setEthernetQueueEnabled(_:enabled:)` (0x0922),
   `purgeEthernetTransmitQueue()` (0x0923), `serviceEthernetTransmitQueue()`
   (0x0924), and `EthernetDeviceConfiguration.transmitServiceClass` with

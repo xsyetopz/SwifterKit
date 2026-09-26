@@ -115,7 +115,7 @@ public struct EthernetTransmitMetadata: Sendable, Hashable {
   public var timestamp: UInt64?
   /// Time after which the packet should be dropped (`getExpiryTime`).
   public var expiryTime: UInt64?
-  /// Hardware VLAN tag (`getVlanTag`, DriverKit 24 and later).
+  /// Hardware VLAN tag (`getVlanTag`, DriverKit 24 and later, built with the 25.5 SDK or newer).
   public var vlanTag: UInt16?
   /// Checksum offload requests (`getTxChecksumInfo`).
   public var checksumFlags: EthernetTransmitChecksumFlags = []
@@ -191,7 +191,7 @@ public struct EthernetReceiveMetadata: Sendable, Hashable {
   public var lroSegmentCount: UInt8
   /// Receive timestamp (`setTimestamp`), or nil to clear it (`clearTimestamp`).
   public var timestamp: UInt64?
-  /// Hardware VLAN tag (`setVlanTag`, DriverKit 24 and later).
+  /// Hardware VLAN tag (`setVlanTag`, DriverKit 24 and later, built with the 25.5 SDK or newer).
   public var vlanTag: UInt16?
   /// Marks the frame as the one that woke the system (`setWakeFlag`).
   public var isWakePacket: Bool

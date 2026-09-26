@@ -205,20 +205,18 @@ struct __attribute__((packed)) SwifterKitNetworkEventHeader {
 };
 
 // Packet flags. Transmit metadata reports the Tx bits; a received packet sets the Rx bits.
-enum : uint32_t {
-    kSwifterKitNetworkPacketLinkMulticast = 1U << 0,
-    kSwifterKitNetworkPacketLinkBroadcast = 1U << 1,
-    kSwifterKitNetworkPacketTimestampRequested = 1U << 2,
-    kSwifterKitNetworkPacketTrafficBackground = 1U << 3,
-    kSwifterKitNetworkPacketTrafficRealtime = 1U << 4,
-    kSwifterKitNetworkPacketHasTimestamp = 1U << 5,
-    kSwifterKitNetworkPacketHasExpiryTime = 1U << 6,
-    kSwifterKitNetworkPacketHasVLANTag = 1U << 7,
-    kSwifterKitNetworkPacketHasDataOffset = 1U << 8,
-    kSwifterKitNetworkPacketHasLRO = 1U << 9,
-    kSwifterKitNetworkPacketHasTraceEvent = 1U << 10,
-    kSwifterKitNetworkPacketWake = 1U << 11,
-};
+static constexpr uint32_t kSwifterKitNetworkPacketLinkMulticast = 0x0001;
+static constexpr uint32_t kSwifterKitNetworkPacketLinkBroadcast = 0x0002;
+static constexpr uint32_t kSwifterKitNetworkPacketTimestampRequested = 0x0004;
+static constexpr uint32_t kSwifterKitNetworkPacketTrafficBackground = 0x0008;
+static constexpr uint32_t kSwifterKitNetworkPacketTrafficRealtime = 0x0010;
+static constexpr uint32_t kSwifterKitNetworkPacketHasTimestamp = 0x0020;
+static constexpr uint32_t kSwifterKitNetworkPacketHasExpiryTime = 0x0040;
+static constexpr uint32_t kSwifterKitNetworkPacketHasVLANTag = 0x0080;
+static constexpr uint32_t kSwifterKitNetworkPacketHasDataOffset = 0x0100;
+static constexpr uint32_t kSwifterKitNetworkPacketHasLRO = 0x0200;
+static constexpr uint32_t kSwifterKitNetworkPacketHasTraceEvent = 0x0400;
+static constexpr uint32_t kSwifterKitNetworkPacketWake = 0x0800;
 
 static constexpr uint32_t kSwifterKitNetworkTransmitFlags = 0x00FF;
 static constexpr uint32_t kSwifterKitNetworkReceiveFlags = 0x0FA1;

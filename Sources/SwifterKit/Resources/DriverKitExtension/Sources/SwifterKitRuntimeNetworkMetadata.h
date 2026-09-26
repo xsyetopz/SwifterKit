@@ -8,10 +8,17 @@
 
     #include "SwifterKitRuntimeProtocol.h"
 
+    // The DriverKit 24.4 SDK does not declare the packet VLAN accessors; 25.5 and later do.
+    #if defined(__DRIVERKIT_25_5) && __DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5
+        #define SWIFTERKIT_NETWORK_HAS_VLAN 1
+    #else
+        #define SWIFTERKIT_NETWORK_HAS_VLAN 0
+    #endif
+
 // Packet metadata contract:
 // - A transmit event carries SwifterKitNetworkTransmitMetadata, read from the packet, before the
-//   frame. Members the running DriverKit lacks (getDataOff before 23, getVlanTag before 24) fall
-//   back to the older member or report nothing.
+//   frame. Members the running DriverKit lacks (getDataOff before 23, getVlanTag before 24, or
+//   an SDK without the VLAN accessors) fall back to the older member or report nothing.
 // - A received frame carries SwifterKitNetworkReceivePacket. Every field is validated here after
 //   Swift validates it, and the packet's per-frame state (offset, length, link header, checksum,
 //   multicast, timestamp) is always written, because the pool recycles packets.
@@ -54,6 +61,7 @@ inline void SwifterKitReadTransmitMetadata(
         flags |= kSwifterKitNetworkPacketHasExpiryTime;
         metadata->expiryTime = time;
     }
+    #if SWIFTERKIT_NETWORK_HAS_VLAN
     if (__builtin_available(driverkit 24.0, *)) {
         uint16_t tag = 0;
         if (packet->getVlanTag(&tag)) {
@@ -61,6 +69,7 @@ inline void SwifterKitReadTransmitMetadata(
             metadata->vlanTag = tag;
         }
     }
+    #endif
     IOUserNetworkPacketTxChecksumFlags checksum = 0;
     uint16_t start = 0;
     uint16_t stuff = 0;
@@ -141,10 +150,14 @@ inline IOReturn SwifterKitFillReceivePacket(
                      ? packet->setTimestamp(entry.timestamp)
                      : packet->clearTimestamp();
     if (result == kIOReturnSuccess && (entry.flags & kSwifterKitNetworkPacketHasVLANTag) != 0) {
+    #if SWIFTERKIT_NETWORK_HAS_VLAN
         if (__builtin_available(driverkit 24.0, *))
             packet->setVlanTag(entry.vlanTag);
         else
             result = kIOReturnUnsupported;
+    #else
+        result = kIOReturnUnsupported;
+    #endif
     }
     if (result == kIOReturnSuccess && (entry.flags & kSwifterKitNetworkPacketWake) != 0)
         packet->setWakeFlag();

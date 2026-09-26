@@ -22682,7 +22682,7 @@
 
           ],
           "name" : "getVlanTag",
-          "note" : "DriverKit 24 and later",
+          "note" : "DriverKit 24 and later; compiled only against SDKs that declare it (25.5 and newer), since the 24.4 SDK does not",
           "sdks" : [
             "25.5",
             "27.0"
@@ -23253,7 +23253,7 @@
 
           ],
           "name" : "setVlanTag",
-          "note" : "DriverKit 24 and later",
+          "note" : "DriverKit 24 and later; compiled only against SDKs that declare it (25.5 and newer), since the 24.4 SDK does not",
           "sdks" : [
             "25.5",
             "27.0"
