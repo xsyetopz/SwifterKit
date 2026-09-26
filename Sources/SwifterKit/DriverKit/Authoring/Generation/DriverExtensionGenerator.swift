@@ -206,6 +206,9 @@ public enum DriverExtensionGenerator {
     if let reporting = configuration.reporting, !reporting.isValid {
       throw DriverExtensionGenerationError.invalidReportingConfiguration
     }
+    do throws(FastPathError) { try configuration.fastPath?.validate(for: configuration) } catch {
+      throw DriverExtensionGenerationError.invalidFastPathConfiguration(error)
+    }
     if configuration.capabilities.contains(.blockStorage), deploymentVersion < .v21 {
       throw DriverExtensionGenerationError.invalidBlockStorageConfiguration
     }

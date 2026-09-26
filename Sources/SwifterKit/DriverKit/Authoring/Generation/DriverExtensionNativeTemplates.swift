@@ -18,6 +18,8 @@ extension DriverExtensionGenerator {
 
       #include <stdint.h>
 
+      #include "SwifterKitRuntimeFastPathSchema.h"
+
       static constexpr char kSwifterKitBundleIdentifier[] =
           \(cString(configuration.bundleIdentifier));
 
@@ -41,6 +43,7 @@ extension DriverExtensionGenerator {
       #define SWIFTERKIT_ENABLE_PCI \(configuration.capabilities.contains(.pci) ? 1 : 0)
       #define SWIFTERKIT_ENABLE_INTERRUPTS \(interruptsEnabled)
       #define SWIFTERKIT_ENABLE_MEMORY \(memory == nil ? 0 : 1)
+      #define SWIFTERKIT_ENABLE_FAST_PATH \(configuration.fastPath == nil ? 0 : 1)
 
       static constexpr bool kSwifterKitUSBDeviceProvider =
           \(usesUSBDeviceProvider(configuration));
@@ -117,6 +120,7 @@ extension DriverExtensionGenerator {
           \(configuration.interruptSources.count);
       \(pciInterruptDeclarations(configuration))
       \(reportingDeclarations(configuration.reporting))
+      \(fastPathDeclarations(configuration.fastPath))
 
 
       #endif

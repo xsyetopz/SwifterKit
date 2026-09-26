@@ -15,6 +15,7 @@ The package includes APIs for HID, USB, PCI, serial, block storage, MIDI, Ethern
 - <doc:GettingStarted>
 - <doc:NativeBoundary>
 - <doc:Capabilities>
+- <doc:FastPath>
 
 ### Driver authoring
 

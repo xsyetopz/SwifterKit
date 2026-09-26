@@ -5,55 +5,65 @@ import Testing
 
 @Suite
 struct RuntimeSchemaTests {
-  /// The checked-in native header.
-  private static let headerURL = checkedInNativeSources.appendingPathComponent(
-    RuntimeSchemaHeader.fileName
-  )
+  /// The checked-in native sources.
+  private static let directory = checkedInNativeSources
+
+  /// Each generated header's file name and rendered text.
+  private static let headers = [
+    (RuntimeSchemaHeader.fileName, RuntimeSchemaHeader.render()),
+    (RuntimeSchemaHeader.fastPathFileName, RuntimeSchemaHeader.renderFastPath()),
+  ]
 
   @Test
   func checkedInNativeHeaderMatchesSchema() throws {
-    let rendered = RuntimeSchemaHeader.render()
-    if ProcessInfo.processInfo.environment["SWIFTERKIT_UPDATE_SCHEMA"] == "1" {
-      try Data(rendered.utf8).write(to: Self.headerURL, options: .atomic)
-      return
-    }
+    for (fileName, rendered) in Self.headers {
+      let url = Self.directory.appendingPathComponent(fileName)
+      if ProcessInfo.processInfo.environment["SWIFTERKIT_UPDATE_SCHEMA"] == "1" {
+        try Data(rendered.utf8).write(to: url, options: .atomic)
+        continue
+      }
 
-    let checkedIn = try String(contentsOf: Self.headerURL, encoding: .utf8)
-    #expect(
-      checkedIn == rendered,
-      """
-      \(RuntimeSchemaHeader.fileName) differs from RuntimeSchema.swift. Regenerate it with \
-      `SWIFTERKIT_UPDATE_SCHEMA=1 swift test --filter RuntimeSchemaTests` and commit the result.
-      """
-    )
+      let checkedIn = try String(contentsOf: url, encoding: .utf8)
+      #expect(
+        checkedIn == rendered,
+        """
+        \(fileName) differs from the RuntimeSchema sources. Regenerate it with \
+        `SWIFTERKIT_UPDATE_SCHEMA=1 swift test --filter RuntimeSchemaTests` and commit the result.
+        """
+      )
+    }
   }
 
   @Test
   func nativeSourcesDeclareNoSchemaNameAgain() throws {
-    let header = RuntimeSchemaHeader.render()
     let declared = try Self.names(
-      in: header,
+      in: Self.headers.map(\.1).joined(),
       matching: #"static constexpr [A-Za-z0-9_]+ ([A-Za-z0-9_]+)(?:\[\])? ="#,
-      #"enum class ([A-Za-z0-9_]+) :"#
+      #"enum class ([A-Za-z0-9_]+) :"#,
+      #"struct ([A-Za-z0-9_]+) \{"#
     )
     #expect(declared.count > 20)
-    let directory = Self.headerURL.deletingLastPathComponent()
-    let files = try FileManager.default.contentsOfDirectory(atPath: directory.path).filter {
-      $0 != RuntimeSchemaHeader.fileName
+    let generated = Set(Self.headers.map(\.0))
+    let files = try FileManager.default.contentsOfDirectory(atPath: Self.directory.path).filter {
+      !generated.contains($0)
     }.filter { [".h", ".cpp", ".iig"].contains(where: $0.hasSuffix) }
     #expect(!files.isEmpty)
     for file in files.sorted() {
-      let text = try String(contentsOf: directory.appendingPathComponent(file), encoding: .utf8)
+      let text = try String(
+        contentsOf: Self.directory.appendingPathComponent(file),
+        encoding: .utf8
+      )
       let redeclared = try Self.names(
         in: text,
         matching: #"constexpr\s+[A-Za-z0-9_:]+\s+([A-Za-z0-9_]+)\s*[=\[{]"#,
         #"enum\s+(?:class\s+)?([A-Za-z0-9_]+)\s*[:{]"#,
         #"(?m)^\s*([A-Za-z0-9_]+)\s*=\s*[-0-9]"#,
-        #"#define\s+([A-Za-z0-9_]+)"#
+        #"#define\s+([A-Za-z0-9_]+)"#,
+        #"struct\s+(?:__attribute__\(\(\w+\)\)\s+)?([A-Za-z0-9_]+)\s*\{"#
       ).intersection(declared)
       #expect(
         redeclared.isEmpty,
-        "\(file) declares \(redeclared.sorted()), which \(RuntimeSchemaHeader.fileName) generates"
+        "\(file) declares \(redeclared.sorted()), which a generated schema header declares"
       )
     }
   }

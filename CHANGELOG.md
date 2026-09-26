@@ -6,6 +6,9 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** `DriverExtensionGenerationError` gains
+  `invalidFastPathConfiguration(_:)`, which carries the `FastPathError` that
+  refused a fast-path configuration.
 - **Breaking:** `SCSIControllerRuntimeError` gains `invalidPropertyUpdate` and
   `invalidDataRange`.
 - **Breaking:** `SCSIControllerEvent` gains the `targetCreated` case, which
@@ -259,6 +262,16 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- `DriverConfiguration.fastPath` declares `FastPathConfiguration` programs:
+  bounded, data-only register sequences (`read`, `write`, `modify`, `compute`,
+  `poll`, `delay`, forward `skip`, `emit`, `fail`) run from start, stop,
+  interrupt, or command triggers. The generator validates every
+  `FastPathLimits` bound, register alignment, and declared BAR size, refuses
+  an invalid configuration with a typed `FastPathError`, and emits the
+  programs as `constexpr` tables under `SWIFTERKIT_ENABLE_FAST_PATH`. The
+  opcodes, row layouts, and limits render into the generated
+  `SwifterKitRuntimeFastPathSchema.h`.
+  The native interpreter that runs the tables lands in the next change.
 - SCSI controller drivers create, destroy, and query targets with
   `DriverContext.scsiCreateTarget(_:properties:)`, `scsiDestroyTarget(_:)`, and
   `scsiTargetPresent(_:)`; set and remove HBA and target registry properties

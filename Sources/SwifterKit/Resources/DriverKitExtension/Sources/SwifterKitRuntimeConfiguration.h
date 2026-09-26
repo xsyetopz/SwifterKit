@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "SwifterKitRuntimeFastPathSchema.h"
+
 static constexpr char kSwifterKitBundleIdentifier[] = "";
 
 struct SwifterKitAudioFormatConfiguration {
@@ -91,6 +93,7 @@ static constexpr bool kSwifterKitUSBSerialDeliversInterruptPackets = false;
 #define SWIFTERKIT_ENABLE_PCI 0
 #define SWIFTERKIT_ENABLE_INTERRUPTS 0
 #define SWIFTERKIT_ENABLE_MEMORY 0
+#define SWIFTERKIT_ENABLE_FAST_PATH 0
 
 // True when the USB provider is an IOUSBHostDevice rather than an IOUSBHostInterface.
 static constexpr bool kSwifterKitUSBDeviceProvider = false;
@@ -223,6 +226,14 @@ static constexpr SwifterKitHistogramSegmentConfiguration kSwifterKitHistogramSeg
 static constexpr SwifterKitReporterConfiguration kSwifterKitReporters[1] = {};
 static constexpr uint32_t kSwifterKitReporterCount = 0;
 static constexpr bool kSwifterKitReportLegendPublic = false;
+static constexpr SwifterKitFastPathProgram kSwifterKitFastPathPrograms[1] = {};
+static constexpr uint32_t kSwifterKitFastPathProgramCount = 0;
+static constexpr SwifterKitFastPathOperation kSwifterKitFastPathOperations[1] = {};
+static constexpr uint32_t kSwifterKitFastPathOperationCount = 0;
+static constexpr SwifterKitFastPathTrigger kSwifterKitFastPathTriggers[1] = {};
+static constexpr uint32_t kSwifterKitFastPathTriggerCount = 0;
+static constexpr SwifterKitFastPathBAR kSwifterKitFastPathBARSizes[1] = {};
+static constexpr uint32_t kSwifterKitFastPathBARSizeCount = 0;
 
 static constexpr uint8_t kSwifterKitHIDReportDescriptor[] = {0};
 static constexpr uint32_t kSwifterKitHIDReportDescriptorLength = 0;

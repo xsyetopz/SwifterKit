@@ -45,6 +45,8 @@ public struct DriverConfiguration: Sendable, Hashable {
   public let memoryPool: MemoryPoolConfiguration?
   /// IOReporting channels the generated service publishes, if any.
   public let reporting: ReportingConfiguration?
+  /// Register programs the generated extension runs natively, if any.
+  public let fastPath: FastPathConfiguration?
 
   /// Creates driver metadata consumed by the extension generator.
   public init(
@@ -68,7 +70,8 @@ public struct DriverConfiguration: Sendable, Hashable {
     scsiPeripheral: SCSIPeripheralConfiguration? = nil,
     interruptSources: [InterruptSourceConfiguration] = [],
     memoryPool: MemoryPoolConfiguration? = nil,
-    reporting: ReportingConfiguration? = nil
+    reporting: ReportingConfiguration? = nil,
+    fastPath: FastPathConfiguration? = nil
   ) {
     self.bundleIdentifier = bundleIdentifier
     self.providerClass = providerClass
@@ -91,6 +94,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     self.interruptSources = interruptSources
     self.memoryPool = memoryPool
     self.reporting = reporting
+    self.fastPath = fastPath
   }
 
   /// The criteria used to discover this generated extension.
