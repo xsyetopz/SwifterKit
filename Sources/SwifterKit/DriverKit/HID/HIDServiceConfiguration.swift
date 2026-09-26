@@ -9,11 +9,11 @@ public struct HIDGetReportTypes: OptionSet, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   /// Input reports requested by the host.
-  public static let input = Self(rawValue: 1 << 0)
+  public static let input = Self(rawValue: RuntimeHIDGetReportType.input.rawValue)
   /// Output reports requested by the host.
-  public static let output = Self(rawValue: 1 << 1)
+  public static let output = Self(rawValue: RuntimeHIDGetReportType.output.rawValue)
   /// Feature reports requested by the host.
-  public static let feature = Self(rawValue: 1 << 2)
+  public static let feature = Self(rawValue: RuntimeHIDGetReportType.feature.rawValue)
   /// Every report type.
   public static let all: Self = [.input, .output, .feature]
 }
@@ -43,22 +43,24 @@ public struct HIDEventDriverCategories: OptionSet, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   /// Keyboard and consumer keys (`parseKeyboardElement`, `handleKeyboardReport`).
-  public static let keyboard = Self(rawValue: 1 << 0)
+  public static let keyboard = Self(rawValue: RuntimeHIDEventDriverCategory.keyboard.rawValue)
   /// Relative and absolute pointers (`parsePointerElement`, `handleRelativePointerReport`,
   /// `handleAbsolutePointerReport`).
-  public static let pointer = Self(rawValue: 1 << 1)
+  public static let pointer = Self(rawValue: RuntimeHIDEventDriverCategory.pointer.rawValue)
   /// Scroll wheels (`parseScrollElement`, `handleScrollReport`).
-  public static let scroll = Self(rawValue: 1 << 2)
+  public static let scroll = Self(rawValue: RuntimeHIDEventDriverCategory.scroll.rawValue)
   /// LED outputs (`parseLEDElement`).
-  public static let led = Self(rawValue: 1 << 3)
+  public static let led = Self(rawValue: RuntimeHIDEventDriverCategory.led.rawValue)
   /// Digitizer transducers (`parseDigitizerElement`, `handleDigitizerReport`).
-  public static let digitizer = Self(rawValue: 1 << 4)
+  public static let digitizer = Self(rawValue: RuntimeHIDEventDriverCategory.digitizer.rawValue)
   /// Proximity sensors (`parseProximityElement`, `handleProximityReport`).
-  public static let proximity = Self(rawValue: 1 << 5)
+  public static let proximity = Self(rawValue: RuntimeHIDEventDriverCategory.proximity.rawValue)
   /// Game controllers (`parseGameControllerElement`, `handleGameControllerReport`).
-  public static let gameController = Self(rawValue: 1 << 6)
+  public static let gameController = Self(
+    rawValue: RuntimeHIDEventDriverCategory.gameController.rawValue
+  )
   /// Elements no other category claims (`parseRemainingElement`).
-  public static let remaining = Self(rawValue: 1 << 7)
+  public static let remaining = Self(rawValue: RuntimeHIDEventDriverCategory.remaining.rawValue)
   /// Every category.
   public static let all: Self = [
     .keyboard, .pointer, .scroll, .led, .digitizer, .proximity, .gameController, .remaining,
@@ -83,9 +85,9 @@ public struct HIDEventDelivery: OptionSet, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   /// Each input report's bytes, as ``DriverEvent/hidInputReport()``.
-  public static let reports = Self(rawValue: 1 << 0)
+  public static let reports = Self(rawValue: RuntimeHIDEventDelivery.reports.rawValue)
   /// The input element values each report updated, as ``DriverEvent/hidElementValues()``.
-  public static let elementValues = Self(rawValue: 1 << 1)
+  public static let elementValues = Self(rawValue: RuntimeHIDEventDelivery.elementValues.rawValue)
 }
 
 /// A generated HID event service that matches an existing `IOHIDInterface`.

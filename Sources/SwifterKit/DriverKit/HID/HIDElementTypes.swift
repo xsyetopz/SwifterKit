@@ -196,9 +196,8 @@ public struct HIDElementValues: Sendable, Hashable {
     timestamp = try data.readRuntimeInteger(at: 0)
     reportID = try data.readRuntimeInteger(at: 8)
     let count = Int(try data.readRuntimeInteger(at: 12) as UInt32)
-    guard count > 0, count <= 256, data.count == 16 + count * 8 else {
-      throw HIDRuntimeError.invalidEventPayload
-    }
+    guard count > 0, count <= RuntimeHIDLimits.maximumEventValues, data.count == 16 + count * 8
+    else { throw HIDRuntimeError.invalidEventPayload }
     var values: [UInt32: UInt32] = [:]
     for index in 0..<count {
       values[try data.readRuntimeInteger(at: 16 + index * 8)] = try data.readRuntimeInteger(

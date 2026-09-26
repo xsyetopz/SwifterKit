@@ -9,21 +9,21 @@ public struct HIDStylusState: OptionSet, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   /// The stylus is within range of the surface.
-  public static let inRange = Self(rawValue: 1 << 0)
+  public static let inRange = Self(rawValue: RuntimeHIDStylusFlag.inRange.rawValue)
   /// The tip touches the surface.
-  public static let tip = Self(rawValue: 1 << 1)
+  public static let tip = Self(rawValue: RuntimeHIDStylusFlag.tip.rawValue)
   /// The barrel switch is pressed.
-  public static let barrelSwitch = Self(rawValue: 1 << 2)
+  public static let barrelSwitch = Self(rawValue: RuntimeHIDStylusFlag.barrelSwitch.rawValue)
   /// The stylus is inverted.
-  public static let invert = Self(rawValue: 1 << 3)
+  public static let invert = Self(rawValue: RuntimeHIDStylusFlag.invert.rawValue)
   /// The eraser touches the surface.
-  public static let eraser = Self(rawValue: 1 << 4)
+  public static let eraser = Self(rawValue: RuntimeHIDStylusFlag.eraser.rawValue)
   /// The tip state changed since the last event.
-  public static let tipChanged = Self(rawValue: 1 << 5)
+  public static let tipChanged = Self(rawValue: RuntimeHIDStylusFlag.tipChanged.rawValue)
   /// The position changed since the last event.
-  public static let positionChanged = Self(rawValue: 1 << 6)
+  public static let positionChanged = Self(rawValue: RuntimeHIDStylusFlag.positionChanged.rawValue)
   /// The range state changed since the last event.
-  public static let rangeChanged = Self(rawValue: 1 << 7)
+  public static let rangeChanged = Self(rawValue: RuntimeHIDStylusFlag.rangeChanged.rawValue)
 }
 
 /// One stylus transducer for `dispatchDigitizerStylusEvent`.
@@ -95,17 +95,17 @@ public struct HIDTouchState: OptionSet, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   /// The finger is within range of the surface.
-  public static let inRange = Self(rawValue: 1 << 0)
+  public static let inRange = Self(rawValue: RuntimeHIDTouchFlag.inRange.rawValue)
   /// The finger touches the surface.
-  public static let touch = Self(rawValue: 1 << 1)
+  public static let touch = Self(rawValue: RuntimeHIDTouchFlag.touch.rawValue)
   /// The touch is valid rather than a palm or other rejected contact.
-  public static let touchValid = Self(rawValue: 1 << 2)
+  public static let touchValid = Self(rawValue: RuntimeHIDTouchFlag.touchValid.rawValue)
   /// The touch state changed since the last event.
-  public static let touchChanged = Self(rawValue: 1 << 3)
+  public static let touchChanged = Self(rawValue: RuntimeHIDTouchFlag.touchChanged.rawValue)
   /// The position changed since the last event.
-  public static let positionChanged = Self(rawValue: 1 << 4)
+  public static let positionChanged = Self(rawValue: RuntimeHIDTouchFlag.positionChanged.rawValue)
   /// The range state changed since the last event.
-  public static let rangeChanged = Self(rawValue: 1 << 5)
+  public static let rangeChanged = Self(rawValue: RuntimeHIDTouchFlag.rangeChanged.rawValue)
 }
 
 /// One finger transducer for `dispatchDigitizerTouchEvent`, positioned in `0...1` of the surface.
@@ -149,11 +149,11 @@ public struct HIDDigitizerChanges: OptionSet, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   /// The touch or tip state changed.
-  public static let touch = Self(rawValue: 1 << 0)
+  public static let touch = Self(rawValue: RuntimeHIDCollectionChange.touch.rawValue)
   /// The position changed.
-  public static let position = Self(rawValue: 1 << 1)
+  public static let position = Self(rawValue: RuntimeHIDCollectionChange.position.rawValue)
   /// The range state changed.
-  public static let range = Self(rawValue: 1 << 2)
+  public static let range = Self(rawValue: RuntimeHIDCollectionChange.range.rawValue)
 }
 
 /// One digitizer transducer and the interface elements that describe it.

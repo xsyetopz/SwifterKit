@@ -71,7 +71,9 @@ extension DriverCommand {
       stylus.x, stylus.y, stylus.tipPressure, stylus.barrelPressure, stylus.tiltX, stylus.tiltY,
       stylus.twist,
     ].map(HIDFixed.raw)
-    guard stylus.state.rawValue <= 0xFF else { throw HIDRuntimeError.valueOutOfRange }
+    guard stylus.state.rawValue & ~RuntimeHIDStylusFlag.allBits == 0 else {
+      throw HIDRuntimeError.valueOutOfRange
+    }
     var payload = Data(capacity: 64)
     payload.appendRuntimeInteger(timestamp)
     payload.appendRuntimeInteger(stylus.identifier)
@@ -96,7 +98,9 @@ extension DriverCommand {
     payload.appendRuntimeInteger(timestamp)
     payload.append(HIDLimits.words([UInt32(touches.count), 0]))
     for touch in touches {
-      guard touch.state.rawValue <= 0x3F else { throw HIDRuntimeError.valueOutOfRange }
+      guard touch.state.rawValue & ~RuntimeHIDTouchFlag.allBits == 0 else {
+        throw HIDRuntimeError.valueOutOfRange
+      }
       payload.appendRuntimeInteger(touch.identifier)
       payload.appendRuntimeInteger(try HIDFixed.raw(touch.x))
       payload.appendRuntimeInteger(try HIDFixed.raw(touch.y))
@@ -116,9 +120,13 @@ extension DriverCommand {
     }
     guard !cookies.contains(0), Set(cookies).count == cookies.count, collection.parentCookie != 0
     else { throw HIDRuntimeError.invalidCookie }
-    guard collection.changes.rawValue <= 0x7 else { throw HIDRuntimeError.valueOutOfRange }
+    guard collection.changes.rawValue & ~RuntimeHIDCollectionChange.allBits == 0 else {
+      throw HIDRuntimeError.valueOutOfRange
+    }
     let flags =
-      (collection.touch ? 1 : 0) | (collection.inRange ? 2 : 0) | collection.changes.rawValue << 2
+      (collection.touch ? RuntimeHIDCollectionFlag.touch.rawValue : 0)
+      | (collection.inRange ? RuntimeHIDCollectionFlag.inRange.rawValue : 0) | collection.changes
+      .rawValue << RuntimeHIDLimits.collectionChangeShift
     var payload = Data(capacity: 40 + cookies.count * 4)
     payload.appendRuntimeInteger(timestamp)
     payload.append(
@@ -159,7 +167,7 @@ extension DriverCommand {
   /// Sets an LED-page usage through `SetLED`, which `IOUserHIDEventDriver` writes to the
   /// device's LED elements.
   public static func setHIDLED(usage: UInt32, on: Bool) -> Self {
-    dispatch(.hidSetLED, HIDLimits.words([0x08, usage, on ? 1 : 0, 0]))
+    dispatch(.hidSetLED, HIDLimits.words([RuntimeHIDLimits.ledUsagePage, usage, on ? 1 : 0, 0]))
   }
 
   /// Sets an LED through `SetLEDState`; the change is also delivered as
@@ -221,8 +229,11 @@ extension DriverCommand {
     var payload = Data(capacity: 104)
     payload.appendRuntimeInteger(timestamp)
     for value in state.axes { payload.appendRuntimeInteger(try HIDFixed.raw(value)) }
-    let flags = (state.thumbstickButtonLeft ? 1 : 0) | (state.thumbstickButtonRight ? 2 : 0)
-    payload.append(HIDLimits.words([UInt32(flags), options]))
+    let flags =
+      (state.thumbstickButtonLeft ? RuntimeHIDGameControllerFlag.thumbstickButtonLeft.rawValue : 0)
+      | (state.thumbstickButtonRight
+        ? RuntimeHIDGameControllerFlag.thumbstickButtonRight.rawValue : 0)
+    payload.append(HIDLimits.words([flags, options]))
     return payload
   }
 }

@@ -61,7 +61,7 @@ enum RuntimeSchemaHeader {
 
     """
 
-  private static let acronyms: Set<String> = ["usb", "hid", "pci", "midi", "scsi"]
+  private static let acronyms: Set<String> = ["usb", "hid", "pci", "midi", "scsi", "led"]
 
   /// Converts a Swift case name such as `pciGetBARInfo` to a native name such as `PCIGetBARInfo`.
   static func nativeName(_ value: some Any) -> String {

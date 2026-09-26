@@ -9,17 +9,19 @@ struct HIDRuntimeContractTests {
   @Test
   func nativeLimitsMatchSwiftLimits() throws {
     try withGeneratedExtension { output in
-      let limits = try source("SwifterKitRuntimeHIDProtocol.h", in: output)
+      let schema = try source(RuntimeSchemaHeader.fileName, in: output)
       #expect(
-        limits.contains("kSwifterKitHIDMaximumElementPage = \(HIDLimits.maximumElementPage);")
+        schema.contains("kSwifterKitHIDMaximumElementPage = \(HIDLimits.maximumElementPage);")
       )
-      #expect(limits.contains("kSwifterKitHIDMaximumCookies = \(HIDLimits.maximumCommitCookies);"))
+      #expect(schema.contains("kSwifterKitHIDMaximumCookies = \(HIDLimits.maximumCommitCookies);"))
       #expect(
-        limits.contains(
+        schema.contains(
           "kSwifterKitHIDMaximumCollectionElements = \(HIDLimits.maximumCollectionElements);"
         )
       )
-      #expect(limits.contains("kSwifterKitHIDMaximumTouches = \(HIDLimits.maximumTouches);"))
+      #expect(schema.contains("kSwifterKitHIDMaximumTouches = \(HIDLimits.maximumTouches);"))
+      let limits = try source("SwifterKitRuntimeHIDProtocol.h", in: output)
+      #expect(limits.contains("#include \"SwifterKitRuntimeSchema.h\""))
       #expect(
         limits.contains("sizeof(SwifterKitHIDElementDescriptor) == \(HIDElement.encodedSize)")
       )
@@ -206,5 +208,32 @@ struct HIDRuntimeContractTests {
     let lower = try #require(text.range(of: start)?.lowerBound)
     let upper = try #require(text.range(of: end, range: lower..<text.endIndex)?.lowerBound)
     return text[lower..<upper]
+  }
+
+  @Test
+  func publicBitSetsCarryTheSchemaBits() throws {
+    #expect(HIDHostReportTypes.all.rawValue == RuntimeHIDHostReportType.allBits)
+    #expect(HIDGetReportTypes.all.rawValue == RuntimeHIDGetReportType.allBits)
+    #expect(HIDEventDriverCategories.all.rawValue == RuntimeHIDEventDriverCategory.allBits)
+    #expect(
+      HIDEventDelivery([.reports, .elementValues]).rawValue == RuntimeHIDEventDelivery.allBits
+    )
+    #expect(HIDEventDriverCategories.led.rawValue == 1 << 3)
+    #expect(HIDStylusState.rangeChanged.rawValue == 1 << 7)
+    #expect(HIDTouchState.rangeChanged.rawValue == 1 << 5)
+    #expect(HIDDigitizerChanges.range.rawValue == 1 << 2)
+
+    try withGeneratedExtension { output in
+      let dispatch = try source("SwifterKitRuntimeHIDDispatch.cpp", in: output)
+      #expect(dispatch.contains("(touch.flags & ~kSwifterKitHIDTouchFlagsAll) == 0"))
+      #expect(dispatch.contains("state.usagePage == kSwifterKitHIDLEDUsagePage"))
+      #expect(dispatch.contains("event.flags >> kSwifterKitHIDCollectionChangeShift"))
+      let elements = try source("SwifterKitRuntimeHIDElements.cpp", in: output)
+      #expect(elements.contains("using ElementWriteKind = SwifterKitHIDElementWriteKind;"))
+      let requests = try source("SwifterKitRuntimeHIDRequests.cpp", in: output)
+      #expect(requests.contains("kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportInput"))
+      let configuration = try source("SwifterKitRuntimeConfiguration.h", in: output)
+      #expect(!configuration.contains("kSwifterKitHIDHostReportOutput ="))
+    }
   }
 }

@@ -22,8 +22,6 @@
 namespace {
     constexpr uint32_t kMaximumEventPayload =
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);
-    constexpr uint32_t kDeliverReports = 1U << 0U;
-    constexpr uint32_t kDeliverElementValues = 1U << 1U;
 
     void DeliverReport(
         SwifterKitRuntimeService* service,
@@ -166,10 +164,10 @@ void SwifterKitRuntimeService::handleReport(
     IOHIDReportType type,
     uint32_t reportID) {
     IORecursiveLockLock(ivars->hidLock);
-    if ((kSwifterKitHIDEventDelivery & kDeliverReports) != 0) {
+    if ((kSwifterKitHIDEventDelivery & kSwifterKitHIDDeliverReports) != 0) {
         DeliverReport(this, timestamp, report, reportLength, type, reportID);
     }
-    if ((kSwifterKitHIDEventDelivery & kDeliverElementValues) != 0) {
+    if ((kSwifterKitHIDEventDelivery & kSwifterKitHIDDeliverElementValues) != 0) {
         DeliverElementValues(this, getElements(), timestamp, reportID);
     }
     super::handleReport(timestamp, report, reportLength, type, reportID);
@@ -228,14 +226,15 @@ kern_return_t SwifterKitRuntimeService::HIDCommand(
 // IOUserHIDEventDriver parses only the configured categories, so the rest stay with Swift, and
 // Swift can pause a parsed category's events at run time with hidSetEventDriverCategories.
 namespace {
-    constexpr uint32_t kKeyboard = 1U << 0U;
-    constexpr uint32_t kPointer = 1U << 1U;
-    constexpr uint32_t kScroll = 1U << 2U;
-    constexpr uint32_t kLED = 1U << 3U;
-    constexpr uint32_t kDigitizer = 1U << 4U;
-    constexpr uint32_t kProximity = 1U << 5U;
-    constexpr uint32_t kGameController = 1U << 6U;
-    constexpr uint32_t kRemaining = 1U << 7U;
+    // The category bits come from RuntimeSchema+HID.swift.
+    constexpr uint32_t kKeyboard = kSwifterKitHIDEventDriverCategoryKeyboard;
+    constexpr uint32_t kPointer = kSwifterKitHIDEventDriverCategoryPointer;
+    constexpr uint32_t kScroll = kSwifterKitHIDEventDriverCategoryScroll;
+    constexpr uint32_t kLED = kSwifterKitHIDEventDriverCategoryLED;
+    constexpr uint32_t kDigitizer = kSwifterKitHIDEventDriverCategoryDigitizer;
+    constexpr uint32_t kProximity = kSwifterKitHIDEventDriverCategoryProximity;
+    constexpr uint32_t kGameController = kSwifterKitHIDEventDriverCategoryGameController;
+    constexpr uint32_t kRemaining = kSwifterKitHIDEventDriverCategoryRemaining;
 
     constexpr bool Parses(uint32_t category) {
         return (kSwifterKitHIDEventDriverCategories & category) != 0;

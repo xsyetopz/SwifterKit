@@ -9,9 +9,9 @@ public struct HIDHostReportTypes: OptionSet, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   /// Output reports produced by the host for the device.
-  public static let output = Self(rawValue: 1 << 0)
+  public static let output = Self(rawValue: RuntimeHIDHostReportType.output.rawValue)
   /// Feature reports used for bidirectional device configuration.
-  public static let feature = Self(rawValue: 1 << 1)
+  public static let feature = Self(rawValue: RuntimeHIDHostReportType.feature.rawValue)
   /// All host-to-device report types supported by SwifterKit.
   public static let all: Self = [.output, .feature]
 }

@@ -17,9 +17,6 @@
 // from handleReport.
 #if SWIFTERKIT_HID_EVENT_SERVICE
 namespace {
-    constexpr uint32_t kLEDUsagePage = 0x08;
-    [[maybe_unused]] constexpr uint32_t kAllEventDriverCategories = 0xFF;
-
     // Swift sends zero to stamp an event with the current time.
     uint64_t Stamp(uint64_t timestamp) {
         return timestamp == 0 ? mach_absolute_time() : timestamp;
@@ -47,6 +44,11 @@ namespace {
         return nullptr;
     }
 
+    // One state bit of a dispatch payload's flags, as the 0 or 1 a digitizer field holds.
+    uint32_t Bit(uint32_t flags, uint32_t mask) {
+        return (flags & mask) != 0 ? 1U : 0U;
+    }
+
     IOHIDDigitizerStylusData Stylus(const SwifterKitHIDStylusEvent& event) {
         IOHIDDigitizerStylusData data = {};
         data.identifier = event.identifier;
@@ -60,14 +62,14 @@ namespace {
         data.pointerType = event.pointerType;
         data.effect = event.effect;
         data.uniqueID = event.uniqueID;
-        data.inRange = (event.flags >> 0U) & 1U;
-        data.tip = (event.flags >> 1U) & 1U;
-        data.barrelSwitch = (event.flags >> 2U) & 1U;
-        data.invert = (event.flags >> 3U) & 1U;
-        data.eraser = (event.flags >> 4U) & 1U;
-        data.tipChanged = (event.flags >> 5U) & 1U;
-        data.positionChanged = (event.flags >> 6U) & 1U;
-        data.rangeChanged = (event.flags >> 7U) & 1U;
+        data.inRange = Bit(event.flags, kSwifterKitHIDStylusInRange);
+        data.tip = Bit(event.flags, kSwifterKitHIDStylusTip);
+        data.barrelSwitch = Bit(event.flags, kSwifterKitHIDStylusBarrelSwitch);
+        data.invert = Bit(event.flags, kSwifterKitHIDStylusInvert);
+        data.eraser = Bit(event.flags, kSwifterKitHIDStylusEraser);
+        data.tipChanged = Bit(event.flags, kSwifterKitHIDStylusTipChanged);
+        data.positionChanged = Bit(event.flags, kSwifterKitHIDStylusPositionChanged);
+        data.rangeChanged = Bit(event.flags, kSwifterKitHIDStylusRangeChanged);
         return data;
     }
 
@@ -76,12 +78,12 @@ namespace {
         data.identifier = touch.identifier;
         data.x = touch.x;
         data.y = touch.y;
-        data.inRange = (touch.flags >> 0U) & 1U;
-        data.touch = (touch.flags >> 1U) & 1U;
-        data.touchValid = (touch.flags >> 2U) & 1U;
-        data.touchChanged = (touch.flags >> 3U) & 1U;
-        data.positionChanged = (touch.flags >> 4U) & 1U;
-        data.rangeChanged = (touch.flags >> 5U) & 1U;
+        data.inRange = Bit(touch.flags, kSwifterKitHIDTouchInRange);
+        data.touch = Bit(touch.flags, kSwifterKitHIDTouchTouch);
+        data.touchValid = Bit(touch.flags, kSwifterKitHIDTouchTouchValid);
+        data.touchChanged = Bit(touch.flags, kSwifterKitHIDTouchTouchChanged);
+        data.positionChanged = Bit(touch.flags, kSwifterKitHIDTouchPositionChanged);
+        data.rangeChanged = Bit(touch.flags, kSwifterKitHIDTouchRangeChanged);
         return data;
     }
 
@@ -163,8 +165,8 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
         }
         case SwifterKitRuntimeOpcode::HIDDispatchDigitizerStylus: {
             SwifterKitHIDStylusEvent event = {};
-            if (Read(payload, payloadLength, &event) && event.flags <= 0xFF
-                && event.reserved == 0) {
+            if (Read(payload, payloadLength, &event)
+                && (event.flags & ~kSwifterKitHIDStylusFlagsAll) == 0 && event.reserved == 0) {
                 IOHIDDigitizerStylusData stylus = Stylus(event);
                 result = dispatchDigitizerStylusEvent(Stamp(event.timestamp), &stylus);
             }
@@ -189,7 +191,7 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
                     &touch,
                     payload + sizeof(header) + index * sizeof(SwifterKitHIDTouch),
                     sizeof(touch));
-                valid = valid && touch.flags <= 0x3F;
+                valid = valid && (touch.flags & ~kSwifterKitHIDTouchFlagsAll) == 0;
                 touches[index] = Touch(touch);
             }
             if (valid) {
@@ -203,7 +205,8 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
             break;
         case SwifterKitRuntimeOpcode::HIDDispatchGameController: {
             SwifterKitHIDGameControllerEvent event = {};
-            if (Read(payload, payloadLength, &event) && event.flags <= 3) {
+            if (Read(payload, payloadLength, &event)
+                && (event.flags & ~kSwifterKitHIDGameControllerFlagsAll) == 0) {
                 const int32_t* v = event.values;
                 result = dispatchStandardGameControllerEvent(
                     Stamp(event.timestamp),
@@ -223,15 +226,16 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
                     v[13],
                     v[14],
                     v[15],
-                    (event.flags & 1U) != 0,
-                    (event.flags & 2U) != 0,
+                    (event.flags & kSwifterKitHIDGameControllerThumbstickButtonLeft) != 0,
+                    (event.flags & kSwifterKitHIDGameControllerThumbstickButtonRight) != 0,
                     event.options);
             }
             break;
         }
         case SwifterKitRuntimeOpcode::HIDDispatchExtendedGameController: {
             SwifterKitHIDExtendedGameControllerEvent event = {};
-            if (!Read(payload, payloadLength, &event) || event.standard.flags > 3) {
+            if (!Read(payload, payloadLength, &event)
+                || (event.standard.flags & ~kSwifterKitHIDGameControllerFlagsAll) != 0) {
                 break;
             }
             if (__builtin_available(driverkit 23.0, *)) {
@@ -255,8 +259,8 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
                     v[13],
                     v[14],
                     v[15],
-                    (event.standard.flags & 1U) != 0,
-                    (event.standard.flags & 2U) != 0,
+                    (event.standard.flags & kSwifterKitHIDGameControllerThumbstickButtonLeft) != 0,
+                    (event.standard.flags & kSwifterKitHIDGameControllerThumbstickButtonRight) != 0,
                     b[0],
                     b[1],
                     b[2],
@@ -271,8 +275,9 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
         }
         case SwifterKitRuntimeOpcode::HIDSetLED: {
             SwifterKitHIDLEDState state = {};
-            if (Read(payload, payloadLength, &state) && state.usagePage == kLEDUsagePage
-                && state.on <= 1 && state.reserved == 0) {
+            if (Read(payload, payloadLength, &state)
+                && state.usagePage == kSwifterKitHIDLEDUsagePage && state.on <= 1
+                && state.reserved == 0) {
                 SetLED(state.usage, state.on != 0);
                 result = kIOReturnSuccess;
             }
@@ -289,7 +294,7 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
             SwifterKitHIDDeviceSetting setting = {};
     #if SWIFTERKIT_HID_EVENT_DRIVER
             if (Read(payload, payloadLength, &setting) && setting.kind == 0
-                && (setting.value & ~kAllEventDriverCategories) == 0) {
+                && (setting.value & ~kSwifterKitHIDEventDriverCategoriesAll) == 0) {
                 ivars->hidEventDriverHandling = setting.value;
                 result = kIOReturnSuccess;
             }
@@ -317,7 +322,8 @@ kern_return_t SwifterKitRuntimeService::DispatchHIDDigitizerCollection(
         return kIOReturnBadArgument;
     }
     memcpy(&event, payload, sizeof(event));
-    if (event.type > kIOHIDDigitizerCollectionTypeHand || event.flags > 0x1F
+    if (event.type > kIOHIDDigitizerCollectionTypeHand
+        || (event.flags & ~kSwifterKitHIDCollectionFlagsAll) != 0
         || event.elementCount > kSwifterKitHIDMaximumCollectionElements
         || payloadLength != sizeof(event) + event.elementCount * sizeof(uint32_t)) {
         return kIOReturnBadArgument;
@@ -343,13 +349,13 @@ kern_return_t SwifterKitRuntimeService::DispatchHIDDigitizerCollection(
         }
         collection->addElement(element);
     }
-    collection->setTouch((event.flags & 1U) != 0);
-    collection->setInRange((event.flags & 2U) != 0);
+    collection->setTouch((event.flags & kSwifterKitHIDCollectionTouch) != 0);
+    collection->setInRange((event.flags & kSwifterKitHIDCollectionInRange) != 0);
     collection->setX(event.x);
     collection->setY(event.y);
     collection->setZ(event.z);
 
-    const uint32_t changes = event.flags >> 2U;
+    const uint32_t changes = event.flags >> kSwifterKitHIDCollectionChangeShift;
     kern_return_t result = kIOReturnSuccess;
     const IOHIDDigitizerCollectionType type = collection->getType();
     if (type == kIOHIDDigitizerCollectionTypeStylus || type == kIOHIDDigitizerCollectionTypePuck) {
@@ -360,9 +366,9 @@ kern_return_t SwifterKitRuntimeService::DispatchHIDDigitizerCollection(
         stylus.tipPressure = collection->getZ();
         stylus.inRange = collection->getInRange() ? 1 : 0;
         stylus.tip = collection->getTouch() ? 1 : 0;
-        stylus.tipChanged = (changes >> 0U) & 1U;
-        stylus.positionChanged = (changes >> 1U) & 1U;
-        stylus.rangeChanged = (changes >> 2U) & 1U;
+        stylus.tipChanged = Bit(changes, kSwifterKitHIDCollectionChangeTouch);
+        stylus.positionChanged = Bit(changes, kSwifterKitHIDCollectionChangePosition);
+        stylus.rangeChanged = Bit(changes, kSwifterKitHIDCollectionChangeRange);
         result = dispatchDigitizerStylusEvent(Stamp(event.timestamp), &stylus);
     } else {
         IOHIDDigitizerTouchData touch = {};
@@ -372,9 +378,9 @@ kern_return_t SwifterKitRuntimeService::DispatchHIDDigitizerCollection(
         touch.inRange = collection->getInRange() ? 1 : 0;
         touch.touch = collection->getTouch() ? 1 : 0;
         touch.touchValid = 1;
-        touch.touchChanged = (changes >> 0U) & 1U;
-        touch.positionChanged = (changes >> 1U) & 1U;
-        touch.rangeChanged = (changes >> 2U) & 1U;
+        touch.touchChanged = Bit(changes, kSwifterKitHIDCollectionChangeTouch);
+        touch.positionChanged = Bit(changes, kSwifterKitHIDCollectionChangePosition);
+        touch.rangeChanged = Bit(changes, kSwifterKitHIDCollectionChangeRange);
         result = dispatchDigitizerTouchEvent(Stamp(event.timestamp), &touch, 1);
     }
     collection->release();

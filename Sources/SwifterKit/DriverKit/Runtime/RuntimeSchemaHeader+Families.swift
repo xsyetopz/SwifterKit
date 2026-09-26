@@ -2,7 +2,7 @@
 extension RuntimeSchemaHeader {
   /// The family sections, in header order; `render()` separates them with blank lines.
   static func familySections() -> [[String]] {
-    serviceSections() + storageSections() + midiSections() + usbSections()
+    serviceSections() + storageSections() + midiSections() + usbSections() + hidSections()
   }
 
   /// `static constexpr` declarations of one native type, from name and value pairs.
@@ -26,6 +26,21 @@ extension RuntimeSchemaHeader {
     _ cases: [Value]
   ) -> [String] where Value.RawValue: BinaryInteger {
     constants(type, cases.map { (prefix + nativeName($0), "\($0.rawValue)") })
+  }
+
+  /// `static constexpr` bit masks named `prefix` plus each case's native name, then `allName`
+  /// with every bit set.
+  static func bits<Value: CaseIterable & RawRepresentable>(
+    _ prefix: String,
+    _ type: Value.Type,
+    all allName: String
+  ) -> [String] where Value.RawValue: FixedWidthInteger {
+    constants(
+      "uint32_t",
+      Value.allCases.map { (prefix + nativeName($0), hex($0.rawValue, digits: 1)) } + [
+        (allName, hex(Value.allBits, digits: 1))
+      ]
+    )
   }
 
   /// Concatenates declaration groups that share one section.
@@ -190,6 +205,80 @@ extension RuntimeSchemaHeader {
           "kSwifterKitUSBPipeDescriptors",
           type: "uint8_t",
           [RuntimeUSBPipeDescriptorPolicy.original, .currentPolicy]
+        )
+      ),
+    ]
+  }
+
+  private static func hidSections() -> [[String]] {
+    let hid = RuntimeHIDLimits.self
+    let collectionAll =
+      RuntimeHIDCollectionFlag.allBits | RuntimeHIDCollectionChange.allBits
+      << hid.collectionChangeShift
+    return [
+      constants(
+        "uint32_t",
+        [
+          ("kSwifterKitHIDMaximumPendingReports", "\(hid.maximumPendingReports)"),
+          ("kSwifterKitHIDMaximumElementPage", "\(hid.maximumElementPage)"),
+          ("kSwifterKitHIDMaximumCookies", "\(hid.maximumCookies)"),
+          ("kSwifterKitHIDMaximumCollectionElements", "\(hid.maximumCollectionElements)"),
+          ("kSwifterKitHIDMaximumTouches", "\(hid.maximumTouches)"),
+          ("kSwifterKitHIDMaximumEventValues", "\(hid.maximumEventValues)"),
+          ("kSwifterKitHIDLEDUsagePage", hex(hid.ledUsagePage, digits: 2)),
+        ]
+      ),
+      enumeration(
+        "SwifterKitHIDElementWriteKind",
+        type: "uint32_t",
+        RuntimeHIDElementWriteKind.allCases
+      ),
+      joined(
+        bits(
+          "kSwifterKitHIDHostReport",
+          RuntimeHIDHostReportType.self,
+          all: "kSwifterKitHIDHostReportTypesAll"
+        ),
+        bits(
+          "kSwifterKitHIDGetReport",
+          RuntimeHIDGetReportType.self,
+          all: "kSwifterKitHIDGetReportTypesAll"
+        ),
+        bits("kSwifterKitHIDDeliver", RuntimeHIDEventDelivery.self, all: "kSwifterKitHIDDeliverAll")
+      ),
+      bits(
+        "kSwifterKitHIDEventDriverCategory",
+        RuntimeHIDEventDriverCategory.self,
+        all: "kSwifterKitHIDEventDriverCategoriesAll"
+      ),
+      joined(
+        bits(
+          "kSwifterKitHIDStylus",
+          RuntimeHIDStylusFlag.self,
+          all: "kSwifterKitHIDStylusFlagsAll"
+        ),
+        bits("kSwifterKitHIDTouch", RuntimeHIDTouchFlag.self, all: "kSwifterKitHIDTouchFlagsAll"),
+        bits(
+          "kSwifterKitHIDCollection",
+          RuntimeHIDCollectionFlag.self,
+          all: "kSwifterKitHIDCollectionStateFlagsAll"
+        ),
+        bits(
+          "kSwifterKitHIDCollectionChange",
+          RuntimeHIDCollectionChange.self,
+          all: "kSwifterKitHIDCollectionChangesAll"
+        ),
+        constants(
+          "uint32_t",
+          [
+            ("kSwifterKitHIDCollectionChangeShift", "\(hid.collectionChangeShift)"),
+            ("kSwifterKitHIDCollectionFlagsAll", hex(collectionAll, digits: 1)),
+          ]
+        ),
+        bits(
+          "kSwifterKitHIDGameController",
+          RuntimeHIDGameControllerFlag.self,
+          all: "kSwifterKitHIDGameControllerFlagsAll"
         )
       ),
     ]

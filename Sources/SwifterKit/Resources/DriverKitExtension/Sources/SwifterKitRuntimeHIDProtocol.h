@@ -3,20 +3,12 @@
 
 #include <stdint.h>
 
+#include "SwifterKitRuntimeSchema.h"
+
 // Packed HID payloads for the 0x031x-0x033x opcodes and events. The Swift encoders in
 // Sources/SwifterKit/DriverKit/HID mirror these layouts; every reserved field must be zero.
-
-// Pending host get-report requests Swift may answer at once.
-static constexpr uint32_t kSwifterKitHIDMaximumPendingReports = 16;
-// The most element descriptors one hidCopyElements response carries.
-static constexpr uint32_t kSwifterKitHIDMaximumElementPage = 512;
-// The most cookies one commit or digitizer collection names.
-static constexpr uint32_t kSwifterKitHIDMaximumCookies = 1024;
-static constexpr uint32_t kSwifterKitHIDMaximumCollectionElements = 64;
-// The most touches one digitizer dispatch carries.
-static constexpr uint32_t kSwifterKitHIDMaximumTouches = 64;
-// The most element values one hidElementValues event carries.
-static constexpr uint32_t kSwifterKitHIDMaximumEventValues = 256;
+// The limits, the element write kind, and the report, delivery, category, and dispatch-state
+// bits come from RuntimeSchema+HID.swift.
 
 // Payload of hidCompleteGetReport, followed by length report bytes.
 struct __attribute__((packed)) SwifterKitHIDReportCompletion {

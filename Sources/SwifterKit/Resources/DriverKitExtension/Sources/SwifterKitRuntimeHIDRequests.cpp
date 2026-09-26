@@ -32,11 +32,11 @@ namespace {
     bool AnswersReportType(IOHIDReportType reportType) {
         switch (reportType) {
             case kIOHIDReportTypeInput:
-                return (kSwifterKitHIDAnsweredReportTypes & (1U << 0U)) != 0;
+                return (kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportInput) != 0;
             case kIOHIDReportTypeOutput:
-                return (kSwifterKitHIDAnsweredReportTypes & (1U << 1U)) != 0;
+                return (kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportOutput) != 0;
             case kIOHIDReportTypeFeature:
-                return (kSwifterKitHIDAnsweredReportTypes & (1U << 2U)) != 0;
+                return (kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportFeature) != 0;
             default:
                 return false;
         }

@@ -1,15 +1,18 @@
 import Foundation
 
-/// Limits shared by the HID command encoders; the native runtime enforces the same bounds.
+/// Limits shared by the HID command encoders; the native runtime enforces the same bounds, which
+/// ``RuntimeHIDLimits`` declares for both sides.
+@usableFromInline
 enum HIDLimits {
   /// The most element descriptors one page carries.
-  static let maximumElementPage: UInt32 = 512
+  @usableFromInline
+  static let maximumElementPage = UInt32(RuntimeHIDLimits.maximumElementPage)
   /// The most cookies one commit names.
-  static let maximumCommitCookies = 1_024
+  static let maximumCommitCookies = RuntimeHIDLimits.maximumCookies
   /// The most elements one digitizer collection names.
-  static let maximumCollectionElements = 64
+  static let maximumCollectionElements = RuntimeHIDLimits.maximumCollectionElements
   /// The most touches one dispatch carries.
-  static let maximumTouches = 64
+  static let maximumTouches = RuntimeHIDLimits.maximumTouches
   /// Command payload bytes that fit one runtime message.
   static let maximumPayload =
     RuntimeSchema.maximumMessageSize - RuntimeSchema.headerSize - RuntimeSchema.commandHeaderSize
@@ -94,7 +97,9 @@ extension DriverCommand {
     Self(
       opcode: .hidSetElementValue,
       requiredCapabilities: .hid,
-      payload: HIDLimits.words([try HIDLimits.validCookie(cookie), 0, value, 0]),
+      payload: HIDLimits.words([
+        try HIDLimits.validCookie(cookie), RuntimeHIDElementWriteKind.value.rawValue, value, 0,
+      ]),
       maximumResponseSize: RuntimeMessage.headerSize
     )
   }
@@ -104,7 +109,10 @@ extension DriverCommand {
     guard !bytes.isEmpty, bytes.count <= HIDLimits.maximumPayload - 16 else {
       throw HIDRuntimeError.invalidReportLength
     }
-    var payload = HIDLimits.words([try HIDLimits.validCookie(cookie), 1, 0, UInt32(bytes.count)])
+    var payload = HIDLimits.words([
+      try HIDLimits.validCookie(cookie), RuntimeHIDElementWriteKind.data.rawValue, 0,
+      UInt32(bytes.count),
+    ])
     payload.append(contentsOf: bytes)
     return Self(
       opcode: .hidSetElementValue,
@@ -231,7 +239,7 @@ extension DriverContext {
   /// Reads one page of the provider interface's element tree.
   public func hidElements(
     firstIndex: UInt32,
-    maximumCount: UInt32 = 512
+    maximumCount: UInt32 = HIDLimits.maximumElementPage
   ) async throws -> HIDElementPage {
     try HIDElementPage(
       runtimePayload: await execute(

@@ -18,6 +18,9 @@
 // interface report transfers call the kernel and take no lock.
 #if SWIFTERKIT_HID_EVENT_SERVICE
 namespace {
+    // SwifterKitHIDElementWriteKind comes from RuntimeSchema+HID.swift.
+    using ElementWriteKind = SwifterKitHIDElementWriteKind;
+
     // Report bytes that fit a command after its message, command, and request headers.
     constexpr uint32_t kMaximumReportLength =
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize
@@ -133,8 +136,9 @@ namespace {
             return kIOReturnBadArgument;
         }
         memcpy(&write, payload, sizeof(write));
-        const bool isData = write.kind == 1;
-        if (write.kind > 1 || write.length != payloadLength - sizeof(write)
+        const bool isData = write.kind == static_cast<uint32_t>(ElementWriteKind::Data);
+        if (write.kind > static_cast<uint32_t>(ElementWriteKind::Data)
+            || write.length != payloadLength - sizeof(write)
             || (isData ? write.length == 0 || write.value != 0 : write.length != 0)) {
             return kIOReturnBadArgument;
         }
