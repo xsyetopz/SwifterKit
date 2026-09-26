@@ -45,8 +45,11 @@ struct VideoMemberRuntimeContractTests {
         "GetOutputDataMemoryDescriptor(", "SetDataMemoryDescriptor(", "SetControlMemoryDescriptor(",
         "destroyQueues()", "createQueues(", "setBufferID(", "removeAllBuffers()", "addBuffers(",
         "addBuffer(", "enqueueOutputBuffer(", "GetMemoryObjectID(", "GetOwningDeviceID()",
-        "RemoveControlValueDescriptions(", "GetCustomPropertyInfo()", "RemoveStream(",
+        "RemoveControlValueDescriptions(", "GetCustomPropertyInfo()",
       ] { #expect(native.contains(call)) }
+      // Stream detach runs in the device's PerformDeviceConfigurationChange.
+      let device = try source("SwifterKitRuntimeVideoDevice.cpp", in: output)
+      #expect(device.contains("RemoveStream("))
     }
   }
 
@@ -157,6 +160,62 @@ struct VideoMemberRuntimeContractTests {
       let reowner = try #require(attach.range(of: "_SetOwningDeviceID(GetObjectID())")?.lowerBound)
       let readd = try #require(attach.range(of: "AddControl(ivars->controls[index])")?.lowerBound)
       #expect(reowner < readd)
+    }
+  }
+
+  @Test
+  func appliesStreamOffsetAndLatencyChangesInsideADeviceConfigurationChange() throws {
+    try withGeneratedExtension { output, _ in
+      let members = try source("SwifterKitRuntimeVideoMembers.cpp", in: output)
+      let property = try section(of: members, from: "::SetDeviceProperty(", to: "case 6:")
+      #expect(!property.contains("return SetInputSafetyOffset("))
+      #expect(!property.contains("return SetOutputSafetyOffset("))
+      #expect(
+        property.contains("SwifterKitRequestVideoStructureChange(this, request->selector, 0, low)")
+      )
+      let attachment = try section(
+        of: members,
+        from: "::SetMemberAttachment(",
+        to: "if (request->kind != 2)"
+      )
+      #expect(!attachment.contains("AddStream("))
+      #expect(attachment.contains("kSwifterKitVideoChangeStreamAttachment"))
+
+      let device = try source("SwifterKitRuntimeVideoDevice.cpp", in: output)
+      let perform = try section(
+        of: device,
+        from: "::PerformDeviceConfigurationChange(",
+        to: "kSampleRateChangeAction)"
+      )
+      #expect(perform.contains("return ApplyStructureChange(changeInfo);"))
+      let apply = try section(
+        of: device,
+        from: "::ApplyStructureChange(",
+        to: "::AbortDeviceConfigurationChange("
+      )
+      #expect(apply.contains("AddStream(stream) : RemoveStream(stream)"))
+      #expect(apply.contains("return SetInputSafetyOffset(value);"))
+      #expect(apply.contains("return SetOutputSafetyOffset(value);"))
+
+      let objects = try source("SwifterKitRuntimeVideoObjects.cpp", in: output)
+      let clockSetter = try section(
+        of: objects,
+        from: "kern_return_t SetClockProperty(",
+        to: "default:"
+      )
+      #expect(!clockSetter.contains("SetInputLatency("))
+      #expect(!clockSetter.contains("SetOutputLatency("))
+      #expect(
+        clockSetter.contains("SwifterKitRequestVideoStructureChange(clock, selector, 0, number)")
+      )
+      let clock = try source("SwifterKitRuntimeVideoClockDevice.cpp", in: output)
+      let clockPerform = try section(
+        of: clock,
+        from: "::PerformDeviceConfigurationChange(",
+        to: "kClockSampleRateChangeAction)"
+      )
+      #expect(clockPerform.contains("return SetInputLatency(value);"))
+      #expect(clockPerform.contains("return SetOutputLatency(value);"))
     }
   }
 

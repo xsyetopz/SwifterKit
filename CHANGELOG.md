@@ -80,6 +80,12 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- The video runtime attached and detached streams, set safety offsets, and set
+  clock latencies directly. `IOUserVideoDriver.iig` allows changes that affect
+  IO or the device's structure only in `PerformDeviceConfigurationChange`.
+  These now go through `RequestDeviceConfigurationChange`, so the calls return
+  once the change is requested. VideoDriverKit has no zero-timestamp period
+  setter, so there is no such change to move.
 - The audio runtime attached and detached streams, set safety offsets, and set
   clock latencies and the zero-timestamp period directly. `IOUserAudioDriver.iig`
   allows changes that affect IO or the device's structure only in

@@ -364,6 +364,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::PerformDeviceConfigurationChange(
     OSObject* changeInfo) {
     if (changeAction == kSwifterKitVideoMemberChangeAction)
         return ApplyMemberChange();
+    if (changeAction == kSwifterKitVideoStructureChangeAction)
+        return ApplyStructureChange(changeInfo);
     if (changeAction != kSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const double sampleRate = __builtin_bit_cast(
@@ -374,6 +376,34 @@ kern_return_t SwifterKitRuntimeVideoDevice::PerformDeviceConfigurationChange(
     if (result == kIOReturnSuccess)
         (void)ivars->service->VideoControlEvent(3, __builtin_bit_cast(uint64_t, sampleRate));
     return result;
+}
+
+kern_return_t SwifterKitRuntimeVideoDevice::ApplyStructureChange(OSObject* changeInfo) {
+    SwifterKitVideoStructureChange change = {};
+    if (!SwifterKitReadVideoStructureChange(changeInfo, &change) || change.value > UINT32_MAX)
+        return kIOReturnBadArgument;
+    const auto value = static_cast<uint32_t>(change.value);
+    switch (change.selector) {
+        case kSwifterKitVideoChangeStreamAttachment: {
+            if (change.index >= kSwifterKitVideoStreamCount || value > 1
+                || ivars->streams[change.index] == nullptr)
+                return kIOReturnBadArgument;
+            const bool attach = value != 0;
+            if (ivars->streamDetached[change.index] != attach)
+                return kIOReturnSuccess;
+            auto* stream = ivars->streams[change.index];
+            const kern_return_t result = attach ? AddStream(stream) : RemoveStream(stream);
+            if (result == kIOReturnSuccess)
+                ivars->streamDetached[change.index] = !attach;
+            return result;
+        }
+        case kSwifterKitVideoChangeInputSafetyOffset:
+            return SetInputSafetyOffset(value);
+        case kSwifterKitVideoChangeOutputSafetyOffset:
+            return SetOutputSafetyOffset(value);
+        default:
+            return kIOReturnBadArgument;
+    }
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::AbortDeviceConfigurationChange(

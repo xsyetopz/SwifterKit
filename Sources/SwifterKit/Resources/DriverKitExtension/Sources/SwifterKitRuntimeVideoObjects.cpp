@@ -12,6 +12,7 @@
     #include "SwifterKitRuntimeVideoBox.h"
     #include "SwifterKitRuntimeVideoClockDevice.h"
     #include "SwifterKitRuntimeVideoDevice.h"
+    #include "SwifterKitRuntimeVideoDeviceState.h"
     #include "SwifterKitRuntimeVideoProtocol.h"
 
 namespace {
@@ -354,9 +355,8 @@ namespace {
             case 5:
                 return clock->SetIsHidden(number == 1);
             case 6:
-                return clock->SetInputLatency(number);
             case 7:
-                return clock->SetOutputLatency(number);
+                return SwifterKitRequestVideoStructureChange(clock, selector, 0, number);
             default:
                 return clock->SetTransportType(static_cast<IOUserVideoTransportType>(number));
         }

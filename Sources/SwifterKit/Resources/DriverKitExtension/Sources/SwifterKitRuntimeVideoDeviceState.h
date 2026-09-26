@@ -6,10 +6,13 @@
     #include <DriverKit/IOBufferMemoryDescriptor.h>
     #include <DriverKit/IOLib.h>
     #include <DriverKit/IOMemoryMap.h>
+    #include <DriverKit/OSData.h>
     #include <VideoDriverKit/IOUserVideoBuffer.h>
+    #include <VideoDriverKit/IOUserVideoClockDevice.h>
     #include <VideoDriverKit/IOUserVideoControl.h>
     #include <VideoDriverKit/IOUserVideoCustomProperty.h>
     #include <VideoDriverKit/IOUserVideoStream.h>
+    #include <string.h>
 
 class SwifterKitRuntimeService;
 
@@ -45,5 +48,49 @@ struct SwifterKitRuntimeVideoDevice_IVars {
 
 // PerformDeviceConfigurationChange action for buffer, queue, and buffer-list changes.
 constexpr uint64_t kSwifterKitVideoMemberChangeAction = 0x53574B564D454D42ULL;
+
+// PerformDeviceConfigurationChange action for stream attachment, safety offsets, and clock
+// latencies. IOUserVideoDriver.iig: "For changes to an IOUserVideoDevice's or
+// IOUserVideoClockDevice's state that will affect IO or its structure, the client should trigger a
+// request to the host using RequestDeviceConfigurationChange() ... It is only at this point that
+// the device can make the state change." The change travels in the request's change info.
+constexpr uint64_t kSwifterKitVideoStructureChangeAction = 0x53574B5653545255ULL;
+constexpr uint32_t kSwifterKitVideoChangeStreamAttachment = 1;
+// Safety offsets use the SetDeviceProperty selectors, latencies the SetClockProperty selectors.
+constexpr uint32_t kSwifterKitVideoChangeInputSafetyOffset = 4;
+constexpr uint32_t kSwifterKitVideoChangeOutputSafetyOffset = 5;
+constexpr uint32_t kSwifterKitVideoChangeInputLatency = 6;
+constexpr uint32_t kSwifterKitVideoChangeOutputLatency = 7;
+
+struct SwifterKitVideoStructureChange {
+    uint32_t selector;
+    uint32_t index;
+    uint64_t value;
+};
+
+inline kern_return_t SwifterKitRequestVideoStructureChange(
+    IOUserVideoClockDevice* device,
+    uint32_t selector,
+    uint32_t index,
+    uint64_t value) {
+    const SwifterKitVideoStructureChange change = {selector, index, value};
+    OSData* info = OSData::withBytes(&change, sizeof(change));
+    if (info == nullptr)
+        return kIOReturnNoMemory;
+    const kern_return_t result =
+        device->RequestDeviceConfigurationChange(kSwifterKitVideoStructureChangeAction, info);
+    info->release();
+    return result;
+}
+
+inline bool SwifterKitReadVideoStructureChange(
+    OSObject* info,
+    SwifterKitVideoStructureChange* change) {
+    auto* data = OSDynamicCast(OSData, info);
+    if (data == nullptr || data->getLength() != sizeof(*change))
+        return false;
+    memcpy(change, data->getBytesNoCopy(), sizeof(*change));
+    return true;
+}
 #endif
 #endif

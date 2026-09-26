@@ -6,6 +6,7 @@
     #include <VideoDriverKit/VideoDriverKit.h>
 
     #include "SwifterKitRuntimeService.h"
+    #include "SwifterKitRuntimeVideoDeviceState.h"
     #include "SwifterKitRuntimeVideoProtocol.h"
 
 namespace {
@@ -110,6 +111,20 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::StopIO(IOUserVideoStartStopFlag
 kern_return_t SwifterKitRuntimeVideoClockDevice::PerformDeviceConfigurationChange(
     uint64_t changeAction,
     OSObject* changeInfo) {
+    if (changeAction == kSwifterKitVideoStructureChangeAction) {
+        SwifterKitVideoStructureChange change = {};
+        if (!SwifterKitReadVideoStructureChange(changeInfo, &change) || change.value > UINT32_MAX)
+            return kIOReturnBadArgument;
+        const auto value = static_cast<uint32_t>(change.value);
+        switch (change.selector) {
+            case kSwifterKitVideoChangeInputLatency:
+                return SetInputLatency(value);
+            case kSwifterKitVideoChangeOutputLatency:
+                return SetOutputLatency(value);
+            default:
+                return kIOReturnBadArgument;
+        }
+    }
     if (changeAction != kClockSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const double sampleRate = __builtin_bit_cast(

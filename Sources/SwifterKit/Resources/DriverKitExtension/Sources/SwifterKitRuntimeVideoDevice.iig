@@ -79,6 +79,7 @@ public:
         uint32_t buffer,
         uint64_t value) LOCALONLY;
     kern_return_t ApplyMemberChange() LOCALONLY;
+    kern_return_t ApplyStructureChange(OSObject* changeInfo) LOCALONLY;
     kern_return_t NativeEntry(
         uint32_t streamIndex,
         const SwifterKitVideoQueueEntry* entry,

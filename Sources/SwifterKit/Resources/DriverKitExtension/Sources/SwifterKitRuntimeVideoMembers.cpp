@@ -230,9 +230,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetDeviceProperty(
         case 3:
             return SetCanBeDefaultSystemOutputDevice(value != 0);
         case 4:
-            return SetInputSafetyOffset(low);
         case 5:
-            return SetOutputSafetyOffset(low);
+            return SwifterKitRequestVideoStructureChange(this, request->selector, 0, low);
         case 6:
             if (low == 0 || high == 0 || low == high)
                 return kIOReturnBadArgument;
@@ -740,11 +739,11 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetMemberAttachment(
             return kIOReturnNotReady;
         if (ivars->streamDetached[index] != attach)
             return kIOReturnSuccess;
-        const kern_return_t result =
-            attach ? AddStream(ivars->streams[index]) : RemoveStream(ivars->streams[index]);
-        if (result == kIOReturnSuccess)
-            ivars->streamDetached[index] = !attach;
-        return result;
+        return SwifterKitRequestVideoStructureChange(
+            this,
+            kSwifterKitVideoChangeStreamAttachment,
+            index,
+            attach ? 1 : 0);
     }
     if (request->kind != 2)
         return kIOReturnBadArgument;
