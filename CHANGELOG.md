@@ -63,6 +63,10 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- `xcodebuild analyze` no longer reports leaks of the timer source and action
+  in `SwifterKitRuntimeTimers.cpp`. `SwifterKitReleaseSource` consumes the
+  references it is given, and its parameters now say so with `os_consumed`, so
+  the analyzer follows the ownership that `TimerCommand` hands it on failure.
 - `EthernetEvent.wakeOnMagicPacket` was decoded but never sent. The extension
   now delivers it when the stack changes `kIOUserNetworkHWAssistWOMP` through
   `setHardwareAssists(assists, mask)`, and advertises that assist whenever

@@ -15,7 +15,11 @@ inline kern_return_t SwifterKitEnableSource(IODispatchSource* source) {
 
 // Cancels and releases a source and its action. A handler already running keeps its own
 // references; later firings are dropped because the slot no longer holds their identifier.
-inline void SwifterKitReleaseSource(IODispatchSource* source, OSAction* action) {
+// The helper consumes the caller's references; os_consumed tells the static analyzer so, which
+// otherwise reports every caller's reference as leaked.
+inline void SwifterKitReleaseSource(
+    IODispatchSource* __attribute__((os_consumed)) source,
+    OSAction* __attribute__((os_consumed)) action) {
     if (source != nullptr) {
         (void)source->Cancel(nullptr);
     }
