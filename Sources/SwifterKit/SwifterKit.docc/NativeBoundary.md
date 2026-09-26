@@ -28,7 +28,7 @@ SwifterKit declares the wire protocol's magic value, version range, message size
 
 ## Event delivery
 
-The extension queues events in two classes with separate capacity. Required events carry DriverKit work that Swift must answer or a result Swift must see: block-storage requests, SCSI parallel tasks and task-management notifications, Ethernet transmit packets and control changes, audio or video control, custom-property, and stream-format changes, USB pipe completions, and HID get-report requests. Lossy events are notifications such as HID host reports, input reports, element values, LED and property changes, interrupts, serial and MIDI notifications, and audio or video I/O state; Swift may miss them without leaving a DriverKit request outstanding.
+The extension queues events in two classes with separate capacity. Required events carry DriverKit work that Swift must answer or a result Swift must see: block-storage requests, SCSI parallel tasks and task-management notifications, Ethernet transmit packets and control changes, audio or video control, custom-property, and stream-format changes, audio box-acquisition and clock-device sample-rate requests, USB pipe completions, and HID get-report requests. Lossy events are notifications such as HID host reports, input reports, element values, LED and property changes, interrupts, serial and MIDI notifications, and audio or video I/O state; Swift may miss them without leaving a DriverKit request outstanding.
 
 An event, including its type and the runtime message header, must fit in one runtime message; a larger event is rejected when it is queued, not when Swift takes it. The required queue holds 512 events and the lossy queue holds 64. Lossy traffic never uses required capacity. Each request for an event returns the oldest required event before any lossy event. Events keep their order within a class, but a required event can overtake an earlier lossy event.
 
@@ -50,7 +50,7 @@ When the registered host goes away, the extension answers the requests that host
 - SCSI parallel tasks complete with `kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE`.
 - Ethernet transmit packets return to their buffer pool.
 
-Pending HID get-report requests complete with `kIOReturnAborted`. Other HID, serial, MIDI, interrupt, audio, video, and SCSI peripheral events leave no DriverKit request waiting for Swift, so those families have nothing to answer. Events queued while no host is registered wait for the next host, as they do before the first host connects. A request queued while a host detaches can leave a stale event for the next host, whose completion for it then fails.
+Pending HID get-report requests complete with `kIOReturnAborted`. Pending audio box-acquisition and clock-device sample-rate requests are rejected: the box reports `kIOReturnAborted` as its acquisition failure and the sample rate stays unchanged. Other HID, serial, MIDI, interrupt, audio, video, and SCSI peripheral events leave no DriverKit request waiting for Swift, so those families have nothing to answer. Events queued while no host is registered wait for the next host, as they do before the first host connects. A request queued while a host detaches can leave a stale event for the next host, whose completion for it then fails.
 
 When the lossy queue is full or the event cannot be allocated, the extension drops the event, counts the drop in its service state, and returns `kIOReturnNoSpace` or `kIOReturnNoMemory` to the DriverKit caller when the caller has a result. When the required queue rejects an event, the extension answers the DriverKit request itself and Swift never sees it:
 
@@ -74,7 +74,7 @@ The generated runtime user client accepts a host process only when that process 
 </array>
 ```
 
-Audio and video extensions also carry `com.apple.developer.driverkit.allow-any-userclient-access`, because system audio and video services open the family user clients and do not hold the host application's entitlement. Those family clients bypass the SwifterKit runtime client. The runtime client still requires the host entitlement.
+Video extensions also carry `com.apple.developer.driverkit.allow-any-userclient-access`, because the system video service opens the family user client and does not hold the host application's entitlement. Audio extensions do not: coreaudiod's `com.apple.private.driverkit.driver-access` entitlement admits any extension holding `com.apple.developer.driverkit.family.audio`. Family clients bypass the SwifterKit runtime client, which still requires the host entitlement.
 
 MIDI extensions do not carry it. MIDIServer opens the MIDI family user client through its own `com.apple.private.driverkit.driver-access` entitlement, which `IOKitKeys.h` describes as admitting any dext that holds one of the listed entitlements; MIDIServer lists `com.apple.developer.driverkit.family.midi`, which every generated MIDI extension carries.
 

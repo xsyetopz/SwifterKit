@@ -103,6 +103,10 @@ The `*Compat` queue classes exist only from DriverKit 25, derive from `OSObject`
 
 Use `.audio` with ``AudioDeviceConfiguration``. Audio APIs read and write stream ranges, query I/O state, update timestamps, request sample-rate changes, and work with typed controls and custom properties.
 
+``AudioDeviceConfiguration/boxes`` and ``AudioDeviceConfiguration/clockDevices`` declare up to four `IOUserAudioBox` and four stream-less `IOUserAudioClockDevice` objects. A box can own the device and any clock devices. ``AudioObjectTarget`` addresses the driver, the device, a box or clock device by index, or any object by its ID. ``DriverContext/audioObjectInfo(_:)`` reads identity, and ``DriverContext/audioSetObjectName(_:name:)``, ``DriverContext/audioSetElementName(_:kind:element:scope:name:)``, and ``DriverContext/audioPropertiesChanged(_:selectors:)`` change names and notify the host. Box and clock-device state is read and changed with ``DriverContext/audioBoxState(_:)``, ``DriverContext/audioSetBoxProperty(_:_:)``, ``DriverContext/audioSetBoxOwnership(_:target:owned:)``, ``DriverContext/audioClockDeviceState(_:)``, ``DriverContext/audioSetClockDeviceProperty(_:_:)``, ``DriverContext/audioSetClockSampleRates(_:_:)``, ``DriverContext/audioUpdateClockTimestamp(_:sampleTime:hostTime:)``, and ``DriverContext/audioRequestClockSampleRate(_:_:)``.
+
+``AudioObjectEvent`` reports `StartDevice`, `StopDevice`, and clock-device I/O and rate changes. Host requests to acquire a box or change a clock device's sample rate arrive as required events; answer each with ``DriverContext/audioCompleteRequest(requestID:accept:failure:)`` within ten seconds, after which the extension rejects it. Without a connected host the framework default applies at once.
+
 Use `.video` with ``VideoDeviceConfiguration``. Video APIs access bounded buffer planes, operate stream queues, update timestamps, request sample-rate changes, and handle device, control, property, stream, and input events.
 
 ## Hardware support

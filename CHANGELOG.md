@@ -6,6 +6,14 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- Generated audio extensions no longer carry
+  `com.apple.developer.driverkit.allow-any-userclient-access`: coreaudiod's
+  `com.apple.private.driverkit.driver-access` entitlement admits any extension
+  with `com.apple.developer.driverkit.family.audio`.
+- **Breaking:** `AudioRuntimeError` gains `invalidObjectTarget`, `invalidName`,
+  `invalidPropertySelectors`, and `invalidSampleRates`.
+- Stopping the audio runtime removes the device's controls and custom
+  properties before the device leaves the driver.
 - **Breaking:** transmit events carry a 72-byte packet metadata block before
   the frame, `EthernetTransmitRequest` gains `metadata`, `EthernetEvent` gains
   `interfaceCommand`, and `EthernetRuntimeError` gains `invalidBatch` and
@@ -136,6 +144,17 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- Audio drivers declare up to four `IOUserAudioBox` objects and four
+  stream-less `IOUserAudioClockDevice` objects through
+  `AudioDeviceConfiguration.boxes` and `clockDevices`. `AudioObjectTarget`
+  addresses the driver, device, boxes, clock devices, or any object ID, and new
+  `DriverContext` calls on opcodes 0x0A10-0x0A1D read object identity, set
+  object and element names, post `PropertiesChanged`, read and set box and
+  clock-device state, change box membership, sample rates, and zero
+  timestamps, and answer requests. `AudioObjectEvent` (event type 0x0A01)
+  reports `StartDevice`, `StopDevice`, and clock-device I/O and rate changes,
+  and delivers box-acquisition and clock sample-rate requests that Swift
+  answers with `audioCompleteRequest` within ten seconds.
 - NetworkingDriverKit packet metadata: `EthernetTransmitMetadata` on every
   transmit, `EthernetReceiveMetadata` and `EthernetReceivedFrame` for
   `ethernetReceive(frames:)` batches (opcode 0x0920), and
