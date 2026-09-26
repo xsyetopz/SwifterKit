@@ -13,43 +13,59 @@
     #include "SwifterKitRuntimeAudioSelectorControl.h"
     #include "SwifterKitRuntimeAudioSliderControl.h"
     #include "SwifterKitRuntimeAudioStereoPanControl.h"
+    #include "SwifterKitRuntimeMediaControls.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
 
 namespace {
-    const SwifterKitAudioControlConfiguration* FindControl(uint32_t identifier, uint32_t* index) {
-        for (uint32_t candidate = 0; candidate < kSwifterKitAudioControlCount; ++candidate) {
-            if (kSwifterKitAudioControls[candidate].identifier == identifier) {
-                *index = candidate;
-                return &kSwifterKitAudioControls[candidate];
-            }
-        }
-        return nullptr;
-    }
+    // The AudioDriverKit classes and schema values the SwifterKitRuntimeMediaControls.h
+    // templates operate on.
+    struct AudioControlFamily {
+        using Control = IOUserAudioControl;
+        using BooleanControl = IOUserAudioBooleanControl;
+        using LevelControl = IOUserAudioLevelControl;
+        using SelectorControl = IOUserAudioSelectorControl;
+        using SliderControl = IOUserAudioSliderControl;
+        using StereoPanControl = IOUserAudioStereoPanControl;
+        using RuntimeBooleanControl = SwifterKitRuntimeAudioBooleanControl;
+        using RuntimeLevelControl = SwifterKitRuntimeAudioLevelControl;
+        using RuntimeSelectorControl = SwifterKitRuntimeAudioSelectorControl;
+        using RuntimeSliderControl = SwifterKitRuntimeAudioSliderControl;
+        using RuntimeStereoPanControl = SwifterKitRuntimeAudioStereoPanControl;
+        using RuntimeCustomProperty = SwifterKitRuntimeAudioCustomProperty;
+        using LevelRange = IOUserAudioLevelControlRange;
+        using SliderRange = IOUserAudioSliderRange;
+        using SelectorDescription = IOUserAudioSelectorValueDescription;
+        using Scope = IOUserAudioObjectPropertyScope;
+        using ClassID = IOUserAudioClassID;
+        using PropertyAddress = IOUserAudioObjectPropertyAddress;
+        using CustomPropertyDataType = IOUserAudioCustomPropertyDataType;
+        using ControlValueHeader = SwifterKitAudioControlValueHeader;
 
-    const SwifterKitAudioCustomPropertyConfiguration* FindProperty(
-        uint32_t identifier,
-        uint32_t* index) {
-        for (uint32_t candidate = 0; candidate < kSwifterKitAudioCustomPropertyCount; ++candidate) {
-            if (kSwifterKitAudioCustomProperties[candidate].identifier == identifier) {
-                *index = candidate;
-                return &kSwifterKitAudioCustomProperties[candidate];
-            }
-        }
-        return nullptr;
-    }
+        static constexpr uint32_t kControlBoolean = kSwifterKitAudioControlBoolean;
+        static constexpr uint32_t kControlLevel = kSwifterKitAudioControlLevel;
+        static constexpr uint32_t kControlSelector = kSwifterKitAudioControlSelector;
+        static constexpr uint32_t kControlSlider = kSwifterKitAudioControlSlider;
+        static constexpr uint32_t kControlStereoPan = kSwifterKitAudioControlStereoPan;
+        static constexpr uint32_t kValueBoolean = kSwifterKitAudioValueBoolean;
+        static constexpr uint32_t kValueDecibels = kSwifterKitAudioValueDecibels;
+        static constexpr uint32_t kValueScalar = kSwifterKitAudioValueScalar;
+        static constexpr uint32_t kValueSelector = kSwifterKitAudioValueSelector;
+        static constexpr uint32_t kValueSlider = kSwifterKitAudioValueSlider;
+        static constexpr uint32_t kValueStereoPan = kSwifterKitAudioValueStereoPan;
+        static constexpr uint32_t kMaximumSelectorItems = kSwifterKitAudioMaximumSelectorItems;
+        static constexpr uint32_t kNameMaximumLength = kSwifterKitAudioNameMaximumLength;
+        static constexpr uint32_t kCustomPropertyValueMaximumLength =
+            kSwifterKitAudioCustomPropertyValueMaximumLength;
 
-    float FloatValue(uint32_t bits) {
-        return __builtin_bit_cast(float, bits);
-    }
-
-    OSString* StringFromBytes(const uint8_t* bytes, uint32_t length, uint32_t maximum) {
-        if (bytes == nullptr || length > maximum)
-            return nullptr;
-        char storage[kSwifterKitAudioCustomPropertyValueMaximumLength + 1] = {};
-        memcpy(storage, bytes, length);
-        return OSString::withCString(storage);
-    }
+        static constexpr uint32_t kControlCount = kSwifterKitAudioControlCount;
+        static constexpr const auto* kControls = kSwifterKitAudioControls;
+        static constexpr const auto* kSelectors = kSwifterKitAudioSelectors;
+        static constexpr const auto* kInitialSelections = kSwifterKitAudioInitialSelections;
+        static constexpr uint32_t kCustomPropertyCount = kSwifterKitAudioCustomPropertyCount;
+        static constexpr const auto* kCustomProperties = kSwifterKitAudioCustomProperties;
+        static constexpr const auto* kCustomPropertyValues = kSwifterKitAudioCustomPropertyValues;
+    };
 }  // namespace
 
 kern_return_t SwifterKitRuntimeAudioDevice::ConfigureControls() {
@@ -60,120 +76,9 @@ kern_return_t SwifterKitRuntimeAudioDevice::ConfigureControls() {
          ++index) {
         const auto& config = kSwifterKitAudioControls[index];
         IOUserAudioControl* control = nullptr;
-        const auto scope = static_cast<IOUserAudioObjectPropertyScope>(config.scope);
-        const auto classID = static_cast<IOUserAudioClassID>(config.classID);
-        switch (config.kind) {
-            case kSwifterKitAudioControlBoolean: {
-                auto* typed = OSTypeAlloc(SwifterKitRuntimeAudioBooleanControl);
-                if (typed != nullptr
-                    && !typed->init(
-                        ivars->service,
-                        ivars->service,
-                        config.identifier,
-                        config.isSettable,
-                        config.value != 0,
-                        config.element,
-                        scope,
-                        classID))
-                    OSSafeReleaseNULL(typed);
-                control = typed;
-                break;
-            }
-            case kSwifterKitAudioControlLevel: {
-                auto* typed = OSTypeAlloc(SwifterKitRuntimeAudioLevelControl);
-                if (typed != nullptr
-                    && !typed->init(
-                        ivars->service,
-                        ivars->service,
-                        config.identifier,
-                        config.isSettable,
-                        FloatValue(config.value),
-                        {FloatValue(config.minimum), FloatValue(config.maximum)},
-                        config.element,
-                        scope,
-                        classID))
-                    OSSafeReleaseNULL(typed);
-                control = typed;
-                break;
-            }
-            case kSwifterKitAudioControlSelector: {
-                auto* selector = OSTypeAlloc(SwifterKitRuntimeAudioSelectorControl);
-                if (selector != nullptr
-                    && !selector->init(
-                        ivars->service,
-                        ivars->service,
-                        config.identifier,
-                        config.isSettable,
-                        config.element,
-                        scope,
-                        classID))
-                    OSSafeReleaseNULL(selector);
-                control = selector;
-                IOUserAudioSelectorValueDescription
-                    descriptions[kSwifterKitAudioMaximumSelectorItems] = {};
-                for (uint32_t item = 0; selector != nullptr && item < config.selectorCount;
-                     ++item) {
-                    const auto& source = kSwifterKitAudioSelectors[config.selectorStart + item];
-                    descriptions[item].m_value = source.value;
-                    descriptions[item].m_name =
-                        OSSharedPtr(OSString::withCString(source.name), OSNoRetain);
-                    if (descriptions[item].m_name.get() == nullptr)
-                        result = kIOReturnNoMemory;
-                }
-                if (result == kIOReturnSuccess && selector != nullptr)
-                    result =
-                        selector->AddControlValueDescriptions(descriptions, config.selectorCount);
-                if (result == kIOReturnSuccess && selector != nullptr)
-                    result = selector->SetCurrentSelectedValues(
-                        &kSwifterKitAudioInitialSelections[config.initialStart],
-                        config.initialCount);
-                break;
-            }
-            case kSwifterKitAudioControlSlider: {
-                auto* typed = OSTypeAlloc(SwifterKitRuntimeAudioSliderControl);
-                if (typed != nullptr
-                    && !typed->init(
-                        ivars->service,
-                        ivars->service,
-                        config.identifier,
-                        config.isSettable,
-                        config.value,
-                        {config.minimum, config.maximum},
-                        config.element,
-                        scope,
-                        classID))
-                    OSSafeReleaseNULL(typed);
-                control = typed;
-                break;
-            }
-            case kSwifterKitAudioControlStereoPan: {
-                auto* typed = OSTypeAlloc(SwifterKitRuntimeAudioStereoPanControl);
-                if (typed != nullptr
-                    && !typed->init(
-                        ivars->service,
-                        ivars->service,
-                        config.identifier,
-                        config.isSettable,
-                        FloatValue(config.value),
-                        config.auxiliary0,
-                        config.auxiliary1,
-                        config.element,
-                        scope,
-                        classID))
-                    OSSafeReleaseNULL(typed);
-                control = typed;
-                break;
-            }
-            default:
-                result = kIOReturnBadArgument;
-                break;
-        }
-        if (result == kIOReturnSuccess && control == nullptr)
-            result = kIOReturnNoMemory;
-        OSString* name = result == kIOReturnSuccess ? OSString::withCString(config.name) : nullptr;
-        if (result == kIOReturnSuccess)
-            result = name == nullptr ? kIOReturnNoMemory : control->SetName(name);
-        OSSafeReleaseNULL(name);
+        result =
+            SwifterKitMakeConfiguredControl<AudioControlFamily>(ivars->service, config, &control);
+        result = SwifterKitNameControl(result, control, config.name);
         if (result == kIOReturnSuccess)
             result = AddControl(control);
         if (result == kIOReturnSuccess)
@@ -185,34 +90,11 @@ kern_return_t SwifterKitRuntimeAudioDevice::ConfigureControls() {
     for (uint32_t index = 0;
          result == kIOReturnSuccess && index < kSwifterKitAudioCustomPropertyCount;
          ++index) {
-        const auto& config = kSwifterKitAudioCustomProperties[index];
-        IOUserAudioObjectPropertyAddress address = {
-            config.selector,
-            static_cast<IOUserAudioObjectPropertyScope>(config.scope),
-            config.element};
-        auto* property = OSTypeAlloc(SwifterKitRuntimeAudioCustomProperty);
-        if (property != nullptr
-            && !property->init(
-                ivars->service,
-                ivars->service,
-                config.identifier,
-                address,
-                config.isSettable,
-                IOUserAudioCustomPropertyDataType::String,
-                IOUserAudioCustomPropertyDataType::String))
-            OSSafeReleaseNULL(property);
-        if (property == nullptr)
-            result = kIOReturnNoMemory;
-        for (uint32_t item = 0; result == kIOReturnSuccess && item < config.valueCount; ++item) {
-            const auto& source = kSwifterKitAudioCustomPropertyValues[config.valueStart + item];
-            OSString* qualifier = OSString::withCString(source.qualifier);
-            OSString* value = OSString::withCString(source.value);
-            result = qualifier == nullptr || value == nullptr
-                         ? kIOReturnNoMemory
-                         : property->SetQualifierAndDataValue(qualifier, value);
-            OSSafeReleaseNULL(qualifier);
-            OSSafeReleaseNULL(value);
-        }
+        SwifterKitRuntimeAudioCustomProperty* property = nullptr;
+        result = SwifterKitMakeConfiguredCustomProperty<AudioControlFamily>(
+            ivars->service,
+            kSwifterKitAudioCustomProperties[index],
+            &property);
         if (result == kIOReturnSuccess)
             result = AddCustomProperty(property);
         if (result == kIOReturnSuccess)
@@ -226,211 +108,25 @@ kern_return_t SwifterKitRuntimeAudioDevice::ConfigureControls() {
 kern_return_t SwifterKitRuntimeAudioDevice::CopyControl(
     const SwifterKitAudioControlGet* request,
     OSData** response) {
-    if (request == nullptr || response == nullptr || ivars == nullptr)
-        return kIOReturnBadArgument;
-    uint32_t index = 0;
-    const auto* config = FindControl(request->identifier, &index);
-    if (config == nullptr)
-        return kIOReturnNotFound;
-    uint32_t values[kSwifterKitAudioMaximumSelectorItems] = {};
-    uint32_t count = 1;
-    auto* control = ivars->controls[index];
-    switch (request->kind) {
-        case kSwifterKitAudioValueBoolean: {
-            auto* typed = OSDynamicCast(IOUserAudioBooleanControl, control);
-            if (config->kind != kSwifterKitAudioControlBoolean || typed == nullptr)
-                return kIOReturnBadArgument;
-            values[0] = typed->GetControlValue() ? 1 : 0;
-            break;
-        }
-        case kSwifterKitAudioValueDecibels:
-        case kSwifterKitAudioValueScalar: {
-            auto* typed = OSDynamicCast(IOUserAudioLevelControl, control);
-            if (config->kind != kSwifterKitAudioControlLevel || typed == nullptr)
-                return kIOReturnBadArgument;
-            const float value = request->kind == kSwifterKitAudioValueDecibels
-                                    ? typed->GetDecibelValue()
-                                    : typed->GetScalarValue();
-            values[0] = __builtin_bit_cast(uint32_t, value);
-            break;
-        }
-        case kSwifterKitAudioValueSelector: {
-            auto* typed = OSDynamicCast(IOUserAudioSelectorControl, control);
-            if (config->kind != kSwifterKitAudioControlSelector || typed == nullptr)
-                return kIOReturnBadArgument;
-            count = static_cast<uint32_t>(
-                typed->GetCurrentSelectedValues(values, kSwifterKitAudioMaximumSelectorItems));
-            if (count == 0 || count > kSwifterKitAudioMaximumSelectorItems)
-                return kIOReturnError;
-            break;
-        }
-        case kSwifterKitAudioValueSlider: {
-            auto* typed = OSDynamicCast(IOUserAudioSliderControl, control);
-            if (config->kind != kSwifterKitAudioControlSlider || typed == nullptr)
-                return kIOReturnBadArgument;
-            values[0] = typed->GetControlValue();
-            break;
-        }
-        case kSwifterKitAudioValueStereoPan: {
-            auto* typed = OSDynamicCast(IOUserAudioStereoPanControl, control);
-            if (config->kind != kSwifterKitAudioControlStereoPan || typed == nullptr)
-                return kIOReturnBadArgument;
-            values[0] = __builtin_bit_cast(uint32_t, typed->GetControlValue());
-            break;
-        }
-        default:
-            return kIOReturnBadArgument;
-    }
-    const SwifterKitAudioControlValueHeader header = {request->identifier, request->kind, count, 0};
-    OSData* data = OSData::withCapacity(sizeof(header) + count * sizeof(uint32_t));
-    if (data == nullptr)
-        return kIOReturnNoMemory;
-    const bool appended = data->appendBytes(&header, sizeof(header))
-                          && data->appendBytes(values, count * sizeof(uint32_t));
-    if (!appended) {
-        data->release();
-        return kIOReturnNoMemory;
-    }
-    *response = data;
-    return kIOReturnSuccess;
+    return SwifterKitCopyControl<AudioControlFamily>(ivars, request, response);
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::SetControl(
     const SwifterKitAudioControlValueHeader* request,
     const uint32_t* values) {
-    if (request == nullptr || values == nullptr || request->reserved != 0
-        || request->valueCount == 0 || request->valueCount > kSwifterKitAudioMaximumSelectorItems
-        || ivars == nullptr)
-        return kIOReturnBadArgument;
-    uint32_t index = 0;
-    const auto* config = FindControl(request->identifier, &index);
-    if (config == nullptr)
-        return kIOReturnNotFound;
-    if (!config->isSettable)
-        return kIOReturnNotPermitted;
-    auto* control = ivars->controls[index];
-    switch (request->kind) {
-        case kSwifterKitAudioValueBoolean: {
-            auto* typed = OSDynamicCast(IOUserAudioBooleanControl, control);
-            return config->kind == kSwifterKitAudioControlBoolean && typed != nullptr
-                           && request->valueCount == 1 && values[0] <= 1
-                       ? typed->SetControlValue(values[0] != 0)
-                       : kIOReturnBadArgument;
-        }
-        case kSwifterKitAudioValueDecibels:
-        case kSwifterKitAudioValueScalar: {
-            auto* typed = OSDynamicCast(IOUserAudioLevelControl, control);
-            if (config->kind != kSwifterKitAudioControlLevel || typed == nullptr
-                || request->valueCount != 1)
-                return kIOReturnBadArgument;
-            const float value = FloatValue(values[0]);
-            if (!__builtin_isfinite(value))
-                return kIOReturnBadArgument;
-            if (request->kind == kSwifterKitAudioValueDecibels) {
-                if (value < FloatValue(config->minimum) || value > FloatValue(config->maximum))
-                    return kIOReturnBadArgument;
-                return typed->SetDecibelValue(value);
-            }
-            return value >= 0 && value <= 1 ? typed->SetScalarValue(value) : kIOReturnBadArgument;
-        }
-        case kSwifterKitAudioValueSelector: {
-            auto* typed = OSDynamicCast(IOUserAudioSelectorControl, control);
-            if (config->kind != kSwifterKitAudioControlSelector || typed == nullptr)
-                return kIOReturnBadArgument;
-            for (uint32_t item = 0; item < request->valueCount; ++item) {
-                bool found = false;
-                for (uint32_t candidate = 0; candidate < config->selectorCount; ++candidate)
-                    found = found
-                            || values[item]
-                                   == kSwifterKitAudioSelectors[config->selectorStart + candidate]
-                                          .value;
-                if (!found)
-                    return kIOReturnBadArgument;
-                for (uint32_t prior = 0; prior < item; ++prior)
-                    if (values[prior] == values[item])
-                        return kIOReturnBadArgument;
-            }
-            return typed->SetCurrentSelectedValues(values, request->valueCount);
-        }
-        case kSwifterKitAudioValueSlider: {
-            auto* typed = OSDynamicCast(IOUserAudioSliderControl, control);
-            return config->kind == kSwifterKitAudioControlSlider && typed != nullptr
-                           && request->valueCount == 1 && values[0] >= config->minimum
-                           && values[0] <= config->maximum
-                       ? typed->SetControlValue(values[0])
-                       : kIOReturnBadArgument;
-        }
-        case kSwifterKitAudioValueStereoPan: {
-            auto* typed = OSDynamicCast(IOUserAudioStereoPanControl, control);
-            const float value = FloatValue(values[0]);
-            return config->kind == kSwifterKitAudioControlStereoPan && typed != nullptr
-                           && request->valueCount == 1 && __builtin_isfinite(value) && value >= -1
-                           && value <= 1
-                       ? typed->SetControlValue(value)
-                       : kIOReturnBadArgument;
-        }
-        default:
-            return kIOReturnBadArgument;
-    }
+    return SwifterKitSetControl<AudioControlFamily>(ivars, request, values);
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::CopyCustomProperty(
     const SwifterKitAudioCustomPropertyHeader* request,
     const uint8_t* bytes,
     OSData** response) {
-    if (request == nullptr || response == nullptr || request->reserved != 0
-        || request->valueLength != 0 || request->qualifierLength == 0)
-        return kIOReturnBadArgument;
-    uint32_t index = 0;
-    if (FindProperty(request->identifier, &index) == nullptr)
-        return kIOReturnNotFound;
-    OSString* qualifier =
-        StringFromBytes(bytes, request->qualifierLength, kSwifterKitAudioNameMaximumLength);
-    OSObject* output = nullptr;
-    kern_return_t result =
-        qualifier == nullptr ? kIOReturnBadArgument
-                             : ivars->customProperties[index]->GetCustomPropertyValueWithQualifier(
-                                   qualifier,
-                                   &output);
-    auto* string = OSDynamicCast(OSString, output);
-    if (result == kIOReturnSuccess
-        && (string == nullptr
-            || string->getLength() > kSwifterKitAudioCustomPropertyValueMaximumLength))
-        result = kIOReturnBadArgument;
-    if (result == kIOReturnSuccess) {
-        *response = OSData::withBytes(string->getCStringNoCopy(), string->getLength());
-        if (*response == nullptr)
-            result = kIOReturnNoMemory;
-    }
-    OSSafeReleaseNULL(output);
-    OSSafeReleaseNULL(qualifier);
-    return result;
+    return SwifterKitCopyCustomProperty<AudioControlFamily>(ivars, request, bytes, response);
 }
 
 kern_return_t SwifterKitRuntimeAudioDevice::SetCustomProperty(
     const SwifterKitAudioCustomPropertyHeader* request,
     const uint8_t* bytes) {
-    if (request == nullptr || request->reserved != 0 || request->qualifierLength == 0
-        || request->valueLength > kSwifterKitAudioCustomPropertyValueMaximumLength)
-        return kIOReturnBadArgument;
-    uint32_t index = 0;
-    const auto* config = FindProperty(request->identifier, &index);
-    if (config == nullptr)
-        return kIOReturnNotFound;
-    if (!config->isSettable)
-        return kIOReturnNotPermitted;
-    OSString* qualifier =
-        StringFromBytes(bytes, request->qualifierLength, kSwifterKitAudioNameMaximumLength);
-    OSString* value = StringFromBytes(
-        bytes + request->qualifierLength,
-        request->valueLength,
-        kSwifterKitAudioCustomPropertyValueMaximumLength);
-    const kern_return_t result =
-        qualifier == nullptr || value == nullptr
-            ? kIOReturnBadArgument
-            : ivars->customProperties[index]->SetQualifierAndDataValue(qualifier, value);
-    OSSafeReleaseNULL(value);
-    OSSafeReleaseNULL(qualifier);
-    return result;
+    return SwifterKitSetCustomProperty<AudioControlFamily>(ivars, request, bytes);
 }
 #endif

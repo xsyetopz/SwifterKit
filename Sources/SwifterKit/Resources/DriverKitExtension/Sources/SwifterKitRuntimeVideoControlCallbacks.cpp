@@ -10,43 +10,16 @@
     #include <DriverKit/IOLib.h>
     #include <DriverKit/OSString.h>
 
+    #include "SwifterKitRuntimeMediaControls.h"
     #include "SwifterKitRuntimeService.h"
 
-namespace {
-    struct CallbackState {
-        SwifterKitRuntimeService* service;
-        uint32_t identifier;
-    };
-
-    bool InitializeState(
-        CallbackState* state,
-        SwifterKitRuntimeService* service,
-        uint32_t identifier) {
-        if (state == nullptr || service == nullptr || identifier == 0)
-            return false;
-        state->service = service;
-        state->identifier = identifier;
-        service->retain();
-        return true;
-    }
-
-    void ReleaseState(CallbackState* state) {
-        if (state != nullptr)
-            OSSafeReleaseNULL(state->service);
-    }
-
-    uint32_t FloatBits(float value) {
-        return __builtin_bit_cast(uint32_t, value);
-    }
-}  // namespace
-
-struct SwifterKitRuntimeVideoBooleanControl_IVars : CallbackState {};
-struct SwifterKitRuntimeVideoDirectionControl_IVars : CallbackState {};
-struct SwifterKitRuntimeVideoLevelControl_IVars : CallbackState {};
-struct SwifterKitRuntimeVideoSelectorControl_IVars : CallbackState {};
-struct SwifterKitRuntimeVideoSliderControl_IVars : CallbackState {};
-struct SwifterKitRuntimeVideoStereoPanControl_IVars : CallbackState {};
-struct SwifterKitRuntimeVideoCustomProperty_IVars : CallbackState {};
+struct SwifterKitRuntimeVideoBooleanControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeVideoDirectionControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeVideoLevelControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeVideoSelectorControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeVideoSliderControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeVideoStereoPanControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeVideoCustomProperty_IVars : SwifterKitMediaCallbackState {};
 
 bool SwifterKitRuntimeVideoBooleanControl::init(
     IOUserVideoDriver* driver,
@@ -57,19 +30,12 @@ bool SwifterKitRuntimeVideoBooleanControl::init(
     IOUserVideoObjectPropertyElement element,
     IOUserVideoObjectPropertyScope scope,
     IOUserVideoClassID classID) {
-    if (!super::init(driver, isSettable, value, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoBooleanControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoBooleanControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, value, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeVideoBooleanControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoBooleanControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -92,19 +58,12 @@ bool SwifterKitRuntimeVideoDirectionControl::init(
     IOUserVideoObjectPropertyElement element,
     IOUserVideoObjectPropertyScope scope,
     IOUserVideoClassID classID) {
-    if (!super::init(driver, isSettable, value, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoDirectionControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoDirectionControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, value, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeVideoDirectionControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoDirectionControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -128,24 +87,17 @@ bool SwifterKitRuntimeVideoLevelControl::init(
     IOUserVideoObjectPropertyElement element,
     IOUserVideoObjectPropertyScope scope,
     IOUserVideoClassID classID) {
-    if (!super::init(driver, isSettable, value, range, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoLevelControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoLevelControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, value, range, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeVideoLevelControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoLevelControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
 kern_return_t SwifterKitRuntimeVideoLevelControl::HandleChangeDecibelValue(float value) {
-    const uint32_t bits = FloatBits(value);
+    const uint32_t bits = SwifterKitBitsFromFloat(value);
     const kern_return_t result = ivars->service->VideoControlValueEvent(
         ivars->identifier,
         kSwifterKitVideoValueDecibels,
@@ -155,7 +107,7 @@ kern_return_t SwifterKitRuntimeVideoLevelControl::HandleChangeDecibelValue(float
 }
 
 kern_return_t SwifterKitRuntimeVideoLevelControl::HandleChangeScalarValue(float value) {
-    const uint32_t bits = FloatBits(value);
+    const uint32_t bits = SwifterKitBitsFromFloat(value);
     const kern_return_t result = ivars->service->VideoControlValueEvent(
         ivars->identifier,
         kSwifterKitVideoValueScalar,
@@ -172,19 +124,12 @@ bool SwifterKitRuntimeVideoSelectorControl::init(
     IOUserVideoObjectPropertyElement element,
     IOUserVideoObjectPropertyScope scope,
     IOUserVideoClassID classID) {
-    if (!super::init(driver, isSettable, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoSelectorControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoSelectorControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeVideoSelectorControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoSelectorControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -211,19 +156,12 @@ bool SwifterKitRuntimeVideoSliderControl::init(
     IOUserVideoObjectPropertyElement element,
     IOUserVideoObjectPropertyScope scope,
     IOUserVideoClassID classID) {
-    if (!super::init(driver, isSettable, value, range, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoSliderControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoSliderControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, value, range, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeVideoSliderControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoSliderControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -247,24 +185,25 @@ bool SwifterKitRuntimeVideoStereoPanControl::init(
     IOUserVideoObjectPropertyElement element,
     IOUserVideoObjectPropertyScope scope,
     IOUserVideoClassID classID) {
-    if (!super::init(driver, isSettable, value, leftChannel, rightChannel, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoStereoPanControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoStereoPanControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(
+               driver,
+               isSettable,
+               value,
+               leftChannel,
+               rightChannel,
+               element,
+               scope,
+               classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeVideoStereoPanControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoStereoPanControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
 kern_return_t SwifterKitRuntimeVideoStereoPanControl::HandleChangeControlValue(float value) {
-    const uint32_t bits = FloatBits(value);
+    const uint32_t bits = SwifterKitBitsFromFloat(value);
     const kern_return_t result = ivars->service->VideoControlValueEvent(
         ivars->identifier,
         kSwifterKitVideoValueStereoPan,
@@ -281,19 +220,12 @@ bool SwifterKitRuntimeVideoCustomProperty::init(
     bool isSettable,
     IOUserVideoCustomPropertyDataType qualifierType,
     IOUserVideoCustomPropertyDataType dataType) {
-    if (!super::init(driver, address, isSettable, qualifierType, dataType))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoCustomProperty_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoCustomProperty_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, address, isSettable, qualifierType, dataType)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeVideoCustomProperty::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoCustomProperty_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -301,16 +233,11 @@ kern_return_t
     SwifterKitRuntimeVideoCustomProperty::HandleChangeCustomPropertyDataValueWithQualifier(
         OSObject* qualifier,
         OSObject* value) {
-    auto* qualifierString = OSDynamicCast(OSString, qualifier);
-    auto* valueString = OSDynamicCast(OSString, value);
-    if (qualifierString == nullptr || valueString == nullptr)
-        return kIOReturnBadArgument;
-    const kern_return_t result = ivars->service->VideoCustomPropertyEvent(
-        ivars->identifier,
-        reinterpret_cast<const uint8_t*>(qualifierString->getCStringNoCopy()),
-        static_cast<uint32_t>(qualifierString->getLength()),
-        reinterpret_cast<const uint8_t*>(valueString->getCStringNoCopy()),
-        static_cast<uint32_t>(valueString->getLength()));
+    const kern_return_t result = SwifterKitReportCustomPropertyChange(
+        ivars,
+        &SwifterKitRuntimeService::VideoCustomPropertyEvent,
+        qualifier,
+        value);
     return result == kIOReturnSuccess
                ? super::HandleChangeCustomPropertyDataValueWithQualifier(qualifier, value)
                : result;

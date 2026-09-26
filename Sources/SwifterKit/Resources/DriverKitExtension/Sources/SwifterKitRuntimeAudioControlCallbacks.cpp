@@ -9,42 +9,15 @@
     #include <DriverKit/IOLib.h>
     #include <DriverKit/OSString.h>
 
+    #include "SwifterKitRuntimeMediaControls.h"
     #include "SwifterKitRuntimeService.h"
 
-namespace {
-    struct CallbackState {
-        SwifterKitRuntimeService* service;
-        uint32_t identifier;
-    };
-
-    bool InitializeState(
-        CallbackState* state,
-        SwifterKitRuntimeService* service,
-        uint32_t identifier) {
-        if (state == nullptr || service == nullptr || identifier == 0)
-            return false;
-        state->service = service;
-        state->identifier = identifier;
-        service->retain();
-        return true;
-    }
-
-    void ReleaseState(CallbackState* state) {
-        if (state != nullptr)
-            OSSafeReleaseNULL(state->service);
-    }
-
-    uint32_t FloatBits(float value) {
-        return __builtin_bit_cast(uint32_t, value);
-    }
-}  // namespace
-
-struct SwifterKitRuntimeAudioBooleanControl_IVars : CallbackState {};
-struct SwifterKitRuntimeAudioLevelControl_IVars : CallbackState {};
-struct SwifterKitRuntimeAudioSelectorControl_IVars : CallbackState {};
-struct SwifterKitRuntimeAudioSliderControl_IVars : CallbackState {};
-struct SwifterKitRuntimeAudioStereoPanControl_IVars : CallbackState {};
-struct SwifterKitRuntimeAudioCustomProperty_IVars : CallbackState {};
+struct SwifterKitRuntimeAudioBooleanControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeAudioLevelControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeAudioSelectorControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeAudioSliderControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeAudioStereoPanControl_IVars : SwifterKitMediaCallbackState {};
+struct SwifterKitRuntimeAudioCustomProperty_IVars : SwifterKitMediaCallbackState {};
 
 bool SwifterKitRuntimeAudioBooleanControl::init(
     IOUserAudioDriver* driver,
@@ -55,19 +28,12 @@ bool SwifterKitRuntimeAudioBooleanControl::init(
     IOUserAudioObjectPropertyElement element,
     IOUserAudioObjectPropertyScope scope,
     IOUserAudioClassID classID) {
-    if (!super::init(driver, isSettable, value, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioBooleanControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioBooleanControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, value, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeAudioBooleanControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioBooleanControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -91,24 +57,17 @@ bool SwifterKitRuntimeAudioLevelControl::init(
     IOUserAudioObjectPropertyElement element,
     IOUserAudioObjectPropertyScope scope,
     IOUserAudioClassID classID) {
-    if (!super::init(driver, isSettable, value, range, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioLevelControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioLevelControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, value, range, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeAudioLevelControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioLevelControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
 kern_return_t SwifterKitRuntimeAudioLevelControl::HandleChangeDecibelValue(float value) {
-    const uint32_t bits = FloatBits(value);
+    const uint32_t bits = SwifterKitBitsFromFloat(value);
     const kern_return_t result = ivars->service->AudioControlValueEvent(
         ivars->identifier,
         kSwifterKitAudioValueDecibels,
@@ -118,7 +77,7 @@ kern_return_t SwifterKitRuntimeAudioLevelControl::HandleChangeDecibelValue(float
 }
 
 kern_return_t SwifterKitRuntimeAudioLevelControl::HandleChangeScalarValue(float value) {
-    const uint32_t bits = FloatBits(value);
+    const uint32_t bits = SwifterKitBitsFromFloat(value);
     const kern_return_t result = ivars->service->AudioControlValueEvent(
         ivars->identifier,
         kSwifterKitAudioValueScalar,
@@ -135,19 +94,12 @@ bool SwifterKitRuntimeAudioSelectorControl::init(
     IOUserAudioObjectPropertyElement element,
     IOUserAudioObjectPropertyScope scope,
     IOUserAudioClassID classID) {
-    if (!super::init(driver, isSettable, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioSelectorControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioSelectorControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeAudioSelectorControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioSelectorControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -174,19 +126,12 @@ bool SwifterKitRuntimeAudioSliderControl::init(
     IOUserAudioObjectPropertyElement element,
     IOUserAudioObjectPropertyScope scope,
     IOUserAudioClassID classID) {
-    if (!super::init(driver, isSettable, value, range, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioSliderControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioSliderControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, isSettable, value, range, element, scope, classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeAudioSliderControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioSliderControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -210,24 +155,25 @@ bool SwifterKitRuntimeAudioStereoPanControl::init(
     IOUserAudioObjectPropertyElement element,
     IOUserAudioObjectPropertyScope scope,
     IOUserAudioClassID classID) {
-    if (!super::init(driver, isSettable, value, leftChannel, rightChannel, element, scope, classID))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioStereoPanControl_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioStereoPanControl_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(
+               driver,
+               isSettable,
+               value,
+               leftChannel,
+               rightChannel,
+               element,
+               scope,
+               classID)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeAudioStereoPanControl::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioStereoPanControl_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
 kern_return_t SwifterKitRuntimeAudioStereoPanControl::HandleChangeControlValue(float value) {
-    const uint32_t bits = FloatBits(value);
+    const uint32_t bits = SwifterKitBitsFromFloat(value);
     const kern_return_t result = ivars->service->AudioControlValueEvent(
         ivars->identifier,
         kSwifterKitAudioValueStereoPan,
@@ -244,19 +190,12 @@ bool SwifterKitRuntimeAudioCustomProperty::init(
     bool isSettable,
     IOUserAudioCustomPropertyDataType qualifierType,
     IOUserAudioCustomPropertyDataType dataType) {
-    if (!super::init(driver, address, isSettable, qualifierType, dataType))
-        return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioCustomProperty_IVars, 1);
-    if (!InitializeState(ivars, service, identifier)) {
-        IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioCustomProperty_IVars, 1);
-        return false;
-    }
-    return true;
+    return super::init(driver, address, isSettable, qualifierType, dataType)
+           && SwifterKitAttachCallbackState(ivars, service, identifier);
 }
 
 void SwifterKitRuntimeAudioCustomProperty::free() {
-    ReleaseState(ivars);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioCustomProperty_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -264,16 +203,11 @@ kern_return_t
     SwifterKitRuntimeAudioCustomProperty::HandleChangeCustomPropertyDataValueWithQualifier(
         OSObject* qualifier,
         OSObject* value) {
-    auto* qualifierString = OSDynamicCast(OSString, qualifier);
-    auto* valueString = OSDynamicCast(OSString, value);
-    if (qualifierString == nullptr || valueString == nullptr)
-        return kIOReturnBadArgument;
-    const kern_return_t result = ivars->service->AudioCustomPropertyEvent(
-        ivars->identifier,
-        reinterpret_cast<const uint8_t*>(qualifierString->getCStringNoCopy()),
-        static_cast<uint32_t>(qualifierString->getLength()),
-        reinterpret_cast<const uint8_t*>(valueString->getCStringNoCopy()),
-        static_cast<uint32_t>(valueString->getLength()));
+    const kern_return_t result = SwifterKitReportCustomPropertyChange(
+        ivars,
+        &SwifterKitRuntimeService::AudioCustomPropertyEvent,
+        qualifier,
+        value);
     return result == kIOReturnSuccess
                ? super::HandleChangeCustomPropertyDataValueWithQualifier(qualifier, value)
                : result;
