@@ -5,6 +5,7 @@
     #include <DriverKit/IOLib.h>
     #include <DriverKit/OSString.h>
 
+    #include "SwifterKitRuntimeAudioDeviceState.h"
     #include "SwifterKitRuntimeAudioProtocol.h"
     #include "SwifterKitRuntimeService.h"
 
@@ -122,6 +123,22 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::StopIO(IOUserAudioStartStopFlag
 kern_return_t SwifterKitRuntimeAudioClockDevice::PerformDeviceConfigurationChange(
     uint64_t changeAction,
     OSObject* changeInfo) {
+    if (changeAction == kSwifterKitAudioMemberChangeAction) {
+        SwifterKitAudioMemberChange change = {};
+        if (!SwifterKitReadAudioMemberChange(changeInfo, &change) || change.value > UINT32_MAX)
+            return kIOReturnBadArgument;
+        const auto value = static_cast<uint32_t>(change.value);
+        switch (change.selector) {
+            case kSwifterKitAudioChangeInputLatency:
+                return SetInputLatency(value);
+            case kSwifterKitAudioChangeOutputLatency:
+                return SetOutputLatency(value);
+            case kSwifterKitAudioChangeZeroTimeStampPeriod:
+                return SetZeroTimeStampPeriod(value);
+            default:
+                return kIOReturnBadArgument;
+        }
+    }
     if (changeAction != kClockSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const double sampleRate = __builtin_bit_cast(

@@ -80,6 +80,14 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- The audio runtime attached and detached streams, set safety offsets, and set
+  clock latencies and the zero-timestamp period directly. `IOUserAudioDriver.iig`
+  allows changes that affect IO or the device's structure only in
+  `PerformDeviceConfigurationChange`, and `IOUserAudioClockDevice.iig` says the
+  zero-timestamp period "should only be done during
+  PerformDeviceConfigurationChange()". These now go through
+  `RequestDeviceConfigurationChange`, so the calls return once the change is
+  requested.
 - A failed video buffer-capacity change left the buffers set so far on the new
   descriptors while the runtime kept the old ones; the change now restores
   every buffer it touched. A failed buffer detach no longer leaves the stream

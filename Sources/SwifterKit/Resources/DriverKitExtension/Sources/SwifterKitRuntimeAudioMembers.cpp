@@ -237,9 +237,17 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetDeviceProperty(
         case 3:
             return SetCanBeDefaultSystemOutputDevice(value != 0);
         case 4:
-            return SetInputSafetyOffset(low);
+            return SwifterKitRequestAudioMemberChange(
+                this,
+                kSwifterKitAudioChangeInputSafetyOffset,
+                0,
+                low);
         case 5:
-            return SetOutputSafetyOffset(low);
+            return SwifterKitRequestAudioMemberChange(
+                this,
+                kSwifterKitAudioChangeOutputSafetyOffset,
+                0,
+                low);
         case 6:
             if (low == 0 || high == 0 || low == high)
                 return kIOReturnBadArgument;
@@ -527,11 +535,11 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
             return kIOReturnNotReady;
         if (ivars->streamDetached[index] != attach)
             return kIOReturnSuccess;
-        const kern_return_t result =
-            attach ? AddStream(ivars->streams[index]) : RemoveStream(ivars->streams[index]);
-        if (result == kIOReturnSuccess)
-            ivars->streamDetached[index] = !attach;
-        return result;
+        return SwifterKitRequestAudioMemberChange(
+            this,
+            kSwifterKitAudioChangeStreamAttachment,
+            index,
+            attach ? 1 : 0);
     }
     if (request->kind == 2) {
         if (request->owner == kSwifterKitAudioOwnerDriver)
@@ -570,5 +578,32 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetMemberAttachment(
     if (result == kIOReturnSuccess)
         ivars->propertyPlacement[index] = wanted;
     return result;
+}
+kern_return_t SwifterKitRuntimeAudioDevice::ApplyMemberChange(OSObject* changeInfo) {
+    SwifterKitAudioMemberChange change = {};
+    if (!SwifterKitReadAudioMemberChange(changeInfo, &change) || change.value > UINT32_MAX)
+        return kIOReturnBadArgument;
+    const auto value = static_cast<uint32_t>(change.value);
+    switch (change.selector) {
+        case kSwifterKitAudioChangeStreamAttachment: {
+            if (change.index >= kSwifterKitAudioStreamCount || value > 1
+                || ivars->streams[change.index] == nullptr)
+                return kIOReturnBadArgument;
+            const bool attach = value != 0;
+            if (ivars->streamDetached[change.index] != attach)
+                return kIOReturnSuccess;
+            auto* stream = ivars->streams[change.index];
+            const kern_return_t result = attach ? AddStream(stream) : RemoveStream(stream);
+            if (result == kIOReturnSuccess)
+                ivars->streamDetached[change.index] = !attach;
+            return result;
+        }
+        case kSwifterKitAudioChangeInputSafetyOffset:
+            return SetInputSafetyOffset(value);
+        case kSwifterKitAudioChangeOutputSafetyOffset:
+            return SetOutputSafetyOffset(value);
+        default:
+            return kIOReturnBadArgument;
+    }
 }
 #endif

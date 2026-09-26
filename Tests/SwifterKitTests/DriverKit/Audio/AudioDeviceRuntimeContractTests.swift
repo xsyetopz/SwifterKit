@@ -115,6 +115,55 @@ struct AudioDeviceRuntimeContractTests {
     }
   }
 
+  @Test
+  func appliesStreamOffsetAndLatencyChangesInsideADeviceConfigurationChange() throws {
+    try withGeneratedExtension { output, _ in
+      let members = try source("SwifterKitRuntimeAudioMembers.cpp", in: output)
+      let property = try section(of: members, from: "::SetDeviceProperty(", to: "case 6:")
+      #expect(!property.contains("return SetInputSafetyOffset("))
+      #expect(!property.contains("return SetOutputSafetyOffset("))
+      #expect(property.contains("kSwifterKitAudioChangeInputSafetyOffset"))
+      let attachment = try section(
+        of: members,
+        from: "::SetMemberAttachment(",
+        to: "if (request->kind == 2)"
+      )
+      #expect(!attachment.contains("AddStream("))
+      #expect(attachment.contains("kSwifterKitAudioChangeStreamAttachment"))
+      let apply = try section(of: members, from: "::ApplyMemberChange(", to: "#endif")
+      #expect(apply.contains("AddStream(stream) : RemoveStream(stream)"))
+      #expect(apply.contains("return SetInputSafetyOffset(value);"))
+
+      let device = try source("SwifterKitRuntimeAudioDevice.cpp", in: output)
+      let perform = try section(
+        of: device,
+        from: "::PerformDeviceConfigurationChange(",
+        to: "::AbortDeviceConfigurationChange("
+      )
+      #expect(perform.contains("return ApplyMemberChange(changeInfo);"))
+
+      let objects = try source("SwifterKitRuntimeAudioObjects.cpp", in: output)
+      let clockSetter = try section(
+        of: objects,
+        from: "kern_return_t SetClockProperty(",
+        to: "case 8:"
+      )
+      #expect(!clockSetter.contains("SetInputLatency("))
+      #expect(!clockSetter.contains("SetZeroTimeStampPeriod("))
+      #expect(
+        clockSetter.contains("SwifterKitRequestAudioMemberChange(clock, selector, 0, number)")
+      )
+      let clock = try source("SwifterKitRuntimeAudioClockDevice.cpp", in: output)
+      let clockPerform = try section(
+        of: clock,
+        from: "::PerformDeviceConfigurationChange(",
+        to: "kClockSampleRateChangeAction)"
+      )
+      #expect(clockPerform.contains("return SetZeroTimeStampPeriod(value);"))
+      #expect(clockPerform.contains("return SetInputLatency(value);"))
+    }
+  }
+
   private func nativeName(_ opcode: RuntimeOpcode) -> String {
     let name = String(describing: opcode)
     return name.prefix(1).uppercased() + name.dropFirst()

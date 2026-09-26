@@ -262,6 +262,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::PerformDeviceConfigurationChange(
     OSObject* changeInfo) {
     if (changeAction == kSwifterKitAudioRingBufferChangeAction)
         return ApplyRingBufferChange();
+    if (changeAction == kSwifterKitAudioMemberChangeAction)
+        return ApplyMemberChange(changeInfo);
     if (changeAction != kSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const uint64_t sampleRateBits =

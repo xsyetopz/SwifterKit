@@ -10,6 +10,7 @@
     #include "SwifterKitRuntimeAudioBox.h"
     #include "SwifterKitRuntimeAudioClockDevice.h"
     #include "SwifterKitRuntimeAudioDevice.h"
+    #include "SwifterKitRuntimeAudioDeviceState.h"
     #include "SwifterKitRuntimeAudioProtocol.h"
     #include "SwifterKitRuntimeSchema.h"
     #include "SwifterKitRuntimeServiceState.h"
@@ -468,13 +469,11 @@ namespace {
             case 5:
                 return clock->SetIsHidden(number == 1);
             case 6:
-                return clock->SetInputLatency(number);
             case 7:
-                return clock->SetOutputLatency(number);
+            case 9:
+                return SwifterKitRequestAudioMemberChange(clock, selector, 0, number);
             case 8:
                 return clock->SetTransportType(static_cast<IOUserAudioTransportType>(number));
-            case 9:
-                return clock->SetZeroTimeStampPeriod(number);
             default:
     #if defined(__DRIVERKIT_25_5) && __DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5
                 clock->SetWantsControlsRestored(number == 1);
