@@ -76,6 +76,8 @@ The generated runtime user client accepts a host process only when that process 
 
 Audio and video extensions also carry `com.apple.developer.driverkit.allow-any-userclient-access`, because system audio and video services open the family user clients and do not hold the host application's entitlement. Those family clients bypass the SwifterKit runtime client. The runtime client still requires the host entitlement.
 
+MIDI extensions do not carry it. MIDIServer opens the MIDI family user client through its own `com.apple.private.driverkit.driver-access` entitlement, which `IOKitKeys.h` describes as admitting any dext that holds one of the listed entitlements; MIDIServer lists `com.apple.developer.driverkit.family.midi`, which every generated MIDI extension carries.
+
 ## Memory and completion ownership
 
 Memory operations use opaque ``DriverMemoryHandle`` values and bounded read/write lengths. DMA preparation returns a ``DriverDMAMapping``; complete the mapping with ``DriverContext/completeMemoryDMA(_:)`` when the device is done.

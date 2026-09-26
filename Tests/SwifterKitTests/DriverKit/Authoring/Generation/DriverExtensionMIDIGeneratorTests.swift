@@ -39,6 +39,9 @@ struct MIDIGeneratorTests {
       at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
     )
     #expect(entitlements["com.apple.developer.driverkit.family.midi"] as? Bool == true)
+    // MIDIServer's driver-access entitlement admits family.midi dexts, so the family client
+    // needs no allow-any-userclient-access, and the runtime client keeps its host check.
+    #expect(entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] == nil)
 
     let header = try String(
       contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),

@@ -403,6 +403,9 @@ public enum DriverExtensionGenerator {
     if configuration.capabilities.contains(.blockStorage) {
       entitlements["com.apple.developer.driverkit.family.block-storage-device"] = true
     }
+    // MIDIServer opens the MIDI family user client through its
+    // com.apple.private.driverkit.driver-access entitlement, which admits any
+    // dext holding family.midi, so MIDI needs no allow-any-userclient-access.
     if configuration.capabilities.contains(.midi) {
       entitlements["com.apple.developer.driverkit.family.midi"] = true
     }
