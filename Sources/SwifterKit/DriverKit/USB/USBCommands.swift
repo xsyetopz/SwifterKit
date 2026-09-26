@@ -9,19 +9,10 @@ extension DriverCommand {
   ) throws -> Self {
     try validateUSBTransfer(direction: request.direction, length: Int(request.length), data: data)
 
-    var payload = Data(capacity: 16 + data.count)
-    payload.append(request.requestType)
-    payload.append(request.request)
-    payload.appendRuntimeInteger(request.value)
-    payload.appendRuntimeInteger(request.index)
-    payload.appendRuntimeInteger(request.length)
-    payload.appendRuntimeInteger(timeout)
-    payload.appendRuntimeInteger(UInt32(0))
-    payload.append(contentsOf: data)
     return Self(
       opcode: .usbControlTransfer,
       requiredCapabilities: .usb,
-      payload: payload,
+      payload: usbControlRequestPayload(request, data: data, timeout: timeout),
       maximumResponseSize: usbMaximumResponseSize(
         direction: request.direction,
         length: Int(request.length)
@@ -84,6 +75,35 @@ extension DriverCommand {
     try validateUSBTransfer(direction: direction, length: length, data: data)
     guard length <= Int(UInt32.max) else { throw USBRuntimeError.transferTooLarge }
 
+    return Self(
+      opcode: .usbPipeTransfer,
+      requiredCapabilities: .usb,
+      payload: usbPipeIOPayload(endpoint: endpoint, length: length, data: data, timeout: timeout),
+      maximumResponseSize: usbMaximumResponseSize(direction: direction, length: length)
+    )
+  }
+
+  /// Encodes a control request header, the timeout, a reserved word, then any OUT data.
+  static func usbControlRequestPayload(
+    _ request: USBControlRequest,
+    data: [UInt8],
+    timeout: UInt32
+  ) -> Data {
+    var payload = Data(capacity: 16 + data.count)
+    payload.append(request.requestType)
+    payload.append(request.request)
+    payload.appendRuntimeInteger(request.value)
+    payload.appendRuntimeInteger(request.index)
+    payload.appendRuntimeInteger(request.length)
+    payload.appendRuntimeInteger(timeout)
+    payload.appendRuntimeInteger(UInt32(0))
+    payload.append(contentsOf: data)
+    return payload
+  }
+
+  /// Encodes a pipe endpoint, the transfer length, the timeout, a reserved word, then any OUT data.
+  static func usbPipeIOPayload(endpoint: UInt8, length: Int, data: [UInt8], timeout: UInt32) -> Data
+  {
     var payload = Data(capacity: 16 + data.count)
     payload.append(endpoint)
     payload.append(0)
@@ -92,12 +112,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(timeout)
     payload.appendRuntimeInteger(UInt32(0))
     payload.append(contentsOf: data)
-    return Self(
-      opcode: .usbPipeTransfer,
-      requiredCapabilities: .usb,
-      payload: payload,
-      maximumResponseSize: usbMaximumResponseSize(direction: direction, length: length)
-    )
+    return payload
   }
 
   private static func validateUSBTransfer(

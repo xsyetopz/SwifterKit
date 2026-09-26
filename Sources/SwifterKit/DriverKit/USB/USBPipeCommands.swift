@@ -138,15 +138,11 @@ extension DriverCommand {
     data: [UInt8],
     timeout: UInt32
   ) -> Self {
-    var payload = Data(capacity: 16 + data.count)
-    payload.append(endpoint)
-    payload.append(0)
-    payload.appendRuntimeInteger(UInt16(0))
-    payload.appendRuntimeInteger(UInt32(length))
-    payload.appendRuntimeInteger(timeout)
-    payload.appendRuntimeInteger(UInt32(0))
-    payload.append(contentsOf: data)
-    return usbCommand(.usbPipeAsyncIO, payload: payload, response: 4)
+    usbCommand(
+      .usbPipeAsyncIO,
+      payload: usbPipeIOPayload(endpoint: endpoint, length: length, data: data, timeout: timeout),
+      response: 4
+    )
   }
 
   private static func validateIsochronousFrames(_ lengths: [UInt32]) throws -> Int {

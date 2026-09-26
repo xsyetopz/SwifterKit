@@ -35,16 +35,11 @@ extension DriverCommand {
     case .out:
       guard data.count == Int(request.length) else { throw USBRuntimeError.invalidOutputLength }
     }
-    var payload = Data(capacity: 16 + data.count)
-    payload.append(request.requestType)
-    payload.append(request.request)
-    payload.appendRuntimeInteger(request.value)
-    payload.appendRuntimeInteger(request.index)
-    payload.appendRuntimeInteger(request.length)
-    payload.appendRuntimeInteger(timeout)
-    payload.appendRuntimeInteger(UInt32(0))
-    payload.append(contentsOf: data)
-    return usbCommand(.usbAsyncDeviceRequest, payload: payload, response: 4)
+    return usbCommand(
+      .usbAsyncDeviceRequest,
+      payload: usbControlRequestPayload(request, data: data, timeout: timeout),
+      response: 4
+    )
   }
 
   /// Creates a command that gives a bulk pipe a runtime-owned descriptor ring for bundled I/O.
