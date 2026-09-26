@@ -27418,7 +27418,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserCallMediaParametersHaveChanged()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiMediaParametersChanged"
         },
         {
           "access" : "public",
@@ -27474,7 +27475,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserCreateTargetForID(SCSIDeviceIdentifier, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiCreateTarget"
         },
         {
           "access" : "protected",
@@ -27491,7 +27493,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserDestroyTargetForID(SCSITargetIdentifier)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiDestroyTarget"
         },
         {
           "access" : "public",
@@ -27592,13 +27595,15 @@
 
           ],
           "name" : "UserGetDataBuffer",
+          "note" : "Called inside UserProcessParallelTask when SCSIControllerConfiguration.providesTaskDataBuffers is set; scsiReadTaskData and scsiWriteTaskData access the buffer until the task completes",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t UserGetDataBuffer(SCSIDeviceIdentifier, uint64_t, IOBufferMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiReadTaskData"
         },
         {
           "access" : "protected",
@@ -27723,7 +27728,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserRemoveHBAProperties(OSArray*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiRemoveControllerProperties"
         },
         {
           "access" : "protected",
@@ -27740,7 +27746,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserRemoveTargetProperties(SCSIDeviceIdentifier, OSArray*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiRemoveTargetProperties"
         },
         {
           "access" : "protected",
@@ -27751,13 +27758,15 @@
 
           ],
           "name" : "UserReportHBAConstraints",
+          "note" : "Called once in UserInitializeController when SCSIControllerConfiguration.constraints is set, with every required key",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t UserReportHBAConstraints(OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "SCSIControllerConstraints"
         },
         {
           "access" : "public",
@@ -27846,7 +27855,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserSetHBAProperties(OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiSetControllerProperties"
         },
         {
           "access" : "protected",
@@ -27863,7 +27873,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserSetTargetProperties(SCSIDeviceIdentifier, OSDictionary*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiSetTargetProperties"
         },
         {
           "access" : "protected",
@@ -27898,7 +27909,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t UserTargetPresentForID(SCSIDeviceIdentifier, bool*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "scsiTargetPresent"
         },
         {
           "access" : "public",
@@ -27927,13 +27939,14 @@
 
           ],
           "name" : "BundledParallelTaskCompletion",
+          "note" : "Called by UserProcessBundledParallelTasks to hand slots back; the runtime declines UserMapBundledParallelTaskCommandAndResponseBuffers, so the header says the framework uses UserProcessParallelTask instead",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "void BundledParallelTaskCompletion(OSAction*, const uint16_t[kMaxBundledParallelTasks], uint16_t)",
-          "status" : "gap"
+          "status" : "generated"
         },
         {
           "access" : "public",

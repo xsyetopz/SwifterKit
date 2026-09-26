@@ -121,6 +121,8 @@ struct SwifterKitVideoPendingRequest {
 #endif
 
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
+    #include <DriverKit/IOBufferMemoryDescriptor.h>
+    #include <DriverKit/IOMemoryMap.h>
     #include <DriverKit/OSAction.h>
 #endif
 
@@ -161,6 +163,10 @@ struct SwifterKitSCSIPendingTask {
     uint64_t requestedTransferCount = 0;
     uint32_t featureRequestCount = 0;
     OSAction* completion = nullptr;
+    // Set only with kSwifterKitSCSIProvidesTaskDataBuffers; owned by the slot and released when
+    // the task completes. Read and written under scsiLock.
+    IOBufferMemoryDescriptor* dataBuffer = nullptr;
+    IOMemoryMap* dataMap = nullptr;
 };
 #endif
 

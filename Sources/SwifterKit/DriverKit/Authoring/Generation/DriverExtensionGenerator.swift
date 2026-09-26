@@ -246,6 +246,7 @@ public enum DriverExtensionGenerator {
       && value.supportedFeatures.subtracting(validFeatureMask).isEmpty
       && (value.taskManagementResponse == .functionComplete
         || value.taskManagementResponse == .functionRejected)
+      && value.constraints?.isValid != false
   }
 
   private static func isValid(ethernet value: EthernetDeviceConfiguration) -> Bool {

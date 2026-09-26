@@ -4,6 +4,7 @@ extension DriverExtensionGenerator {
   static func scsiConfigurationDeclarations(_ configuration: DriverConfiguration) -> String {
     let scsi = configuration.scsiController
     let peripheral = configuration.scsiPeripheral
+    let limits = scsi?.constraints
     return """
       static constexpr uint64_t kSwifterKitSCSIInitiatorIdentifier =
           \(scsi?.initiatorIdentifier ?? 0);
@@ -29,6 +30,25 @@ extension DriverExtensionGenerator {
           \(scsi?.supportsMultipathing == true ? "true" : "false");
       static constexpr uint32_t kSwifterKitSCSITaskManagementResponse =
           \(scsi?.taskManagementResponse.rawValue ?? 5);
+      static constexpr bool kSwifterKitSCSIProvidesTaskDataBuffers =
+          \(scsi?.providesTaskDataBuffers == true ? "true" : "false");
+      static constexpr bool kSwifterKitSCSIReportsConstraints = \(limits == nil ? "false" : "true");
+      static constexpr uint64_t kSwifterKitSCSIMaximumSegmentCountRead =
+          \(limits?.maximumSegmentCountRead ?? 0);
+      static constexpr uint64_t kSwifterKitSCSIMaximumSegmentCountWrite =
+          \(limits?.maximumSegmentCountWrite ?? 0);
+      static constexpr uint64_t kSwifterKitSCSIMaximumSegmentByteCountRead =
+          \(limits?.maximumSegmentByteCountRead ?? 0);
+      static constexpr uint64_t kSwifterKitSCSIMaximumSegmentByteCountWrite =
+          \(limits?.maximumSegmentByteCountWrite ?? 0);
+      static constexpr uint64_t kSwifterKitSCSIMinimumSegmentAlignmentByteCount =
+          \(limits?.minimumSegmentAlignmentByteCount ?? 0);
+      static constexpr uint64_t kSwifterKitSCSIMaximumSegmentAddressableBitCount =
+          \(limits?.maximumSegmentAddressableBitCount ?? 0);
+      static constexpr uint64_t kSwifterKitSCSIMinimumHBADataAlignmentMask =
+          \(limits?.minimumHBADataAlignmentMask ?? 0);
+      static constexpr bool kSwifterKitSCSISupportsHierarchicalLogicalUnits =
+          \(limits?.supportsHierarchicalLogicalUnits == true ? "true" : "false");
       static constexpr bool kSwifterKitSCSIPeripheralInitializationSucceeds =
           \(peripheral?.initializationSucceeds == true ? "true" : "false");
       """
@@ -41,7 +61,22 @@ extension DriverExtensionGenerator {
           kern_return_t SCSICommand(
               uint32_t opcode,
               const uint8_t* payload,
-              uint32_t payloadLength) LOCALONLY;
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+          kern_return_t SCSIControlCommand(
+              uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+          kern_return_t SCSITaskData(
+              uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+          kern_return_t SCSIFetchTaskBuffer(
+              const SCSIUserParallelTask* request,
+              IOBufferMemoryDescriptor** buffer,
+              IOMemoryMap** map) LOCALONLY;
 
       protected:
           virtual kern_return_t UserReportHBAHighestLogicalUnitNumber(

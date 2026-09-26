@@ -213,6 +213,16 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case audioGetCustomPropertyInfo = 0x0A28
   case audioSetMemberAttachment = 0x0A29
   case scsiCompleteParallelTask = 0x0B00
+  case scsiTargetPresent = 0x0B20
+  case scsiCreateTarget = 0x0B21
+  case scsiDestroyTarget = 0x0B22
+  case scsiSetControllerProperties = 0x0B23
+  case scsiRemoveControllerProperties = 0x0B24
+  case scsiSetTargetProperties = 0x0B25
+  case scsiRemoveTargetProperties = 0x0B26
+  case scsiMediaParametersChanged = 0x0B27
+  case scsiReadTaskData = 0x0B28
+  case scsiWriteTaskData = 0x0B29
   case scsiPeripheralSendCDB = 0x0B10
   case scsiPeripheralSuspendServices = 0x0B11
   case scsiPeripheralResumeServices = 0x0B12

@@ -3,7 +3,11 @@
 
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
 
+    #include <DriverKit/IOKitKeys.h>
     #include <DriverKit/IOLib.h>
+    #include <DriverKit/OSBoolean.h>
+    #include <DriverKit/OSDictionary.h>
+    #include <DriverKit/OSNumber.h>
     #include <string.h>
 
     #include "SwifterKitRuntimeProtocol.h"
@@ -65,6 +69,45 @@ namespace {
         response.fCompletionStatus = kSCSITaskStatus_No_Status;
         response.fServiceResponse = kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE;
         service->ParallelTaskCompletion(completion, response);
+    }
+
+    void ReleaseTaskBuffer(SwifterKitSCSIPendingTask& task) {
+        OSSafeReleaseNULL(task.dataMap);
+        OSSafeReleaseNULL(task.dataBuffer);
+    }
+
+    // IOUserSCSIParallelInterfaceController.iig: every key except the hierarchical-LUN flag is
+    // required, and a missing one panics, so the dictionary is reported whole or not at all.
+    OSDictionary* CreateConstraints() {
+        struct Constraint {
+            const char* key;
+            uint64_t value;
+        };
+        const Constraint constraints[] = {
+            {kIOMaximumSegmentCountReadKey, kSwifterKitSCSIMaximumSegmentCountRead},
+            {kIOMaximumSegmentCountWriteKey, kSwifterKitSCSIMaximumSegmentCountWrite},
+            {kIOMaximumSegmentByteCountReadKey, kSwifterKitSCSIMaximumSegmentByteCountRead},
+            {kIOMaximumSegmentByteCountWriteKey, kSwifterKitSCSIMaximumSegmentByteCountWrite},
+            {kIOMinimumSegmentAlignmentByteCountKey,
+             kSwifterKitSCSIMinimumSegmentAlignmentByteCount},
+            {kIOMaximumSegmentAddressableBitCountKey,
+             kSwifterKitSCSIMaximumSegmentAddressableBitCount},
+            {kIOMinimumHBADataAlignmentMaskKey, kSwifterKitSCSIMinimumHBADataAlignmentMask},
+        };
+        OSDictionary* dictionary = OSDictionary::withCapacity(8);
+        bool complete = dictionary != nullptr;
+        for (const auto& constraint : constraints) {
+            OSNumber* number = complete ? OSNumber::withNumber(constraint.value, 64) : nullptr;
+            complete = number != nullptr && dictionary->setObject(constraint.key, number);
+            OSSafeReleaseNULL(number);
+        }
+        if (complete && kSwifterKitSCSISupportsHierarchicalLogicalUnits) {
+            complete = dictionary->setObject(kIOHierarchicalLogicalUnitSupportKey, kOSBooleanTrue);
+        }
+        if (!complete) {
+            OSSafeReleaseNULL(dictionary);
+        }
+        return dictionary;
     }
 }  // namespace
 
@@ -184,7 +227,17 @@ kern_return_t SwifterKitRuntimeService::UserDoesHBAPerformDeviceManagement_Impl(
 }
 
 kern_return_t SwifterKitRuntimeService::UserInitializeController_Impl() {
-    return kIOReturnSuccess;
+    // The header requires the report before UserInitializeController returns.
+    if (!kSwifterKitSCSIReportsConstraints) {
+        return kIOReturnSuccess;
+    }
+    OSDictionary* constraints = CreateConstraints();
+    if (constraints == nullptr) {
+        return kIOReturnNoMemory;
+    }
+    const kern_return_t result = UserReportHBAConstraints(constraints);
+    constraints->release();
+    return result;
 }
 
 kern_return_t SwifterKitRuntimeService::UserStartController_Impl() {
@@ -206,6 +259,15 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
     if (request.version != kScsiUserParallelTaskCurrentVersion1
         || request.fSCSIParallelFeatureRequestCount > kSCSIParallelFeature_TotalFeatureCount
         || request.fCommandSize == 0 || request.fCommandSize > kSCSICDBSize_Maximum) {
+        CompleteWithDeliveryFailure(this, completion, request);
+        return kIOReturnSuccess;
+    }
+    // The header allows UserGetDataBuffer only inside UserProcessParallelTask, so the buffer is
+    // fetched here; a task whose buffer is unavailable is answered instead of forwarded.
+    IOBufferMemoryDescriptor* dataBuffer = nullptr;
+    IOMemoryMap* dataMap = nullptr;
+    if (kSwifterKitSCSIProvidesTaskDataBuffers && request.fRequestedTransferCount != 0
+        && SCSIFetchTaskBuffer(&request, &dataBuffer, &dataMap) != kIOReturnSuccess) {
         CompleteWithDeliveryFailure(this, completion, request);
         return kIOReturnSuccess;
     }
@@ -241,6 +303,8 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
     if (pending == nullptr) {
         // Every task slot is taken; the completion was not retained or stored.
         IOLockUnlock(ivars->scsiLock);
+        OSSafeReleaseNULL(dataMap);
+        OSSafeReleaseNULL(dataBuffer);
         CompleteWithDeliveryFailure(this, completion, request);
         return kIOReturnSuccess;
     }
@@ -255,21 +319,26 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
     pending->requestedTransferCount = request.fRequestedTransferCount;
     pending->featureRequestCount = event.featureRequestCount;
     pending->completion = completion;
+    pending->dataBuffer = dataBuffer;
+    pending->dataMap = dataMap;
     IOLockUnlock(ivars->scsiLock);
 
     const kern_return_t result =
         EnqueueRequiredEvent(kSwifterKitEventSCSIParallelTask, &event, sizeof(event));
     if (result != kIOReturnSuccess) {
         bool removed = false;
+        SwifterKitSCSIPendingTask task = {};
         IOLockLock(ivars->scsiLock);
         for (auto& candidate : ivars->scsiTasks) {
             if (candidate.completion == completion && candidate.requestID == event.requestID) {
+                task = candidate;
                 candidate = {};
                 removed = true;
                 break;
             }
         }
         IOLockUnlock(ivars->scsiLock);
+        ReleaseTaskBuffer(task);
         // The task was accepted, so answer it through its completion with a
         // delivery failure, as StopSCSI does. When StopSCSI already took the
         // entry, it has completed the task.
@@ -322,17 +391,25 @@ void SwifterKitRuntimeService::UserProcessBundledParallelTasks_Impl(
     const uint16_t requestSlotIndices[kMaxBundledParallelTasks],
     uint16_t requestSlotCount,
     OSAction* completion) {
-    (void)requestSlotIndices;
-    (void)requestSlotCount;
-    (void)completion;
+    // UserMapBundledParallelTaskCommandAndResponseBuffers declines the shared buffers, so the
+    // header says the framework never calls this. If it does, the slots go straight back so no
+    // bundled request is left unanswered.
+    if (completion == nullptr || requestSlotIndices == nullptr
+        || requestSlotCount > kMaxBundledParallelTasks) {
+        return;
+    }
+    BundledParallelTaskCompletion(completion, requestSlotIndices, requestSlotCount);
 }
 
 kern_return_t SwifterKitRuntimeService::SCSICommand(
     uint32_t opcode,
     const uint8_t* payload,
-    uint32_t payloadLength) {
-    if (opcode != static_cast<uint32_t>(SwifterKitRuntimeOpcode::SCSICompleteParallelTask)
-        || payload == nullptr || payloadLength < sizeof(SwifterKitSCSICompletionHeader)
+    uint32_t payloadLength,
+    OSData** response) {
+    if (opcode != static_cast<uint32_t>(SwifterKitRuntimeOpcode::SCSICompleteParallelTask)) {
+        return SCSIControlCommand(opcode, payload, payloadLength, response);
+    }
+    if (payload == nullptr || payloadLength < sizeof(SwifterKitSCSICompletionHeader)
         || ivars == nullptr || ivars->scsiLock == nullptr) {
         return kIOReturnBadArgument;
     }
@@ -365,20 +442,21 @@ kern_return_t SwifterKitRuntimeService::SCSICommand(
         return kIOReturnNotFound;
     }
 
-    SCSIUserParallelResponse response = {};
-    response.version = kScsiUserParallelTaskResponseCurrentVersion1;
-    response.fTargetID = task.targetIdentifier;
-    response.fSCSIParallelFeatureRequestResultCount = header->featureResultCount;
-    response.fControllerTaskIdentifier = task.controllerTaskIdentifier;
-    response.fCompletionStatus = static_cast<SCSITaskStatus>(header->taskStatus);
-    response.fServiceResponse = static_cast<SCSIServiceResponse>(header->serviceResponse);
-    response.fBytesTransferred = header->bytesTransferred;
-    response.fSenseLength = static_cast<uint8_t>(header->senseLength);
+    ReleaseTaskBuffer(task);
+    SCSIUserParallelResponse completed = {};
+    completed.version = kScsiUserParallelTaskResponseCurrentVersion1;
+    completed.fTargetID = task.targetIdentifier;
+    completed.fSCSIParallelFeatureRequestResultCount = header->featureResultCount;
+    completed.fControllerTaskIdentifier = task.controllerTaskIdentifier;
+    completed.fCompletionStatus = static_cast<SCSITaskStatus>(header->taskStatus);
+    completed.fServiceResponse = static_cast<SCSIServiceResponse>(header->serviceResponse);
+    completed.fBytesTransferred = header->bytesTransferred;
+    completed.fSenseLength = static_cast<uint8_t>(header->senseLength);
     for (uint32_t index = 0; index < header->featureResultCount; ++index) {
-        response.fSCSIParallelFeatureResult[index] = header->featureResults[index];
+        completed.fSCSIParallelFeatureResult[index] = header->featureResults[index];
     }
-    memcpy(response.fSenseBuffer, payload + sizeof(*header), header->senseLength);
-    ParallelTaskCompletion(task.completion, response);
+    memcpy(completed.fSenseBuffer, payload + sizeof(*header), header->senseLength);
+    ParallelTaskCompletion(task.completion, completed);
     task.completion->release();
     return kIOReturnSuccess;
 }
@@ -392,6 +470,7 @@ void SwifterKitRuntimeService::StopSCSI() {
         SwifterKitSCSIPendingTask task = candidate;
         candidate = {};
         IOLockUnlock(ivars->scsiLock);
+        ReleaseTaskBuffer(task);
         if (task.completion == nullptr) {
             continue;
         }

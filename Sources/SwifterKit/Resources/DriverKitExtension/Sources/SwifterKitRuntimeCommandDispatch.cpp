@@ -581,6 +581,16 @@ namespace {
             case SwifterKitRuntimeOpcode::SCSIPeripheralReset:
             case SwifterKitRuntimeOpcode::SCSIPeripheralReportMediumBlockSize:
             case SwifterKitRuntimeOpcode::SCSICompleteParallelTask:
+            case SwifterKitRuntimeOpcode::SCSITargetPresent:
+            case SwifterKitRuntimeOpcode::SCSICreateTarget:
+            case SwifterKitRuntimeOpcode::SCSIDestroyTarget:
+            case SwifterKitRuntimeOpcode::SCSISetControllerProperties:
+            case SwifterKitRuntimeOpcode::SCSIRemoveControllerProperties:
+            case SwifterKitRuntimeOpcode::SCSISetTargetProperties:
+            case SwifterKitRuntimeOpcode::SCSIRemoveTargetProperties:
+            case SwifterKitRuntimeOpcode::SCSIMediaParametersChanged:
+            case SwifterKitRuntimeOpcode::SCSIReadTaskData:
+            case SwifterKitRuntimeOpcode::SCSIWriteTaskData:
                 return DispatchSCSICommand(context);
             case SwifterKitRuntimeOpcode::BlockStorageComplete:
             case SwifterKitRuntimeOpcode::BlockStorageCompleteIO:

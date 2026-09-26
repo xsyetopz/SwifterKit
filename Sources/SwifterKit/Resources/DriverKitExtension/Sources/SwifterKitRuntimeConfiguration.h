@@ -107,6 +107,16 @@ static constexpr uint32_t kSwifterKitSCSISupportedFeatures = 0;
 static constexpr bool kSwifterKitSCSIPerformsAutoSense = false;
 static constexpr bool kSwifterKitSCSISupportsMultipathing = false;
 static constexpr uint32_t kSwifterKitSCSITaskManagementResponse = 5;
+static constexpr bool kSwifterKitSCSIProvidesTaskDataBuffers = false;
+static constexpr bool kSwifterKitSCSIReportsConstraints = false;
+static constexpr uint64_t kSwifterKitSCSIMaximumSegmentCountRead = 0;
+static constexpr uint64_t kSwifterKitSCSIMaximumSegmentCountWrite = 0;
+static constexpr uint64_t kSwifterKitSCSIMaximumSegmentByteCountRead = 0;
+static constexpr uint64_t kSwifterKitSCSIMaximumSegmentByteCountWrite = 0;
+static constexpr uint64_t kSwifterKitSCSIMinimumSegmentAlignmentByteCount = 0;
+static constexpr uint64_t kSwifterKitSCSIMaximumSegmentAddressableBitCount = 0;
+static constexpr uint64_t kSwifterKitSCSIMinimumHBADataAlignmentMask = 0;
+static constexpr bool kSwifterKitSCSISupportsHierarchicalLogicalUnits = false;
 static constexpr bool kSwifterKitSCSIPeripheralInitializationSucceeds = false;
 
 static constexpr uint8_t kSwifterKitEthernetAddress[] = {0, 0, 0, 0, 0, 0};

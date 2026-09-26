@@ -224,9 +224,15 @@ namespace {
             return RespondWithData(result, response, arguments, requestID);
         }
     #else
-        const kern_return_t result = service->SCSICommand(opcode, payload, payloadLength);
+        OSData* response = nullptr;
+        const kern_return_t result =
+            service->SCSICommand(opcode, payload, payloadLength, &response);
         if (result != kIOReturnSuccess) {
+            OSSafeReleaseNULL(response);
             return result;
+        }
+        if (response != nullptr) {
+            return RespondWithData(result, response, arguments, requestID);
         }
     #endif
         return BuildResponse(

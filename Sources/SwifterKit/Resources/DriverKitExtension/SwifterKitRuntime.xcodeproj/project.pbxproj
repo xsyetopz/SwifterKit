@@ -32,6 +32,7 @@
 		0D0020112AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */; };
 		0D0020132AAAAAAA00000001 /* SCSIPeripheralsDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D0020142AAAAAAA00000001 /* SCSIPeripheralsDriverKit.framework */; };
 		0D0020012AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */; };
+		0D00B0212AAAAAAA00000001 /* SwifterKitRuntimeSCSIControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00B0222AAAAAAA00000001 /* SwifterKitRuntimeSCSIControl.cpp */; };
 		0D0020032AAAAAAA00000001 /* SCSIControllerDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D0020042AAAAAAA00000001 /* SCSIControllerDriverKit.framework */; };
 		0D001BB12AAAAAAA00000001 /* SwifterKitRuntimeService.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB22AAAAAAA00000001 /* SwifterKitRuntimeService.iig */; };
 		0D001BB32AAAAAAA00000001 /* SwifterKitRuntimeService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB42AAAAAAA00000001 /* SwifterKitRuntimeService.cpp */; };
@@ -124,6 +125,7 @@
 		0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeSCSIPeripheral.cpp; sourceTree = "<group>"; };
 		0D0020142AAAAAAA00000001 /* SCSIPeripheralsDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSIPeripheralsDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/SCSIPeripheralsDriverKit.framework; sourceTree = SDKROOT; };
 		0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeSCSI.cpp; sourceTree = "<group>"; };
+		0D00B0222AAAAAAA00000001 /* SwifterKitRuntimeSCSIControl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeSCSIControl.cpp; sourceTree = "<group>"; };
 		0D0020042AAAAAAA00000001 /* SCSIControllerDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSIControllerDriverKit.framework; path = System/DriverKit/System/Library/Frameworks/SCSIControllerDriverKit.framework; sourceTree = SDKROOT; };
 		0D001AA12AAAAAAA00000001 /* SwifterKitRuntime.dext */ = {isa = PBXFileReference; explicitFileType = "wrapper.driver-extension"; includeInIndex = 0; path = SwifterKitRuntime.dext; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D001BB22AAAAAAA00000001 /* SwifterKitRuntimeService.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeService.iig; sourceTree = "<group>"; };
@@ -309,6 +311,7 @@
 				0D001E482AAAAAAA00000001 /* SwifterKitRuntimeHIDElements.cpp */,
 				0D001E4A2AAAAAAA00000001 /* SwifterKitRuntimeHIDDispatch.cpp */,
 				0D0020022AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp */,
+				0D00B0222AAAAAAA00000001 /* SwifterKitRuntimeSCSIControl.cpp */,
 				0D0020122AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp */,
 				0D001BBA2AAAAAAA00000001 /* SwifterKitRuntimeProtocol.h */,
 				0D001BFE2AAAAAAA00000001 /* SwifterKitRuntimeSchema.h */,
@@ -459,6 +462,7 @@
 				0D001E472AAAAAAA00000001 /* SwifterKitRuntimeHIDElements.cpp in Sources */,
 				0D001E492AAAAAAA00000001 /* SwifterKitRuntimeHIDDispatch.cpp in Sources */,
 				0D0020012AAAAAAA00000001 /* SwifterKitRuntimeSCSI.cpp in Sources */,
+				0D00B0212AAAAAAA00000001 /* SwifterKitRuntimeSCSIControl.cpp in Sources */,
 				0D0020112AAAAAAA00000001 /* SwifterKitRuntimeSCSIPeripheral.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

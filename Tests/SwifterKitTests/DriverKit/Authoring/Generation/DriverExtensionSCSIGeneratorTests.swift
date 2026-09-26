@@ -39,6 +39,11 @@ struct SCSIGeneratorTests {
     #expect(header.contains("SWIFTERKIT_ENABLE_SCSI_CONTROLLER 1"))
     #expect(header.contains("kSwifterKitSCSIMaximumTaskCount =\n    32"))
     #expect(header.contains("kSwifterKitSCSISupportedFeatures =\n    3"))
+    #expect(header.contains("kSwifterKitSCSIProvidesTaskDataBuffers =\n    true"))
+    #expect(header.contains("kSwifterKitSCSIReportsConstraints = true"))
+    #expect(header.contains("kSwifterKitSCSIMaximumSegmentCountWrite =\n    128"))
+    #expect(header.contains("kSwifterKitSCSIMinimumHBADataAlignmentMask =\n    3"))
+    #expect(header.contains("kSwifterKitSCSISupportsHierarchicalLogicalUnits =\n    true"))
 
     let service = try String(
       contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
@@ -48,6 +53,8 @@ struct SCSIGeneratorTests {
     #expect(service.contains("UserProcessParallelTask"))
     #expect(service.contains("SCSICommand"))
     #expect(service.contains("PCICommand"))
+    #expect(service.contains("SCSIControlCommand"))
+    #expect(service.contains("SCSIFetchTaskBuffer"))
 
     let scsi = try String(
       contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeSCSI.cpp"),
@@ -86,6 +93,7 @@ struct SCSIGeneratorTests {
     )
     #expect(project.contains("SCSIControllerDriverKit.framework"))
     #expect(project.contains("SwifterKitRuntimeSCSI.cpp in Sources"))
+    #expect(project.contains("SwifterKitRuntimeSCSIControl.cpp in Sources"))
 
     try expectGeneratedExtensionBuilds(
       at: output,
@@ -104,6 +112,29 @@ struct SCSIGeneratorTests {
     #expect(throws: DriverExtensionGenerationError.invalidSCSIConfiguration) {
       try DriverExtensionGenerator.generate(
         configuration: missing,
+        at: root.appendingPathComponent(UUID().uuidString)
+      )
+    }
+
+    let badConstraints = DriverConfiguration(
+      bundleIdentifier: "com.example.scsi",
+      providerClass: "IOUserResources",
+      capabilities: .scsi,
+      scsiController: SCSIControllerConfiguration(
+        initiatorIdentifier: 7,
+        highestTargetIdentifier: 15,
+        constraints: SCSIControllerConstraints(
+          maximumSegmentCountRead: 1,
+          maximumSegmentCountWrite: 1,
+          maximumSegmentByteCountRead: 4_096,
+          maximumSegmentByteCountWrite: 4_096,
+          minimumHBADataAlignmentMask: 6
+        )
+      )
+    )
+    #expect(throws: DriverExtensionGenerationError.invalidSCSIConfiguration) {
+      try DriverExtensionGenerator.generate(
+        configuration: badConstraints,
         at: root.appendingPathComponent(UUID().uuidString)
       )
     }
@@ -169,7 +200,15 @@ struct SCSIGeneratorTests {
       addressBitCount: 64,
       dmaSegmentType: .host64,
       supportedFeatures: [.wideDataTransfer, .synchronousDataTransfer],
-      taskManagementResponse: .functionComplete
+      taskManagementResponse: .functionComplete,
+      constraints: SCSIControllerConstraints(
+        maximumSegmentCountRead: 256,
+        maximumSegmentCountWrite: 128,
+        maximumSegmentByteCountRead: 65_536,
+        maximumSegmentByteCountWrite: 65_536,
+        supportsHierarchicalLogicalUnits: true
+      ),
+      providesTaskDataBuffers: true
     )
   }
 }

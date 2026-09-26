@@ -6,6 +6,8 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** `SCSIControllerRuntimeError` gains `invalidPropertyUpdate` and
+  `invalidDataRange`.
 - Video generation requires DriverKit 25.5 instead of 27.0. The DriverKit 25.5
   SDK in Xcode 26.6 ships VideoDriverKit with the same headers and exported
   symbols as the DriverKit 27.0 SDK, and generated video extensions build
@@ -78,6 +80,10 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- The SCSI controller runtime's `UserProcessBundledParallelTasks` returned
+  without answering its completion. It now hands every slot back through
+  `BundledParallelTaskCompletion`; the runtime still declines the shared
+  buffers, so the framework does not call it.
 - The MIDI runtime wrote its device, entity, source, and destination pointers
   in `StartMIDI` and `StopMIDI` on the service queue while `midiSend`,
   `StartIO`, and `StopIO` read them from other queues without
@@ -177,6 +183,20 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- SCSI controller drivers create, destroy, and query targets with
+  `DriverContext.scsiCreateTarget(_:properties:)`, `scsiDestroyTarget(_:)`, and
+  `scsiTargetPresent(_:)`; set and remove HBA and target registry properties
+  keyed by `SCSIProtocolPropertyKey`; and report media-parameter changes with
+  `scsiMediaParametersChanged()`, on opcodes 0x0B20-0x0B27.
+- `SCSIControllerConfiguration.constraints` reports `SCSIControllerConstraints`
+  through `UserReportHBAConstraints` during `UserInitializeController`, always
+  with every key the header requires.
+- `SCSIControllerConfiguration.providesTaskDataBuffers` fetches each task's
+  buffer with `UserGetDataBuffer` inside `UserProcessParallelTask`, and
+  `scsiReadTaskData(requestID:offset:count:)` and
+  `scsiWriteTaskData(requestID:offset:bytes:)` access it until the task
+  completes (opcodes 0x0B28-0x0B29). A task whose buffer cannot be fetched
+  completes with a delivery failure.
 - MIDIDriverKit object, property, and membership support on opcodes
   0x0810-0x0819: `midiObjectInfo`, `midiSetObjectName`, `midiPropertyType`,
   `midiCopyProperty`, `midiSetProperty`, `midiProperties`,

@@ -26,6 +26,17 @@ public struct SCSIControllerConfiguration: Sendable, Hashable {
   public let supportsMultipathing: Bool
   /// The immediate response for forwarded task-management callbacks.
   public let taskManagementResponse: SCSIServiceResponse
+  /// I/O constraints reported through `UserReportHBAConstraints` during
+  /// `UserInitializeController`, or `nil` to report none.
+  public let constraints: SCSIControllerConstraints?
+  /// Whether each task's data buffer is fetched with `UserGetDataBuffer` so Swift can read and
+  /// write it with ``DriverContext/scsiReadTaskData(requestID:offset:count:)`` and
+  /// ``DriverContext/scsiWriteTaskData(requestID:offset:bytes:)``.
+  ///
+  /// The header warns that fetching the buffer costs performance and invalidates the task's
+  /// ``SCSIParallelTask/bufferIOVMAddress`` mapping. A task whose buffer cannot be fetched
+  /// completes with a delivery failure instead of reaching Swift.
+  public let providesTaskDataBuffers: Bool
 
   /// Creates static SCSI HBA policy for the generated runtime.
   public init(
@@ -40,7 +51,9 @@ public struct SCSIControllerConfiguration: Sendable, Hashable {
     supportedFeatures: SCSIParallelFeatures = [],
     performsAutoSense: Bool = true,
     supportsMultipathing: Bool = false,
-    taskManagementResponse: SCSIServiceResponse = .functionRejected
+    taskManagementResponse: SCSIServiceResponse = .functionRejected,
+    constraints: SCSIControllerConstraints? = nil,
+    providesTaskDataBuffers: Bool = false
   ) {
     self.initiatorIdentifier = initiatorIdentifier
     self.highestTargetIdentifier = highestTargetIdentifier
@@ -54,6 +67,8 @@ public struct SCSIControllerConfiguration: Sendable, Hashable {
     self.performsAutoSense = performsAutoSense
     self.supportsMultipathing = supportsMultipathing
     self.taskManagementResponse = taskManagementResponse
+    self.constraints = constraints
+    self.providesTaskDataBuffers = providesTaskDataBuffers
   }
 }
 
@@ -280,4 +295,8 @@ public enum SCSIControllerRuntimeError: Error, Sendable, Equatable {
   case invalidPayload
   case invalidEventKind(UInt32)
   case invalidCompletion
+  /// A property update was empty, too large, repeated a key, or contained a NUL byte.
+  case invalidPropertyUpdate
+  /// A task-data access named request 0 or a byte count outside one runtime message.
+  case invalidDataRange
 }

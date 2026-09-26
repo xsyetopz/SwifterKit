@@ -511,6 +511,26 @@ struct __attribute__((packed)) SwifterKitSCSICompletionHeader {
     uint32_t featureResults[5];
 };
 
+// Precedes the entries of the SCSI create-target and property commands. Each entry is a
+// SwifterKitSCSIPropertyEntry followed by keyLength key bytes and valueLength value bytes.
+struct __attribute__((packed)) SwifterKitSCSIPropertyHeader {
+    uint64_t targetIdentifier;
+    uint32_t count;
+    uint32_t reserved;
+};
+
+struct __attribute__((packed)) SwifterKitSCSIPropertyEntry {
+    uint16_t keyLength;
+    uint16_t valueLength;
+};
+
+// Precedes the bytes of SCSIWriteTaskData; SCSIReadTaskData carries only the header.
+struct __attribute__((packed)) SwifterKitSCSITaskDataHeader {
+    uint32_t requestID;
+    uint32_t length;
+    uint64_t offset;
+};
+
 struct __attribute__((packed)) SwifterKitHandshakeRequest {
     uint16_t minimumVersion;
     uint16_t maximumVersion;
@@ -535,6 +555,9 @@ static_assert(sizeof(SwifterKitSCSIPeripheralResponseHeader) == 24);
 static_assert(sizeof(SwifterKitSCSIParallelTaskEvent) == 100);
 static_assert(sizeof(SwifterKitSCSIManagementEvent) == 32);
 static_assert(sizeof(SwifterKitSCSICompletionHeader) == 48);
+static_assert(sizeof(SwifterKitSCSIPropertyHeader) == 16);
+static_assert(sizeof(SwifterKitSCSIPropertyEntry) == 4);
+static_assert(sizeof(SwifterKitSCSITaskDataHeader) == 16);
 static_assert(sizeof(SwifterKitSerialEvent) == 16);
 static_assert(sizeof(SwifterKitNetworkReceiveHeader) == 8);
 static_assert(sizeof(SwifterKitNetworkCompletion) == 8);
