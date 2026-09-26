@@ -6,6 +6,16 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** `DriverConnection` requires `mapMemory(type:readOnly:)`, which
+  maps the memory the user client shares for a `CopyClientMemoryForType` type
+  into the host and returns a `DriverSharedMemory`; custom connections must
+  implement it.
+- **Breaking:** `DriverMemoryError` gains `invalidChainLength`, so exhaustive
+  switches over it must handle the new case.
+- Memory handles stay within 24 bits: they count up to 0xFFFFFF, wrap to 1,
+  and skip handles still in use, so every handle fits the client-memory
+  identifier field. A runtime answer outside that range is refused with
+  `DriverMemoryError.invalidPayload`.
 - **Breaking:** `DriverExtensionGenerationError` gains
   `invalidFastPathConfiguration(_:)`, which carries the `FastPathError` that
   refused a fast-path configuration.
@@ -266,6 +276,26 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- `DriverContext.mapMemory(_:)` maps a runtime buffer, subrange, or chain into
+  the host without copying, and `DriverContext.mapPacketPool(_:)` maps the
+  transmit or receive `EthernetPacketPool` read-only. The runtime user client
+  overrides `CopyClientMemoryForType` and forwards a 32-bit memory type (an
+  8-bit kind above a 24-bit identifier) to the service; the ring and data-queue
+  kinds are reserved and answer `kIOReturnUnsupported`. `DriverSession` gains
+  `mapMemory(type:readOnly:)`. The mapping path is compile-checked; it has not
+  run against a device.
+- `DriverSharedMemory` wraps a mapping: bounds-checked little-endian `load`
+  and `store`, `copyBytes` and `write`, and scoped `withUnsafeBytes` and
+  `withUnsafeMutableBytes`. An access outside the mapping throws
+  `DriverSharedMemoryError` instead of truncating, stores to read-only memory
+  throw, and the mapping ends exactly once, at `unmap()`, when its connection
+  closes, or when the last reference goes away.
+- `DriverContext.memorySubrange(_:offset:length:direction:)` (opcode 0x0508)
+  and `DriverContext.memoryChain(_:direction:)` (opcode 0x0509) create memory
+  entries for part of one entry or for 1 to 32 entries concatenated, through
+  `CreateSubMemoryDescriptor` and `CreateWithMemoryDescriptors`. A composed
+  entry retains its sources, may narrow but never widen their direction, and
+  maps into the host, prepares for DMA, and reads or writes like a buffer.
 - `DriverConfiguration.fastPath` declares `FastPathConfiguration` programs:
   bounded, data-only register sequences (`read`, `write`, `modify`, `compute`,
   `poll`, `delay`, forward `skip`, `emit`, `fail`) run from start, stop,
