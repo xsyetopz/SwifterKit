@@ -26,6 +26,15 @@ struct DriverClientTests {
 
     _ = try await session.notifications(selector: 5)
     #expect(await connection.lastNotificationSelector == 5)
+
+    let memory = try await session.mapMemory(type: 0x0100_0001, readOnly: false)
+    #expect(await connection.mappings.types == [0x0100_0001])
+    await session.close()
+    #expect(!memory.isMapped)
+    #expect(await connection.mappings.unmaps.total == 1)
+    await #expect(throws: DriverKitError.self) {
+      try await session.mapMemory(type: 0x0100_0001, readOnly: false)
+    }
   }
 }
 
@@ -52,8 +61,13 @@ private actor MockConnection: DriverConnection {
   var lastRequest: DriverRequest?
   var lastNotificationSelector: UInt32?
   var isClosed = false
+  var mappings = InMemoryMappings()
 
   init(response: DriverResponse) { self.response = response }
+
+  func mapMemory(type: UInt32, readOnly: Bool) -> DriverSharedMemory {
+    mappings.map(type: type, readOnly: readOnly)
+  }
 
   func call(_ request: DriverRequest) throws -> DriverResponse {
     lastRequest = request
@@ -65,5 +79,8 @@ private actor MockConnection: DriverConnection {
     return AsyncStream { $0.finish() }
   }
 
-  func close() { isClosed = true }
+  func close() {
+    isClosed = true
+    mappings.unmapAll()
+  }
 }

@@ -38,6 +38,14 @@ public struct DriverMemoryHandle: RawRepresentable, Sendable, Hashable {
 
   /// Creates a handle from its runtime value.
   public init(rawValue: UInt64) { self.rawValue = rawValue }
+
+  init(runtimePayload: Data) throws {
+    guard runtimePayload.count == 8 else { throw DriverMemoryError.invalidPayload }
+    self.init(rawValue: try runtimePayload.readRuntimeInteger(at: 0))
+    guard (1...RuntimeMemoryLimits.maximumHandle).contains(rawValue) else {
+      throw DriverMemoryError.invalidPayload
+    }
+  }
 }
 
 /// Current metadata for an allocated DriverKit buffer.
@@ -148,4 +156,6 @@ public enum DriverMemoryError: Error, Sendable, Equatable {
   case invalidAddressBits
   /// The native runtime returned malformed memory metadata.
   case invalidPayload
+  /// A chain must combine between 1 and 32 handles.
+  case invalidChainLength
 }

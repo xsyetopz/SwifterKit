@@ -491,6 +491,8 @@ namespace {
             case SwifterKitRuntimeOpcode::MemoryGetInfo:
             case SwifterKitRuntimeOpcode::MemoryPrepareDMA:
             case SwifterKitRuntimeOpcode::MemoryCompleteDMA:
+            case SwifterKitRuntimeOpcode::MemorySubrange:
+            case SwifterKitRuntimeOpcode::MemoryChain:
                 return DispatchMemoryCommand(context);
             case SwifterKitRuntimeOpcode::NetworkReceive:
             case SwifterKitRuntimeOpcode::NetworkCompleteTransmit:

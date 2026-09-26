@@ -286,6 +286,7 @@ extension DriverExtensionGenerator {
               const uint8_t* payload,
               uint32_t payloadLength,
               OSData** response) LOCALONLY;
+          kern_return_t CopyMemoryForClient(uint64_t handle, IOMemoryDescriptor** memory) LOCALONLY;
       """ : ""
     let interruptMethods =
       interrupts
@@ -355,6 +356,10 @@ extension DriverExtensionGenerator {
               uint32_t payloadLength) LOCALONLY;
           kern_return_t AttachEventClient(IOService* client) LOCALONLY;
           void DetachEventClient(IOService* client) LOCALONLY;
+          kern_return_t CopyClientMemory(
+              uint64_t type,
+              uint64_t* options,
+              IOMemoryDescriptor** memory) LOCALONLY;
       \(serviceControlMethods)
       \(reportingMethods)
       \(fastPathMethods)

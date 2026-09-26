@@ -20,6 +20,14 @@ public protocol DriverConnection: Sendable {
   /// the stream an earlier registration returned. ``close()`` finishes every stream.
   func notifications(selector: UInt32) async throws -> AsyncStream<Void>
 
+  /// Maps the memory the user client shares for `type` into this process.
+  ///
+  /// `type` is the `memoryType` the user client's `CopyClientMemoryForType` receives. Pass
+  /// `readOnly` when the extension shares the memory read-only. While a mapping of `type` from
+  /// this connection is mapped, the connection returns that same instance. ``close()`` unmaps
+  /// every mapping the connection returned before it closes.
+  func mapMemory(type: UInt32, readOnly: Bool) async throws -> DriverSharedMemory
+
   /// Closes the connection idempotently.
   func close() async
 }

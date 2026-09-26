@@ -180,4 +180,8 @@ private actor FastPathMockConnection: DriverConnection {
   func notifications(selector: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
 
   func close() {}
+
+  func mapMemory(type: UInt32, readOnly: Bool) throws -> DriverSharedMemory {
+    throw MappingUnsupported()
+  }
 }

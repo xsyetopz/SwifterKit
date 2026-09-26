@@ -126,6 +126,57 @@ extension DriverCommand {
     try handleCommand(opcode: .memoryCompleteDMA, handle: handle)
   }
 
+  /// Creates a memory entry for `length` bytes of `handle`'s valid data starting at `offset`.
+  ///
+  /// The extension answers with a new handle. `direction` may narrow, never widen, the source's
+  /// device access.
+  public static func memorySubrange(
+    _ handle: DriverMemoryHandle,
+    offset: UInt64,
+    length: UInt64,
+    direction: DriverMemoryDirection
+  ) throws -> Self {
+    try validate(handle: handle)
+    guard length > 0 else { throw DriverMemoryError.invalidSize }
+    guard offset <= UInt64.max - length else { throw DriverMemoryError.invalidRange }
+    var payload = Data(capacity: RuntimeMemoryLimits.subrangeHeaderSize)
+    payload.appendRuntimeInteger(handle.rawValue)
+    payload.appendRuntimeInteger(offset)
+    payload.appendRuntimeInteger(length)
+    payload.appendRuntimeInteger(direction.rawValue)
+    payload.appendRuntimeInteger(UInt32(0))
+    return Self(
+      opcode: .memorySubrange,
+      requiredCapabilities: .memory,
+      payload: payload,
+      maximumResponseSize: RuntimeMessage.headerSize + 8
+    )
+  }
+
+  /// Creates a memory entry that concatenates the valid data of 1...32 entries in order.
+  ///
+  /// The extension answers with a new handle. `direction` may narrow, never widen, the device
+  /// access of every source.
+  public static func memoryChain(
+    _ handles: [DriverMemoryHandle],
+    direction: DriverMemoryDirection
+  ) throws -> Self {
+    guard (1...RuntimeMemoryLimits.maximumChainLength).contains(handles.count) else {
+      throw DriverMemoryError.invalidChainLength
+    }
+    for handle in handles { try validate(handle: handle) }
+    var payload = Data(capacity: RuntimeMemoryLimits.chainHeaderSize + handles.count * 8)
+    payload.appendRuntimeInteger(UInt32(handles.count))
+    payload.appendRuntimeInteger(direction.rawValue)
+    for handle in handles { payload.appendRuntimeInteger(handle.rawValue) }
+    return Self(
+      opcode: .memoryChain,
+      requiredCapabilities: .memory,
+      payload: payload,
+      maximumResponseSize: RuntimeMessage.headerSize + 8
+    )
+  }
+
   private static func handleCommand(
     opcode: RuntimeOpcode,
     handle: DriverMemoryHandle,
@@ -185,10 +236,43 @@ extension DriverContext {
         alignment: alignment
       )
     )
-    guard payload.count == 8 else { throw DriverMemoryError.invalidPayload }
-    let handle = DriverMemoryHandle(rawValue: try payload.readRuntimeInteger(at: 0))
-    guard handle.rawValue != 0 else { throw DriverMemoryError.invalidPayload }
-    return handle
+    return try DriverMemoryHandle(runtimePayload: payload)
+  }
+
+  /// Creates a memory entry for part of `handle`'s valid data.
+  ///
+  /// The new entry retains its source's descriptor: releasing `handle` first leaves the subrange
+  /// valid, and the memory is freed once both are released. The range is fixed at creation, so
+  /// a later ``setMemoryLength(_:length:)`` on the source does not change it, and the subrange's
+  /// own length cannot be changed. It counts toward ``MemoryPoolConfiguration/maximumBuffers``
+  /// but not toward the pool's total size.
+  public func memorySubrange(
+    _ handle: DriverMemoryHandle,
+    offset: UInt64,
+    length: UInt64,
+    direction: DriverMemoryDirection
+  ) async throws -> DriverMemoryHandle {
+    try await DriverMemoryHandle(
+      runtimePayload: execute(
+        .memorySubrange(handle, offset: offset, length: length, direction: direction)
+      )
+    )
+  }
+
+  /// Creates one memory entry that concatenates the valid data of `handles` in order, for a
+  /// single DMA preparation or host mapping.
+  ///
+  /// The chain retains every source descriptor and follows the same lifetime, length, and limit
+  /// rules as ``memorySubrange(_:offset:length:direction:)``. Reading or writing a chain through
+  /// the runtime requires DriverKit to map it into the extension; when it cannot, those
+  /// commands fail with `kIOReturnUnsupported` while DMA and host mapping still work.
+  public func memoryChain(
+    _ handles: [DriverMemoryHandle],
+    direction: DriverMemoryDirection
+  ) async throws -> DriverMemoryHandle {
+    try await DriverMemoryHandle(
+      runtimePayload: execute(.memoryChain(handles, direction: direction))
+    )
   }
 
   /// Releases a native buffer and any prepared DMA mapping.

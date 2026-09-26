@@ -116,6 +116,7 @@ extension DriverExtensionGenerator {
           void StopNetwork() LOCALONLY;
           void AbortNetworkTransmits() LOCALONLY;
           void DrainNetworkTransmits() LOCALONLY;
+          kern_return_t CopyPacketPoolMemory(uint32_t pool, IOMemoryDescriptor** memory) LOCALONLY;
           kern_return_t NetworkCommand(
               uint32_t opcode,
               const uint8_t* payload,

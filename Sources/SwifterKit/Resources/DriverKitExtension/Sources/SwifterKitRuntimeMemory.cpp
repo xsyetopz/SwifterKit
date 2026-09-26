@@ -9,6 +9,7 @@
     #include <DriverKit/IOLib.h>
     #include <DriverKit/IOMemoryMap.h>
     #include <DriverKit/IOReturn.h>
+    #include <DriverKit/OSArray.h>
     #include <DriverKit/OSData.h>
 
     #include "SwifterKitRuntimeProtocol.h"
@@ -50,21 +51,65 @@ namespace {
         return nullptr;
     }
 
+    // The descriptor an entry describes: its own buffer, or its subrange or chain.
+    IOMemoryDescriptor* EntryMemory(const SwifterKitMemoryEntry* entry) {
+        if (entry->descriptor != nullptr) {
+            return entry->descriptor;
+        }
+        return entry->composed;
+    }
+
     void ReleaseMemoryEntry(SwifterKitRuntimeService_IVars* state, SwifterKitMemoryEntry* entry) {
         if (state == nullptr || entry == nullptr) {
             return;
         }
-        const bool wasAllocated = entry->handle != 0;
+        // Only allocated buffers count against the pool's total size.
+        const bool wasAllocated = entry->handle != 0 && entry->descriptor != nullptr;
         if (entry->dmaCommand != nullptr) {
             (void)entry->dmaCommand->CompleteDMA(0);
             OSSafeReleaseNULL(entry->dmaCommand);
         }
         OSSafeReleaseNULL(entry->map);
         OSSafeReleaseNULL(entry->descriptor);
+        OSSafeReleaseNULL(entry->composed);
+        OSSafeReleaseNULL(entry->sources);
         if (wasAllocated) {
             state->allocatedMemory -= entry->capacity;
         }
         *entry = {};
+    }
+
+    SwifterKitMemoryEntry* FreeMemoryEntry(SwifterKitRuntimeService_IVars* state) {
+        // The configured buffer limit can be below the entry array's extent.
+        // NOLINTNEXTLINE(modernize-loop-convert)
+        for (uint32_t index = 0; index < kSwifterKitMaximumMemoryBuffers; ++index) {
+            if (state->memoryEntries[index].handle == 0) {
+                return &state->memoryEntries[index];
+            }
+        }
+        return nullptr;
+    }
+
+    // Handles stay within the client-memory identifier field: they count up to
+    // kSwifterKitMemoryMaximumHandle, wrap to 1, and skip handles still in use.
+    void AssignMemoryHandle(SwifterKitRuntimeService_IVars* state, SwifterKitMemoryEntry* entry) {
+        uint64_t handle = state->nextMemoryHandle;
+        while (handle == 0 || handle > kSwifterKitMemoryMaximumHandle
+               || FindMemory(state, handle) != nullptr) {
+            handle = handle == 0 || handle >= kSwifterKitMemoryMaximumHandle ? 1 : handle + 1;
+        }
+        entry->handle = handle;
+        state->nextMemoryHandle = handle + 1;
+    }
+
+    bool IsDirection(uint32_t direction) {
+        return direction == kIOMemoryDirectionIn || direction == kIOMemoryDirectionOut
+               || direction == kIOMemoryDirectionOutIn;
+    }
+
+    // A composed descriptor may narrow, never widen, the device access of its sources.
+    bool DirectionIsWithin(uint32_t direction, const SwifterKitMemoryEntry* source) {
+        return (direction & ~source->direction) == 0;
     }
 
     bool IsPowerOfTwo(uint64_t value) {
@@ -82,7 +127,176 @@ namespace {
         *response = OSData::withBytes(bytes, length);
         return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
     }
+
+    // Finishes a subrange or chain whose creation returned `result` into `entry->composed`:
+    // retains the sources, maps the result into the extension when DriverKit can, and answers
+    // with the new handle. Any failure leaves the entry free.
+    kern_return_t FinishComposedEntry(
+        SwifterKitRuntimeService_IVars* state,
+        SwifterKitMemoryEntry* entry,
+        kern_return_t result,
+        IOMemoryDescriptor* const* sources,
+        uint32_t sourceCount,
+        uint64_t length,
+        uint32_t direction,
+        OSData** response) {
+        if (result == kIOReturnSuccess && entry->composed == nullptr) {
+            result = kIOReturnNoMemory;
+        }
+        if (result == kIOReturnSuccess) {
+            entry->sources = OSArray::withCapacity(sourceCount);
+            result = entry->sources == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+        }
+        for (uint32_t index = 0; result == kIOReturnSuccess && index < sourceCount; ++index) {
+            if (!entry->sources->setObject(sources[index])) {
+                result = kIOReturnNoMemory;
+            }
+        }
+        if (result != kIOReturnSuccess) {
+            ReleaseMemoryEntry(state, entry);
+            return result;
+        }
+        // Read and write need an extension mapping; DMA and host mapping do not, so an entry
+        // DriverKit cannot map here stays usable for them.
+        if (entry->composed->CreateMapping(0, 0, 0, length, 0, &entry->map) != kIOReturnSuccess
+            || entry->map == nullptr || entry->map->GetAddress() == 0) {
+            OSSafeReleaseNULL(entry->map);
+        }
+        AssignMemoryHandle(state, entry);
+        entry->capacity = length;
+        entry->length = length;
+        entry->direction = direction;
+        result = AppendResponse(response, &entry->handle, sizeof(entry->handle));
+        if (result != kIOReturnSuccess) {
+            ReleaseMemoryEntry(state, entry);
+        }
+        return result;
+    }
+
+    // Opcode MemorySubrange: a new entry for part of an existing entry's valid bytes.
+    kern_return_t CreateMemorySubrange(
+        SwifterKitRuntimeService_IVars* state,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) {
+        if (payloadLength != sizeof(SwifterKitMemorySubrangeHeader)) {
+            return kIOReturnBadArgument;
+        }
+        const auto* header = reinterpret_cast<const SwifterKitMemorySubrangeHeader*>(payload);
+        if (header->reserved != 0 || !IsDirection(header->direction)) {
+            return kIOReturnBadArgument;
+        }
+        const SwifterKitMemoryEntry* source = FindMemory(state, header->handle);
+        if (source == nullptr) {
+            return kIOReturnNotFound;
+        }
+        if (!RangeIsValid(header->offset, header->length, source->length)
+            || !DirectionIsWithin(header->direction, source)) {
+            return kIOReturnBadArgument;
+        }
+        SwifterKitMemoryEntry* entry = FreeMemoryEntry(state);
+        if (entry == nullptr) {
+            return kIOReturnNoResources;
+        }
+        IOMemoryDescriptor* const sources[] = {EntryMemory(source)};
+        kern_return_t result = kIOReturnUnsupported;
+        if (__builtin_available(driverkit 20.0, *)) {
+            result = IOMemoryDescriptor::CreateSubMemoryDescriptor(
+                header->direction,
+                header->offset,
+                header->length,
+                sources[0],
+                &entry->composed);
+        }
+        return FinishComposedEntry(
+            state,
+            entry,
+            result,
+            sources,
+            1,
+            header->length,
+            header->direction,
+            response);
+    }
+
+    // Opcode MemoryChain: a new entry that concatenates the valid bytes of 1...32 entries.
+    kern_return_t CreateMemoryChain(
+        SwifterKitRuntimeService_IVars* state,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) {
+        // CreateWithMemoryDescriptors takes a fixed array of this many descriptors.
+        static_assert(kSwifterKitMemoryMaximumChainLength == 32);
+        if (payloadLength < sizeof(SwifterKitMemoryChainHeader)) {
+            return kIOReturnBadArgument;
+        }
+        const auto* header = reinterpret_cast<const SwifterKitMemoryChainHeader*>(payload);
+        const uint32_t count = header->count;
+        if (count == 0 || count > kSwifterKitMemoryMaximumChainLength
+            || !IsDirection(header->direction)
+            || payloadLength != sizeof(*header) + count * sizeof(uint64_t)) {
+            return kIOReturnBadArgument;
+        }
+        IOMemoryDescriptor* sources[kSwifterKitMemoryMaximumChainLength] = {};
+        uint64_t length = 0;
+        for (uint32_t index = 0; index < count; ++index) {
+            uint64_t handle = 0;
+            memcpy(&handle, payload + sizeof(*header) + index * sizeof(handle), sizeof(handle));
+            const SwifterKitMemoryEntry* source = FindMemory(state, handle);
+            if (source == nullptr) {
+                return kIOReturnNotFound;
+            }
+            if (!DirectionIsWithin(header->direction, source) || source->length == 0
+                || source->length > UINT64_MAX - length) {
+                return kIOReturnBadArgument;
+            }
+            length += source->length;
+            sources[index] = EntryMemory(source);
+        }
+        SwifterKitMemoryEntry* entry = FreeMemoryEntry(state);
+        if (entry == nullptr) {
+            return kIOReturnNoResources;
+        }
+        kern_return_t result = kIOReturnUnsupported;
+        if (__builtin_available(driverkit 20.0, *)) {
+            result = IOMemoryDescriptor::CreateWithMemoryDescriptors(
+                header->direction,
+                count,
+                sources,
+                &entry->composed);
+        }
+        return FinishComposedEntry(
+            state,
+            entry,
+            result,
+            sources,
+            count,
+            length,
+            header->direction,
+            response);
+    }
 }  // namespace
+
+kern_return_t SwifterKitRuntimeService::CopyMemoryForClient(
+    uint64_t handle,
+    IOMemoryDescriptor** memory) {
+    if (memory == nullptr || ivars == nullptr || ivars->memoryLock == nullptr) {
+        return kIOReturnNotReady;
+    }
+    const MemoryLockGuard guard(ivars->memoryLock);
+    if (ivars->memoryProvider == nullptr) {
+        return kIOReturnNotReady;
+    }
+    const SwifterKitMemoryEntry* entry = FindMemory(ivars, handle);
+    if (entry == nullptr) {
+        return kIOReturnBadArgument;
+    }
+    // DriverKit consumes this reference; the entry keeps its own.
+    IOMemoryDescriptor* descriptor = EntryMemory(entry);
+    descriptor->retain();
+    *memory = descriptor;
+    return kIOReturnSuccess;
+}
 
 kern_return_t SwifterKitRuntimeService::StartMemory(IOService* provider) {
     if (provider == nullptr || ivars == nullptr || ivars->memoryLock == nullptr) {
@@ -136,25 +350,14 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             const auto* header = reinterpret_cast<const SwifterKitMemoryAllocateHeader*>(payload);
             if (header->reserved != 0 || header->capacity == 0
                 || header->capacity > kSwifterKitMaximumMemoryBufferSize
-                || header->length > header->capacity
-                || (header->direction != kIOMemoryDirectionIn
-                    && header->direction != kIOMemoryDirectionOut
-                    && header->direction != kIOMemoryDirectionOutIn)
+                || header->length > header->capacity || !IsDirection(header->direction)
                 || header->alignment > UINT32_MAX
                 || (header->alignment != 0 && !IsPowerOfTwo(header->alignment))
                 || header->capacity > kSwifterKitMaximumMemoryTotalSize - ivars->allocatedMemory) {
                 return kIOReturnBadArgument;
             }
 
-            SwifterKitMemoryEntry* entry = nullptr;
-            // The configured buffer limit can be below the entry array's extent.
-            // NOLINTNEXTLINE(modernize-loop-convert)
-            for (uint32_t index = 0; index < kSwifterKitMaximumMemoryBuffers; ++index) {
-                if (ivars->memoryEntries[index].handle == 0) {
-                    entry = &ivars->memoryEntries[index];
-                    break;
-                }
-            }
+            SwifterKitMemoryEntry* entry = FreeMemoryEntry(ivars);
             if (entry == nullptr) {
                 return kIOReturnNoResources;
             }
@@ -185,10 +388,7 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
                 return result;
             }
 
-            entry->handle = ivars->nextMemoryHandle++;
-            if (entry->handle == 0) {
-                entry->handle = ivars->nextMemoryHandle++;
-            }
+            AssignMemoryHandle(ivars, entry);
             entry->length = header->length;
             entry->direction = header->direction;
             entry->alignment = static_cast<uint32_t>(header->alignment);
@@ -239,6 +439,9 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             if (entry == nullptr) {
                 return kIOReturnNotFound;
             }
+            if (entry->descriptor == nullptr) {
+                return kIOReturnUnsupported;
+            }
             if (header->length > entry->capacity || entry->dmaCommand != nullptr) {
                 return kIOReturnBadArgument;
             }
@@ -265,9 +468,12 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             if (entry == nullptr) {
                 return kIOReturnNotFound;
             }
-            if (!RangeIsValid(header->offset, header->length, entry->length)
-                || entry->map == nullptr || entry->map->GetAddress() == 0) {
+            if (!RangeIsValid(header->offset, header->length, entry->length)) {
                 return kIOReturnBadArgument;
+            }
+            // A composed entry the extension could not map is reachable by DMA and the host only.
+            if (entry->map == nullptr || entry->map->GetAddress() == 0) {
+                return kIOReturnUnsupported;
             }
 
             auto* address = SwifterKitMappedPointer(entry->map->GetAddress() + header->offset);
@@ -310,7 +516,7 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             IOAddressSegment segments[32] = {};
             result = entry->dmaCommand->PrepareForDMA(
                 0,
-                entry->descriptor,
+                EntryMemory(entry),
                 header->offset,
                 length,
                 &flags,
@@ -342,6 +548,10 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             }
             return kIOReturnSuccess;
         }
+        case SwifterKitRuntimeOpcode::MemorySubrange:
+            return CreateMemorySubrange(ivars, payload, payloadLength, response);
+        case SwifterKitRuntimeOpcode::MemoryChain:
+            return CreateMemoryChain(ivars, payload, payloadLength, response);
         default:
             return kIOReturnUnsupported;
     }

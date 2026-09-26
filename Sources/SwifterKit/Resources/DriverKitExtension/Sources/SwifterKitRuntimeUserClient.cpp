@@ -1,6 +1,7 @@
 #include "SwifterKitRuntimeUserClient.h"
 
 #include <DriverKit/IOLib.h>
+#include <DriverKit/IOMemoryDescriptor.h>
 #include <DriverKit/IOReturn.h>
 #include <DriverKit/IOUserClient.h>
 #include <DriverKit/OSAction.h>
@@ -190,4 +191,17 @@ auto SwifterKitRuntimeUserClient::ExternalMethod(
         arguments,
         request,
         bytes + sizeof(SwifterKitRuntimeHeader));
+}
+
+// IOConnectMapMemory64 reaches only a client Start admitted, so only an entitled host maps
+// runtime memory. The service resolves the type; after Stop detaches it nothing maps. Like
+// ExternalMethod and Stop, this runs on the client's default queue.
+auto SwifterKitRuntimeUserClient::CopyClientMemoryForType_Impl(
+    uint64_t type,
+    uint64_t* options,
+    IOMemoryDescriptor** memory) -> kern_return_t {
+    if (ivars == nullptr || ivars->service == nullptr) {
+        return kIOReturnNotReady;
+    }
+    return ivars->service->CopyClientMemory(type, options, memory);
 }

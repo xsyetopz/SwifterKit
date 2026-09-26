@@ -217,6 +217,33 @@ kern_return_t SwifterKitRuntimeService::StartNetwork() {
     return result;
 }
 
+// Copies the transmit or receive pool's memory for a host mapping. Without a separate receive
+// pool both name the one shared pool. The pool call runs outside networkLock, on a reference
+// taken under it, so Stop can release the pools meanwhile.
+kern_return_t SwifterKitRuntimeService::CopyPacketPoolMemory(
+    uint32_t pool,
+    IOMemoryDescriptor** memory) {
+    if (memory == nullptr || ivars == nullptr || ivars->networkLock == nullptr)
+        return kIOReturnNotReady;
+    if (pool != static_cast<uint32_t>(SwifterKitPacketPool::Transmit)
+        && pool != static_cast<uint32_t>(SwifterKitPacketPool::Receive))
+        return kIOReturnBadArgument;
+    IOLockLock(ivars->networkLock);
+    IOUserNetworkPacketBufferPool* source =
+        pool == static_cast<uint32_t>(SwifterKitPacketPool::Transmit) ? ivars->networkPool
+                                                                      : ivars->networkRxPool;
+    if (ivars->networkStopping || source == nullptr) {
+        IOLockUnlock(ivars->networkLock);
+        return kIOReturnNotReady;
+    }
+    source->retain();
+    IOLockUnlock(ivars->networkLock);
+    // CopyMemoryDescriptor returns the reference DriverKit consumes.
+    const kern_return_t result = source->CopyMemoryDescriptor(memory);
+    source->release();
+    return result;
+}
+
 // Returns transmits Swift has not completed to the pool, the same outcome as a
 // failed completion. The host that received them is gone.
 void SwifterKitRuntimeService::AbortNetworkTransmits() {

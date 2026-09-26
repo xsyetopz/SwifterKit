@@ -13,7 +13,7 @@ extension RuntimeSchemaHeader {
       "#ifndef SwifterKitRuntimeFastPathSchema_h", "#define SwifterKitRuntimeFastPathSchema_h", "",
       "#include <stdint.h>",
     ]
-    for section in fastPathSections() { lines += [""] + section }
+    for section in fastPathSections() + memorySections() { lines += [""] + section }
     lines += ["", "#endif"]
     return lines.joined(separator: "\n") + "\n"
   }

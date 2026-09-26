@@ -133,4 +133,23 @@ struct SwifterKitFastPathStatusReply {
 };
 static_assert(sizeof(SwifterKitFastPathStatusReply) == 16);
 
+static constexpr uint64_t kSwifterKitMemoryMaximumHandle = 0xFFFFFF;
+static constexpr uint32_t kSwifterKitMemoryMaximumChainLength = 32;
+static constexpr uint32_t kSwifterKitMemorySubrangeHeaderSize = 32;
+static constexpr uint32_t kSwifterKitMemoryChainHeaderSize = 8;
+static constexpr uint32_t kSwifterKitClientMemoryKindShift = 24;
+static constexpr uint32_t kSwifterKitClientMemoryIdentifierMask = 0xFFFFFF;
+
+enum class SwifterKitClientMemoryKind : uint32_t {
+    MemoryBuffer = 1,
+    PacketPool = 2,
+    Ring = 3,
+    DataQueue = 4,
+};
+
+enum class SwifterKitPacketPool : uint32_t {
+    Transmit = 0,
+    Receive = 1,
+};
+
 #endif

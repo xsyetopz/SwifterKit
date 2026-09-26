@@ -25,6 +25,8 @@ public:
         LOCALONLY;
     kern_return_t AttachEventClient(IOService* client) LOCALONLY;
     void DetachEventClient(IOService* client) LOCALONLY;
+    kern_return_t CopyClientMemory(uint64_t type, uint64_t* options, IOMemoryDescriptor** memory)
+        LOCALONLY;
 
     virtual kern_return_t SetPowerState(uint32_t powerFlags) override;
     virtual void PowerStateTimerOccurred(OSAction* action, uint64_t time)

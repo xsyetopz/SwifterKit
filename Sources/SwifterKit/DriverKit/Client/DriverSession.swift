@@ -36,6 +36,20 @@ public actor DriverSession {
     return try await connection.notifications(selector: selector)
   }
 
+  /// Maps memory the user client shares for `type` into this process.
+  ///
+  /// See ``DriverConnection/mapMemory(type:readOnly:)``. Closing the session unmaps it.
+  public func mapMemory(type: UInt32, readOnly: Bool) async throws -> DriverSharedMemory {
+    guard let connection else {
+      throw DriverKitError(
+        kind: .sessionClosed,
+        operation: "IOConnectMapMemory64",
+        serviceID: service.id
+      )
+    }
+    return try await connection.mapMemory(type: type, readOnly: readOnly)
+  }
+
   /// Closes the session idempotently.
   public func close() async {
     guard let connection else { return }

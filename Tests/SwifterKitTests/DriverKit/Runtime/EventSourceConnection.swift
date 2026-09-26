@@ -83,6 +83,10 @@ actor EventSourceConnection: DriverConnection {
     }
   }
 
+  func mapMemory(type: UInt32, readOnly: Bool) throws -> DriverSharedMemory {
+    throw MappingUnsupported()
+  }
+
   func close() {
     closeCount += 1
     continuation?.finish()

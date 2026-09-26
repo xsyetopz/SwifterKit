@@ -134,6 +134,8 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     MemoryGetInfo = 0x0505,
     MemoryPrepareDMA = 0x0506,
     MemoryCompleteDMA = 0x0507,
+    MemorySubrange = 0x0508,
+    MemoryChain = 0x0509,
     SerialEnqueueReceive = 0x0600,
     SerialDequeueTransmit = 0x0601,
     SerialSetModemStatus = 0x0602,

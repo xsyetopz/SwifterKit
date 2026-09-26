@@ -139,6 +139,54 @@ struct DriverRuntimeConnectionTests {
     }
   }
 
+  @Test
+  func mapsClientMemoryAndUnmapsItOnceWhenTheConnectionCloses() async throws {
+    let backend = RuntimeMockConnection(capabilities: [.memory, .networking])
+    let runtime = try await makeRuntime(backend: backend)
+    let context = await DriverContext(runtime: runtime)
+    let buffer = try await context.mapMemory(DriverMemoryHandle(rawValue: 7))
+    #expect(!buffer.isReadOnly)
+    #expect(try await context.mapMemory(DriverMemoryHandle(rawValue: 7)) === buffer)
+    let pool = try await context.mapPacketPool(.receive)
+    #expect(pool.isReadOnly)
+    #expect(await backend.mappings.types == [0x0100_0007, 0x0200_0001])
+    try buffer.store(UInt32(5), toByteOffset: 0)
+
+    await runtime.close()
+    #expect(!buffer.isMapped)
+    #expect(!pool.isMapped)
+    #expect(await backend.mappings.unmaps.total == 2)
+    buffer.unmap()
+    #expect(await backend.mappings.unmaps.total == 2)
+    #expect(throws: DriverSharedMemoryError.unmapped) {
+      try buffer.load(UInt32.self, fromByteOffset: 0)
+    }
+    await #expect(throws: DriverRuntimeError.closed) {
+      try await context.mapMemory(DriverMemoryHandle(rawValue: 7))
+    }
+  }
+
+  @Test
+  func refusesMappingsWithoutCapabilityOrEncodableHandle() async throws {
+    let backend = RuntimeMockConnection(capabilities: [.memory])
+    let context = await DriverContext(runtime: try await makeRuntime(backend: backend))
+    await #expect(throws: DriverMemoryError.invalidHandle) {
+      try await context.mapMemory(DriverMemoryHandle(rawValue: 0))
+    }
+    await #expect(throws: DriverMemoryError.invalidHandle) {
+      try await context.mapMemory(
+        DriverMemoryHandle(rawValue: RuntimeMemoryLimits.maximumHandle + 1)
+      )
+    }
+    await #expect(throws: DriverContextError.unsupportedCapability(.networking)) {
+      try await context.mapPacketPool(.transmit)
+    }
+    #expect(await backend.mappings.types.isEmpty)
+    await #expect(throws: DriverContextError.notConnected) {
+      try await DriverContext(capabilities: .memory).mapMemory(DriverMemoryHandle(rawValue: 1))
+    }
+  }
+
   private func makeRuntime(
     backend: RuntimeMockConnection,
     requiring capabilities: RuntimeCapabilities = [],
@@ -163,6 +211,7 @@ private actor RuntimeMockConnection: DriverConnection {
   var closeCount = 0
   var offers: [RuntimeHandshakeOffer] = []
   var requestVersions: [RuntimeProtocolVersion] = []
+  var mappings = InMemoryMappings()
 
   init(
     capabilities: RuntimeCapabilities,
@@ -227,7 +276,14 @@ private actor RuntimeMockConnection: DriverConnection {
 
   func notifications(selector: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
 
-  func close() { closeCount += 1 }
+  func close() {
+    closeCount += 1
+    mappings.unmapAll()
+  }
+
+  func mapMemory(type: UInt32, readOnly: Bool) -> DriverSharedMemory {
+    mappings.map(type: type, readOnly: readOnly)
+  }
 
   private func response(
     kind: RuntimeMessageKind,

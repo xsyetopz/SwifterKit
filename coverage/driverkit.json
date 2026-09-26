@@ -8722,14 +8722,15 @@
           ],
           "introduced" : "20.0",
           "name" : "CreateSubMemoryDescriptor",
-          "note" : "Swift addresses a range of a runtime buffer by offset and length in memoryRead, memoryWrite, and DMA preparation; deferred to the fast-path phase: sharing sub-ranges with the host",
+          "note" : "memorySubrange creates a runtime memory entry for part of an entry's valid bytes; the entry retains the source descriptor, so releasing the source first keeps it valid, and it maps into the host, prepares for DMA, and reads or writes like a buffer",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateSubMemoryDescriptor(uint64_t, uint64_t, uint64_t, IOMemoryDescriptor*, IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "memorySubrange"
         },
         {
           "access" : "public",
@@ -8741,14 +8742,15 @@
           ],
           "introduced" : "20.0",
           "name" : "CreateWithMemoryDescriptors",
-          "note" : "runtime buffers are single descriptors; deferred to the fast-path phase: chaining host-shared buffers into one I/O",
+          "note" : "memoryChain concatenates 1 to 32 runtime memory entries, validated in Swift and in the extension, into one entry that retains every source descriptor and maps into the host or prepares for DMA as a single range",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateWithMemoryDescriptors(uint64_t, uint32_t, IOMemoryDescriptor*const[32], IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "memoryChain"
         },
         {
           "access" : "public",
@@ -11226,14 +11228,15 @@
 
           ],
           "name" : "CopyClientMemoryForType",
-          "note" : "deferred to the fast-path phase: mapping extension memory into the host with IOConnectMapMemory is the planned shared-ring transport; runtime messages copy payloads today",
+          "note" : "SwifterKitRuntimeUserClient overrides it for the entitled host it admitted and forwards the type to the service, which returns a runtime memory entry by handle (DriverContext.mapMemory) or a packet pool read-only (DriverContext.mapPacketPool); the ring and data-queue kinds answer kIOReturnUnsupported and any other type kIOReturnBadArgument",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopyClientMemoryForType(uint64_t, uint64_t*, IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "mapMemory"
         },
         {
           "access" : "public",
@@ -23664,14 +23667,15 @@
 
           ],
           "name" : "CopyMemoryDescriptor",
-          "note" : "fast-path: map the packet pool into the host for zero-copy frames; frames reach Swift by copy today",
+          "note" : "The runtime copies the transmit or receive pool's descriptor for CopyClientMemoryForType, and DriverContext.mapPacketPool maps it read-only into the host so Swift reads frames in place",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CopyMemoryDescriptor(IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "mapPacketPool"
         },
         {
           "access" : "public",

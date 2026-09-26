@@ -77,6 +77,17 @@ public struct DriverContext: Sendable {
     guard let runtime else { throw DriverContextError.notConnected }
     return try await runtime.execute(command)
   }
+
+  /// Maps a runtime client-memory type through the attached extension runtime.
+  func mapMemory(
+    _ type: RuntimeClientMemoryType,
+    readOnly: Bool,
+    requiring capability: RuntimeCapabilities
+  ) async throws -> DriverSharedMemory {
+    try require(capability)
+    guard let runtime else { throw DriverContextError.notConnected }
+    return try await runtime.mapMemory(type, readOnly: readOnly, requiring: capability)
+  }
 }
 
 /// An invalid operation requested by Swift driver behavior.

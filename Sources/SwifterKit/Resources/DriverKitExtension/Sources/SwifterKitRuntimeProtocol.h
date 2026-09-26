@@ -5,6 +5,7 @@
 
 // Wire constants, message kinds, opcodes, event types, and capability bits come from the Swift
 // schema. Payload layouts below stay hand-written and are checked against the schema sizes.
+#include "SwifterKitRuntimeFastPathSchema.h"
 #include "SwifterKitRuntimeSchema.h"
 
 // DriverExtensionGenerator replaces this placeholder with the configured capability bits.
@@ -136,6 +137,20 @@ struct __attribute__((packed)) SwifterKitMemoryDMAResponseHeader {
     uint64_t flags;
     uint32_t segmentCount;
     uint32_t reserved;
+};
+
+struct __attribute__((packed)) SwifterKitMemorySubrangeHeader {
+    uint64_t handle;
+    uint64_t offset;
+    uint64_t length;
+    uint32_t direction;
+    uint32_t reserved;
+};
+
+// Followed by `count` uint64_t memory handles.
+struct __attribute__((packed)) SwifterKitMemoryChainHeader {
+    uint32_t count;
+    uint32_t direction;
 };
 
 struct __attribute__((packed)) SwifterKitHIDReportHeader {
@@ -592,5 +607,7 @@ static_assert(sizeof(SwifterKitMemorySetLengthHeader) == 16);
 static_assert(sizeof(SwifterKitMemoryDMAHeader) == 32);
 static_assert(sizeof(SwifterKitMemoryInfo) == 32);
 static_assert(sizeof(SwifterKitMemoryDMAResponseHeader) == 16);
+static_assert(sizeof(SwifterKitMemorySubrangeHeader) == kSwifterKitMemorySubrangeHeaderSize);
+static_assert(sizeof(SwifterKitMemoryChainHeader) == kSwifterKitMemoryChainHeaderSize);
 
 #endif

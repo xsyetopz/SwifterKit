@@ -306,6 +306,18 @@ public enum EthernetPacketQueue: UInt32, Sendable, Hashable, CaseIterable {
   case receiveCompletion = 3
 }
 
+/// A packet buffer pool the extension creates, which ``DriverContext/mapPacketPool(_:)`` maps
+/// read-only into the host.
+///
+/// Without a separate receive pool (a nil ``EthernetDeviceConfiguration/receivePacketCount``)
+/// both values map the one shared pool.
+public enum EthernetPacketPool: UInt32, Sendable, Hashable, CaseIterable {
+  /// The pool that backs transmitted frames.
+  case transmit = 0
+  /// The pool that backs received frames.
+  case receive = 1
+}
+
 /// A private `SIOCSDRVSPEC` or `SIOCGDRVSPEC` request that `processInterfaceCommand` received.
 ///
 /// The request's data pointer belongs to the caller's address space, so only the interface

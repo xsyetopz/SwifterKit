@@ -94,6 +94,19 @@ public actor DriverRuntimeConnection {
     )
   }
 
+  /// Maps a runtime client-memory type after enforcing the capability that provides it.
+  func mapMemory(
+    _ type: RuntimeClientMemoryType,
+    readOnly: Bool,
+    requiring capability: RuntimeCapabilities
+  ) async throws -> DriverSharedMemory {
+    guard capabilities.contains(capability) else {
+      throw DriverRuntimeError.missingCapabilities(required: capability, available: capabilities)
+    }
+    guard let session else { throw DriverRuntimeError.closed }
+    return try await session.mapMemory(type: type.rawValue, readOnly: readOnly)
+  }
+
   /// Closes the underlying user-client session idempotently.
   public func close() async {
     guard let session else { return }

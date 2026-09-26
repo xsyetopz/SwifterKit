@@ -31,4 +31,8 @@ private actor CountingConnection: DriverConnection {
   func notifications(selector: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
 
   func close() { closeCount += 1 }
+
+  func mapMemory(type: UInt32, readOnly: Bool) throws -> DriverSharedMemory {
+    throw MappingUnsupported()
+  }
 }
