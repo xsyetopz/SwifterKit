@@ -11,6 +11,10 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
+    // Wake-on-magic-packet support is advertised as an assist so the stack can toggle it.
+    constexpr uint32_t kAdvertisedHardwareAssists =
+        kSwifterKitEthernetHardwareAssists
+        | (kSwifterKitEthernetWakeOnMagicPacket ? kIOUserNetworkHWAssistWOMP : 0U);
     constexpr uint32_t kPendingTransmitCapacity =
         sizeof(SwifterKitRuntimeService_IVars::networkTransmits)
         / sizeof(SwifterKitNetworkPendingTransmit);
@@ -334,16 +338,16 @@ uint32_t SwifterKitRuntimeService::getMaxTransferUnit() {
     return kSwifterKitEthernetMTU;
 }
 kern_return_t SwifterKitRuntimeService::setHardwareAssists(uint32_t assists) {
-    return (assists & ~kSwifterKitEthernetHardwareAssists) == 0 ? NetworkControlEvent(8, assists)
-                                                                : kIOReturnUnsupported;
+    return (assists & ~kAdvertisedHardwareAssists) == 0 ? NetworkControlEvent(8, assists)
+                                                        : kIOReturnUnsupported;
 }
 uint32_t SwifterKitRuntimeService::getHardwareAssists() {
-    return kSwifterKitEthernetHardwareAssists;
+    return kAdvertisedHardwareAssists;
 }
 // The stack changes the assists in mask; Swift sees only those bits. A wake-on-magic-packet
 // change is also delivered as its own event.
 kern_return_t SwifterKitRuntimeService::setHardwareAssists(uint32_t assists, uint32_t mask) {
-    if ((mask & ~kSwifterKitEthernetHardwareAssists) != 0)
+    if ((mask & ~kAdvertisedHardwareAssists) != 0)
         return kIOReturnUnsupported;
     const uint32_t changed = assists & mask;
     kern_return_t result = NetworkControlEvent(12, changed, &mask, sizeof(mask));

@@ -21395,7 +21395,7 @@
 
           ],
           "name" : "SetWakeOnMagicPacketEnable",
-          "note" : "deprecated in the SDK; setHardwareAssists(uint32_t, uint32_t) with kIOUserNetworkHWAssistWOMP, delivered as EthernetEvent.wakeOnMagicPacket, replaces it",
+          "note" : "deprecated in the SDK in favor of the hardware-assist path; setHardwareAssists(uint32_t, uint32_t) with kIOUserNetworkHWAssistWOMP, delivered as EthernetEvent.wakeOnMagicPacket, replaces it",
           "sdks" : [
             "24.4",
             "25.5",

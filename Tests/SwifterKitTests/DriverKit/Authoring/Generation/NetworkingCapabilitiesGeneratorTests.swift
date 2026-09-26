@@ -73,6 +73,12 @@ struct NetworkingCapabilitiesGeneratorTests {
     #expect(disable.lowerBound < queues.lowerBound)
     #expect(setup.contains("mtu >= kSwifterKitEthernetMinimumMTU && mtu <= kSwifterKitEthernetMTU"))
     #expect(setup.contains("NetworkControlEvent(12, changed, &mask, sizeof(mask))"))
+    // supportsWakeOnMagicPacket alone lets the stack toggle WOMP through the assist mask.
+    #expect(
+      setup.contains("| (kSwifterKitEthernetWakeOnMagicPacket ? kIOUserNetworkHWAssistWOMP : 0U);")
+    )
+    #expect(setup.contains("if ((mask & ~kAdvertisedHardwareAssists) != 0)"))
+    #expect(setup.contains("return kAdvertisedHardwareAssists;"))
     #expect(setup.contains("NetworkControlEvent(6, (changed & kIOUserNetworkHWAssistWOMP) != 0"))
     #expect(
       setup.contains(

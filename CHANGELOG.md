@@ -65,7 +65,8 @@ SwifterKit records user-visible changes in this file.
 
 - `EthernetEvent.wakeOnMagicPacket` was decoded but never sent. The extension
   now delivers it when the stack changes `kIOUserNetworkHWAssistWOMP` through
-  `setHardwareAssists(assists, mask)`.
+  `setHardwareAssists(assists, mask)`, and advertises that assist whenever
+  `supportsWakeOnMagicPacket` is set.
 - The extension accepted an MTU of 0 from the networking stack. It now rejects
   an MTU below `EthernetDeviceConfiguration.minimumTransferUnit` (68 by
   default).
