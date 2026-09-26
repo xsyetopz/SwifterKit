@@ -21,6 +21,7 @@ public:
     virtual void free() override LOCALONLY;
 
     kern_return_t Configure() LOCALONLY;
+    void RemoveControlsAndProperties() LOCALONLY;
     kern_return_t ReadStream(const SwifterKitAudioTransferHeader* transfer, OSData** response)
         LOCALONLY;
     kern_return_t WriteStream(const SwifterKitAudioTransferHeader* transfer, const uint8_t* bytes)

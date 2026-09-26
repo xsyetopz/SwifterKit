@@ -55,6 +55,12 @@
 		0D00E0412AAAAAAA00000001 /* SwifterKitRuntimeTimers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0422AAAAAAA00000001 /* SwifterKitRuntimeTimers.cpp */; };
 		0D00E0512AAAAAAA00000001 /* SwifterKitRuntimeServiceWatches.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0522AAAAAAA00000001 /* SwifterKitRuntimeServiceWatches.cpp */; };
 		0D00E0612AAAAAAA00000001 /* SwifterKitRuntimeReporting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00E0622AAAAAAA00000001 /* SwifterKitRuntimeReporting.cpp */; };
+		0D00ABB12AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ABB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.iig */; };
+		0D00ABC12AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ABC22AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.cpp */; };
+		0D00ABD12AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ABD22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.iig */; };
+		0D00ABE12AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ABE22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.cpp */; };
+		0D00ABF12AAAAAAA00000001 /* SwifterKitRuntimeAudioObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ABF22AAAAAAA00000001 /* SwifterKitRuntimeAudioObjects.cpp */; };
+		0D00AB012AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00AB022AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp */; };
 		0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */; };
 		0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */; };
 		0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */; };
@@ -132,6 +138,12 @@
 		0D00E0522AAAAAAA00000001 /* SwifterKitRuntimeServiceWatches.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeServiceWatches.cpp; sourceTree = "<group>"; };
 		0D00E0622AAAAAAA00000001 /* SwifterKitRuntimeReporting.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeReporting.cpp; sourceTree = "<group>"; };
 		0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeClients.cpp; sourceTree = "<group>"; };
+		0D00ABB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioBox.iig; sourceTree = "<group>"; };
+		0D00ABC22AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioBox.cpp; sourceTree = "<group>"; };
+		0D00ABD22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioClockDevice.iig; sourceTree = "<group>"; };
+		0D00ABE22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioClockDevice.cpp; sourceTree = "<group>"; };
+		0D00ABF22AAAAAAA00000001 /* SwifterKitRuntimeAudioObjects.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioObjects.cpp; sourceTree = "<group>"; };
+		0D00AB022AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioRequests.cpp; sourceTree = "<group>"; };
 		0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioDevice.iig; sourceTree = "<group>"; };
 		0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioDevice.cpp; sourceTree = "<group>"; };
 		0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudio.cpp; sourceTree = "<group>"; };
@@ -236,6 +248,10 @@
 				0D00E0522AAAAAAA00000001 /* SwifterKitRuntimeServiceWatches.cpp */,
 				0D00E0622AAAAAAA00000001 /* SwifterKitRuntimeReporting.cpp */,
 				0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */,
+				0D00ABC22AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.cpp */,
+				0D00ABE22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.cpp */,
+				0D00ABF22AAAAAAA00000001 /* SwifterKitRuntimeAudioObjects.cpp */,
+				0D00AB022AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp */,
 				0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */,
 				0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */,
 				0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */,
@@ -277,6 +293,8 @@
 			isa = PBXGroup;
 			children = (
 				0D001BB22AAAAAAA00000001 /* SwifterKitRuntimeService.iig */,
+				0D00ABB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.iig */,
+				0D00ABD22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.iig */,
 				0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */,
 				0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */,
 				0D001BBB2AAAAAAA00000001 /* RuntimeSources */,
@@ -364,6 +382,12 @@
 				0D00E0512AAAAAAA00000001 /* SwifterKitRuntimeServiceWatches.cpp in Sources */,
 				0D00E0612AAAAAAA00000001 /* SwifterKitRuntimeReporting.cpp in Sources */,
 				0D001D312AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp in Sources */,
+				0D00ABB12AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.iig in Sources */,
+				0D00ABC12AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.cpp in Sources */,
+				0D00ABD12AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.iig in Sources */,
+				0D00ABE12AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.cpp in Sources */,
+				0D00ABF12AAAAAAA00000001 /* SwifterKitRuntimeAudioObjects.cpp in Sources */,
+				0D00AB012AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp in Sources */,
 				0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */,
 				0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */,
 				0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */,

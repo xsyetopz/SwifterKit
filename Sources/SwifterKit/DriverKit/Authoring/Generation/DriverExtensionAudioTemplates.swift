@@ -83,7 +83,7 @@ extension DriverExtensionGenerator {
         static constexpr uint32_t kSwifterKitAudioCustomPropertyCount = 0;
         static constexpr SwifterKitAudioCustomPropertyValueConfiguration
             kSwifterKitAudioCustomPropertyValues[1] = {};
-        """
+        """ + audioTopologyDeclarations(nil)
     }
 
     let formats = audio.streams.flatMap(\.formats).map { format in
@@ -196,7 +196,7 @@ extension DriverExtensionGenerator {
           kSwifterKitAudioCustomPropertyValues[] = {
       \(propertyValues)
       };
-      """
+      """ + audioTopologyDeclarations(audio)
   }
 
   static func audioServiceMethods(enabled: Bool) -> String {
@@ -221,6 +221,34 @@ extension DriverExtensionGenerator {
           uint32_t qualifierLength,
           const uint8_t* value,
           uint32_t valueLength) LOCALONLY;
+      virtual kern_return_t StartDevice(
+          IOUserAudioObjectID objectID,
+          IOUserAudioStartStopFlags flags) LOCALONLY override;
+      virtual kern_return_t StopDevice(
+          IOUserAudioObjectID objectID,
+          IOUserAudioStartStopFlags flags) LOCALONLY override;
+      virtual void AudioRequestTimerOccurred(OSAction* action, uint64_t time)
+          TYPE(IOTimerDispatchSource::TimerOccurred);
+      kern_return_t StartAudioObjects() LOCALONLY;
+      void StopAudioObjects() LOCALONLY;
+      kern_return_t StartAudioRequests() LOCALONLY;
+      void StopAudioRequests() LOCALONLY;
+      kern_return_t AudioObjectCommand(
+          uint32_t opcode,
+          const uint8_t* payload,
+          uint32_t payloadLength,
+          OSData** response) LOCALONLY;
+      kern_return_t AudioObjectEvent(uint32_t kind, uint32_t index, uint64_t value) LOCALONLY;
+      kern_return_t BeginAudioRequest(uint32_t kind, uint32_t index, uint64_t value) LOCALONLY;
+      kern_return_t CompleteAudioRequest(uint32_t requestID, bool accept, int32_t failure)
+          LOCALONLY;
+      kern_return_t ApplyAudioRequest(
+          uint32_t kind,
+          uint32_t index,
+          uint64_t value,
+          bool accept,
+          int32_t failure) LOCALONLY;
+      void RejectAudioRequests(int32_t failure) LOCALONLY;
       """
   }
 }

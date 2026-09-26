@@ -85,6 +85,17 @@ struct SwifterKitServiceWatch {
 
 #if SWIFTERKIT_ENABLE_AUDIO
 class SwifterKitRuntimeAudioDevice;
+class SwifterKitRuntimeAudioBox;
+class SwifterKitRuntimeAudioClockDevice;
+
+// A box-acquisition or clock sample-rate change waiting for Swift; request ID zero is free.
+struct SwifterKitAudioPendingRequest {
+    uint32_t requestID;
+    uint32_t kind;
+    uint32_t index;
+    uint64_t value;
+    uint64_t deadline;
+};
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
 class SwifterKitRuntimeVideoDevice;
@@ -268,6 +279,19 @@ struct SwifterKitRuntimeService_IVars {
 #if SWIFTERKIT_ENABLE_AUDIO
     IOLock* audioLock = nullptr;
     SwifterKitRuntimeAudioDevice* audioDevice = nullptr;
+    // Boxes and clock devices by configuration index, and the box (index + 1) that owns the
+    // device or each clock device; zero means unowned. All guarded by audioLock.
+    SwifterKitRuntimeAudioBox* audioBoxes[4] = {};
+    SwifterKitRuntimeAudioClockDevice* audioClockDevices[4] = {};
+    uint8_t audioDeviceOwner = 0;
+    uint8_t audioClockOwners[4] = {};
+    // Requests Swift must answer, guarded by audioRequestLock.
+    IOLock* audioRequestLock = nullptr;
+    SwifterKitAudioPendingRequest audioRequests[8] = {};
+    uint32_t nextAudioRequestID = 1;
+    bool audioRequestsStopped = true;
+    IOTimerDispatchSource* audioRequestTimer = nullptr;
+    OSAction* audioRequestTimerAction = nullptr;
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
     IOLock* videoLock = nullptr;

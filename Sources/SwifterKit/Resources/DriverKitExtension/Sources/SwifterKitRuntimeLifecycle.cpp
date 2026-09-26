@@ -20,6 +20,7 @@ auto SwifterKitRuntimeService::init() -> bool {
 #endif
 #if SWIFTERKIT_ENABLE_AUDIO
     ivars->audioLock = IOLockAlloc();
+    ivars->audioRequestLock = IOLockAlloc();
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
     ivars->videoLock = IOLockAlloc();
@@ -49,7 +50,7 @@ auto SwifterKitRuntimeService::init() -> bool {
            && ivars->scsiLock != nullptr
 #endif
 #if SWIFTERKIT_ENABLE_AUDIO
-           && ivars->audioLock != nullptr
+           && ivars->audioLock != nullptr && ivars->audioRequestLock != nullptr
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
            && ivars->videoLock != nullptr

@@ -36,24 +36,32 @@ kern_return_t SwifterKitRuntimeService::StartAudio() {
         result = device->Configure();
     if (result == kIOReturnSuccess)
         result = AddObject(device);
-    if (result == kIOReturnSuccess)
+    if (result == kIOReturnSuccess) {
+        IOLockLock(ivars->audioLock);
         ivars->audioDevice = device;
-    else
+        IOLockUnlock(ivars->audioLock);
+    } else
         OSSafeReleaseNULL(device);
     OSSafeReleaseNULL(deviceUID);
     OSSafeReleaseNULL(modelUID);
     OSSafeReleaseNULL(manufacturerUID);
+    if (result == kIOReturnSuccess)
+        result = StartAudioObjects();
     return result;
 }
 
 void SwifterKitRuntimeService::StopAudio() {
     if (ivars == nullptr || ivars->audioLock == nullptr)
         return;
+    // Boxes release the device before it leaves the driver.
+    StopAudioObjects();
     IOLockLock(ivars->audioLock);
     SwifterKitRuntimeAudioDevice* device = ivars->audioDevice;
     ivars->audioDevice = nullptr;
-    if (device != nullptr)
+    if (device != nullptr) {
+        device->RemoveControlsAndProperties();
         (void)RemoveObject(device);
+    }
     IOLockUnlock(ivars->audioLock);
     OSSafeReleaseNULL(device);
 }
@@ -110,6 +118,9 @@ kern_return_t SwifterKitRuntimeService::AudioCommand(
     if (ivars == nullptr || ivars->audioLock == nullptr || response == nullptr)
         return kIOReturnBadArgument;
     *response = nullptr;
+    if (opcode >= static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioGetObjectInfo)
+        && opcode <= static_cast<uint32_t>(SwifterKitRuntimeOpcode::AudioCompleteRequest))
+        return AudioObjectCommand(opcode, payload, payloadLength, response);
     IOLockLock(ivars->audioLock);
     SwifterKitRuntimeAudioDevice* device = ivars->audioDevice;
     kern_return_t result = device == nullptr ? kIOReturnNotReady : kIOReturnUnsupported;

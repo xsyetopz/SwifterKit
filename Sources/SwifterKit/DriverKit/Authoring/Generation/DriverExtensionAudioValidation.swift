@@ -10,7 +10,8 @@ extension DriverExtensionGenerator {
       Set(value.sampleRates).count == value.sampleRates.count,
       value.sampleRates.allSatisfy({ $0.isFinite && (8_000...768_000).contains($0) }),
       value.sampleRates.contains(value.initialSampleRate),
-      (16...1_048_576).contains(value.zeroTimestampPeriod), (1...8).contains(value.streams.count)
+      (16...1_048_576).contains(value.zeroTimestampPeriod), (1...8).contains(value.streams.count),
+      isValid(audioTopology: value)
     else { return false }
 
     guard

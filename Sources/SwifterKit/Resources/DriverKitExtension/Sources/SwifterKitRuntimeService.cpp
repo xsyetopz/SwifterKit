@@ -75,6 +75,7 @@ void SwifterKitRuntimeService::free() {
 #if SWIFTERKIT_ENABLE_AUDIO
         StopAudio();
         IOLockFreeZero(ivars->audioLock);
+        IOLockFreeZero(ivars->audioRequestLock);
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
         StopVideo();

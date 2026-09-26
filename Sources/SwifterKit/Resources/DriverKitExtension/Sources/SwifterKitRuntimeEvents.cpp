@@ -163,10 +163,14 @@ void SwifterKitRuntimeService::DetachEventClient(IOService* client) {
     // are taken after eventLock is released; NetworkTxPacketAvailable holds
     // networkLock while it enqueues, so the reverse order could deadlock.
     // A pending power change is acknowledged, and the host's timers and watches are
-    // cancelled, and pending HID get-report requests are aborted. Serial, MIDI, interrupt,
-    // audio, video, and SCSI peripheral events leave no DriverKit request outstanding, so those
+    // cancelled, pending HID get-report requests are aborted, and pending audio box-acquisition
+    // and clock sample-rate requests are rejected. Serial, MIDI, interrupt, video, SCSI
+    // peripheral, and other audio events leave no DriverKit request outstanding, so those
     // families answer nothing.
     (void)AnswerPowerState(0);
+#if SWIFTERKIT_ENABLE_AUDIO
+    RejectAudioRequests(kIOReturnAborted);
+#endif
     StopTimers();
     StopWatches();
 #if SWIFTERKIT_ENABLE_BLOCK_STORAGE
