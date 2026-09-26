@@ -24,9 +24,7 @@ struct AudioGeneratorTests {
       at: output
     )
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     let audioClient = try #require(
       personality["IOUserAudioDriverUserClientProperties"] as? [String: Any]
     )

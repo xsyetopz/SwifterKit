@@ -41,9 +41,7 @@ struct USBSerialGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: Self.configuration(), at: output)
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOProviderClass"] as? String == "IOUSBHostInterface")
     #expect(personality["IOTTYBaseName"] as? String == "usbserial")
     #expect(personality["IOTTYSuffix"] as? String == "Example")
@@ -93,9 +91,7 @@ struct USBSerialGeneratorTests {
       at: output
     )
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOTTYBaseName"] == nil)
     #expect(personality["IOTTYSuffix"] == nil)
     let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
@@ -129,12 +125,5 @@ struct USBSerialGeneratorTests {
         at: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
       )
     }
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
-    )
   }
 }

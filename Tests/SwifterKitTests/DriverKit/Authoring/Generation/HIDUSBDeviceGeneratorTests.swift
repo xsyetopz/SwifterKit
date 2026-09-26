@@ -47,9 +47,7 @@ struct HIDUSBDeviceGeneratorTests {
       at: output
     )
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOClass"] as? String == "AppleUserHIDDevice")
     #expect(personality["IOProviderClass"] as? String == "IOUSBHostInterface")
     #expect(personality["CFBundleIdentifierKernel"] as? String == "com.apple.iokit.IOHIDFamily")
@@ -109,9 +107,7 @@ struct HIDUSBDeviceGeneratorTests {
     #expect(service.contains("class SwifterKitRuntimeService : public IOUserHIDDevice"))
     #expect(service.contains("kern_return_t StartUSB(IOService* provider) LOCALONLY;"))
     #expect(!service.contains("virtual kern_return_t handleReport("))
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOClass"] as? String == "AppleUserHIDDevice")
     #expect(personality["CFBundleIdentifierKernel"] as? String == "com.apple.kpi.iokit")
     let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
@@ -151,12 +147,5 @@ struct HIDUSBDeviceGeneratorTests {
         at: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
       )
     }
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
-    )
   }
 }

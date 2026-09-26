@@ -28,9 +28,7 @@ struct DriverExtensionUSBGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: Self.deviceConfiguration, at: output)
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOProviderClass"] as? String == "IOUSBHostDevice")
     #expect(personality["idVendor"] as? UInt32 == 0x1234)
     #expect(personality["idProduct"] as? UInt32 == 0x5678)
@@ -126,13 +124,6 @@ struct DriverExtensionUSBGeneratorTests {
         usbDevice: usb
       ),
       at: output
-    )
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
     )
   }
 }

@@ -106,9 +106,7 @@ struct DriverExtensionGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: configuration, at: output)
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOProviderClass"] as? String == "IOUSBHostInterface")
     #expect(personality["idVendor"] as? UInt32 == 0x1234)
     #expect(personality["idProductArray"] as? [UInt32] == [0x1000, 0x1001])
@@ -190,9 +188,7 @@ struct DriverExtensionGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: configuration, at: output)
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOProviderClass"] as? String == "IOPCIDevice")
     #expect(personality["IOPCIPrimaryMatch"] as? String == "0x00261011")
 

@@ -215,8 +215,4 @@ struct NetworkingCapabilitiesGeneratorTests {
       ethernetDevice: device
     )
   }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(contentsOf: output.appendingPathComponent("Sources/\(name)"), encoding: .utf8)
-  }
 }

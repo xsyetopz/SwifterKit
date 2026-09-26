@@ -151,11 +151,7 @@ struct EthernetPacketsTests {
 
   @Test
   func nativeRuntimeMatchesPacketContract() throws {
-    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-      .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-      .deletingLastPathComponent().appendingPathComponent(
-        "Sources/SwifterKit/Resources/DriverKitExtension/Sources"
-      )
+    let root = checkedInNativeSources
     func source(_ name: String) throws -> String {
       try String(contentsOf: root.appendingPathComponent(name), encoding: .utf8)
     }

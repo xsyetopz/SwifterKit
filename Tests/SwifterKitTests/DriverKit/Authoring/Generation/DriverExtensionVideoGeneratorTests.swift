@@ -47,9 +47,7 @@ struct VideoGeneratorTests {
     #expect(service.contains("StartVideo"))
     #expect(service.contains("VideoCommand"))
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOUserVideoDriverUserClientProperties"] != nil)
 
     let entitlements = try loadPropertyList(

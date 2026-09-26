@@ -5,11 +5,10 @@ import Testing
 
 @Suite
 struct RuntimeSchemaTests {
-  /// The checked-in native header, located relative to this file so the test runs on any host.
-  private static let headerURL = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { url, _ in
-    url.deletingLastPathComponent()  // Runtime, DriverKit, SwifterKitTests, Tests, package root.
-  }.appendingPathComponent("Sources/SwifterKit/Resources/DriverKitExtension/Sources")
-    .appendingPathComponent(RuntimeSchemaHeader.fileName)
+  /// The checked-in native header.
+  private static let headerURL = checkedInNativeSources.appendingPathComponent(
+    RuntimeSchemaHeader.fileName
+  )
 
   @Test
   func checkedInNativeHeaderMatchesSchema() throws {

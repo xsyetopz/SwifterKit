@@ -44,9 +44,7 @@ struct HIDEventServiceGeneratorTests {
       at: output
     )
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOClass"] as? String == "AppleUserHIDEventService")
     #expect(personality["IOProviderClass"] as? String == "IOHIDInterface")
     #expect(personality["CFBundleIdentifierKernel"] as? String == "com.apple.iokit.IOHIDFamily")
@@ -175,9 +173,5 @@ struct HIDEventServiceGeneratorTests {
         at: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
       )
     }
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(contentsOf: output.appendingPathComponent("Sources/\(name)"), encoding: .utf8)
   }
 }

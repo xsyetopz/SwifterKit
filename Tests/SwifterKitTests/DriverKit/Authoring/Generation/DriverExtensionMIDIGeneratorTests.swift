@@ -27,9 +27,7 @@ struct MIDIGeneratorTests {
       at: output
     )
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     let midiClient = try #require(
       personality["IOUserMIDIDriverUserClientProperties"] as? [String: Any]
     )

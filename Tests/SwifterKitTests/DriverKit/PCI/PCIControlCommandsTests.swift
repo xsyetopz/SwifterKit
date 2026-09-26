@@ -93,10 +93,9 @@ struct PCIControlCommandsTests {
 
   @Test
   func nativeUserClientDispatchesEveryPCIOpcode() throws {
-    let userClient = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { url, _ in
-      url.deletingLastPathComponent()  // PCI, DriverKit, SwifterKitTests, Tests, package root.
-    }.appendingPathComponent("Sources/SwifterKit/Resources/DriverKitExtension/Sources")
-      .appendingPathComponent("SwifterKitRuntimeCommandDispatch.cpp")
+    let userClient = checkedInNativeSources.appendingPathComponent(
+      "SwifterKitRuntimeCommandDispatch.cpp"
+    )
     let source = try String(contentsOf: userClient, encoding: .utf8)
     // Native opcode names are the schema's, e.g. `PCIReset` for `RuntimeOpcode.pciReset`.
     let names = RuntimeOpcode.allCases.filter { $0.rawValue >> 8 == 0x04 }.map {

@@ -7,6 +7,24 @@ import Testing
 struct DriverExtensionRuntimeContractTests {
   private static let bundleIdentifier = "com.example.contract-block"
 
+  /// A PCI block-storage extension, which enables the shared request and event paths.
+  static func configuration(bundleIdentifier: String) -> DriverConfiguration {
+    DriverConfiguration(
+      bundleIdentifier: bundleIdentifier,
+      providerClass: "IOPCIDevice",
+      capabilities: [.blockStorage, .pci],
+      pciDevice: PCIDeviceConfiguration(vendorID: 0x1234, deviceIDs: [0x5678]),
+      blockStorageDevice: BlockStorageDeviceConfiguration(
+        blockCount: 1_048_576,
+        blockSize: 4_096,
+        maximumIOSize: 1_048_576,
+        vendor: "Example",
+        product: "Contract Storage",
+        revision: "1.0"
+      )
+    )
+  }
+
   @Test
   func commandDispatchNamesEveryOpcodeWithoutADefault() throws {
     try withGeneratedExtension { output in
@@ -177,43 +195,10 @@ struct DriverExtensionRuntimeContractTests {
   }
 
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      UUID().uuidString,
-      isDirectory: true
-    )
-    defer { try? FileManager.default.removeItem(at: root) }
-    let output = root.appendingPathComponent("ContractDriver", isDirectory: true)
-    try DriverExtensionGenerator.generate(
-      configuration: DriverConfiguration(
-        bundleIdentifier: Self.bundleIdentifier,
-        providerClass: "IOPCIDevice",
-        capabilities: [.blockStorage, .pci],
-        pciDevice: PCIDeviceConfiguration(vendorID: 0x1234, deviceIDs: [0x5678]),
-        blockStorageDevice: BlockStorageDeviceConfiguration(
-          blockCount: 1_048_576,
-          blockSize: 4_096,
-          maximumIOSize: 1_048_576,
-          vendor: "Example",
-          product: "Contract Storage",
-          revision: "1.0"
-        )
-      ),
-      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0"),
-      at: output
-    )
-    try body(output)
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
-    )
-  }
-
-  private func section(of text: String, from start: String, to end: String) throws -> Substring {
-    let lower = try #require(text.range(of: start)?.lowerBound)
-    let upper = try #require(text.range(of: end, range: lower..<text.endIndex)?.lowerBound)
-    return text[lower..<upper]
+    try withTemporaryExtension(
+      named: "ContractDriver",
+      configuration: Self.configuration(bundleIdentifier: Self.bundleIdentifier),
+      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0")
+    ) { output, _ in try body(output) }
   }
 }

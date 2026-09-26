@@ -40,9 +40,7 @@ struct SCSIPeripheralGeneratorTests {
     #expect(entitlements["com.apple.developer.driverkit"] as? Bool == true)
     #expect(entitlements["com.apple.developer.driverkit.family.scsicontroller"] == nil)
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOMaximumBlockCountRead"] as? UInt64 == 128)
     #expect(personality["IOMaximumByteCountWrite"] as? UInt64 == 65_536)
     #expect(personality["IOMinimumSegmentAlignmentByteCount"] as? UInt64 == 4)

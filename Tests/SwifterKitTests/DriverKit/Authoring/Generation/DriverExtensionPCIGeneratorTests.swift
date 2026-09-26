@@ -172,29 +172,9 @@ struct DriverExtensionPCIGeneratorTests {
   }
 
   private func packagedSource(_ name: String) throws -> String {
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      UUID().uuidString,
-      isDirectory: true
-    )
-    defer { try? FileManager.default.removeItem(at: root) }
-    let output = root.appendingPathComponent("ContractPCIDriver", isDirectory: true)
-    try DriverExtensionGenerator.generate(
-      configuration: configuration(interrupts: PCIInterruptConfiguration(type: .msiX)),
-      at: output
-    )
-    return try source(name, in: output)
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
-    )
-  }
-
-  private func section(of text: String, from start: String, to end: String) throws -> Substring {
-    let lower = try #require(text.range(of: start)?.lowerBound)
-    let upper = try #require(text.range(of: end, range: lower..<text.endIndex)?.lowerBound)
-    return text[lower..<upper]
+    try withTemporaryExtension(
+      named: "ContractPCIDriver",
+      configuration: configuration(interrupts: PCIInterruptConfiguration(type: .msiX))
+    ) { output, _ in try source(name, in: output) }
   }
 }

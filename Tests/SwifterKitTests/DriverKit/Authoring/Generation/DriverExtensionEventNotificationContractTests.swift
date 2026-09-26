@@ -228,11 +228,11 @@ struct DriverExtensionEventNotificationContractTests {
       "void DetachEventClient(IOService* client) LOCALONLY;",
     ]
     let checkedIn = try String(
-      contentsOf: Self.nativeSources.appendingPathComponent("SwifterKitRuntimeService.iig"),
+      contentsOf: checkedInNativeSources.appendingPathComponent("SwifterKitRuntimeService.iig"),
       encoding: .utf8
     )
     let userClient = try String(
-      contentsOf: Self.nativeSources.appendingPathComponent("SwifterKitRuntimeUserClient.iig"),
+      contentsOf: checkedInNativeSources.appendingPathComponent("SwifterKitRuntimeUserClient.iig"),
       encoding: .utf8
     )
     #expect(userClient.contains("void NotifyEventsPending() LOCALONLY;"))
@@ -268,62 +268,13 @@ struct DriverExtensionEventNotificationContractTests {
     #expect(scsi.contains("void StopSCSI() LOCALONLY;"))
   }
 
-  /// The checked-in native sources, located relative to this file: the six parents are
-  /// Generation, Authoring, DriverKit, SwifterKitTests, Tests, and the package root.
-  private static let nativeSources = (0..<6).reduce(URL(fileURLWithPath: #filePath)) { url, _ in
-    url.deletingLastPathComponent()
-  }.appendingPathComponent("Sources/SwifterKit/Resources/DriverKitExtension/Sources")
-
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      UUID().uuidString,
-      isDirectory: true
-    )
-    defer { try? FileManager.default.removeItem(at: root) }
-    let output = root.appendingPathComponent("NotificationDriver", isDirectory: true)
-    try DriverExtensionGenerator.generate(
-      configuration: DriverConfiguration(
-        bundleIdentifier: "com.example.contract-notification",
-        providerClass: "IOPCIDevice",
-        capabilities: [.blockStorage, .pci],
-        pciDevice: PCIDeviceConfiguration(vendorID: 0x1234, deviceIDs: [0x5678]),
-        blockStorageDevice: BlockStorageDeviceConfiguration(
-          blockCount: 1_048_576,
-          blockSize: 4_096,
-          maximumIOSize: 1_048_576,
-          vendor: "Example",
-          product: "Contract Storage",
-          revision: "1.0"
-        )
+    try withTemporaryExtension(
+      named: "NotificationDriver",
+      configuration: DriverExtensionRuntimeContractTests.configuration(
+        bundleIdentifier: "com.example.contract-notification"
       ),
-      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0"),
-      at: output
-    )
-    try body(output)
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
-    )
-  }
-
-  private func section(of text: String, from start: String, to end: String) throws -> Substring {
-    let lower = try #require(text.range(of: start)?.lowerBound)
-    let upper = try #require(text.range(of: end, range: lower..<text.endIndex)?.lowerBound)
-    return text[lower..<upper]
-  }
-
-  /// Requires each fragment to appear, in order, within `text`.
-  private func expectOrder(in text: Substring, _ fragments: String...) throws {
-    var cursor = text.startIndex
-    for fragment in fragments {
-      let range = try #require(
-        text.range(of: fragment, range: cursor..<text.endIndex),
-        "\(fragment) is missing or out of order"
-      )
-      cursor = range.upperBound
-    }
+      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0")
+    ) { output, _ in try body(output) }
   }
 }

@@ -115,13 +115,8 @@ struct ServiceReportingContractTests {
     _ reporting: ReportingConfiguration?,
     _ body: (URL, URL) throws -> Void
   ) throws {
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      UUID().uuidString,
-      isDirectory: true
-    )
-    defer { try? FileManager.default.removeItem(at: root) }
-    let output = root.appendingPathComponent("ReportingDriver", isDirectory: true)
-    try DriverExtensionGenerator.generate(
+    try withTemporaryExtension(
+      named: "ReportingDriver",
       configuration: DriverConfiguration(
         bundleIdentifier: "com.example.contract-reporting",
         providerClass: "IOUserResources",
@@ -129,16 +124,7 @@ struct ServiceReportingContractTests {
         capabilities: [],
         reporting: reporting
       ),
-      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0"),
-      at: output
-    )
-    try body(output, root)
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
-    )
+      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0")
+    ) { output, root in try body(output, root) }
   }
 }

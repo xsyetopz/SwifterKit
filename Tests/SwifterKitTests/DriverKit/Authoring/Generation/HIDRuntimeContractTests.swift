@@ -181,33 +181,13 @@ struct HIDRuntimeContractTests {
   }
 
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      UUID().uuidString,
-      isDirectory: true
-    )
-    defer { try? FileManager.default.removeItem(at: root) }
-    let output = root.appendingPathComponent("HIDContract", isDirectory: true)
-    try DriverExtensionGenerator.generate(
+    try withTemporaryExtension(
+      named: "HIDContract",
       configuration: HIDEventServiceGeneratorTests.eventConfiguration(
         .eventDriver(categories: .all)
       ),
-      options: HIDEventServiceGeneratorTests.options,
-      at: output
-    )
-    try body(output)
-  }
-
-  private func source(_ name: String, in output: URL) throws -> String {
-    try String(
-      contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
-      encoding: .utf8
-    )
-  }
-
-  private func section(of text: String, from start: String, to end: String) throws -> Substring {
-    let lower = try #require(text.range(of: start)?.lowerBound)
-    let upper = try #require(text.range(of: end, range: lower..<text.endIndex)?.lowerBound)
-    return text[lower..<upper]
+      options: HIDEventServiceGeneratorTests.options
+    ) { output, _ in try body(output) }
   }
 
   @Test

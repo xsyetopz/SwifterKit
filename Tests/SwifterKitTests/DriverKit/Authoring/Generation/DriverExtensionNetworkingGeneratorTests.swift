@@ -24,9 +24,7 @@ struct NetworkingGeneratorTests {
       at: output
     )
 
-    let info = try loadPropertyList(at: output.appendingPathComponent("Info.plist"))
-    let personalities = try #require(info["IOKitPersonalities"] as? [String: Any])
-    let personality = try #require(personalities["SwiftDriver"] as? [String: Any])
+    let personality = try loadDriverPersonality(in: output)
     #expect(personality["CFBundleIdentifierKernel"] as? String == "com.apple.iokit.IOSkywalkFamily")
     let entitlements = try loadPropertyList(
       at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
