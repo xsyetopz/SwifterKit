@@ -253,7 +253,7 @@ extension DriverContext {
     direction: DriverMemoryDirection
   ) async throws -> DriverMemoryHandle {
     try await DriverMemoryHandle(
-      runtimePayload: execute(
+      runtimePayload: executeMemory(
         .memorySubrange(handle, offset: offset, length: length, direction: direction)
       )
     )
@@ -272,7 +272,7 @@ extension DriverContext {
     direction: DriverMemoryDirection
   ) async throws -> DriverMemoryHandle {
     try await DriverMemoryHandle(
-      runtimePayload: execute(.memoryChain(handles, direction: direction))
+      runtimePayload: executeMemory(.memoryChain(handles, direction: direction))
     )
   }
 
@@ -281,15 +281,12 @@ extension DriverContext {
   /// Throws ``DriverMemoryError/inUse`` and releases nothing while a subrange or chain built
   /// from `handle` exists; release those first.
   public func releaseMemory(_ handle: DriverMemoryHandle) async throws {
-    do { _ = try await execute(.releaseMemory(handle)) } catch let error as DriverKitError {
-      guard error.kind == .ioReturn(RuntimeMemoryStatus.inUse.ioReturn) else { throw error }
-      throw DriverMemoryError.inUse
-    }
+    _ = try await executeMemory(.releaseMemory(handle), mapping: [.inUse, .notOwner])
   }
 
   /// Changes a native buffer's valid-data length.
   public func setMemoryLength(_ handle: DriverMemoryHandle, length: UInt64) async throws {
-    _ = try await execute(.setMemoryLength(handle, length: length))
+    _ = try await executeMemory(.setMemoryLength(handle, length: length))
   }
 
   /// Reads bytes from a mapped native buffer.
@@ -298,16 +295,16 @@ extension DriverContext {
     offset: UInt64,
     length: UInt32
   ) async throws -> [UInt8] {
-    Array(try await execute(.readMemory(handle, offset: offset, length: length)))
+    Array(try await executeMemory(.readMemory(handle, offset: offset, length: length)))
   }
 
   /// Writes bytes into a mapped native buffer.
   public func writeMemory(_ handle: DriverMemoryHandle, offset: UInt64, bytes: [UInt8]) async throws
-  { _ = try await execute(.writeMemory(handle, offset: offset, bytes: bytes)) }
+  { _ = try await executeMemory(.writeMemory(handle, offset: offset, bytes: bytes)) }
 
   /// Returns current native buffer metadata.
   public func memoryInfo(_ handle: DriverMemoryHandle) async throws -> DriverMemoryInfo {
-    try await DriverMemoryInfo(runtimePayload: execute(.memoryInfo(handle)))
+    try await DriverMemoryInfo(runtimePayload: executeMemory(.memoryInfo(handle)))
   }
 
   /// Prepares a native buffer range for device DMA.
@@ -318,7 +315,7 @@ extension DriverContext {
     maximumAddressBits: UInt32 = 64
   ) async throws -> DriverDMAMapping {
     try await DriverDMAMapping(
-      runtimePayload: execute(
+      runtimePayload: executeMemory(
         .prepareMemoryForDMA(
           handle,
           offset: offset,
@@ -331,6 +328,32 @@ extension DriverContext {
 
   /// Completes a native buffer's prepared DMA mapping.
   public func completeMemoryDMA(_ handle: DriverMemoryHandle) async throws {
-    _ = try await execute(.completeMemoryDMA(handle))
+    _ = try await executeMemory(.completeMemoryDMA(handle))
+  }
+}
+
+extension DriverContext {
+  /// Runs a memory command that names a handle, throwing an answer among `statuses` as its
+  /// ``DriverMemoryError`` case.
+  func executeMemory(
+    _ command: DriverCommand,
+    mapping statuses: [RuntimeMemoryStatus] = [.notOwner]
+  ) async throws -> Data {
+    do { return try await execute(command) } catch let error as DriverKitError {
+      if let typed = DriverMemoryError(error, among: statuses) { throw typed }
+      throw error
+    }
+  }
+}
+
+extension DriverMemoryError {
+  /// The typed error for `error` when it reports one of `statuses`.
+  init?(_ error: DriverKitError, among statuses: [RuntimeMemoryStatus]) {
+    let status = statuses.first { error.kind == .ioReturn($0.ioReturn) }
+    switch status {
+    case .inUse: self = .inUse
+    case .notOwner: self = .notOwner
+    case nil: return nil
+    }
   }
 }

@@ -11,10 +11,12 @@ import Foundation
 /// so unmap any ``DriverSharedMemory`` from ``DriverContext/mapMemory(_:)`` of the handle, or of
 /// a subrange or chain built from it, before releasing it: that mapping outlives the release.
 /// A wrap whose handle was never released, including one outstanding when its connection
-/// closed, keeps the pages allocated for the life of the process: the extension keeps its
-/// entry after the host detaches, until the handle is released or the service stops, and the
-/// host cannot observe the stop. Accesses through ``withUnsafeMutableBytes(_:)`` race with the
-/// device like any shared DMA memory, so order them with the device's own protocol.
+/// closed, keeps the pages allocated for the life of the process. The extension releases the
+/// entry when DriverKit stops the connection's user client, but that stop runs after the close
+/// returns and the host has no way to observe it, so freeing the pages at close could hand
+/// memory the extension or device still describes back to the allocator. Accesses through
+/// ``withUnsafeMutableBytes(_:)`` race with the device like any shared DMA memory, so order them
+/// with the device's own protocol.
 public final class DriverHostMemory: @unchecked Sendable {
   /// The allocation's first byte, on a page boundary.
   private let base: UnsafeMutableRawPointer

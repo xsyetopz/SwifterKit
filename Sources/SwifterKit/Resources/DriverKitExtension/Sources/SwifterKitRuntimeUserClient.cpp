@@ -146,8 +146,14 @@ auto SwifterKitRuntimeUserClient::Start_Impl(IOService* provider) -> kern_return
 
 auto SwifterKitRuntimeUserClient::Stop_Impl(IOService* provider) -> kern_return_t {
     if (ivars != nullptr) {
-        // Detaching answers the requests this host can no longer complete.
+        // Stop runs on the queue ExternalMethod runs on, so no command from this host is in
+        // flight. The host's wrapped memory is released first, compositions before sources, and
+        // dropping the service afterward refuses any later command, so no wrap can follow.
+        // Detaching then answers the requests this host can no longer complete.
         if (ivars->service != nullptr) {
+#if SWIFTERKIT_ENABLE_MEMORY
+            ivars->service->ReleaseClientMemory(this);
+#endif
             ivars->service->DetachEventClient(this);
         }
         if (ivars->actionLock != nullptr) {
@@ -204,5 +210,5 @@ auto SwifterKitRuntimeUserClient::CopyClientMemoryForType_Impl(
     if (ivars == nullptr || ivars->service == nullptr) {
         return kIOReturnNotReady;
     }
-    return ivars->service->CopyClientMemory(type, options, memory);
+    return ivars->service->CopyClientMemory(this, type, options, memory);
 }

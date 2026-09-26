@@ -30,6 +30,9 @@ enum RuntimeMemoryLimits {
 enum RuntimeMemoryStatus: UInt32, CaseIterable {
   /// A release names an entry that a subrange or chain still uses: `kIOReturnBusy`.
   case inUse = 0xE000_02D5
+  /// A command or host mapping names wrapped host memory, or a subrange or chain built from it,
+  /// that another user client wrapped: `kIOReturnNotPermitted`.
+  case notOwner = 0xE000_02E2
 
   /// The status as the transport reports it in ``DriverKitError/Kind/ioReturn(_:)``.
   var ioReturn: Int32 { Int32(bitPattern: rawValue) }

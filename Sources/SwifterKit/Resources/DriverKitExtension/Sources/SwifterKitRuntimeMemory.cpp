@@ -19,6 +19,17 @@
 // Swift maps this status to DriverMemoryError.inUse.
 static_assert(
     static_cast<uint32_t>(SwifterKitMemoryStatus::InUse) == static_cast<uint32_t>(kIOReturnBusy));
+// Swift maps this status to DriverMemoryError.notOwner.
+static_assert(
+    static_cast<uint32_t>(SwifterKitMemoryStatus::NotOwner)
+    == static_cast<uint32_t>(kIOReturnNotPermitted));
+
+// Ownership: wrapped host memory belongs to the user client that wrapped it, and a subrange or
+// chain with an owned source belongs to that client too, so every dependent of an owned entry
+// has its owner. Commands and host mappings from any other client answer kIOReturnNotPermitted.
+// The owner's Stop, or ClientCrashed, releases its entries leaves first; entries without an
+// owner stay until MemoryRelease or StopMemory. `owner` is compared, never dereferenced or
+// retained: the client's Stop clears it before the client can be freed.
 
 namespace {
     constexpr uint32_t kMaximumMemoryEntries = 64;
@@ -43,6 +54,11 @@ namespace {
     private:
         IOLock* lock_;
     };
+
+    // Whether `entry` belongs to a user client other than `client`.
+    bool IsForeign(const SwifterKitMemoryEntry* entry, const IOService* client) {
+        return entry->owner != nullptr && entry->owner != client;
+    }
 
     SwifterKitMemoryEntry* FindMemory(SwifterKitRuntimeService_IVars* state, uint64_t handle) {
         if (state == nullptr || handle == 0) {
@@ -110,6 +126,28 @@ namespace {
         *entry = {};
     }
 
+    // Releases the entries `matches` selects, leaves first: every pass releases the selected
+    // entries nothing composes, which frees their sources for the next pass. Composition names
+    // only existing entries, so a selected entry always has a leaf below it; the final sweep
+    // releases whatever selected entries remain regardless of dependents.
+    template<typename Matches>
+    void ReleaseLeavesFirst(SwifterKitRuntimeService_IVars* state, Matches matches) {
+        for (bool released = true; released;) {
+            released = false;
+            for (auto& entry : state->memoryEntries) {
+                if (entry.handle != 0 && entry.dependents == 0 && matches(entry)) {
+                    ReleaseMemoryEntry(state, &entry);
+                    released = true;
+                }
+            }
+        }
+        for (auto& entry : state->memoryEntries) {
+            if (matches(entry)) {
+                ReleaseMemoryEntry(state, &entry);
+            }
+        }
+    }
+
     SwifterKitMemoryEntry* FreeMemoryEntry(SwifterKitRuntimeService_IVars* state) {
         // The configured buffer limit can be below the entry array's extent.
         // NOLINTNEXTLINE(modernize-loop-convert)
@@ -159,12 +197,13 @@ namespace {
         return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
     }
 
-    // Finishes a subrange or chain whose creation returned `result` into `entry->composed`:
-    // retains the sources and counts the entry as their dependent, maps the result into the
-    // extension when DriverKit can, and answers with the new handle. Any failure leaves the entry
-    // free and the sources' counts as they were.
+    // Finishes a subrange, chain, or wrap whose creation returned `result` into
+    // `entry->composed`: retains the sources and counts the entry as their dependent, maps the
+    // result into the extension when DriverKit can, records `owner`, and answers with the new
+    // handle. Any failure leaves the entry free and the sources' counts as they were.
     kern_return_t FinishComposedEntry(
         SwifterKitRuntimeService_IVars* state,
+        const IOService* owner,
         SwifterKitMemoryEntry* entry,
         kern_return_t result,
         IOMemoryDescriptor* const* sources,
@@ -199,6 +238,7 @@ namespace {
             || entry->map == nullptr || entry->map->GetAddress() == 0) {
             OSSafeReleaseNULL(entry->map);
         }
+        entry->owner = owner;
         AssignMemoryHandle(state, entry);
         entry->capacity = length;
         entry->length = length;
@@ -213,6 +253,7 @@ namespace {
     // Opcode MemorySubrange: a new entry for part of an existing entry's valid bytes.
     kern_return_t CreateMemorySubrange(
         SwifterKitRuntimeService_IVars* state,
+        const IOService* client,
         const uint8_t* payload,
         uint32_t payloadLength,
         OSData** response) {
@@ -226,6 +267,9 @@ namespace {
         const SwifterKitMemoryEntry* source = FindMemory(state, header->handle);
         if (source == nullptr) {
             return kIOReturnNotFound;
+        }
+        if (IsForeign(source, client)) {
+            return kIOReturnNotPermitted;
         }
         if (!RangeIsValid(header->offset, header->length, source->length)
             || !DirectionIsWithin(header->direction, source)) {
@@ -247,6 +291,7 @@ namespace {
         }
         return FinishComposedEntry(
             state,
+            source->owner,
             entry,
             result,
             sources,
@@ -259,6 +304,7 @@ namespace {
     // Opcode MemoryChain: a new entry that concatenates the valid bytes of 1...32 entries.
     kern_return_t CreateMemoryChain(
         SwifterKitRuntimeService_IVars* state,
+        const IOService* client,
         const uint8_t* payload,
         uint32_t payloadLength,
         OSData** response) {
@@ -275,6 +321,7 @@ namespace {
             return kIOReturnBadArgument;
         }
         IOMemoryDescriptor* sources[kSwifterKitMemoryMaximumChainLength] = {};
+        const IOService* owner = nullptr;
         uint64_t length = 0;
         for (uint32_t index = 0; index < count; ++index) {
             uint64_t handle = 0;
@@ -282,6 +329,12 @@ namespace {
             const SwifterKitMemoryEntry* source = FindMemory(state, handle);
             if (source == nullptr) {
                 return kIOReturnNotFound;
+            }
+            if (IsForeign(source, client)) {
+                return kIOReturnNotPermitted;
+            }
+            if (source->owner != nullptr) {
+                owner = source->owner;
             }
             if (!DirectionIsWithin(header->direction, source) || source->length == 0
                 || source->length > UINT64_MAX - length) {
@@ -304,6 +357,7 @@ namespace {
         }
         return FinishComposedEntry(
             state,
+            owner,
             entry,
             result,
             sources,
@@ -319,8 +373,7 @@ namespace {
 // takes a buffer slot but none of the byte budget, which counts only buffers the extension
 // allocates; its length is fixed. The descriptor references the host's pages, so the host must
 // keep them allocated until it releases the entry, which answers kIOReturnBusy while a subrange
-// or chain still uses it. A host detach does not release entries; only MemoryRelease and
-// StopMemory do.
+// or chain still uses it. `client` owns the entry: see Ownership above.
 kern_return_t SwifterKitRuntimeService::WrapClientMemory(
     IOUserClient* client,
     const uint8_t* payload,
@@ -373,6 +426,7 @@ kern_return_t SwifterKitRuntimeService::WrapClientMemory(
     }
     return FinishComposedEntry(
         ivars,
+        client,
         entry,
         result,
         nullptr,
@@ -383,6 +437,7 @@ kern_return_t SwifterKitRuntimeService::WrapClientMemory(
 }
 
 kern_return_t SwifterKitRuntimeService::CopyMemoryForClient(
+    IOService* client,
     uint64_t handle,
     IOMemoryDescriptor** memory) {
     if (memory == nullptr || ivars == nullptr || ivars->memoryLock == nullptr) {
@@ -395,6 +450,9 @@ kern_return_t SwifterKitRuntimeService::CopyMemoryForClient(
     const SwifterKitMemoryEntry* entry = FindMemory(ivars, handle);
     if (entry == nullptr) {
         return kIOReturnBadArgument;
+    }
+    if (IsForeign(entry, client)) {
+        return kIOReturnNotPermitted;
     }
     // DriverKit consumes this reference; the entry keeps its own.
     IOMemoryDescriptor* descriptor = EntryMemory(entry);
@@ -425,26 +483,30 @@ void SwifterKitRuntimeService::StopMemory() {
         return;
     }
     const MemoryLockGuard guard(ivars->memoryLock);
-    // Leaves first: every pass releases the entries nothing composes, which frees their sources
-    // for the next pass. Composition names only existing entries, so a live entry always has a
-    // leaf below it; the final sweep releases whatever remains regardless of dependents.
-    for (bool released = true; released;) {
-        released = false;
-        for (auto& entry : ivars->memoryEntries) {
-            if (entry.handle != 0 && entry.dependents == 0) {
-                ReleaseMemoryEntry(ivars, &entry);
-                released = true;
-            }
-        }
-    }
-    for (auto& entry : ivars->memoryEntries) {
-        ReleaseMemoryEntry(ivars, &entry);
-    }
+    ReleaseLeavesFirst(ivars, [](const SwifterKitMemoryEntry&) { return true; });
     OSSafeReleaseNULL(ivars->memoryProvider);
     ivars->allocatedMemory = 0;
 }
 
+// Releases the entries `client` owns, compositions before their sources, completing any DMA
+// prepared on them. The runtime user client calls this from Stop, on the queue its
+// ExternalMethod runs on, before it drops the service: no command from that client runs
+// concurrently and none reaches the service afterward, so no wrap can follow the release.
+// ClientCrashed calls it earlier from the service's queue; memoryLock serializes the two, and a
+// second call, or one after StopMemory, finds nothing to release. memoryLock is taken on its
+// own, never inside eventLock, so detaching events after this cannot invert the lock order.
+void SwifterKitRuntimeService::ReleaseClientMemory(IOService* client) {
+    if (client == nullptr || ivars == nullptr || ivars->memoryLock == nullptr) {
+        return;
+    }
+    const MemoryLockGuard guard(ivars->memoryLock);
+    ReleaseLeavesFirst(ivars, [client](const SwifterKitMemoryEntry& entry) {
+        return entry.owner == client;
+    });
+}
+
 kern_return_t SwifterKitRuntimeService::MemoryCommand(
+    const IOService* client,
     uint32_t opcode,
     const uint8_t* payload,
     uint32_t payloadLength,
@@ -524,6 +586,9 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             if (entry == nullptr) {
                 return kIOReturnNotFound;
             }
+            if (IsForeign(entry, client)) {
+                return kIOReturnNotPermitted;
+            }
             if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::MemoryRelease)) {
                 // A subrange or chain still describes this memory: release it first.
                 if (entry->dependents != 0) {
@@ -560,6 +625,9 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             if (entry == nullptr) {
                 return kIOReturnNotFound;
             }
+            if (IsForeign(entry, client)) {
+                return kIOReturnNotPermitted;
+            }
             if (entry->descriptor == nullptr) {
                 return kIOReturnUnsupported;
             }
@@ -589,6 +657,9 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             if (entry == nullptr) {
                 return kIOReturnNotFound;
             }
+            if (IsForeign(entry, client)) {
+                return kIOReturnNotPermitted;
+            }
             if (!RangeIsValid(header->offset, header->length, entry->length)) {
                 return kIOReturnBadArgument;
             }
@@ -612,6 +683,9 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             SwifterKitMemoryEntry* entry = FindMemory(ivars, header->handle);
             if (entry == nullptr) {
                 return kIOReturnNotFound;
+            }
+            if (IsForeign(entry, client)) {
+                return kIOReturnNotPermitted;
             }
             const uint64_t length = header->length == 0 && header->offset <= entry->length
                                         ? entry->length - header->offset
@@ -670,9 +744,9 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             return kIOReturnSuccess;
         }
         case SwifterKitRuntimeOpcode::MemorySubrange:
-            return CreateMemorySubrange(ivars, payload, payloadLength, response);
+            return CreateMemorySubrange(ivars, client, payload, payloadLength, response);
         case SwifterKitRuntimeOpcode::MemoryChain:
-            return CreateMemoryChain(ivars, payload, payloadLength, response);
+            return CreateMemoryChain(ivars, client, payload, payloadLength, response);
         default:
             return kIOReturnUnsupported;
     }

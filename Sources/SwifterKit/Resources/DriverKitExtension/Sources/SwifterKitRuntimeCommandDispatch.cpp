@@ -203,6 +203,7 @@ namespace {
                       context.payloadLength,
                       &response)
                 : context.service->MemoryCommand(
+                      context.client,
                       context.opcode,
                       context.payload,
                       context.payloadLength,

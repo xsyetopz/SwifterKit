@@ -7,8 +7,8 @@ SwifterKit records user-visible changes in this file.
 ### Changed
 
 - **Breaking:** `DriverMemoryError` gains `invalidSegmentCount`,
-  `invalidSegment`, and `inUse`, so exhaustive switches over it must handle the
-  new cases.
+  `invalidSegment`, `inUse`, and `notOwner`, so exhaustive switches over it
+  must handle the new cases.
 - **Breaking:** `FastPathOp` gains `ringLoad`, `ringStore`, and `ringAdvance`;
   `FastPathOperand` gains `ringDeviceAddress` and `ringIndex`; `FastPathError`
   gains `tooManyRings`, `invalidRing`, `duplicateRing`, `ringBytesExceeded`,
@@ -298,9 +298,18 @@ SwifterKit records user-visible changes in this file.
   extension. `DriverHostMemory` allocates zeroed, page-aligned host memory;
   after `wrap(in:direction:)` the runtime connection holds it until
   `releaseMemory(_:)` succeeds for the handle, and the last reference frees
-  the pages once that release has succeeded. A wrap still unreleased when its
-  connection closes keeps its pages for the life of the process, because the
-  extension keeps its memory entries after the host detaches.
+  the pages once that release has succeeded. Wrapped memory belongs to the
+  runtime connection that wrapped it: every command from another connection
+  that names it, or a subrange or chain built from it, fails with
+  `DriverMemoryError.notOwner` (`kIOReturnNotPermitted`), the extension
+  refuses such a connection's `mapMemory(_:)` of it (the kernel reports
+  `kIOReturnBadArgument`), and such a subrange or chain belongs to the
+  wrapping connection too. When that
+  connection's user client stops or crashes, the extension releases its
+  entries, compositions before their sources, and completes any DMA prepared
+  on them. That stop runs after the host's close returns and the host cannot
+  observe it, so a wrap still unreleased when its connection closes keeps its
+  pages for the life of the process.
 - Fast-path rings: `FastPathConfiguration.rings` declares up to eight
   `FastPathRing` values (power-of-two entry sizes of 8-4096 bytes and counts
   of 2-65536, at most 4 MiB together, PCI device required). At fast-path start

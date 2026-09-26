@@ -38,7 +38,7 @@ struct ClientMemoryRuntimeContractTests {
       in: copy,
       "if (ivars == nullptr || ivars->service == nullptr) {",
       "return kIOReturnNotReady;",
-      "return ivars->service->CopyClientMemory(type, options, memory);"
+      "return ivars->service->CopyClientMemory(this, type, options, memory);"
     )
     #expect(copy.components(separatedBy: "return ").count == 3)
   }
@@ -61,7 +61,7 @@ struct ClientMemoryRuntimeContractTests {
       "kern_return_t result = kIOReturnBadArgument;",
       "SwifterKitClientMemoryKind::MemoryBuffer",
       "if (identifier != 0) {",
-      "result = CopyMemoryForClient(identifier, memory);",
+      "result = CopyMemoryForClient(client, identifier, memory);",
       "SwifterKitClientMemoryKind::PacketPool",
       "readOnly = true;",
       "result = CopyPacketPoolMemory(identifier, memory);",
@@ -128,20 +128,27 @@ struct ClientMemoryRuntimeContractTests {
     let stop = try section(
       of: memory,
       from: "void SwifterKitRuntimeService::StopMemory() {",
-      to: "kern_return_t SwifterKitRuntimeService::MemoryCommand("
+      to: "\n}\n"
     )
     try expectOrder(
       in: stop,
       "const MemoryLockGuard guard(ivars->memoryLock);",
-      "for (bool released = true; released;) {",
-      "if (entry.handle != 0 && entry.dependents == 0) {",
-      "ReleaseMemoryEntry(ivars, &entry);",
-      "released = true;",
-      "for (auto& entry : ivars->memoryEntries) {",
-      "ReleaseMemoryEntry(ivars, &entry);",
+      "ReleaseLeavesFirst(ivars, [](const SwifterKitMemoryEntry&) { return true; });",
       "OSSafeReleaseNULL(ivars->memoryProvider);"
     )
-    // A host detach leaves memory entries to MemoryRelease and StopMemory.
+    let leaves = try section(of: memory, from: "void ReleaseLeavesFirst(", to: "\n    }\n\n")
+    try expectOrder(
+      in: leaves,
+      "for (bool released = true; released;) {",
+      "if (entry.handle != 0 && entry.dependents == 0 && matches(entry)) {",
+      "ReleaseMemoryEntry(state, &entry);",
+      "released = true;",
+      "for (auto& entry : state->memoryEntries) {",
+      "if (matches(entry)) {",
+      "ReleaseMemoryEntry(state, &entry);"
+    )
+    // Detaching events takes no memory lock under eventLock; the user client's Stop releases
+    // the host's wrapped memory first, as ClientMemoryOwnershipContractTests checks.
     let events = try Self.checkedIn("SwifterKitRuntimeEvents.cpp")
     let detach = try section(
       of: events,
@@ -167,7 +174,7 @@ struct ClientMemoryRuntimeContractTests {
     ) { output, root in
       let service = try source("SwifterKitRuntimeService.iig", in: output)
       #expect(service.contains("kern_return_t CopyClientMemory("))
-      #expect(service.contains("kern_return_t CopyMemoryForClient(uint64_t handle,"))
+      #expect(service.contains("kern_return_t CopyMemoryForClient(\n        IOService* client,"))
       #expect(service.contains("kern_return_t WrapClientMemory(\n        IOUserClient* client,"))
       let memory = try source("SwifterKitRuntimeMemory.cpp", in: output)
       // The wrap checks every segment before it takes the lock, describes the calling client's

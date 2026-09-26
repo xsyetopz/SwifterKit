@@ -6,7 +6,9 @@ extension DriverContext {
   /// The mapping reads and writes the same memory the extension and device use; see
   /// ``DriverSharedMemory`` for bounds, byte order, and unmapping. It keeps the memory alive
   /// after ``releaseMemory(_:)`` until it is unmapped, and ends when the runtime connection
-  /// closes. Mapping a handle again while its mapping is live returns the same instance.
+  /// closes. Mapping a handle again while its mapping is live returns the same instance. The
+  /// extension refuses memory another connection wrapped; `IOConnectMapMemory64` reports every
+  /// refused mapping as `kIOReturnBadArgument`.
   public func mapMemory(_ handle: DriverMemoryHandle) async throws -> DriverSharedMemory {
     guard handle.rawValue != 0,
       let type = RuntimeClientMemoryType(kind: .memoryBuffer, identifier: handle.rawValue)
@@ -85,10 +87,18 @@ extension DriverContext {
   ///
   /// The memory must stay allocated, and must not be unmapped or reused, until
   /// ``releaseMemory(_:)`` succeeds for this handle, which it refuses with
-  /// ``DriverMemoryError/inUse`` while a subrange or chain built from it exists. The extension
-  /// keeps the entry after this process's connection closes.
-  /// ``DriverHostMemory/wrap(in:direction:)`` keeps its allocation alive for that long. A
+  /// ``DriverMemoryError/inUse`` while a subrange or chain built from it exists. A
   /// ``mapMemory(_:)`` mapping of the handle outlives its release, so unmap it first.
+  ///
+  /// The entry belongs to this runtime connection: a command from any other connection that
+  /// names it, or a subrange or chain built from it, throws ``DriverMemoryError/notOwner``, the
+  /// extension refuses such a connection's ``mapMemory(_:)`` of it, and such a subrange or chain
+  /// belongs to this connection too.
+  /// When the connection closes or the process exits, the extension releases these entries,
+  /// compositions first, and completes any DMA prepared on them. It does so when DriverKit stops
+  /// the connection's user client, after the close returns, and this process cannot observe
+  /// that, so memory wrapped on a connection that closed with the handle unreleased must still
+  /// never be freed or reused; ``DriverHostMemory/wrap(in:direction:)`` keeps it allocated.
   public func wrapClientMemory(
     _ segments: [DriverClientMemorySegment],
     direction: DriverMemoryDirection

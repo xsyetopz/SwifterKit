@@ -282,11 +282,16 @@ extension DriverExtensionGenerator {
           kern_return_t StartMemory(IOService* provider) LOCALONLY;
           void StopMemory() LOCALONLY;
           kern_return_t MemoryCommand(
+              const IOService* client,
               uint32_t opcode,
               const uint8_t* payload,
               uint32_t payloadLength,
               OSData** response) LOCALONLY;
-          kern_return_t CopyMemoryForClient(uint64_t handle, IOMemoryDescriptor** memory) LOCALONLY;
+          kern_return_t CopyMemoryForClient(
+              IOService* client,
+              uint64_t handle,
+              IOMemoryDescriptor** memory) LOCALONLY;
+          void ReleaseClientMemory(IOService* client) LOCALONLY;
           kern_return_t WrapClientMemory(
               IOUserClient* client,
               const uint8_t* payload,
@@ -365,6 +370,7 @@ extension DriverExtensionGenerator {
           kern_return_t AttachEventClient(IOService* client) LOCALONLY;
           void DetachEventClient(IOService* client) LOCALONLY;
           kern_return_t CopyClientMemory(
+              IOService* client,
               uint64_t type,
               uint64_t* options,
               IOMemoryDescriptor** memory) LOCALONLY;

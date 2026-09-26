@@ -179,6 +179,7 @@ static constexpr uint32_t kSwifterKitClientMemoryIdentifierMask = 0xFFFFFF;
 
 enum class SwifterKitMemoryStatus : uint32_t {
     InUse = 0xE00002D5,
+    NotOwner = 0xE00002E2,
 };
 
 enum class SwifterKitClientMemoryKind : uint32_t {

@@ -165,6 +165,10 @@ public enum DriverMemoryError: Error, Sendable, Equatable {
   /// A subrange or chain still uses the entry, so it cannot be released yet; release the
   /// subrange or chain first.
   case inUse
+  /// The handle names memory another runtime connection wrapped with
+  /// ``DriverContext/wrapClientMemory(_:direction:)``, or a subrange or chain built from it. Only
+  /// the connection that wrapped the memory can use, map, compose, or release it.
+  case notOwner
 }
 
 /// A range of this process's memory for ``DriverContext/wrapClientMemory(_:direction:)``.

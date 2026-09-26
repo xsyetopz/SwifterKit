@@ -68,8 +68,9 @@ public actor DriverRuntimeConnection {
 
   /// Wraps `memory` and holds it until a release of the returned handle succeeds.
   ///
-  /// Closing the connection drops the hold without ending the wrap: the extension keeps the
-  /// entry after the host detaches, so the allocation keeps its pages.
+  /// Closing the connection drops the hold without ending the wrap: the extension releases the
+  /// entry only when DriverKit later stops the user client, which the host cannot observe, so
+  /// the allocation keeps its pages.
   func wrapHostMemory(
     _ memory: DriverHostMemory,
     direction: DriverMemoryDirection
@@ -78,8 +79,9 @@ public actor DriverRuntimeConnection {
       runtimePayload: await execute(.wrapClientMemory([memory.segment], direction: direction))
     )
     memory.beginWrap()
-    // A handle this connection still holds can only return after another client released it;
-    // the earlier allocation then keeps its pages for good, which is safe.
+    // Only this connection can release its wrap, so a handle it still holds returns only after
+    // the service stopped and restarted its memory pool; the earlier allocation then keeps its
+    // pages for good, which is safe.
     wrappedHostMemory[handle.rawValue] = memory
     return handle
   }

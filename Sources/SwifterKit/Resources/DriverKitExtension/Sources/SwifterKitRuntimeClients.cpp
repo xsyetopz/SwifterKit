@@ -49,10 +49,14 @@ auto SwifterKitRuntimeService::NewUserClient_Impl(uint32_t type, IOUserClient** 
     return kIOReturnSuccess;
 }
 
-// Host exit and IOServiceClose reach the runtime client as Stop, which detaches
-// it. This covers a registered client that DriverKit reports as crashed instead.
+// Host exit and IOServiceClose reach the runtime client as Stop, which releases its wrapped
+// memory and detaches it. This covers a client that DriverKit reports as crashed instead; the
+// client's later Stop finds nothing left to release.
 auto SwifterKitRuntimeService::ClientCrashed_Impl(IOService* client, uint64_t options)
     -> kern_return_t {
+#if SWIFTERKIT_ENABLE_MEMORY
+    ReleaseClientMemory(client);
+#endif
     DetachEventClient(client);
     return ClientCrashed(client, options, SUPERDISPATCH);
 }
@@ -61,9 +65,10 @@ auto SwifterKitRuntimeService::ClientCrashed_Impl(IOService* client, uint64_t op
 // entitled host can open. The type's kind selects the source and its identifier the object;
 // kinds the extension was generated without, identifiers that name nothing, and any bit above
 // the 32-bit type are refused with kIOReturnBadArgument. A ring answers kIOReturnNotReady while
-// the fast path is not running. Data queues have a reserved kind and answer
-// kIOReturnUnsupported.
+// the fast path is not running, and memory another client wrapped answers kIOReturnNotPermitted
+// to `client`. Data queues have a reserved kind and answer kIOReturnUnsupported.
 auto SwifterKitRuntimeService::CopyClientMemory(
+    [[maybe_unused]] IOService* client,
     uint64_t type,
     uint64_t* options,
     IOMemoryDescriptor** memory) -> kern_return_t {
@@ -83,7 +88,7 @@ auto SwifterKitRuntimeService::CopyClientMemory(
     if (kind == static_cast<uint32_t>(SwifterKitClientMemoryKind::MemoryBuffer)) {
 #if SWIFTERKIT_ENABLE_MEMORY
         if (identifier != 0) {
-            result = CopyMemoryForClient(identifier, memory);
+            result = CopyMemoryForClient(client, identifier, memory);
         }
 #endif
     } else if (kind == static_cast<uint32_t>(SwifterKitClientMemoryKind::PacketPool)) {

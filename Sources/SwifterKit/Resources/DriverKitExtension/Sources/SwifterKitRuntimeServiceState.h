@@ -253,12 +253,16 @@ struct SwifterKitMemoryEntry {
     // retains its source descriptors in `sources`. `dependents` counts the subranges and chains
     // whose `sources` name this entry, once per occurrence; releasing an entry with dependents
     // answers kIOReturnBusy, and StopMemory releases dependents before their sources.
+    // `owner` is the user client that wrapped the host memory this entry describes, directly or
+    // through a source, and null for memory the extension allocated; only the owner may use the
+    // entry, and its Stop releases the entry.
     IOBufferMemoryDescriptor* descriptor = nullptr;
     IOMemoryDescriptor* composed = nullptr;
     OSArray* sources = nullptr;
     IOMemoryMap* map = nullptr;
     IODMACommand* dmaCommand = nullptr;
     uint32_t dependents = 0;
+    const IOService* owner = nullptr;
 };
 #endif
 

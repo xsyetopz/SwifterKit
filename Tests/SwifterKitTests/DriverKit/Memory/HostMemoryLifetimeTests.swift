@@ -76,8 +76,9 @@ struct HostMemoryLifetimeTests {
     }()
     #expect(dropped != nil)
     await runtime.close()
-    // The extension keeps its entries after the host detaches, so the wrap stays outstanding
-    // and a dropped allocation's deinit keeps its pages.
+    // The extension releases the entries only when DriverKit later stops the user client, which
+    // the host cannot observe, so the wrap stays outstanding and a dropped allocation's deinit
+    // keeps its pages.
     #expect(dropped == nil)
     #expect(kept.isWrapped)
   }
