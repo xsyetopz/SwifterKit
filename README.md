@@ -47,7 +47,7 @@ narrowest DriverKit target required by its capabilities.
 | Block storage, audio, HID event service | 21.0 | macOS 12 |
 | Networking, SCSI peripheral | 22.0 | macOS 13 |
 | MIDI | 24.0 | macOS 15 |
-| Video | 25.5 | macOS 26.5 beta |
+| Video | 25.5 | macOS 26.5 |
 
 The networking runtime uses queue registration introduced in DriverKit 22.0
 even though NetworkingDriverKit itself appeared earlier. Apple currently marks

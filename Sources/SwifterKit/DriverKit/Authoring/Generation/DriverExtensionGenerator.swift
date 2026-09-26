@@ -159,8 +159,9 @@ public enum DriverExtensionGenerator {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.audio)
     }
     if configuration.capabilities.contains(.video) {
-      guard let video = configuration.videoDevice, isValid(video: video), deploymentVersion >= .v25Point5,
-        !configuration.capabilities.contains(.hid), !configuration.capabilities.contains(.serial),
+      guard let video = configuration.videoDevice, isValid(video: video),
+        deploymentVersion >= .v25Point5, !configuration.capabilities.contains(.hid),
+        !configuration.capabilities.contains(.serial),
         !configuration.capabilities.contains(.blockStorage),
         !configuration.capabilities.contains(.midi),
         !configuration.capabilities.contains(.networking),

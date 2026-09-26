@@ -113,7 +113,7 @@ public enum VideoBufferQueueNotification: UInt32, Sendable, Hashable {
 
 /// Identity metadata read from a VideoDriverKit object.
 public struct VideoObjectInfo: Sendable, Hashable {
-  /// The object's `IOUserVideoObjectID`; zero for the driver, which has none.
+  /// The object's `IOUserVideoObjectID`; zero for the driver.
   public let objectID: UInt32
   /// The concrete class identifier.
   public let classID: VideoClassID
