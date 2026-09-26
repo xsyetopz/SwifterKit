@@ -50,6 +50,7 @@
 #if SWIFTERKIT_ENABLE_NETWORKING
     #include <DriverKit/IODispatchQueue.h>
     #include <DriverKit/OSAction.h>
+    #include <NetworkingDriverKit/IOUserNetworkPacketPoller.h>
     #include <NetworkingDriverKit/NetworkingDriverKit.h>
 #endif
 
@@ -105,6 +106,12 @@ struct SwifterKitNetworkPendingTransmit {
     uint32_t requestID = 0;
     IOUserNetworkPacket* packet = nullptr;
 };
+
+// DLT_EN10MB with a 14-byte Ethernet header, and the BPF_MODE_* tap directions.
+static constexpr uint32_t kSwifterKitEthernetDataLinkType = 1;
+static constexpr uint32_t kSwifterKitEthernetHeaderLength = 14;
+static constexpr uint32_t kSwifterKitEthernetTapInput = 1;
+static constexpr uint32_t kSwifterKitEthernetTapOutput = 2;
 #endif
 
 #if SWIFTERKIT_ENABLE_BLOCK_STORAGE
@@ -270,6 +277,9 @@ struct SwifterKitRuntimeService_IVars {
     IOLock* networkLock = nullptr;
     IODispatchQueue* networkQueue = nullptr;
     IOUserNetworkPacketBufferPool* networkPool = nullptr;
+    IOUserNetworkPacketBufferPool* networkRxPool = nullptr;
+    IOUserNetworkPacketPoller* networkPoller = nullptr;
+    uint32_t networkTapMode = 0;
     IOUserNetworkTxSubmissionQueue* networkTxSubmission = nullptr;
     IOUserNetworkTxCompletionQueue* networkTxCompletion = nullptr;
     IOUserNetworkRxSubmissionQueue* networkRxSubmission = nullptr;

@@ -168,6 +168,35 @@ struct __attribute__((packed)) SwifterKitNetworkLink {
     uint32_t media;
 };
 
+struct __attribute__((packed)) SwifterKitNetworkBandwidths {
+    uint64_t maximumInput;
+    uint64_t maximumOutput;
+    uint64_t effectiveInput;
+    uint64_t effectiveOutput;
+};
+
+struct __attribute__((packed)) SwifterKitNetworkHardwareCounts {
+    uint64_t packetsIn;
+    uint64_t bytesIn;
+    uint64_t multicastsIn;
+    uint64_t errorsIn;
+    uint64_t packetsOut;
+    uint64_t bytesOut;
+    uint64_t multicastsOut;
+    uint64_t errorsOut;
+    uint64_t collisions;
+    uint64_t dropped;
+    uint64_t noProtocol;
+};
+
+struct __attribute__((packed)) SwifterKitNetworkPollerParameters {
+    uint64_t dataRate;
+    uint64_t pollInterval;
+};
+
+// The largest poll interval Swift may request: one second.
+static constexpr uint64_t kSwifterKitEthernetMaximumPollInterval = 1000000000;
+
 struct __attribute__((packed)) SwifterKitNetworkEventHeader {
     uint32_t kind;
     uint32_t requestID;
@@ -422,6 +451,9 @@ static_assert(sizeof(SwifterKitNetworkReceiveHeader) == 8);
 static_assert(sizeof(SwifterKitNetworkCompletion) == 8);
 static_assert(sizeof(SwifterKitNetworkLink) == 8);
 static_assert(sizeof(SwifterKitNetworkEventHeader) == 16);
+static_assert(sizeof(SwifterKitNetworkBandwidths) == 32);
+static_assert(sizeof(SwifterKitNetworkHardwareCounts) == 88);
+static_assert(sizeof(SwifterKitNetworkPollerParameters) == 16);
 static_assert(sizeof(SwifterKitAudioTransferHeader) == 24);
 static_assert(sizeof(SwifterKitAudioTimestamp) == 16);
 static_assert(sizeof(SwifterKitAudioIOState) == 32);

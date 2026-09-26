@@ -8,7 +8,6 @@ extension DriverExtensionGenerator {
     let serial = serialTerminal(configuration)
     let block = configuration.blockStorageDevice
     let midi = configuration.midiDevice
-    let ethernet = configuration.ethernetDevice
     let audio = configuration.audioDevice
     let video = configuration.videoDevice
     let scsiController = configuration.scsiController
@@ -28,7 +27,7 @@ extension DriverExtensionGenerator {
 
       #define SWIFTERKIT_ENABLE_HID \(configuration.capabilities.contains(.hid) ? 1 : 0)
       \(hidConfigurationDeclarations(configuration))
-      #define SWIFTERKIT_ENABLE_NETWORKING \(ethernet == nil ? 0 : 1)
+      #define SWIFTERKIT_ENABLE_NETWORKING \(configuration.ethernetDevice == nil ? 0 : 1)
       #define SWIFTERKIT_ENABLE_AUDIO \(audio == nil ? 0 : 1)
       #define SWIFTERKIT_ENABLE_VIDEO \(video == nil ? 0 : 1)
       #define SWIFTERKIT_ENABLE_SCSI_CONTROLLER \(scsiController == nil ? 0 : 1)
@@ -46,20 +45,7 @@ extension DriverExtensionGenerator {
       static constexpr bool kSwifterKitUSBDeviceProvider =
           \(usesUSBDeviceProvider(configuration));
 
-      static constexpr uint8_t kSwifterKitEthernetAddress[] = {\(ethernetAddress(ethernet))};
-      static constexpr uint32_t kSwifterKitEthernetMTU = \(ethernet?.maximumTransferUnit ?? 0);
-      static constexpr uint32_t kSwifterKitEthernetPacketBufferSize =
-          \(ethernet?.packetBufferSize ?? 0);
-      static constexpr uint32_t kSwifterKitEthernetPacketCount = \(ethernet?.packetCount ?? 0);
-      static constexpr uint32_t kSwifterKitEthernetQueueCapacity = \(ethernet?.queueCapacity ?? 0);
-      static constexpr uint32_t kSwifterKitEthernetHardwareAssists =
-          \(ethernet?.hardwareAssists ?? 0);
-      static constexpr uint32_t kSwifterKitEthernetMedia[] = {\(ethernetMedia(ethernet))};
-      static constexpr uint32_t kSwifterKitEthernetMediaCount = \(ethernet?.media.count ?? 0);
-      static constexpr uint32_t kSwifterKitEthernetInitialMedia =
-          \(ethernet?.initialMedia.rawValue ?? 0);
-      static constexpr bool kSwifterKitEthernetWakeOnMagicPacket =
-          \(ethernet?.supportsWakeOnMagicPacket == true ? "true" : "false");
+      \(ethernetConfigurationDeclarations(configuration))
 
       static constexpr uint32_t kSwifterKitMaximumMemoryBuffers = \(memory?.maximumBuffers ?? 0);
       static constexpr uint64_t kSwifterKitMaximumMemoryBufferSize =
@@ -135,14 +121,6 @@ extension DriverExtensionGenerator {
 
       #endif
       """
-  }
-
-  private static func ethernetAddress(_ value: EthernetDeviceConfiguration?) -> String {
-    value?.hardwareAddress.bytes.map(String.init).joined(separator: ", ") ?? "0, 0, 0, 0, 0, 0"
-  }
-
-  private static func ethernetMedia(_ value: EthernetDeviceConfiguration?) -> String {
-    value?.media.map { String($0.rawValue) }.joined(separator: ", ") ?? "0"
   }
 
   private static func interruptIndices(_ configuration: DriverConfiguration) -> String {
@@ -247,48 +225,7 @@ extension DriverExtensionGenerator {
           virtual kern_return_t StartIO(OSArray* deviceList) LOCALONLY override;
           virtual kern_return_t StopIO() LOCALONLY override;
       """ : ""
-    let networkingMethods =
-      networking
-      ? """
-          kern_return_t StartNetwork() LOCALONLY;
-          void StopNetwork() LOCALONLY;
-          void AbortNetworkTransmits() LOCALONLY;
-          kern_return_t NetworkCommand(
-              uint32_t opcode,
-              const uint8_t* payload,
-              uint32_t payloadLength) LOCALONLY;
-          kern_return_t NetworkControlEvent(
-              uint32_t kind,
-              uint32_t value,
-              const void* bytes = nullptr,
-              uint32_t byteCount = 0) LOCALONLY;
-          virtual void NetworkTxPacketAvailable(
-              OSAction* action) TYPE(IODataQueueDispatchSource::DataAvailable);
-
-      protected:
-          virtual kern_return_t setPowerState(
-              unsigned long state,
-              IOService* device) LOCALONLY override;
-          virtual kern_return_t getSupportedMediaArray(
-              MediaWord* media,
-              uint32_t* count) LOCALONLY override;
-          virtual kern_return_t setInterfaceEnable(bool enable) LOCALONLY override;
-          virtual kern_return_t setPromiscuousModeEnable(bool enable) LOCALONLY override;
-          virtual kern_return_t setMulticastAddresses(
-              const ether_addr_t* addresses,
-              uint32_t count) LOCALONLY override;
-          virtual kern_return_t setAllMulticastModeEnable(bool enable) LOCALONLY override;
-          virtual kern_return_t handleChosenMedia(MediaWord media) LOCALONLY override;
-          virtual kern_return_t setMaxTransferUnit(uint32_t mtu) LOCALONLY override;
-          virtual uint32_t getMaxTransferUnit() LOCALONLY override;
-          virtual kern_return_t setHardwareAssists(uint32_t assists) LOCALONLY override;
-          virtual uint32_t getHardwareAssists() LOCALONLY override;
-          virtual MediaWord getInitialMedia() LOCALONLY override;
-          virtual kern_return_t getHardwareAddress(
-              ether_addr_t* address) LOCALONLY override;
-          virtual kern_return_t setHardwareAddress(
-              ether_addr_t* address) LOCALONLY override;
-      """ : ""
+    let networkingMethods = networkingServiceMethods(enabled: networking)
     let blockStorageMethods =
       blockStorage
       ? """

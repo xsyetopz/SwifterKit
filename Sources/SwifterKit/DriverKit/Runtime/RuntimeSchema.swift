@@ -157,6 +157,12 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case networkReceive = 0x0900
   case networkCompleteTransmit = 0x0901
   case networkReportLink = 0x0902
+  case networkReportLinkQuality = 0x0910
+  case networkReportDataBandwidths = 0x0911
+  case networkAddHardwareCounts = 0x0912
+  case networkReportNICProxyLimits = 0x0913
+  case networkSetPolling = 0x0914
+  case networkSetPollerParameters = 0x0915
   case audioReadStream = 0x0A00
   case audioWriteStream = 0x0A01
   case audioGetIOState = 0x0A02

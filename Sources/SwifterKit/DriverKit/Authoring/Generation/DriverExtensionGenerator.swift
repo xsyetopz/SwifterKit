@@ -256,6 +256,7 @@ public enum DriverExtensionGenerator {
       && (1...1_024).contains(value.queueCapacity) && value.queueCapacity <= value.packetCount
       && !value.media.isEmpty && value.media.count <= 32
       && Set(value.media).count == value.media.count && value.media.contains(value.initialMedia)
+      && isValid(ethernetCapabilities: value)
   }
 
   private static func isValid(midi value: MIDIDeviceConfiguration) -> Bool {

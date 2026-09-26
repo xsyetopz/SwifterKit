@@ -63,6 +63,37 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
   public let initialMedia: EthernetMedia
   /// Whether the hardware supports wake-on-magic-packet.
   public let supportsWakeOnMagicPacket: Bool
+  /// Smallest MTU the stack may select through `setMaxTransferUnit`.
+  public let minimumTransferUnit: UInt32
+  /// Feature flags added to the family's `getFeatureFlags` result.
+  public let featureFlags: EthernetFeatureFlags
+  /// Segmentation limits; required when ``hardwareAssists`` includes TSO.
+  public let tsoOptions: EthernetTSOOptions?
+  /// Whether the interface supports software VLAN tagging.
+  public let supportsSoftwareVLAN: Bool
+  /// Bytes the stack reserves before each transmitted frame.
+  public let transmitHeadroom: UInt16
+  /// Bytes the stack reserves after each transmitted frame.
+  public let transmitTailroom: UInt16
+  /// Data offset the hardware expects in every transmitted packet.
+  public let transmitDataOffset: UInt16
+  /// Interface subfamily reported to the stack.
+  public let interfaceSubFamily: EthernetInterfaceSubFamily
+  /// BSD name prefix of one to seven lowercase letters, or nil for `en`.
+  public let bsdNamePrefix: String?
+  /// Fixed BSD unit number, or nil to let the stack assign one.
+  public let bsdUnitNumber: Int32?
+  /// Whether the interface attaches an Ethernet packet filter tap (`DLT_EN10MB`).
+  public let packetTap: Bool
+  /// Buffer and DMA options for the native packet pools.
+  public let poolOptions: EthernetPacketPoolOptions
+  /// Packets in a separate receive pool, or nil to share the transmit pool.
+  public let receivePacketCount: UInt32?
+  /// Hybrid-polling parameters, or nil for interrupt-driven operation only.
+  public let packetPolling: EthernetPacketPolling?
+
+  /// The ``hardwareAssists`` bits as a typed set.
+  public var assists: EthernetHardwareAssists { EthernetHardwareAssists(rawValue: hardwareAssists) }
 
   /// Creates static Ethernet interface and packet-pool metadata.
   public init(
@@ -74,7 +105,21 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
     hardwareAssists: UInt32 = 0,
     media: [EthernetMedia] = [.automatic, .base1000T],
     initialMedia: EthernetMedia = .automatic,
-    supportsWakeOnMagicPacket: Bool = false
+    supportsWakeOnMagicPacket: Bool = false,
+    minimumTransferUnit: UInt32 = 68,
+    featureFlags: EthernetFeatureFlags = [],
+    tsoOptions: EthernetTSOOptions? = nil,
+    supportsSoftwareVLAN: Bool = false,
+    transmitHeadroom: UInt16 = 0,
+    transmitTailroom: UInt16 = 0,
+    transmitDataOffset: UInt16 = 0,
+    interfaceSubFamily: EthernetInterfaceSubFamily = .any,
+    bsdNamePrefix: String? = nil,
+    bsdUnitNumber: Int32? = nil,
+    packetTap: Bool = false,
+    poolOptions: EthernetPacketPoolOptions = EthernetPacketPoolOptions(),
+    receivePacketCount: UInt32? = nil,
+    packetPolling: EthernetPacketPolling? = nil
   ) {
     self.hardwareAddress = hardwareAddress
     self.maximumTransferUnit = maximumTransferUnit
@@ -85,6 +130,20 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
     self.media = media
     self.initialMedia = initialMedia
     self.supportsWakeOnMagicPacket = supportsWakeOnMagicPacket
+    self.minimumTransferUnit = minimumTransferUnit
+    self.featureFlags = featureFlags
+    self.tsoOptions = tsoOptions
+    self.supportsSoftwareVLAN = supportsSoftwareVLAN
+    self.transmitHeadroom = transmitHeadroom
+    self.transmitTailroom = transmitTailroom
+    self.transmitDataOffset = transmitDataOffset
+    self.interfaceSubFamily = interfaceSubFamily
+    self.bsdNamePrefix = bsdNamePrefix
+    self.bsdUnitNumber = bsdUnitNumber
+    self.packetTap = packetTap
+    self.poolOptions = poolOptions
+    self.receivePacketCount = receivePacketCount
+    self.packetPolling = packetPolling
   }
 }
 
@@ -114,6 +173,14 @@ public enum EthernetEvent: Sendable, Hashable {
   case selectedMedia(EthernetMedia)
   case powerState(UInt32)
   case hardwareAddress(EthernetAddress)
+  /// The stack changed the assists in `mask` to the values in `assists`.
+  case hardwareAssistsChanged(assists: EthernetHardwareAssists, mask: EthernetHardwareAssists)
+  /// The poller started (true) or stopped (false) polling.
+  case polling(Bool)
+  /// The packet filter tap directions changed.
+  case packetTap(EthernetPacketTapMode)
+  /// The family handed over NIC proxy offload data.
+  case nicProxyConfiguration(EthernetNICProxyConfiguration)
 
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 16 else { throw EthernetRuntimeError.invalidPayload }
@@ -168,6 +235,24 @@ public enum EthernetEvent: Sendable, Hashable {
         throw EthernetRuntimeError.invalidPayload
       }
       self = .hardwareAddress(EthernetAddress(data[0], data[1], data[2], data[3], data[4], data[5]))
+    case 12:
+      guard requestID == 0, data.count == 4 else { throw EthernetRuntimeError.invalidPayload }
+      let mask: UInt32 = try data.readRuntimeInteger(at: 0)
+      guard value & ~mask == 0 else { throw EthernetRuntimeError.invalidPayload }
+      self = .hardwareAssistsChanged(
+        assists: EthernetHardwareAssists(rawValue: value),
+        mask: EthernetHardwareAssists(rawValue: mask)
+      )
+    case 13: self = .polling(try Self.boolean(value, requestID: requestID, data: data))
+    case 14:
+      try Self.requireScalar(requestID, data)
+      guard value <= 3 else { throw EthernetRuntimeError.invalidPayload }
+      self = .packetTap(EthernetPacketTapMode(rawValue: value))
+    case 15:
+      guard requestID == 0, value == UInt32(data.count) else {
+        throw EthernetRuntimeError.invalidPayload
+      }
+      self = .nicProxyConfiguration(try EthernetNICProxyConfiguration(data: data))
     default: throw EthernetRuntimeError.invalidEventKind(kind)
     }
   }
@@ -189,4 +274,8 @@ public enum EthernetRuntimeError: Error, Sendable, Equatable {
   case frameTooLarge
   case invalidPayload
   case invalidEventKind(UInt32)
+  case invalidLinkStatus
+  case invalidLinkQuality
+  case invalidBandwidths
+  case invalidPollingParameters
 }
