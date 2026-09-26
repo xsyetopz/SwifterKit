@@ -210,6 +210,6 @@ struct USBPipeCommandsTests {
   }
 
   private func pipeEvent(endpoint: UInt8, count: UInt32, data: [UInt8]) -> [UInt8] {
-    le(UInt32(5)) + le(Int32(0)) + le(count) + [endpoint, 0, 0, 0] + le(UInt64(1_234)) + data
+    bytes(le(UInt32(5)), le(Int32(0)), le(count), [endpoint, 0, 0, 0], le(UInt64(1_234)), data)
   }
 }

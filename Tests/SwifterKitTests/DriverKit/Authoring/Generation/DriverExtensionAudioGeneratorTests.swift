@@ -235,7 +235,7 @@ struct AudioGeneratorTests {
       scope: .output,
       controlClass: .mute
     )
-    return [
+    let lead: [AudioControlConfiguration] = [
       .boolean(AudioBooleanControlConfiguration(metadata: mute, initialValue: false)),
       .level(
         AudioLevelControlConfiguration(
@@ -250,7 +250,8 @@ struct AudioGeneratorTests {
           maximumDecibels: 0
         )
       ),
-    ] + Self.selectorSliderAndPanControls(selectorName: "Input")
+    ]
+    return lead + Self.selectorSliderAndPanControls(selectorName: "Input")
   }
 
   /// A data-source selector (identifier 3), a slider (4), and a stereo pan (5).
