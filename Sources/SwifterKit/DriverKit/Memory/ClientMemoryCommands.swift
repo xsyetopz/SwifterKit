@@ -40,7 +40,7 @@ extension DriverCommand {
   /// Creates a request that wraps host memory as a runtime memory entry without copying it.
   ///
   /// The segments are checked here and again in the extension: 1 to 32 of them, each nonzero
-  /// and not wrapping past the end of the address space.
+  /// and not wrapping past the end of the address space, with a total length that fits 64 bits.
   public static func wrapClientMemory(
     _ segments: [DriverClientMemorySegment],
     direction: DriverMemoryDirection
@@ -54,10 +54,12 @@ extension DriverCommand {
     )
     payload.appendRuntimeInteger(UInt32(segments.count))
     payload.appendRuntimeInteger(direction.rawValue)
+    var total: UInt64 = 0
     for segment in segments {
-      guard segment.length != 0, segment.address <= UInt64.max - segment.length else {
-        throw DriverMemoryError.invalidSegment
-      }
+      let sum = total.addingReportingOverflow(segment.length)
+      guard segment.length != 0, segment.address <= UInt64.max - segment.length, !sum.overflow
+      else { throw DriverMemoryError.invalidSegment }
+      total = sum.partialValue
       payload.appendRuntimeInteger(segment.address)
       payload.appendRuntimeInteger(segment.length)
     }
@@ -83,7 +85,7 @@ extension DriverContext {
   ///
   /// The memory must stay allocated, and must not be unmapped or reused, until
   /// ``releaseMemory(_:)`` returns for this handle and every subrange or chain built from it;
-  /// ``DriverHostMemory`` keeps an allocation alive for that long.
+  /// ``DriverHostMemory/wrap(in:direction:)`` keeps its allocation alive for that long.
   public func wrapClientMemory(
     _ segments: [DriverClientMemorySegment],
     direction: DriverMemoryDirection

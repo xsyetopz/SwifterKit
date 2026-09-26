@@ -57,6 +57,12 @@ struct ClientMemoryWrapTests {
         direction: .deviceReads
       )
     }
+    #expect(throws: DriverMemoryError.invalidSegment) {
+      try DriverCommand.wrapClientMemory(
+        Array(repeating: DriverClientMemorySegment(address: 0, length: 1 << 63), count: 2),
+        direction: .deviceReads
+      )
+    }
     #expect(throws: Never.self) {
       try DriverCommand.wrapClientMemory(
         [DriverClientMemorySegment(address: .max - 1, length: 1)],
@@ -82,5 +88,15 @@ struct ClientMemoryWrapTests {
     #expect(memory.withUnsafeMutableBytes { $0[page] } == 0xA5)
     let command = try DriverCommand.wrapClientMemory([memory.segment], direction: .deviceReads)
     #expect(try command.payload.readRuntimeInteger(at: 8) as UInt64 == memory.segment.address)
+    #expect(!memory.isWrapped)
+  }
+
+  @Test
+  func failedWrapLeavesHostMemoryFreeable() async throws {
+    let memory = try #require(DriverHostMemory(minimumLength: 1))
+    await #expect(throws: DriverContextError.unsupportedCapability(.memory)) {
+      try await memory.wrap(in: DriverContext(capabilities: []), direction: .deviceReads)
+    }
+    #expect(!memory.isWrapped)
   }
 }
