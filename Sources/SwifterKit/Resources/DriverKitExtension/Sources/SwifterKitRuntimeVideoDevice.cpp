@@ -350,4 +350,22 @@ kern_return_t SwifterKitRuntimeVideoDevice::HandleChangeSampleRate(double sample
         (void)ivars->service->VideoControlEvent(3, __builtin_bit_cast(uint64_t, sampleRate));
     return result;
 }
+kern_return_t SwifterKitRuntimeVideoDevice::NotifyBufferQueue(
+    uint32_t kind,
+    uint32_t streamIndex,
+    uint64_t changeAction) {
+    if (ivars == nullptr || kind < 1 || kind > 2 || streamIndex >= kSwifterKitVideoStreamCount)
+        return kIOReturnBadArgument;
+    IOUserVideoStream* stream = ivars->streams[streamIndex];
+    if (stream == nullptr)
+        return kIOReturnNotReady;
+    return kind == 1 ? ivars->service->BufferQueueChange(
+                           GetObjectID(),
+                           changeAction,
+                           stream->GetObjectID())
+                     : ivars->service->OutputBufferNotification(
+                           GetObjectID(),
+                           changeAction,
+                           stream->GetObjectID());
+}
 #endif

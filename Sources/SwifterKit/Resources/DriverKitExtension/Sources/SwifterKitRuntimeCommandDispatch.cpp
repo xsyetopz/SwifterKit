@@ -531,6 +531,22 @@ namespace {
             case SwifterKitRuntimeOpcode::VideoSetControl:
             case SwifterKitRuntimeOpcode::VideoGetCustomProperty:
             case SwifterKitRuntimeOpcode::VideoSetCustomProperty:
+            case SwifterKitRuntimeOpcode::VideoGetObjectInfo:
+            case SwifterKitRuntimeOpcode::VideoSetObjectName:
+            case SwifterKitRuntimeOpcode::VideoGetElementName:
+            case SwifterKitRuntimeOpcode::VideoSetElementName:
+            case SwifterKitRuntimeOpcode::VideoPropertiesChanged:
+            case SwifterKitRuntimeOpcode::VideoGetBoxState:
+            case SwifterKitRuntimeOpcode::VideoSetBoxProperty:
+            case SwifterKitRuntimeOpcode::VideoSetBoxOwnership:
+            case SwifterKitRuntimeOpcode::VideoGetClockDeviceState:
+            case SwifterKitRuntimeOpcode::VideoSetClockDeviceProperty:
+            case SwifterKitRuntimeOpcode::VideoSetClockSampleRates:
+            case SwifterKitRuntimeOpcode::VideoUpdateClockTimestamp:
+            case SwifterKitRuntimeOpcode::VideoRequestClockSampleRate:
+            case SwifterKitRuntimeOpcode::VideoCompleteRequest:
+            case SwifterKitRuntimeOpcode::VideoNotifyBufferQueue:
+            case SwifterKitRuntimeOpcode::VideoSetCustomPropertyOwner:
                 return DispatchMediaCommand(context);
             case SwifterKitRuntimeOpcode::MIDISend:
                 return DispatchMIDICommand(context);

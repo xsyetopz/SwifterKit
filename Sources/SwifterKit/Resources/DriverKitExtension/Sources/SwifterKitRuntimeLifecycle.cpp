@@ -24,6 +24,7 @@ auto SwifterKitRuntimeService::init() -> bool {
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
     ivars->videoLock = IOLockAlloc();
+    ivars->videoRequestLock = IOLockAlloc();
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
     ivars->networkLock = IOLockAlloc();
@@ -53,7 +54,7 @@ auto SwifterKitRuntimeService::init() -> bool {
            && ivars->audioLock != nullptr && ivars->audioRequestLock != nullptr
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
-           && ivars->videoLock != nullptr
+           && ivars->videoLock != nullptr && ivars->videoRequestLock != nullptr
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
            && ivars->networkLock != nullptr

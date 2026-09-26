@@ -80,6 +80,7 @@ void SwifterKitRuntimeService::free() {
 #if SWIFTERKIT_ENABLE_VIDEO
         StopVideo();
         IOLockFreeZero(ivars->videoLock);
+        IOLockFreeZero(ivars->videoRequestLock);
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
         StopNetwork();

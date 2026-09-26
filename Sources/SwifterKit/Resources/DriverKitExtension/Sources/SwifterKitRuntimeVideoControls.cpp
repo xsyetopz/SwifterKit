@@ -13,6 +13,7 @@
     #include "SwifterKitRuntimeVideoDeviceState.h"
     #include "SwifterKitRuntimeVideoDirectionControl.h"
     #include "SwifterKitRuntimeVideoLevelControl.h"
+    #include "SwifterKitRuntimeVideoProtocol.h"
     #include "SwifterKitRuntimeVideoSelectorControl.h"
     #include "SwifterKitRuntimeVideoSliderControl.h"
     #include "SwifterKitRuntimeVideoStereoPanControl.h"
@@ -231,9 +232,10 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
         }
         if (result == kIOReturnSuccess)
             result = AddCustomProperty(property);
-        if (result == kIOReturnSuccess)
+        if (result == kIOReturnSuccess) {
             ivars->customProperties[index] = property;
-        else
+            ivars->customPropertyOwners[index] = kSwifterKitVideoOwnerDevice;
+        } else
             OSSafeReleaseNULL(property);
     }
     return result;
@@ -449,5 +451,49 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetCustomProperty(
     OSSafeReleaseNULL(value);
     OSSafeReleaseNULL(qualifier);
     return result;
+}
+kern_return_t SwifterKitRuntimeVideoDevice::SetCustomPropertyOwner(
+    uint32_t identifier,
+    uint32_t owner) {
+    if (ivars == nullptr || identifier == 0 || owner > kSwifterKitVideoOwnerDriver)
+        return kIOReturnBadArgument;
+    for (uint32_t index = 0; index < kSwifterKitVideoCustomPropertyCount; ++index) {
+        IOUserVideoCustomProperty* property = ivars->customProperties[index];
+        if (kSwifterKitVideoCustomProperties[index].identifier != identifier)
+            continue;
+        if (property == nullptr)
+            return kIOReturnNotReady;
+        uint8_t& current = ivars->customPropertyOwners[index];
+        if (current == owner)
+            return kIOReturnSuccess;
+        // A property moves between owners only through the detached state.
+        if (current != kSwifterKitVideoOwnerDetached && owner != kSwifterKitVideoOwnerDetached)
+            return kIOReturnBusy;
+        kern_return_t result = kIOReturnSuccess;
+        if (owner == kSwifterKitVideoOwnerDevice)
+            result = AddCustomProperty(property);
+        else if (owner == kSwifterKitVideoOwnerDriver)
+            result = ivars->service->AddCustomProperty(property);
+        else if (current == kSwifterKitVideoOwnerDevice)
+            result = RemoveCustomProperty(property);
+        else
+            result = ivars->service->RemoveCustomProperty(property);
+        if (result == kIOReturnSuccess)
+            current = static_cast<uint8_t>(owner);
+        return result;
+    }
+    return kIOReturnNotFound;
+}
+
+void SwifterKitRuntimeVideoDevice::RemoveControlsAndProperties() {
+    if (ivars == nullptr)
+        return;
+    for (uint32_t index = 0; index < kSwifterKitVideoControlCount; ++index)
+        if (ivars->controls[index] != nullptr)
+            (void)RemoveControl(ivars->controls[index]);
+    for (uint32_t index = 0; index < kSwifterKitVideoCustomPropertyCount; ++index)
+        (void)SetCustomPropertyOwner(
+            kSwifterKitVideoCustomProperties[index].identifier,
+            kSwifterKitVideoOwnerDetached);
 }
 #endif

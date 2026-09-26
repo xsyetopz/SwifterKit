@@ -11,7 +11,12 @@
     #include "SwifterKitRuntimeVideoDevice.h"
 
 kern_return_t SwifterKitRuntimeService::StartVideo() {
-    if (ivars == nullptr || ivars->videoDevice != nullptr)
+    if (ivars == nullptr || ivars->videoLock == nullptr)
+        return kIOReturnNotReady;
+    IOLockLock(ivars->videoLock);
+    const bool started = ivars->videoDevice != nullptr;
+    IOLockUnlock(ivars->videoLock);
+    if (started)
         return kIOReturnNotReady;
     OSString* deviceUID = OSString::withCString(kSwifterKitVideoDeviceUID);
     OSString* modelUID = OSString::withCString(kSwifterKitVideoModelUID);
@@ -33,25 +38,35 @@ kern_return_t SwifterKitRuntimeService::StartVideo() {
         result = device->Configure();
     if (result == kIOReturnSuccess)
         result = AddObject(device);
-    if (result == kIOReturnSuccess)
+    // VideoCommand reads videoDevice under videoLock, so it is published under the lock.
+    if (result == kIOReturnSuccess) {
+        IOLockLock(ivars->videoLock);
         ivars->videoDevice = device;
-    else
+        IOLockUnlock(ivars->videoLock);
+    } else
         OSSafeReleaseNULL(device);
     OSSafeReleaseNULL(name);
     OSSafeReleaseNULL(deviceUID);
     OSSafeReleaseNULL(modelUID);
     OSSafeReleaseNULL(manufacturerUID);
+    if (result == kIOReturnSuccess)
+        result = StartVideoObjects();
     return result;
 }
 
 void SwifterKitRuntimeService::StopVideo() {
     if (ivars == nullptr || ivars->videoLock == nullptr)
         return;
+    // Boxes release the device before it leaves the driver.
+    StopVideoObjects();
     IOLockLock(ivars->videoLock);
     SwifterKitRuntimeVideoDevice* device = ivars->videoDevice;
     ivars->videoDevice = nullptr;
-    if (device != nullptr)
+    // Controls and custom properties leave their owners before the device leaves the driver.
+    if (device != nullptr) {
+        device->RemoveControlsAndProperties();
         (void)RemoveObject(device);
+    }
     IOLockUnlock(ivars->videoLock);
     OSSafeReleaseNULL(device);
 }
@@ -143,6 +158,9 @@ kern_return_t SwifterKitRuntimeService::VideoCommand(
     if (ivars == nullptr || ivars->videoLock == nullptr || response == nullptr)
         return kIOReturnBadArgument;
     *response = nullptr;
+    if (opcode >= static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoGetObjectInfo)
+        && opcode <= static_cast<uint32_t>(SwifterKitRuntimeOpcode::VideoSetCustomPropertyOwner))
+        return VideoObjectCommand(opcode, payload, payloadLength, response);
     IOLockLock(ivars->videoLock);
     SwifterKitRuntimeVideoDevice* device = ivars->videoDevice;
     kern_return_t result = device == nullptr ? kIOReturnNotReady : kIOReturnUnsupported;

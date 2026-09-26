@@ -11,7 +11,7 @@ extension DriverExtensionGenerator {
       value.sampleRates.allSatisfy({ $0.isFinite && $0 > 0 }),
       value.sampleRates.contains(value.initialSampleRate), (1...8).contains(value.streams.count),
       Set(value.streams.map(\.identifier)).count == value.streams.count, value.controls.count <= 64,
-      value.customProperties.count <= 32
+      value.customProperties.count <= 32, isValid(videoTopology: value)
     else { return false }
 
     var totalCapacity: UInt64 = 0

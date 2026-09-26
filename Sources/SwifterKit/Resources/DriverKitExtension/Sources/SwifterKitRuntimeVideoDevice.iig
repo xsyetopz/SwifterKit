@@ -42,6 +42,10 @@ public:
     kern_return_t SetCustomProperty(
         const SwifterKitVideoCustomPropertyHeader* request,
         const uint8_t* bytes) LOCALONLY;
+    kern_return_t NotifyBufferQueue(uint32_t kind, uint32_t streamIndex, uint64_t changeAction)
+        LOCALONLY;
+    kern_return_t SetCustomPropertyOwner(uint32_t identifier, uint32_t owner) LOCALONLY;
+    void RemoveControlsAndProperties() LOCALONLY;
 
 protected:
     virtual kern_return_t StartIO(IOUserVideoStartStopFlags flags) LOCALONLY override;

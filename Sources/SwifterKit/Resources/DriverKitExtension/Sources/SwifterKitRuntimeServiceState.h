@@ -101,6 +101,19 @@ struct SwifterKitAudioPendingRequest {
 #endif
 #if SWIFTERKIT_ENABLE_VIDEO
 class SwifterKitRuntimeVideoDevice;
+class SwifterKitRuntimeVideoBox;
+class SwifterKitRuntimeVideoClockDevice;
+
+// A box-acquisition or clock sample-rate change waiting for Swift; request ID zero is free.
+// The request holds a reference on its box or clock device until it ends.
+struct SwifterKitVideoPendingRequest {
+    OSObject* object;
+    uint32_t requestID;
+    uint32_t kind;
+    uint32_t index;
+    uint64_t value;
+    uint64_t deadline;
+};
 #endif
 
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
@@ -298,6 +311,19 @@ struct SwifterKitRuntimeService_IVars {
 #if SWIFTERKIT_ENABLE_VIDEO
     IOLock* videoLock = nullptr;
     SwifterKitRuntimeVideoDevice* videoDevice = nullptr;
+    // Boxes and clock devices by configuration index, and the box (index + 1) that owns the
+    // device or each clock device; zero means unowned. All guarded by videoLock.
+    SwifterKitRuntimeVideoBox* videoBoxes[4] = {};
+    SwifterKitRuntimeVideoClockDevice* videoClockDevices[4] = {};
+    uint8_t videoDeviceOwner = 0;
+    uint8_t videoClockOwners[4] = {};
+    // Requests Swift must answer, guarded by videoRequestLock.
+    IOLock* videoRequestLock = nullptr;
+    SwifterKitVideoPendingRequest videoRequests[8] = {};
+    uint32_t nextVideoRequestID = 1;
+    bool videoRequestsStopped = true;
+    IOTimerDispatchSource* videoRequestTimer = nullptr;
+    OSAction* videoRequestTimerAction = nullptr;
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
     IOLock* networkLock = nullptr;

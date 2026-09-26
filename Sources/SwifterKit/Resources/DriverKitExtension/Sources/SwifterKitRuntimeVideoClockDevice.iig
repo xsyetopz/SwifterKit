@@ -1,0 +1,38 @@
+#ifndef SwifterKitRuntimeVideoClockDevice_h
+#define SwifterKitRuntimeVideoClockDevice_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoClockDevice.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoClockDevice : public IOUserVideoClockDevice {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t index,
+        OSString* deviceUID,
+        OSString* modelUID,
+        OSString* manufacturerUID) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+    kern_return_t Configure(const SwifterKitVideoClockConfiguration* configuration) LOCALONLY;
+    bool IsAvailableSampleRate(double sampleRate) LOCALONLY;
+    kern_return_t RequestSampleRate(double sampleRate) LOCALONLY;
+
+protected:
+    virtual kern_return_t StartIO(IOUserVideoStartStopFlags flags) LOCALONLY override;
+    virtual kern_return_t StopIO(IOUserVideoStartStopFlags flags) LOCALONLY override;
+    virtual kern_return_t PerformDeviceConfigurationChange(
+        uint64_t changeAction,
+        OSObject* changeInfo) LOCALONLY override;
+    virtual kern_return_t AbortDeviceConfigurationChange(
+        uint64_t changeAction,
+        OSObject* changeInfo) LOCALONLY override;
+    virtual kern_return_t HandleChangeSampleRate(double sampleRate) LOCALONLY override;
+    virtual void StreamFormatChanged(IOUserVideoObjectID streamID) LOCALONLY override;
+};
+#endif
+#endif

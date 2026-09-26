@@ -18,6 +18,8 @@ struct SwifterKitRuntimeVideoDevice_IVars {
     IOUserVideoBuffer* buffers[8][32] = {};
     IOUserVideoControl* controls[64] = {};
     IOUserVideoCustomProperty* customProperties[32] = {};
+    // 0 detached, 1 device, 2 driver; see SwifterKitRuntimeVideoProtocol.h.
+    uint8_t customPropertyOwners[32] = {};
     IOBufferMemoryDescriptor* dataDescriptors[8][32] = {};
     IOBufferMemoryDescriptor* controlDescriptors[8][32] = {};
     IOMemoryMap* dataMaps[8][32] = {};

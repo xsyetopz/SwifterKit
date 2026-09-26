@@ -1,0 +1,24 @@
+#ifndef SwifterKitRuntimeVideoBox_h
+#define SwifterKitRuntimeVideoBox_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_VIDEO
+    #include <VideoDriverKit/IOUserVideoBox.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeVideoBox : public IOUserVideoBox {
+public:
+    virtual bool init(
+        IOUserVideoDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t index,
+        bool isAcquirable,
+        OSString* uid) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+    kern_return_t Configure(const SwifterKitVideoBoxConfiguration* configuration) LOCALONLY;
+    virtual kern_return_t HandleChangeAcquireBox(bool acquire) LOCALONLY override;
+};
+#endif
+#endif

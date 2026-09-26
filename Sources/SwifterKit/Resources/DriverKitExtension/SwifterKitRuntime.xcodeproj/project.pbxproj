@@ -9,6 +9,12 @@
 /* Begin PBXBuildFile section */
 		0D0020202AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */; };
 		0D0020212AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */; };
+		0D00ACB12AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ACB22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.iig */; };
+		0D00ACC12AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ACC22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.cpp */; };
+		0D00ACD12AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ACD22AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.iig */; };
+		0D00ACE12AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ACE22AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.cpp */; };
+		0D00ACF12AAAAAAA00000001 /* SwifterKitRuntimeVideoObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00ACF22AAAAAAA00000001 /* SwifterKitRuntimeVideoObjects.cpp */; };
+		0D00AC012AAAAAAA00000001 /* SwifterKitRuntimeVideoRequests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00AC022AAAAAAA00000001 /* SwifterKitRuntimeVideoRequests.cpp */; };
 		0D0020222AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0020262AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp */; };
 		0D0030202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig */; };
 		0D0030212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0031212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp */; };
@@ -92,6 +98,12 @@
 /* Begin PBXFileReference section */
 		0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoDevice.iig; sourceTree = "<group>"; };
 		0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoDevice.cpp; sourceTree = "<group>"; };
+		0D00ACB22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoBox.iig; sourceTree = "<group>"; };
+		0D00ACC22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoBox.cpp; sourceTree = "<group>"; };
+		0D00ACD22AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoClockDevice.iig; sourceTree = "<group>"; };
+		0D00ACE22AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoClockDevice.cpp; sourceTree = "<group>"; };
+		0D00ACF22AAAAAAA00000001 /* SwifterKitRuntimeVideoObjects.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoObjects.cpp; sourceTree = "<group>"; };
+		0D00AC022AAAAAAA00000001 /* SwifterKitRuntimeVideoRequests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoRequests.cpp; sourceTree = "<group>"; };
 		0D0020262AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideo.cpp; sourceTree = "<group>"; };
 		0D0031202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeVideoStream.iig; sourceTree = "<group>"; };
 		0D0031212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeVideoStream.cpp; sourceTree = "<group>"; };
@@ -258,6 +270,10 @@
 				0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */,
 				0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */,
 				0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */,
+				0D00ACC22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.cpp */,
+				0D00ACE22AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.cpp */,
+				0D00ACF22AAAAAAA00000001 /* SwifterKitRuntimeVideoObjects.cpp */,
+				0D00AC022AAAAAAA00000001 /* SwifterKitRuntimeVideoRequests.cpp */,
 				0D0020262AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp */,
 				0D0031202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig */,
 				0D0031212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp */,
@@ -300,6 +316,8 @@
 				0D00ABD22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.iig */,
 				0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */,
 				0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */,
+				0D00ACB22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.iig */,
+				0D00ACD22AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.iig */,
 				0D001BBB2AAAAAAA00000001 /* RuntimeSources */,
 			);
 			path = Sources;
@@ -397,6 +415,12 @@
 				0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */,
 				0D0020202AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig in Sources */,
 				0D0020212AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp in Sources */,
+				0D00ACB12AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.iig in Sources */,
+				0D00ACC12AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.cpp in Sources */,
+				0D00ACD12AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.iig in Sources */,
+				0D00ACE12AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.cpp in Sources */,
+				0D00ACF12AAAAAAA00000001 /* SwifterKitRuntimeVideoObjects.cpp in Sources */,
+				0D00AC012AAAAAAA00000001 /* SwifterKitRuntimeVideoRequests.cpp in Sources */,
 				0D0020222AAAAAAA00000001 /* SwifterKitRuntimeVideo.cpp in Sources */,
 				0D0030202AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.iig in Sources */,
 				0D0030212AAAAAAA00000001 /* SwifterKitRuntimeVideoStream.cpp in Sources */,
