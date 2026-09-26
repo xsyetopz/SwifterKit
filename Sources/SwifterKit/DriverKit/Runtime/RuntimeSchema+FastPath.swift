@@ -103,13 +103,36 @@ enum RuntimeFastPathInterruptDelivery: UInt32, CaseIterable {
   case whenProgramEmits = 3
 }
 
-/// A native table-row layout: its C++ name and fields, all naturally aligned without padding.
+/// The `IOReturn` values the interpreter and the extension answer with, beside a `fail` row's
+/// own status. The extension asserts each against its `IOReturn.h` name.
+enum RuntimeFastPathStatus: UInt32, CaseIterable {
+  /// The program ran to its end: `kIOReturnSuccess`.
+  case success = 0
+  /// The fast path is refused: a declared BAR is missing or smaller than declared, the tables
+  /// fail re-validation, or a start program failed: `kIOReturnNoResources`.
+  case refused = 0xE000_02BE
+  /// A row, the program index, or the argument count failed re-validation and nothing ran:
+  /// `kIOReturnBadArgument`.
+  case rejected = 0xE000_02C2
+  /// A `poll` never matched: `kIOReturnTimeout`.
+  case timeout = 0xE000_02D6
+  /// The fast path has not started or has stopped: `kIOReturnNotReady`.
+  case notReady = 0xE000_02D8
+}
+
+/// A native table-row or payload layout: its C++ name and fields, all naturally aligned without
+/// padding. A field name ending in `[n]` is an array of `n` elements.
 struct RuntimeFastPathRow {
   let name: String
   let fields: [(type: String, name: String)]
 
   /// The row size in bytes, which the rendered header asserts.
-  var size: Int { fields.reduce(0) { $0 + ($1.type == "uint64_t" ? 8 : 4) } }
+  var size: Int {
+    fields.reduce(0) { total, field in
+      let count = field.name.last == "]" ? Int(field.name.split(separator: "[")[1].dropLast()) : 1
+      return total + (field.type == "uint64_t" ? 8 : 4) * (count ?? 1)
+    }
+  }
 
   /// One program: its run of `SwifterKitFastPathOperation` rows and its argument count.
   static let program = Self(
@@ -141,6 +164,29 @@ struct RuntimeFastPathRow {
     fields: [("uint32_t", "bar"), ("uint32_t", "reserved"), ("uint64_t", "minimumSize")]
   )
 
+  /// A `fastPathRun` command payload: the program index and its arguments, unused ones zero.
+  static let runRequest = Self(
+    name: "SwifterKitFastPathRunRequest",
+    fields: [("uint32_t", "program"), ("uint32_t", "argumentCount"), ("uint64_t", "arguments[4]")]
+  )
+  /// A `fastPathRun` reply: the program's ``RuntimeFastPathStatus`` or `fail` status and its
+  /// slots when it ended.
+  static let runResult = Self(
+    name: "SwifterKitFastPathRunResult",
+    fields: [("uint32_t", "status"), ("uint32_t", "reserved"), ("uint64_t", "values[8]")]
+  )
+  /// A `fastPath` event: the emitting program, the slot count, and the values, unused ones zero.
+  static let event = Self(
+    name: "SwifterKitFastPathEvent",
+    fields: [("uint32_t", "program"), ("uint32_t", "count"), ("uint64_t", "values[8]")]
+  )
+  /// A `fastPathStatus` reply: whether the fast path runs, and the `emit` events dropped because
+  /// the lossy event queue was full.
+  static let statusReply = Self(
+    name: "SwifterKitFastPathStatusReply",
+    fields: [("uint32_t", "status"), ("uint32_t", "reserved"), ("uint64_t", "droppedEvents")]
+  )
+
   /// Every row layout, in header order.
-  static let all = [program, operation, trigger, bar]
+  static let all = [program, operation, trigger, bar, runRequest, runResult, event, statusReply]
 }

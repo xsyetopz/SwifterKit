@@ -65,6 +65,11 @@ extension RuntimeSchemaHeader {
         type: "uint32_t",
         RuntimeFastPathInterruptDelivery.allCases
       ),
+      enumeration(
+        "SwifterKitFastPathStatus",
+        type: "uint32_t",
+        cases: RuntimeFastPathStatus.allCases.map { (nativeName($0), hex($0.rawValue, digits: 8)) }
+      ),
     ] + RuntimeFastPathRow.all.map(structure)
   }
 

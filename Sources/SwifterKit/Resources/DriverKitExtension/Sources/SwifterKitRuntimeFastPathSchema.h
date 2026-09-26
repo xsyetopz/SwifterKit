@@ -63,6 +63,14 @@ enum class SwifterKitFastPathInterruptDelivery : uint32_t {
     WhenProgramEmits = 3,
 };
 
+enum class SwifterKitFastPathStatus : uint32_t {
+    Success = 0x00000000,
+    Refused = 0xE00002BE,
+    Rejected = 0xE00002C2,
+    Timeout = 0xE00002D6,
+    NotReady = 0xE00002D8,
+};
+
 struct SwifterKitFastPathProgram {
     uint32_t operationStart;
     uint32_t operationCount;
@@ -96,5 +104,33 @@ struct SwifterKitFastPathBAR {
     uint64_t minimumSize;
 };
 static_assert(sizeof(SwifterKitFastPathBAR) == 16);
+
+struct SwifterKitFastPathRunRequest {
+    uint32_t program;
+    uint32_t argumentCount;
+    uint64_t arguments[4];
+};
+static_assert(sizeof(SwifterKitFastPathRunRequest) == 40);
+
+struct SwifterKitFastPathRunResult {
+    uint32_t status;
+    uint32_t reserved;
+    uint64_t values[8];
+};
+static_assert(sizeof(SwifterKitFastPathRunResult) == 72);
+
+struct SwifterKitFastPathEvent {
+    uint32_t program;
+    uint32_t count;
+    uint64_t values[8];
+};
+static_assert(sizeof(SwifterKitFastPathEvent) == 72);
+
+struct SwifterKitFastPathStatusReply {
+    uint32_t status;
+    uint32_t reserved;
+    uint64_t droppedEvents;
+};
+static_assert(sizeof(SwifterKitFastPathStatusReply) == 16);
 
 #endif
