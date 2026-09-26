@@ -348,4 +348,4 @@ point to the same repository guidance.
 
 ## License
 
-[ISC](LICENSE)
+[MIT](LICENSE)
