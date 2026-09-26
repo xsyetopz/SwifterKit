@@ -26,8 +26,10 @@
 // - HandleChangeAcquireBox sets the requested acquired state before it reports success, as
 //   IOUserAudioBox requires. Accepting the request keeps that state; rejecting it restores the
 //   previous state and calls SetAcquisitionFailure.
-//   Accepting a sample-rate request starts a device configuration change; rejecting it leaves
-//   the rate unchanged.
+// - A clock device's HandleChangeSampleRate likewise sets the requested rate before it reports
+//   success, because IOUserAudioClockDevice.iig requires the value to be updated on success.
+//   Accepting the request keeps that rate and reports it as a rate change; rejecting it restores
+//   the previous rate through a device configuration change, unless the rate changed again.
 // - Without a registered host or a timeout timer, the callbacks apply the framework default at
 //   once.
 // - Each request retains its box or clock device, so an answer needs no audioLock: answers run
@@ -129,7 +131,8 @@ kern_return_t SwifterKitRuntimeService::BeginAudioRequest(
     OSObject* object,
     uint32_t kind,
     uint32_t index,
-    uint64_t value) {
+    uint64_t value,
+    uint64_t previous) {
     if (ivars == nullptr || ivars->eventLock == nullptr || ivars->audioRequestLock == nullptr
         || object == nullptr)
         return kIOReturnNotReady;
@@ -155,7 +158,7 @@ kern_return_t SwifterKitRuntimeService::BeginAudioRequest(
         requestID = ivars->nextAudioRequestID == 0 ? 1 : ivars->nextAudioRequestID;
         ivars->nextAudioRequestID = requestID == UINT32_MAX ? 1 : requestID + 1;
         object->retain();
-        *slot = {object, requestID, kind, index, value, deadline};
+        *slot = {object, requestID, kind, index, value, previous, deadline};
     }
     IOLockUnlock(ivars->audioRequestLock);
     if (slot == nullptr)
@@ -183,8 +186,13 @@ kern_return_t SwifterKitRuntimeService::CompleteAudioRequest(
     SwifterKitAudioPendingRequest request = {};
     if (!TakeRequest(ivars, requestID, &request))
         return kIOReturnNotFound;
-    const kern_return_t result =
-        ApplyAudioRequest(request.object, request.kind, request.value, accept, failure);
+    const kern_return_t result = ApplyAudioRequest(
+        request.object,
+        request.kind,
+        request.value,
+        request.previous,
+        accept,
+        failure);
     OSSafeReleaseNULL(request.object);
     return result;
 }
@@ -193,6 +201,7 @@ kern_return_t SwifterKitRuntimeService::ApplyAudioRequest(
     OSObject* object,
     uint32_t kind,
     uint64_t value,
+    uint64_t previous,
     bool accept,
     int32_t failure) {
     auto* box = OSDynamicCast(SwifterKitRuntimeAudioBox, object);
@@ -207,8 +216,10 @@ kern_return_t SwifterKitRuntimeService::ApplyAudioRequest(
         return result == kIOReturnSuccess ? failed : result;
     }
     if (kind == kSwifterKitAudioEventClockRequest && clock != nullptr)
-        return accept ? clock->RequestSampleRate(__builtin_bit_cast(double, value))
-                      : kIOReturnSuccess;
+        return clock->FinishSampleRateRequest(
+            __builtin_bit_cast(double, value),
+            __builtin_bit_cast(double, previous),
+            accept);
     return kIOReturnBadArgument;
 }
 
@@ -224,7 +235,13 @@ void SwifterKitRuntimeService::RejectAudioRequests(int32_t failure) {
     IOLockUnlock(ivars->audioRequestLock);
     for (auto& request : taken) {
         if (request.requestID != 0)
-            (void)ApplyAudioRequest(request.object, request.kind, request.value, false, failure);
+            (void)ApplyAudioRequest(
+                request.object,
+                request.kind,
+                request.value,
+                request.previous,
+                false,
+                failure);
         OSSafeReleaseNULL(request.object);
     }
 }
@@ -260,6 +277,7 @@ void SwifterKitRuntimeService::AudioRequestTimerOccurred_Impl(OSAction*, uint64_
                 request.object,
                 request.kind,
                 request.value,
+                request.previous,
                 false,
                 kIOReturnTimeout);
         OSSafeReleaseNULL(request.object);

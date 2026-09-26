@@ -86,7 +86,7 @@ struct AudioObjectRuntimeContractTests {
       )
       #expect(apply.contains("SetAcquisitionFailure("))
       #expect(apply.contains("SetIsAcquired(accept ? value != 0 : value == 0)"))
-      #expect(apply.contains("RequestSampleRate("))
+      #expect(apply.contains("FinishSampleRateRequest("))
       // Answers also run on the work queue, so they must not take audioLock.
       #expect(!apply.contains("audioLock"))
       #expect(requests.contains("object->retain();"))
@@ -106,8 +106,40 @@ struct AudioObjectRuntimeContractTests {
       let box = try source("SwifterKitRuntimeAudioBox.cpp", in: output)
       #expect(box.contains("return super::HandleChangeAcquireBox(acquire);"))
       let clock = try source("SwifterKitRuntimeAudioClockDevice.cpp", in: output)
-      #expect(clock.contains("kIOReturnNotAttached ? RequestSampleRate(sampleRate)"))
+      #expect(clock.contains("return super::HandleChangeSampleRate(sampleRate);"))
       #expect(clock.contains("__DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5"))
+    }
+  }
+
+  @Test
+  func clockDeviceTakesTheSampleRateBeforeReportingSuccess() throws {
+    try withGeneratedExtension(topology) { output, _ in
+      let clock = try source("SwifterKitRuntimeAudioClockDevice.cpp", in: output)
+      let handler = try section(
+        of: clock,
+        from: "::HandleChangeSampleRate(",
+        to: "::FinishSampleRateRequest("
+      )
+      let unchanged = try #require(handler.range(of: "if (previous == sampleRate)")?.lowerBound)
+      let set = try #require(handler.range(of: "SetSampleRate(sampleRate);")?.lowerBound)
+      let begin = try #require(handler.range(of: "BeginAudioRequest(")?.lowerBound)
+      #expect(unchanged < set)
+      #expect(set < begin)
+      #expect(handler.contains("__builtin_bit_cast(uint64_t, previous)"))
+      #expect(handler.contains("(void)SetSampleRate(previous);"))
+      #expect(handler.contains("return super::HandleChangeSampleRate(sampleRate);"))
+      #expect(!handler.contains("RequestSampleRate(sampleRate)"))
+
+      let finish = try section(of: clock, from: "::FinishSampleRateRequest(", to: "#endif")
+      #expect(finish.contains("AudioObjectEvent(\n            5,"))
+      #expect(finish.contains("GetSampleRate() == requested && IsAvailableSampleRate(previous)"))
+      #expect(finish.contains("RequestSampleRate(previous)"))
+
+      let requests = try source("SwifterKitRuntimeAudioRequests.cpp", in: output)
+      #expect(
+        requests.contains("*slot = {object, requestID, kind, index, value, previous, deadline};")
+      )
+      #expect(!requests.contains("starts a device configuration change"))
     }
   }
 

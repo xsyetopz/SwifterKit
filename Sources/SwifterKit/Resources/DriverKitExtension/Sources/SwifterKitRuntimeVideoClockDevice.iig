@@ -21,6 +21,7 @@ public:
     kern_return_t Configure(const SwifterKitVideoClockConfiguration* configuration) LOCALONLY;
     bool IsAvailableSampleRate(double sampleRate) LOCALONLY;
     kern_return_t RequestSampleRate(double sampleRate) LOCALONLY;
+    kern_return_t FinishSampleRateRequest(double requested, double previous, bool accept) LOCALONLY;
 
 protected:
     virtual kern_return_t StartIO(IOUserVideoStartStopFlags flags) LOCALONLY override;

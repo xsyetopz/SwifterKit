@@ -25,8 +25,11 @@
 //   kIOReturnAborted).
 // - HandleChangeAcquireBox sets the requested acquired state before it reports success.
 //   Accepting the request keeps that state; rejecting it restores the previous state and calls
-//   SetAcquisitionFailure. Accepting a sample-rate request starts a device configuration change;
-//   rejecting it leaves the rate unchanged.
+//   SetAcquisitionFailure.
+// - A clock device's HandleChangeSampleRate likewise sets the requested rate before it reports
+//   success, because IOUserVideoClockDevice.iig requires the value to be updated on success.
+//   Accepting the request keeps that rate and reports it as a rate change; rejecting it restores
+//   the previous rate through a device configuration change, unless the rate changed again.
 // - Without a registered host or a timeout timer, the callbacks apply the framework default at
 //   once.
 // - Each request retains its box or clock device, so an answer needs no videoLock: answers run
@@ -128,7 +131,8 @@ kern_return_t SwifterKitRuntimeService::BeginVideoRequest(
     OSObject* object,
     uint32_t kind,
     uint32_t index,
-    uint64_t value) {
+    uint64_t value,
+    uint64_t previous) {
     if (ivars == nullptr || ivars->eventLock == nullptr || ivars->videoRequestLock == nullptr
         || object == nullptr)
         return kIOReturnNotReady;
@@ -154,7 +158,7 @@ kern_return_t SwifterKitRuntimeService::BeginVideoRequest(
         requestID = ivars->nextVideoRequestID == 0 ? 1 : ivars->nextVideoRequestID;
         ivars->nextVideoRequestID = requestID == UINT32_MAX ? 1 : requestID + 1;
         object->retain();
-        *slot = {object, requestID, kind, index, value, deadline};
+        *slot = {object, requestID, kind, index, value, previous, deadline};
     }
     IOLockUnlock(ivars->videoRequestLock);
     if (slot == nullptr)
@@ -182,8 +186,13 @@ kern_return_t SwifterKitRuntimeService::CompleteVideoRequest(
     SwifterKitVideoPendingRequest request = {};
     if (!TakeRequest(ivars, requestID, &request))
         return kIOReturnNotFound;
-    const kern_return_t result =
-        ApplyVideoRequest(request.object, request.kind, request.value, accept, failure);
+    const kern_return_t result = ApplyVideoRequest(
+        request.object,
+        request.kind,
+        request.value,
+        request.previous,
+        accept,
+        failure);
     OSSafeReleaseNULL(request.object);
     return result;
 }
@@ -192,6 +201,7 @@ kern_return_t SwifterKitRuntimeService::ApplyVideoRequest(
     OSObject* object,
     uint32_t kind,
     uint64_t value,
+    uint64_t previous,
     bool accept,
     int32_t failure) {
     auto* box = OSDynamicCast(SwifterKitRuntimeVideoBox, object);
@@ -206,8 +216,10 @@ kern_return_t SwifterKitRuntimeService::ApplyVideoRequest(
         return result == kIOReturnSuccess ? failed : result;
     }
     if (kind == kSwifterKitVideoEventClockRequest && clock != nullptr)
-        return accept ? clock->RequestSampleRate(__builtin_bit_cast(double, value))
-                      : kIOReturnSuccess;
+        return clock->FinishSampleRateRequest(
+            __builtin_bit_cast(double, value),
+            __builtin_bit_cast(double, previous),
+            accept);
     return kIOReturnBadArgument;
 }
 
@@ -223,7 +235,13 @@ void SwifterKitRuntimeService::RejectVideoRequests(int32_t failure) {
     IOLockUnlock(ivars->videoRequestLock);
     for (auto& request : taken) {
         if (request.requestID != 0)
-            (void)ApplyVideoRequest(request.object, request.kind, request.value, false, failure);
+            (void)ApplyVideoRequest(
+                request.object,
+                request.kind,
+                request.value,
+                request.previous,
+                false,
+                failure);
         OSSafeReleaseNULL(request.object);
     }
 }
@@ -259,6 +277,7 @@ void SwifterKitRuntimeService::VideoRequestTimerOccurred_Impl(OSAction*, uint64_
                 request.object,
                 request.kind,
                 request.value,
+                request.previous,
                 false,
                 kIOReturnTimeout);
         OSSafeReleaseNULL(request.object);

@@ -121,7 +121,7 @@ struct VideoObjectRuntimeContractTests {
       )
       #expect(apply.contains("SetAcquisitionFailure("))
       #expect(apply.contains("SetIsAcquired(accept ? value != 0 : value == 0)"))
-      #expect(apply.contains("RequestSampleRate("))
+      #expect(apply.contains("FinishSampleRateRequest("))
       // Answers also run on the work queue, so they must not take videoLock.
       #expect(!apply.contains("videoLock"))
       #expect(requests.contains("object->retain();"))
@@ -143,8 +143,40 @@ struct VideoObjectRuntimeContractTests {
       #expect(set < begin)
       #expect(handler.contains("return super::HandleChangeAcquireBox(acquire);"))
       let clock = try source("SwifterKitRuntimeVideoClockDevice.cpp", in: output)
-      #expect(clock.contains("kIOReturnNotAttached ? RequestSampleRate(sampleRate)"))
+      #expect(clock.contains("return super::HandleChangeSampleRate(sampleRate);"))
       #expect(clock.contains("VideoObjectEvent(8, ivars->index, streamID)"))
+    }
+  }
+
+  @Test
+  func clockDeviceTakesTheSampleRateBeforeReportingSuccess() throws {
+    try withGeneratedExtension(topology) { output, _ in
+      let clock = try source("SwifterKitRuntimeVideoClockDevice.cpp", in: output)
+      let handler = try section(
+        of: clock,
+        from: "::HandleChangeSampleRate(",
+        to: "::FinishSampleRateRequest("
+      )
+      let unchanged = try #require(handler.range(of: "if (previous == sampleRate)")?.lowerBound)
+      let set = try #require(handler.range(of: "SetSampleRate(sampleRate);")?.lowerBound)
+      let begin = try #require(handler.range(of: "BeginVideoRequest(")?.lowerBound)
+      #expect(unchanged < set)
+      #expect(set < begin)
+      #expect(handler.contains("__builtin_bit_cast(uint64_t, previous)"))
+      #expect(handler.contains("(void)SetSampleRate(previous);"))
+      #expect(handler.contains("return super::HandleChangeSampleRate(sampleRate);"))
+      #expect(!handler.contains("RequestSampleRate(sampleRate)"))
+
+      let finish = try section(of: clock, from: "::FinishSampleRateRequest(", to: "#endif")
+      #expect(finish.contains("VideoObjectEvent(\n            5,"))
+      #expect(finish.contains("GetSampleRate() == requested && IsAvailableSampleRate(previous)"))
+      #expect(finish.contains("RequestSampleRate(previous)"))
+
+      let requests = try source("SwifterKitRuntimeVideoRequests.cpp", in: output)
+      #expect(
+        requests.contains("*slot = {object, requestID, kind, index, value, previous, deadline};")
+      )
+      #expect(!requests.contains("starts a device configuration change"))
     }
   }
 

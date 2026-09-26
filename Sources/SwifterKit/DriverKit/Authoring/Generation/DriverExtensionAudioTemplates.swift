@@ -243,13 +243,15 @@ extension DriverExtensionGenerator {
           OSObject* object,
           uint32_t kind,
           uint32_t index,
-          uint64_t value) LOCALONLY;
+          uint64_t value,
+          uint64_t previous) LOCALONLY;
       kern_return_t CompleteAudioRequest(uint32_t requestID, bool accept, int32_t failure)
           LOCALONLY;
       kern_return_t ApplyAudioRequest(
           OSObject* object,
           uint32_t kind,
           uint64_t value,
+          uint64_t previous,
           bool accept,
           int32_t failure) LOCALONLY;
       void RejectAudioRequests(int32_t failure) LOCALONLY;

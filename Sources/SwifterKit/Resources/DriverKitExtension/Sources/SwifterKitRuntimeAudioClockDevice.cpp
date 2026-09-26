@@ -148,12 +148,45 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::AbortDeviceConfigurationChange(
 kern_return_t SwifterKitRuntimeAudioClockDevice::HandleChangeSampleRate(double sampleRate) {
     if (ivars == nullptr || !IsAvailableSampleRate(sampleRate))
         return kIOReturnBadArgument;
-    // Swift answers through audioCompleteRequest; without a host the change proceeds at once.
-    const kern_return_t result = ivars->service->BeginAudioRequest(
+    // IOUserAudioClockDevice.iig: on success the sample rate must already be updated. The clock
+    // takes the requested rate before the request is queued, and a rejection from
+    // audioCompleteRequest restores the previous rate. Without a host the framework default
+    // applies.
+    const double previous = GetSampleRate();
+    // Nothing changes, so there is nothing for Swift to accept or reject.
+    if (previous == sampleRate)
+        return kIOReturnSuccess;
+    kern_return_t result = SetSampleRate(sampleRate);
+    if (result != kIOReturnSuccess)
+        return result;
+    result = ivars->service->BeginAudioRequest(
         this,
         kSwifterKitAudioEventClockRequest,
         ivars->index,
-        __builtin_bit_cast(uint64_t, sampleRate));
-    return result == kIOReturnNotAttached ? RequestSampleRate(sampleRate) : result;
+        __builtin_bit_cast(uint64_t, sampleRate),
+        __builtin_bit_cast(uint64_t, previous));
+    if (result == kIOReturnNotAttached)
+        return super::HandleChangeSampleRate(sampleRate);
+    if (result != kIOReturnSuccess)
+        (void)SetSampleRate(previous);
+    return result;
+}
+
+kern_return_t SwifterKitRuntimeAudioClockDevice::FinishSampleRateRequest(
+    double requested,
+    double previous,
+    bool accept) {
+    if (ivars == nullptr)
+        return kIOReturnNotReady;
+    if (accept)
+        return ivars->service->AudioObjectEvent(
+            5,
+            ivars->index,
+            __builtin_bit_cast(uint64_t, requested));
+    // Outside the callback the rate changes only through a device configuration change, and a
+    // later change must not be undone.
+    return GetSampleRate() == requested && IsAvailableSampleRate(previous)
+               ? RequestSampleRate(previous)
+               : kIOReturnSuccess;
 }
 #endif

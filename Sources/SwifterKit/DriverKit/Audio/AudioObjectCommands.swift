@@ -215,8 +215,10 @@ extension DriverCommand {
   /// The box takes the requested acquired state before its callback reports success, as
   /// `IOUserAudioBox` requires. Accepting a box request keeps that state; rejecting it restores
   /// the previous state and calls `SetAcquisitionFailure` with `failure`, or `kIOReturnError`
-  /// when `failure` is zero. Accepting a sample-rate request
-  /// starts a device configuration change; rejecting it leaves the rate unchanged.
+  /// when `failure` is zero. A clock device likewise takes the requested sample rate before its
+  /// callback reports success. Accepting a sample-rate request keeps that rate and reports
+  /// `clockDeviceSampleRateChanged`; rejecting it restores the previous rate through a device
+  /// configuration change, unless the rate changed again.
   public static func audioCompleteRequest(
     requestID: UInt32,
     accept: Bool,

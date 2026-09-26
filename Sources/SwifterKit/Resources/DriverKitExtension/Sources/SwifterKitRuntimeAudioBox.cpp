@@ -74,8 +74,9 @@ kern_return_t SwifterKitRuntimeAudioBox::HandleChangeAcquireBox(bool acquire) {
     kern_return_t result = SetIsAcquired(acquire);
     if (result != kIOReturnSuccess)
         return result;
-    result = ivars->service
-                 ->BeginAudioRequest(this, kSwifterKitAudioEventBoxRequest, ivars->index, acquire);
+    result =
+        ivars->service
+            ->BeginAudioRequest(this, kSwifterKitAudioEventBoxRequest, ivars->index, acquire, 0);
     if (result == kIOReturnNotAttached)
         return super::HandleChangeAcquireBox(acquire);
     if (result != kIOReturnSuccess)

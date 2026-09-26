@@ -96,6 +96,8 @@ struct SwifterKitAudioPendingRequest {
     uint32_t kind;
     uint32_t index;
     uint64_t value;
+    // The value a rejection restores: the previous sample rate for a clock request.
+    uint64_t previous;
     uint64_t deadline;
 };
 #endif
@@ -112,6 +114,8 @@ struct SwifterKitVideoPendingRequest {
     uint32_t kind;
     uint32_t index;
     uint64_t value;
+    // The value a rejection restores: the previous sample rate for a clock request.
+    uint64_t previous;
     uint64_t deadline;
 };
 #endif

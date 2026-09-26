@@ -78,6 +78,15 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- A clock device's `HandleChangeSampleRate`, in both AudioDriverKit and
+  VideoDriverKit, reported success after queuing the Swift request, and without
+  a host after only requesting a configuration change, although the headers
+  require the rate to be updated on success. The clock now sets the requested
+  rate before it reports success and uses the framework default without a host.
+  Accepting the request reports `clockDeviceSampleRateChanged`; rejecting it,
+  a timeout, or a detach restores the previous rate through a device
+  configuration change unless the rate changed again.
+
 - `StartVideo` stored the video device without `videoLock`, which
   `VideoCommand` holds while it reads the device; the device is now published
   under the lock.

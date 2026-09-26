@@ -136,13 +136,46 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::AbortDeviceConfigurationChange(
 kern_return_t SwifterKitRuntimeVideoClockDevice::HandleChangeSampleRate(double sampleRate) {
     if (ivars == nullptr || !IsAvailableSampleRate(sampleRate))
         return kIOReturnBadArgument;
-    // Swift answers through videoCompleteRequest; without a host the change proceeds at once.
-    const kern_return_t result = ivars->service->BeginVideoRequest(
+    // IOUserVideoClockDevice.iig: on success the sample rate must already be updated. The clock
+    // takes the requested rate before the request is queued, and a rejection from
+    // videoCompleteRequest restores the previous rate. Without a host the framework default
+    // applies.
+    const double previous = GetSampleRate();
+    // Nothing changes, so there is nothing for Swift to accept or reject.
+    if (previous == sampleRate)
+        return kIOReturnSuccess;
+    kern_return_t result = SetSampleRate(sampleRate);
+    if (result != kIOReturnSuccess)
+        return result;
+    result = ivars->service->BeginVideoRequest(
         this,
         kSwifterKitVideoEventClockRequest,
         ivars->index,
-        __builtin_bit_cast(uint64_t, sampleRate));
-    return result == kIOReturnNotAttached ? RequestSampleRate(sampleRate) : result;
+        __builtin_bit_cast(uint64_t, sampleRate),
+        __builtin_bit_cast(uint64_t, previous));
+    if (result == kIOReturnNotAttached)
+        return super::HandleChangeSampleRate(sampleRate);
+    if (result != kIOReturnSuccess)
+        (void)SetSampleRate(previous);
+    return result;
+}
+
+kern_return_t SwifterKitRuntimeVideoClockDevice::FinishSampleRateRequest(
+    double requested,
+    double previous,
+    bool accept) {
+    if (ivars == nullptr)
+        return kIOReturnNotReady;
+    if (accept)
+        return ivars->service->VideoObjectEvent(
+            5,
+            ivars->index,
+            __builtin_bit_cast(uint64_t, requested));
+    // Outside the callback the rate changes only through a device configuration change, and a
+    // later change must not be undone.
+    return GetSampleRate() == requested && IsAvailableSampleRate(previous)
+               ? RequestSampleRate(previous)
+               : kIOReturnSuccess;
 }
 
 void SwifterKitRuntimeVideoClockDevice::StreamFormatChanged(IOUserVideoObjectID streamID) {
