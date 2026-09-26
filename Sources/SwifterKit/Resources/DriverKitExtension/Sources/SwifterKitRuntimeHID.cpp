@@ -2,6 +2,7 @@
 #include <DriverKit/OSCollections.h>
 
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeProtocol.h"
 #include "SwifterKitRuntimeService.h"
 #include "SwifterKitRuntimeServiceState.h"
@@ -23,7 +24,7 @@ namespace {
     kern_return_t OpenUSBProvider(
         SwifterKitRuntimeService* service,
         IOService* provider,
-        SwifterKitRuntimeService_IVars* state) {
+        const SwifterKitRuntimeService_IVars* state) {
         if (service == nullptr || state == nullptr)
             return kIOReturnBadArgument;
         return service->StartUSB(provider);
@@ -31,7 +32,7 @@ namespace {
 
     [[maybe_unused]] void CloseUSBProvider(
         SwifterKitRuntimeService* service,
-        SwifterKitRuntimeService_IVars* state) {
+        const SwifterKitRuntimeService_IVars* state) {
         if (service != nullptr && state != nullptr)
             service->StopUSB();
     }
@@ -40,7 +41,7 @@ namespace {
     #if SWIFTERKIT_ENABLE_PCI
     kern_return_t OpenPCIProvider(
         SwifterKitRuntimeService* service,
-        IOService* provider,
+        const IOService* provider,
         SwifterKitRuntimeService_IVars* state) {
         if (service == nullptr || provider == nullptr || state == nullptr)
             return kIOReturnBadArgument;
@@ -105,9 +106,7 @@ namespace {
 
         const uint64_t address = map->GetAddress();
         if (address == 0
-            || !destination->appendBytes(
-                reinterpret_cast<const void*>(static_cast<uintptr_t>(address)),
-                length)) {
+            || !destination->appendBytes(SwifterKitMappedPointer<const void>(address), length)) {
             result = kIOReturnNoMemory;
         }
         map->release();
@@ -136,11 +135,12 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
         StopReporting();
         return false;
     }
-    bool opened = true;
     #if SWIFTERKIT_ENABLE_USB && !SWIFTERKIT_HID_USB_DEVICE
-    opened = OpenUSBProvider(this, provider, ivars) == kIOReturnSuccess;
+    const bool opened = OpenUSBProvider(this, provider, ivars) == kIOReturnSuccess;
     #elif SWIFTERKIT_ENABLE_PCI
-    opened = OpenPCIProvider(this, provider, ivars) == kIOReturnSuccess;
+    const bool opened = OpenPCIProvider(this, provider, ivars) == kIOReturnSuccess;
+    #else
+    const bool opened = true;
     #endif
     if (!opened) {
         return false;
@@ -267,10 +267,7 @@ kern_return_t SwifterKitRuntimeService::SubmitHIDInputReport(
     IOMemoryMap* map = nullptr;
     result = buffer->CreateMapping(0, 0, 0, header->reportLength, 0, &map);
     if (result == kIOReturnSuccess && map != nullptr && map->GetAddress() != 0) {
-        memcpy(
-            reinterpret_cast<void*>(static_cast<uintptr_t>(map->GetAddress())),
-            bytes,
-            header->reportLength);
+        memcpy(SwifterKitMappedPointer<void>(map->GetAddress()), bytes, header->reportLength);
         // The superclass delivers the report, so a USB HID device does not echo it to Swift.
         result = super::handleReport(
             header->timestamp,

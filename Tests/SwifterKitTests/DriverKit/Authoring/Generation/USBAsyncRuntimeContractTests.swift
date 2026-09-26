@@ -39,7 +39,7 @@ struct USBAsyncRuntimeContractTests {
       let state = try source("SwifterKitRuntimeServiceState.h", in: output)
       #expect(
         state.contains(
-          "+ kSwifterKitUSBMaximumBundleRings * kSwifterKitUSBMaximumBundleRingEntries"
+          "+ size_t {kSwifterKitUSBMaximumBundleRings} * kSwifterKitUSBMaximumBundleRingEntries"
         )
       )
     }

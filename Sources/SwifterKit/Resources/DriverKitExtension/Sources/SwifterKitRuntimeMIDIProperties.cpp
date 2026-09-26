@@ -77,7 +77,7 @@ namespace {
         kern_return_t result = kIOReturnSuccess;
         uint32_t cursor = 8;
         for (uint32_t index = 0; result == kIOReturnSuccess && index < count; ++index) {
-            OSString* key = nullptr;
+            const OSString* key = nullptr;
             if (dictionary != nullptr) {
                 if (length - cursor < 8) {
                     result = kIOReturnBadArgument;
@@ -189,12 +189,12 @@ namespace {
         return Append(data, header, sizeof(header));
     }
 
-    kern_return_t Encode(OSObject* value, OSData* data, uint32_t depth);
+    kern_return_t Encode(const OSObject* value, OSData* data, uint32_t depth);
 
     // Encodes container members into a scratch buffer so the header can carry the body length.
-    kern_return_t EncodeContainer(OSObject* value, OSData* data, uint32_t depth) {
-        auto* dictionary = OSDynamicCast(OSDictionary, value);
-        auto* array = OSDynamicCast(OSArray, value);
+    kern_return_t EncodeContainer(const OSObject* value, OSData* data, uint32_t depth) {
+        const auto* dictionary = OSDynamicCast(OSDictionary, value);
+        const auto* array = OSDynamicCast(OSArray, value);
         const uint32_t count = dictionary != nullptr ? dictionary->getCount() : array->getCount();
         if (depth > kSwifterKitMIDIPropertyMaximumDepth
             || count > kSwifterKitMIDIPropertyMaximumEntries) {
@@ -207,7 +207,7 @@ namespace {
         __block kern_return_t result = AppendHeader(body, count, 0);
         if (result == kIOReturnSuccess && dictionary != nullptr) {
             dictionary->iterateObjects(^bool(OSObject* key, OSObject* member) {
-              auto* name = OSDynamicCast(OSString, key);
+              const auto* name = OSDynamicCast(OSString, key);
               const size_t keyLength = name == nullptr ? 0 : name->getLength();
               if (keyLength == 0 || keyLength > kSwifterKitMIDIPropertyKeyMaximumLength) {
                   result = kIOReturnUnsupported;
@@ -240,18 +240,18 @@ namespace {
         return result;
     }
 
-    kern_return_t Encode(OSObject* value, OSData* data, uint32_t depth) {
-        if (auto* string = OSDynamicCast(OSString, value)) {
+    kern_return_t Encode(const OSObject* value, OSData* data, uint32_t depth) {
+        if (const auto* string = OSDynamicCast(OSString, value)) {
             const size_t length = string->getLength();
             if (length > kMaximumEncodedLength) {
                 return kIOReturnNoSpace;
             }
-            kern_return_t result =
+            const kern_return_t result =
                 AppendHeader(data, kSwifterKitMIDIValueString, static_cast<uint32_t>(length));
             return result == kIOReturnSuccess ? Append(data, string->getCStringNoCopy(), length)
                                               : result;
         }
-        if (auto* number = OSDynamicCast(OSNumber, value)) {
+        if (const auto* number = OSDynamicCast(OSNumber, value)) {
             const uint64_t bits = number->numberOfBits();
             if (!IsValidWidth(bits)) {
                 return kIOReturnUnsupported;
@@ -264,12 +264,12 @@ namespace {
             }
             return result == kIOReturnSuccess ? Append(data, &raw, sizeof(raw)) : result;
         }
-        if (auto* bytes = OSDynamicCast(OSData, value)) {
+        if (const auto* bytes = OSDynamicCast(OSData, value)) {
             const size_t length = bytes->getLength();
             if (length > kMaximumEncodedLength) {
                 return kIOReturnNoSpace;
             }
-            kern_return_t result =
+            const kern_return_t result =
                 AppendHeader(data, kSwifterKitMIDIValueData, static_cast<uint32_t>(length));
             return result == kIOReturnSuccess ? Append(data, bytes->getBytesNoCopy(), length)
                                               : result;

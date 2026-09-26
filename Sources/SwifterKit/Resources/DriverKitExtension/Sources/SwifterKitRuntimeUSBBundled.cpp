@@ -11,6 +11,7 @@
     #include <USBDriverKit/IOUSBHostPipe.h>
     #include <USBDriverKit/USBDriverKitDefs.h>
 
+    #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeServiceState.h"
@@ -73,7 +74,7 @@ namespace {
             return result;
         }
         // AsyncIOBundled is for bulk pipes only.
-        if ((descriptors.descriptor.bmAttributes & 0x03) != kIOUSBEndpointTypeBulk) {
+        if ((descriptors.descriptor.bmAttributes & 0x03U) != kIOUSBEndpointTypeBulk) {
             return kIOReturnBadArgument;
         }
         result =
@@ -83,7 +84,7 @@ namespace {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
         }
         result = ring->pipe->CreateMemoryDescriptorRing(request.entryCount);
-        const bool input = (request.endpoint & 0x80) != 0;
+        const bool input = (request.endpoint & 0x80U) != 0;
         for (uint32_t index = 0; result == kIOReturnSuccess && index < request.entryCount;
              ++index) {
             SwifterKitUSBBundleEntry& entry = ring->entries[index];
@@ -135,7 +136,7 @@ namespace {
         IOLockLock(state->usbLock);
         bool duplicate = false;
         for (uint32_t index = 0; index < kSwifterKitUSBMaximumBundleRings; ++index) {
-            SwifterKitUSBBundleRing& ring = state->usbBundleRings[index];
+            const SwifterKitUSBBundleRing& ring = state->usbBundleRings[index];
             duplicate = duplicate || (ring.reserved && ring.endpoint == request.endpoint);
             if (!ring.reserved && slot < 0) {
                 slot = static_cast<int32_t>(index);
@@ -155,7 +156,7 @@ namespace {
 
         SwifterKitUSBBundleRing ring;
         ring.endpoint = request.endpoint;
-        kern_return_t result = BuildRing(service, state->usbInterface, request, &ring);
+        const kern_return_t result = BuildRing(service, state->usbInterface, request, &ring);
         IOLockLock(state->usbLock);
         if (result == kIOReturnSuccess) {
             ring.reserved = true;
@@ -237,7 +238,7 @@ kern_return_t SwifterKitRuntimeService::USBBundleCommand(
         || payloadLength - sizeof(header) < count * sizeof(uint32_t)) {
         return kIOReturnBadArgument;
     }
-    const bool input = (header.endpoint & 0x80) != 0;
+    const bool input = (header.endpoint & 0x80U) != 0;
     uint32_t lengths[kIOUSBHostPipeBundlingMax] = {};
     memcpy(lengths, payload + sizeof(header), count * sizeof(uint32_t));
     const uint8_t* bytes = payload + sizeof(header) + count * sizeof(uint32_t);
@@ -278,7 +279,7 @@ kern_return_t SwifterKitRuntimeService::USBBundleCommand(
             entry.state = SwifterKitUSBBundleEntryState::InFlight;
             if (!input) {
                 memcpy(
-                    reinterpret_cast<void*>(static_cast<uintptr_t>(entry.map->GetAddress())),
+                    SwifterKitMappedPointer<void>(entry.map->GetAddress()),
                     bytes,
                     lengths[index]);
                 bytes += lengths[index];
@@ -392,7 +393,7 @@ void SwifterKitRuntimeService::DeliverUSBBundledCompletions() {
             break;
         }
         SwifterKitUSBBundleEntry& entry = oldestRing->entries[oldestIndex];
-        const bool input = (oldestRing->endpoint & 0x80) != 0;
+        const bool input = (oldestRing->endpoint & 0x80U) != 0;
         const SwifterKitUSBBundledIOEvent header = {
             .endpoint = oldestRing->endpoint,
             .reserved8 = 0,

@@ -193,7 +193,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetDeviceProperty(
             && value > UINT32_MAX))
         return kIOReturnBadArgument;
     const auto low = static_cast<uint32_t>(value);
-    const auto high = static_cast<uint32_t>(value >> 32);
+    const auto high = static_cast<uint32_t>(value >> 32U);
     switch (request->selector) {
         case kSwifterKitAudioDevicePropertyCanBeDefaultInput:
             return SetCanBeDefaultInputDevice(value != 0);
@@ -239,14 +239,14 @@ kern_return_t SwifterKitRuntimeAudioDevice::CopyStreamState(
     auto* stream = ivars->streams[request->identifier];
     if (stream == nullptr)
         return kIOReturnNotReady;
-    IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats] = {};
+    IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats];
     const size_t available = stream->GetNumberAvailableStreamFormats();
     const auto count = static_cast<uint32_t>(stream->GetAvailableStreamFormats(
         formats,
         available < kSwifterKitAudioMaximumStreamFormats ? available
                                                          : kSwifterKitAudioMaximumStreamFormats));
     uint64_t memoryLength = 0;
-    OSSharedPtr<IOMemoryDescriptor> memory = stream->GetIOMemoryDescriptor();
+    const OSSharedPtr<IOMemoryDescriptor> memory = stream->GetIOMemoryDescriptor();
     if (memory && memory->GetLength(&memoryLength) != kIOReturnSuccess)
         memoryLength = 0;
     const SwifterKitAudioStreamState state = {
@@ -298,7 +298,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetStreamProperty(
         case kSwifterKitAudioStreamPropertyTerminalType:
             return stream->SetTerminalType(static_cast<IOUserAudioStreamTerminalType>(word));
         case kSwifterKitAudioStreamPropertyCurrentFormat: {
-            IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats] = {};
+            IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats];
             const size_t count =
                 stream->GetAvailableStreamFormats(formats, kSwifterKitAudioMaximumStreamFormats);
             return word < count ? stream->SetCurrentStreamFormat(&formats[word])
@@ -317,7 +317,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::ResizeStreamMemory(uint32_t index, u
         return kIOReturnBadArgument;
     // IOUserAudioStream.iig: SetIOMemoryDescriptor belongs in PerformDeviceConfigurationChange.
     uint64_t expected = 0;
-    const uint64_t pending = static_cast<uint64_t>(index) << 32 | frames;
+    const uint64_t pending = static_cast<uint64_t>(index) << 32U | frames;
     if (!__atomic_compare_exchange_n(
             &ivars->pendingRingBuffer,
             &expected,
@@ -335,7 +335,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::ResizeStreamMemory(uint32_t index, u
 
 kern_return_t SwifterKitRuntimeAudioDevice::ApplyRingBufferChange() {
     const uint64_t pending = __atomic_exchange_n(&ivars->pendingRingBuffer, 0, __ATOMIC_ACQ_REL);
-    const auto index = static_cast<uint32_t>(pending >> 32);
+    const auto index = static_cast<uint32_t>(pending >> 32U);
     const uint64_t size = RingBufferBytes(index, static_cast<uint32_t>(pending));
     if (pending == 0 || size == 0 || ivars->streams[index] == nullptr)
         return kIOReturnBadArgument;
@@ -354,8 +354,8 @@ kern_return_t SwifterKitRuntimeAudioDevice::ApplyRingBufferChange() {
     }
     // Only the swap is locked; no AudioDriverKit call runs under ringLock.
     IOLockLock(ivars->ringLock);
-    IOMemoryMap* oldMap = ivars->maps[index];
-    IOBufferMemoryDescriptor* oldDescriptor = ivars->descriptors[index];
+    const IOMemoryMap* oldMap = ivars->maps[index];
+    const IOBufferMemoryDescriptor* oldDescriptor = ivars->descriptors[index];
     ivars->maps[index] = map;
     ivars->descriptors[index] = descriptor;
     IOLockUnlock(ivars->ringLock);

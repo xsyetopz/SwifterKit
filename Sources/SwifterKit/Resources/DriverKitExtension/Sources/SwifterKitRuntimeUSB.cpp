@@ -63,7 +63,7 @@ namespace {
     }
 
     bool IsInput(uint8_t encodedByte) {
-        return (encodedByte & 0x80) != 0;
+        return (encodedByte & 0x80U) != 0;
     }
 
     bool ValidOutputPayload(bool input, uint32_t expectedLength, uint32_t payloadLength) {

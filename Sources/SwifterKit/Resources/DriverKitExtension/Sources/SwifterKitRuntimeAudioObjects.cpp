@@ -26,7 +26,7 @@ namespace {
     // Resolves a device, box, clock-device, or object-ID target; the driver is not an object.
     IOUserAudioObject* ResolveObject(
         SwifterKitRuntimeService* service,
-        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitRuntimeService_IVars* state,
         const SwifterKitAudioObjectTarget& target,
         OSSharedPtr<IOUserAudioObject>& holder) {
         const bool indexed = target.index < kSwifterKitAudioObjectTableCount;
@@ -46,7 +46,7 @@ namespace {
     }
 
     IOUserAudioClockDevice* ResolveClock(
-        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitRuntimeService_IVars* state,
         const SwifterKitAudioObjectTarget& target) {
         if (target.kind == kSwifterKitAudioTargetDevice)
             return state->audioDevice;

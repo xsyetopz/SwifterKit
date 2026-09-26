@@ -1,4 +1,5 @@
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeService.h"
 
 #if SWIFTERKIT_ENABLE_SERIAL
@@ -77,8 +78,8 @@ namespace {
     // replaces it before the service registers.
     kern_return_t PublishTerminalName(SwifterKitRuntimeService* service) {
         OSDictionary* names = OSDictionary::withCapacity(2);
-        OSString* baseName = OSString::withCString(kSwifterKitSerialBaseName);
-        OSString* suffix = OSString::withCString(kSwifterKitSerialSuffix);
+        const OSString* baseName = OSString::withCString(kSwifterKitSerialBaseName);
+        const OSString* suffix = OSString::withCString(kSwifterKitSerialSuffix);
         kern_return_t result = kIOReturnNoMemory;
         if (names != nullptr && baseName != nullptr && suffix != nullptr
             && names->setObject("IOTTYBaseName", baseName)
@@ -136,7 +137,7 @@ kern_return_t SwifterKitRuntimeService::StartSerial() {
         StopSerial();
         return kIOReturnBadArgument;
     }
-    ivars->serialInterface = reinterpret_cast<driverkit::serial::SerialPortInterface*>(
+    ivars->serialInterface = SwifterKitMappedPointer<driverkit::serial::SerialPortInterface>(
         ivars->serialArenaMap->GetAddress());
     if (ivars->serialInterface == nullptr
         || !ValidRing(
@@ -206,10 +207,11 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
     }
     #endif
 
+    const auto code = static_cast<SwifterKitRuntimeOpcode>(opcode);
     IOLockLock(ivars->serialLock);
     auto* serial = ivars->serialInterface;
     kern_return_t result = kIOReturnSuccess;
-    switch (static_cast<SwifterKitRuntimeOpcode>(opcode)) {
+    switch (code) {
         case SwifterKitRuntimeOpcode::SerialEnqueueReceive: {
             if (payloadLength == 0) {
                 result = kIOReturnBadArgument;
@@ -224,8 +226,8 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
                 result = kIOReturnNoSpace;
                 break;
             }
-            auto* ring = reinterpret_cast<uint8_t*>(ivars->serialReceiveMap->GetAddress())
-                         + serial->rxqoffset;
+            auto* ring =
+                SwifterKitMappedPointer(ivars->serialReceiveMap->GetAddress()) + serial->rxqoffset;
             CopyIntoRing(ring, size, producer, payload, payloadLength);
             __atomic_store_n(&serial->rxPI, (producer + payloadLength) & mask, __ATOMIC_RELEASE);
             break;
@@ -254,7 +256,7 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
                 break;
             }
             const auto* ring =
-                reinterpret_cast<const uint8_t*>(ivars->serialTransmitMap->GetAddress())
+                SwifterKitMappedPointer<const uint8_t>(ivars->serialTransmitMap->GetAddress())
                 + serial->txqoffset;
             if (!AppendFromRing(data, ring, size, consumer, length)) {
                 data->release();
@@ -277,7 +279,7 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
             ivars->serialDCD = payload[3] != 0;
             break;
         case SwifterKitRuntimeOpcode::SerialReportReceiveErrors:
-            if (payloadLength != 4 || (payload[0] & ~uint8_t {0x0F}) != 0 || payload[1] != 0
+            if (payloadLength != 4 || (payload[0] & 0xF0U) != 0 || payload[1] != 0
                 || payload[2] != 0 || payload[3] != 0) {
                 result = kIOReturnBadArgument;
             }
@@ -292,7 +294,7 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
         OSSafeReleaseNULL(*response);
         return result;
     }
-    switch (static_cast<SwifterKitRuntimeOpcode>(opcode)) {
+    switch (code) {
         case SwifterKitRuntimeOpcode::SerialEnqueueReceive:
             RxDataAvailable();
             break;
@@ -308,10 +310,10 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
             break;
         case SwifterKitRuntimeOpcode::SerialReportReceiveErrors:
             result = RxError(
-                (payload[0] & 1) != 0,
-                (payload[0] & 2) != 0,
-                (payload[0] & 4) != 0,
-                (payload[0] & 8) != 0);
+                (payload[0] & 1U) != 0,
+                (payload[0] & 2U) != 0,
+                (payload[0] & 4U) != 0,
+                (payload[0] & 8U) != 0);
             break;
         default:
             break;

@@ -89,11 +89,11 @@ namespace {
         }
         IOUSBStandardEndpointDescriptors original = {};
         result = pipe->GetDescriptors(&original, kIOUSBGetEndpointDescriptorOriginal);
-        const uint8_t type = original.descriptor.bmAttributes & 0x03;
+        const uint8_t type = original.descriptor.bmAttributes & 0x03U;
         if (result == kIOReturnSuccess
             && (original.descriptor.bEndpointAddress != request.endpoint
                 || (type != kIOUSBEndpointTypeIsochronous && type != kIOUSBEndpointTypeInterrupt)
-                || (value.endpoint[3] & 0x03) != type)) {
+                || (value.endpoint[3] & 0x03U) != type)) {
             result = kIOReturnBadArgument;
         }
         if (result == kIOReturnSuccess) {
@@ -145,7 +145,7 @@ kern_return_t SwifterKitRuntimeService::USBAsyncCommand(
         return kIOReturnBadArgument;
     }
     memcpy(&header, payload, sizeof(header));
-    const bool input = (header.requestType & 0x80) != 0;
+    const bool input = (header.requestType & 0x80U) != 0;
     const uint32_t bytesLength = payloadLength - sizeof(header);
     if (header.reserved != 0
         || (input ? bytesLength != 0 || header.length > kSwifterKitUSBMaximumAsyncRequestInputLength

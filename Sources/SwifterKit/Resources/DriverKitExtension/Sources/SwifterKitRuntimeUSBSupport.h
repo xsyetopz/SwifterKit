@@ -11,6 +11,7 @@
     #include <DriverKit/OSData.h>
     #include <string.h>
 
+    #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeServiceState.h"
 
 // The OSAction reference of an asynchronous transfer: its slot and the identifier it was issued.
@@ -86,7 +87,7 @@ kern_return_t SwifterKitCreateUSBBuffer(
         || (*map)->GetLength() < length) {
         return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
     }
-    auto* address = reinterpret_cast<uint8_t*>(static_cast<uintptr_t>((*map)->GetAddress()));
+    auto* address = SwifterKitMappedPointer((*map)->GetAddress());
     if (input) {
         memset(address, 0, length);
     } else {
@@ -95,11 +96,11 @@ kern_return_t SwifterKitCreateUSBBuffer(
     return kIOReturnSuccess;
 }
 
-inline const uint8_t* SwifterKitUSBMappedBytes(IOMemoryMap* map) {
+const inline uint8_t* SwifterKitUSBMappedBytes(IOMemoryMap* map) {
     if (map == nullptr || map->GetAddress() == 0) {
         return nullptr;
     }
-    return reinterpret_cast<const uint8_t*>(static_cast<uintptr_t>(map->GetAddress()));
+    return SwifterKitMappedPointer<const uint8_t>(map->GetAddress());
 }
 
 // Creates a response holding `length` bytes, or fails without a partial response.

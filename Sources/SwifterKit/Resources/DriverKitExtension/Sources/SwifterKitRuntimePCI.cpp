@@ -93,6 +93,8 @@ namespace {
                 device->ConfigurationRead32(header->offset, &value);
                 return value;
             }
+            default:
+                break;
         }
         return 0;
     }
@@ -107,6 +109,8 @@ namespace {
                 break;
             case 4:
                 device->ConfigurationWrite32(header->offset, static_cast<uint32_t>(header->value));
+                break;
+            default:
                 break;
         }
     }
@@ -162,6 +166,8 @@ namespace {
                 }
                 return value;
             }
+            default:
+                break;
         }
         return 0;
     }
@@ -223,6 +229,8 @@ namespace {
                         header->options);
                 }
                 break;
+            default:
+                break;
         }
     }
 }  // namespace
@@ -237,7 +245,7 @@ kern_return_t SwifterKitRuntimeService::PCIAccess(
     }
     *response = nullptr;
 
-    if (write && header->width != 8 && header->value >= (UINT64_C(1) << (header->width * 8))) {
+    if (write && header->width != 8 && header->value >= (UINT64_C(1) << (header->width * 8U))) {
         return kIOReturnBadArgument;
     }
     if (header->space == 1
@@ -266,7 +274,7 @@ kern_return_t SwifterKitRuntimeService::PCIGetBARInfo(uint8_t barIndex, OSData**
     uint8_t memoryIndex = 0;
     uint8_t type = 0;
     uint64_t size = 0;
-    kern_return_t result = ivars->pciDevice->GetBARInfo(barIndex, &memoryIndex, &size, &type);
+    const kern_return_t result = ivars->pciDevice->GetBARInfo(barIndex, &memoryIndex, &size, &type);
     if (result != kIOReturnSuccess) {
         return result;
     }
@@ -289,7 +297,8 @@ kern_return_t SwifterKitRuntimeService::PCIGetLocation(OSData** response) {
     }
 
     uint8_t value[4] = {};
-    kern_return_t result = ivars->pciDevice->GetBusDeviceFunction(&value[0], &value[1], &value[2]);
+    const kern_return_t result =
+        ivars->pciDevice->GetBusDeviceFunction(&value[0], &value[1], &value[2]);
     if (result != kIOReturnSuccess) {
         return result;
     }
@@ -306,7 +315,7 @@ kern_return_t SwifterKitRuntimeService::PCIFindCapability(
     }
 
     uint64_t offset = 0;
-    kern_return_t result =
+    const kern_return_t result =
         ivars->pciDevice->FindPCICapability(header->identifier, header->searchOffset, &offset);
     if (result != kIOReturnSuccess) {
         return result;
@@ -330,12 +339,23 @@ static_assert(kPCIPMCPMESupportFromD3Cold == 0x8000);
 static_assert(kPCIPMCSPowerStateD3 == 3);
 
 namespace {
+    // Combines SDK bit constants, which are signed enumerators, as unsigned bits.
+    template<typename... Bits>
+    constexpr uint64_t BitMask(Bits... bits) {
+        return (static_cast<uint64_t>(bits) | ...);
+    }
+
     constexpr uint32_t kResetOptionMask = kIOPCIDeviceResetOptionTerminate;
     constexpr uint32_t kSaveStateOptionMask = kPCIConfigShadowPermanent;
-    constexpr uint64_t kPowerManagementSupportMask =
-        kPCIPMCPMESupportFromD3Cold | kPCIPMCPMESupportFromD3Hot | kPCIPMCPMESupportFromD2
-        | kPCIPMCPMESupportFromD1 | kPCIPMCPMESupportFromD0 | kPCIPMCD2Support | kPCIPMCD1Support
-        | kPCIPMCD3Support;
+    constexpr uint64_t kPowerManagementSupportMask = BitMask(
+        kPCIPMCPMESupportFromD3Cold,
+        kPCIPMCPMESupportFromD3Hot,
+        kPCIPMCPMESupportFromD2,
+        kPCIPMCPMESupportFromD1,
+        kPCIPMCPMESupportFromD0,
+        kPCIPMCD2Support,
+        kPCIPMCD1Support,
+        kPCIPMCD3Support);
     constexpr uint32_t kASPMMask = kIOPCILinkControlASPMBitsL0sL1;
 
     bool IsResetType(uint32_t type) {

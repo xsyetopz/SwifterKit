@@ -445,7 +445,7 @@ static_assert(kSwifterKitMaximumQueuedRequiredEvents > kSwifterKitHIDMaximumPend
 static_assert(
     kSwifterKitMaximumQueuedRequiredEvents
     > sizeof(SwifterKitRuntimeService_IVars::usbTransfers) / sizeof(SwifterKitUSBPendingTransfer)
-          + kSwifterKitUSBMaximumBundleRings * kSwifterKitUSBMaximumBundleRingEntries);
+          + size_t {kSwifterKitUSBMaximumBundleRings} * kSwifterKitUSBMaximumBundleRingEntries);
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
 static_assert(

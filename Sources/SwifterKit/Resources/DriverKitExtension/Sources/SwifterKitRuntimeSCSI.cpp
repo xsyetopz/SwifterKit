@@ -95,7 +95,8 @@ namespace {
         OSDictionary* dictionary = OSDictionary::withCapacity(8);
         bool complete = dictionary != nullptr;
         for (const auto& constraint : constraints) {
-            OSNumber* number = complete ? OSNumber::withNumber(constraint.value, 64) : nullptr;
+            const OSNumber* number =
+                complete ? OSNumber::withNumber(constraint.value, 64) : nullptr;
             complete = number != nullptr && dictionary->setObject(constraint.key, number);
             OSSafeReleaseNULL(number);
         }

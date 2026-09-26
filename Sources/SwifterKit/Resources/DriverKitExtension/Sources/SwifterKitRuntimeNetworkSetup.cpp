@@ -66,6 +66,9 @@ namespace {
         return result;
     }
 
+    // PollAction and EventAction fix these callbacks' parameter types, so `target` stays mutable.
+    // NOLINTBEGIN(misc-const-correctness)
+
     // Each poll tick drains transmit work; the poller runs on the network queue.
     IOReturn NetworkPoll(OSObject* target, IOUserNetworkPacketPoller*, void*) {
         auto* service = OSDynamicCast(SwifterKitRuntimeService, target);
@@ -89,6 +92,8 @@ namespace {
                 type == kIOUserNetworkPacketPollerEventPollStart ? 1 : 0);
         return kIOReturnSuccess;
     }
+
+    // NOLINTEND(misc-const-correctness)
 }  // namespace
 
 kern_return_t SwifterKitRuntimeService::StartNetwork() {
@@ -471,11 +476,11 @@ kern_return_t SwifterKitRuntimeService::getHardwareAddress(ether_addr_t* address
     return result;
 }
 kern_return_t SwifterKitRuntimeService::setHardwareAddress(ether_addr_t* address) {
-    if (address == nullptr || (address->octet[0] & 1) != 0 || ivars == nullptr
+    if (address == nullptr || (address->octet[0] & 1U) != 0 || ivars == nullptr
         || ivars->networkLock == nullptr)
         return kIOReturnBadArgument;
     IOLockLock(ivars->networkLock);
-    kern_return_t result =
+    const kern_return_t result =
         ivars->networkStopping
             ? kIOReturnNotReady
             : NetworkControlEvent(kSwifterKitNetworkEventHardwareAddress, 1, address->octet, 6);

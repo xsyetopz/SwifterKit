@@ -41,15 +41,15 @@ namespace {
 
     // Returns a retained object for a device, entity, endpoint, or object-ID target.
     IOUserMIDIObject* CopyObject(
-        SwifterKitRuntimeService* service,
-        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitRuntimeService* service,
+        const SwifterKitRuntimeService_IVars* state,
         uint32_t kind,
         uint32_t index) {
         if (kind == kSwifterKitMIDITargetObject) {
             if (index == 0) {
                 return nullptr;
             }
-            OSSharedPtr<IOUserMIDIObject> holder = service->GetMIDIObjectForObjectID(index);
+            const OSSharedPtr<IOUserMIDIObject> holder = service->GetMIDIObjectForObjectID(index);
             if (holder) {
                 holder->retain();
             }
@@ -90,6 +90,11 @@ namespace {
         uint32_t end = 0;
     };
 
+    // The selector of a key ReadKey read without a name; name keys never reach this.
+    IOUserMIDIProperty Selector(const PropertyKey& key) {
+        return static_cast<IOUserMIDIProperty>(key.selector);
+    }
+
     kern_return_t ReadKey(const uint8_t* payload, uint32_t length, PropertyKey* key) {
         if (length < 16) {
             return kIOReturnBadArgument;
@@ -123,8 +128,10 @@ namespace {
         return kIOReturnSuccess;
     }
 
-    kern_return_t
-        ObjectInfo(SwifterKitRuntimeService* service, IOUserMIDIObject* object, OSData** response) {
+    kern_return_t ObjectInfo(
+        const SwifterKitRuntimeService* service,
+        const IOUserMIDIObject* object,
+        OSData** response) {
         MIDIObjectInfoHeader header = {};
         OSSharedPtr<OSString> name;
         if (object == nullptr) {
@@ -169,12 +176,12 @@ namespace {
         }
         __block kern_return_t result = kIOReturnSuccess;
         OSArray* arrays[2] = {first, second};
-        for (OSArray* array : arrays) {
+        for (const OSArray* array : arrays) {
             if (array == nullptr || result != kIOReturnSuccess) {
                 continue;
             }
             array->iterateObjects(^bool(OSObject* member) {
-              auto* object = OSDynamicCast(IOUserMIDIObject, member);
+              const auto* object = OSDynamicCast(IOUserMIDIObject, member);
               const uint32_t objectID = object == nullptr ? 0 : object->GetObjectID();
               if (objectID == 0) {
                   result = kIOReturnInternalError;
@@ -193,8 +200,8 @@ namespace {
     }
 
     kern_return_t SetMembership(
-        SwifterKitRuntimeService* service,
-        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitRuntimeService* service,
+        const SwifterKitRuntimeService_IVars* state,
         const uint8_t* payload) {
         const uint32_t kind = ReadU32(payload, 0);
         const uint32_t index = ReadU32(payload, 4);
@@ -204,11 +211,11 @@ namespace {
                 && kind != kSwifterKitMIDITargetDestination)) {
             return kIOReturnBadArgument;
         }
-        IOUserMIDIObject* member = CopyObject(service, state, kind, index);
+        const IOUserMIDIObject* member = CopyObject(service, state, kind, index);
         const uint32_t ownerKind = kind == kSwifterKitMIDITargetEntity
                                        ? kSwifterKitMIDITargetDevice
                                        : kSwifterKitMIDITargetEntity;
-        IOUserMIDIObject* owner = CopyObject(service, state, ownerKind, 0);
+        const IOUserMIDIObject* owner = CopyObject(service, state, ownerKind, 0);
         kern_return_t result = kIOReturnNotReady;
         if (member != nullptr && owner != nullptr) {
             if (auto* entity = OSDynamicCast(IOUserMIDIEntity, member)) {
@@ -242,7 +249,7 @@ namespace {
             if (length != 8) {
                 return kIOReturnBadArgument;
             }
-            OSSharedPtr<OSDictionary> properties = object->GetProperties();
+            const OSSharedPtr<OSDictionary> properties = object->GetProperties();
             OSDictionary* empty = properties ? nullptr : OSDictionary::withCapacity(1);
             OSObject* value = properties ? static_cast<OSObject*>(properties.get()) : empty;
             const kern_return_t result =
@@ -264,7 +271,6 @@ namespace {
 
         PropertyKey key;
         kern_return_t result = ReadKey(payload, length, &key);
-        const auto selector = static_cast<IOUserMIDIProperty>(key.selector);
         if (result != kIOReturnSuccess) {
             OSSafeReleaseNULL(key.name);
             return result;
@@ -273,8 +279,8 @@ namespace {
             IOUserMIDIPropertyType type = IOUserMIDIPropertyType::String;
             result = key.name != nullptr || key.end != length
                          ? kIOReturnBadArgument
-                         : object->GetPropertyType(selector, &type);
-            const uint32_t value = static_cast<uint32_t>(type);
+                         : object->GetPropertyType(Selector(key), &type);
+            const auto value = static_cast<uint32_t>(type);
             if (result == kIOReturnSuccess) {
                 *response = OSData::withBytes(&value, sizeof(value));
                 result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
@@ -285,7 +291,7 @@ namespace {
                 result = kIOReturnBadArgument;
             } else {
                 result = key.name != nullptr ? object->CopyProperty(key.name, &value)
-                                             : object->CopyProperty(selector, &value);
+                                             : object->CopyProperty(Selector(key), &value);
             }
             if (result == kIOReturnSuccess) {
                 result = value == nullptr ? kIOReturnNotFound : EncodeResponse(value, response);
@@ -296,7 +302,7 @@ namespace {
             result = SwifterKitDecodeMIDIValue(payload + key.end, length - key.end, &value);
             if (result == kIOReturnSuccess) {
                 result = key.name != nullptr ? object->SetProperty(key.name, value)
-                                             : object->SetProperty(selector, value);
+                                             : object->SetProperty(Selector(key), value);
             }
             OSSafeReleaseNULL(value);
         } else {
@@ -325,7 +331,7 @@ kern_return_t SwifterKitRuntimeService::MIDIObjectCommand(
             return kIOReturnBadArgument;
         }
         const bool device = Is(opcode, Opcode::MIDIGetDeviceState);
-        IOUserMIDIObject* object = CopyObject(
+        const IOUserMIDIObject* object = CopyObject(
             this,
             ivars,
             device ? kSwifterKitMIDITargetDevice : kSwifterKitMIDITargetEntity,
@@ -334,13 +340,13 @@ kern_return_t SwifterKitRuntimeService::MIDIObjectCommand(
             return kIOReturnNotReady;
         }
         kern_return_t result = kIOReturnInternalError;
-        if (auto* midiDevice = OSDynamicCast(IOUserMIDIDevice, object)) {
-            OSSharedPtr<OSArray> entities = midiDevice->GetEntities();
+        if (const auto* midiDevice = OSDynamicCast(IOUserMIDIDevice, object)) {
+            const OSSharedPtr<OSArray> entities = midiDevice->GetEntities();
             const uint32_t running = midiDevice->GetDeviceIsRunning() ? 1 : 0;
             result = ObjectIDList(running, entities.get(), nullptr, response);
-        } else if (auto* entity = OSDynamicCast(IOUserMIDIEntity, object)) {
-            OSSharedPtr<OSArray> sources = entity->GetSources();
-            OSSharedPtr<OSArray> destinations = entity->GetDestinations();
+        } else if (const auto* entity = OSDynamicCast(IOUserMIDIEntity, object)) {
+            const OSSharedPtr<OSArray> sources = entity->GetSources();
+            const OSSharedPtr<OSArray> destinations = entity->GetDestinations();
             const uint32_t sourceCount = sources ? sources->getCount() : 0;
             result = ObjectIDList(sourceCount, sources.get(), destinations.get(), response);
         }

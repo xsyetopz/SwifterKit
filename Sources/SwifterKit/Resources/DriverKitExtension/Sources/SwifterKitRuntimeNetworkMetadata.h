@@ -6,6 +6,7 @@
     #include <NetworkingDriverKit/NetworkingDriverKit.h>
     #include <string.h>
 
+    #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
 
     // The DriverKit 24.4 SDK does not declare the packet VLAN accessors; 25.5 and later do.
@@ -33,7 +34,7 @@ inline void SwifterKitReturnNetworkPacket(IOUserNetworkPacket* packet) {
 }
 
 inline void SwifterKitReadTransmitMetadata(
-    IOUserNetworkPacket* packet,
+    const IOUserNetworkPacket* packet,
     SwifterKitNetworkTransmitMetadata* metadata) {
     *metadata = {};
     if (__builtin_available(driverkit 23.0, *))
@@ -136,7 +137,7 @@ inline IOReturn SwifterKitFillReceivePacket(
         result = kIOReturnUnsupported;
     if (result != kIOReturnSuccess)
         return result;
-    memcpy(reinterpret_cast<void*>(address + offset), frame, entry.length);
+    memcpy(SwifterKitMappedPointer<void>(address + offset), frame, entry.length);
     result = packet->setLinkHeaderLength(entry.linkHeaderLength);
     if (result == kIOReturnSuccess)
         result =

@@ -291,15 +291,14 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
             break;
         }
         case SwifterKitRuntimeOpcode::HIDSetEventDriverCategories: {
-            SwifterKitHIDDeviceSetting setting = {};
     #if SWIFTERKIT_HID_EVENT_DRIVER
+            SwifterKitHIDDeviceSetting setting = {};
             if (Read(payload, payloadLength, &setting) && setting.kind == 0
                 && (setting.value & ~kSwifterKitHIDEventDriverCategoriesAll) == 0) {
                 ivars->hidEventDriverHandling = setting.value;
                 result = kIOReturnSuccess;
             }
     #else
-            (void)setting;
             result = kIOReturnUnsupported;
     #endif
             break;

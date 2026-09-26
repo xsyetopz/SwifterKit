@@ -1,4 +1,5 @@
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeService.h"
 #if SWIFTERKIT_ENABLE_NETWORKING
     #include <DriverKit/IOLib.h>
@@ -24,7 +25,7 @@ void SwifterKitRuntimeService::DrainNetworkTransmits() {
         return;
     }
     IOUserNetworkPacket* packets[8] = {};
-    uint32_t count = ivars->networkTxSubmission->DequeuePackets(packets, 8);
+    const uint32_t count = ivars->networkTxSubmission->DequeuePackets(packets, 8);
     for (uint32_t index = 0; index < count; ++index) {
         IOUserNetworkPacket* packet = packets[index];
         SwifterKitNetworkPendingTransmit* pending = nullptr;
@@ -34,9 +35,9 @@ void SwifterKitRuntimeService::DrainNetworkTransmits() {
                 break;
             }
         }
-        uint32_t length = packet->getDataLength();
-        uint64_t address = packet->getDataVirtualAddress();
-        uint16_t offset = packet->getDataOffset();
+        const uint32_t length = packet->getDataLength();
+        const uint64_t address = packet->getDataVirtualAddress();
+        const uint16_t offset = packet->getDataOffset();
         SwifterKitNetworkTransmitMetadata metadata = {};
         if (pending == nullptr || length == 0 || length > kSwifterKitEthernetPacketBufferSize
             || length > kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitNetworkEventHeader)
@@ -73,15 +74,15 @@ void SwifterKitRuntimeService::DrainNetworkTransmits() {
             length,
             dataLength};
         OSData* event = OSData::withCapacity(sizeof(header) + dataLength);
-        const void* bytes = reinterpret_cast<const void*>(address + offset);
-        bool ready = event != nullptr && event->appendBytes(&header, sizeof(header))
-                     && event->appendBytes(&metadata, sizeof(metadata))
-                     && event->appendBytes(bytes, length);
-        kern_return_t result = ready ? EnqueueRequiredEvent(
-                                           kSwifterKitEventNetwork,
-                                           event->getBytesNoCopy(),
-                                           static_cast<uint32_t>(event->getLength()))
-                                     : kIOReturnNoMemory;
+        const void* bytes = SwifterKitMappedPointer<const void>(address + offset);
+        const bool ready = event != nullptr && event->appendBytes(&header, sizeof(header))
+                           && event->appendBytes(&metadata, sizeof(metadata))
+                           && event->appendBytes(bytes, length);
+        const kern_return_t result = ready ? EnqueueRequiredEvent(
+                                                 kSwifterKitEventNetwork,
+                                                 event->getBytesNoCopy(),
+                                                 static_cast<uint32_t>(event->getLength()))
+                                           : kIOReturnNoMemory;
         OSSafeReleaseNULL(event);
         if (result != kIOReturnSuccess) {
             pending->requestID = 0;
@@ -125,12 +126,12 @@ kern_return_t SwifterKitRuntimeService::NetworkCommand(
                 IOUserNetworkPacket* packet = nullptr;
                 result = ivars->networkRxSubmission->DequeuePacket(&packet);
                 if (result == kIOReturnSuccess && packet != nullptr) {
-                    uint64_t address = packet->getDataVirtualAddress();
-                    uint16_t offset = packet->getDataOffset();
+                    const uint64_t address = packet->getDataVirtualAddress();
+                    const uint16_t offset = packet->getDataOffset();
                     result = address == 0 ? kIOReturnNotReady : kIOReturnSuccess;
                     if (result == kIOReturnSuccess) {
                         memcpy(
-                            reinterpret_cast<void*>(address + offset),
+                            SwifterKitMappedPointer<void>(address + offset),
                             payload + sizeof(*header),
                             header->length);
                         result = packet->setDataLength(header->length);

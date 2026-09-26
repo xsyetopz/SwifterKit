@@ -2,6 +2,7 @@
 #include <DriverKit/OSCollections.h>
 
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeProtocol.h"
 #include "SwifterKitRuntimeService.h"
 #include "SwifterKitRuntimeServiceState.h"
@@ -50,10 +51,7 @@ namespace {
             result = kIOReturnNoMemory;
         }
         if (result == kIOReturnSuccess) {
-            memcpy(
-                reinterpret_cast<void*>(static_cast<uintptr_t>(map->GetAddress())),
-                bytes,
-                length);
+            memcpy(SwifterKitMappedPointer<void>(map->GetAddress()), bytes, length);
         }
         OSSafeReleaseNULL(map);
         return result;
@@ -244,9 +242,8 @@ namespace {
             result = kIOReturnNoMemory;
         }
         if (result == kIOReturnSuccess) {
-            *response = OSData::withBytes(
-                reinterpret_cast<const void*>(static_cast<uintptr_t>(map->GetAddress())),
-                length);
+            *response =
+                OSData::withBytes(SwifterKitMappedPointer<const void>(map->GetAddress()), length);
             result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
         }
         OSSafeReleaseNULL(map);

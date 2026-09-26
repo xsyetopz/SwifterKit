@@ -192,7 +192,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetDeviceProperty(
             && value > UINT32_MAX))
         return kIOReturnBadArgument;
     const auto low = static_cast<uint32_t>(value);
-    const auto high = static_cast<uint32_t>(value >> 32);
+    const auto high = static_cast<uint32_t>(value >> 32U);
     switch (request->selector) {
         case kSwifterKitVideoDevicePropertyCanBeDefaultInput:
             return SetCanBeDefaultInputDevice(value != 0);
@@ -223,13 +223,13 @@ kern_return_t SwifterKitRuntimeVideoDevice::CopyStreamState(
     if (stream == nullptr)
         return kIOReturnNotReady;
     constexpr uint32_t kFormats = kSwifterKitVideoMaximumStreamFormats;
-    IOUserVideoStreamBasicDescription formats[kFormats] = {};
+    IOUserVideoStreamBasicDescription formats[kFormats];
     const size_t available = stream->GetNumberAvailableStreamFormats();
     const auto formatCount = static_cast<uint32_t>(
         stream->GetAvailableStreamFormats(formats, available < kFormats ? available : kFormats));
     uint32_t bufferIDs[kSwifterKitVideoMaximumBuffers] = {};
     uint32_t bufferCount = 0;
-    OSSharedPtr<OSArray> list = stream->GetBufferList();
+    const OSSharedPtr<OSArray> list = stream->GetBufferList();
     for (uint32_t item = 0;
          list && item < list->getCount() && bufferCount < kSwifterKitVideoMaximumBuffers;
          ++item)
@@ -290,7 +290,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetStreamProperty(
         case kSwifterKitVideoStreamPropertyTerminalType:
             return stream->SetTerminalType(static_cast<IOUserVideoStreamTerminalType>(word));
         case kSwifterKitVideoStreamPropertyCurrentFormat: {
-            IOUserVideoStreamBasicDescription formats[kSwifterKitVideoMaximumStreamFormats] = {};
+            IOUserVideoStreamBasicDescription formats[kSwifterKitVideoMaximumStreamFormats];
             const size_t count =
                 stream->GetAvailableStreamFormats(formats, kSwifterKitVideoMaximumStreamFormats);
             return word < count ? stream->SetCurrentStreamFormat(&formats[word])
@@ -298,7 +298,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::SetStreamProperty(
         }
         case kSwifterKitVideoStreamPropertyBufferCapacity: {
             const auto data = static_cast<uint32_t>(value);
-            const auto control = static_cast<uint32_t>(value >> 32);
+            const auto control = static_cast<uint32_t>(value >> 32U);
             if (data == 0 || data > kSwifterKitVideoMaximumDataCapacity || control == 0
                 || control > kSwifterKitVideoMaximumControlCapacity)
                 return kIOReturnBadArgument;
@@ -324,7 +324,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::CopyBufferInfo(
     if (stream == nullptr || configured == nullptr)
         return kIOReturnNotReady;
     // GetBufferWithID finds the buffer only while it is in the stream's buffer list.
-    OSSharedPtr<IOUserVideoBuffer> listed = stream->GetBufferWithID(configured->getBufferID());
+    const OSSharedPtr<IOUserVideoBuffer> listed =
+        stream->GetBufferWithID(configured->getBufferID());
     IOUserVideoBuffer* buffer = listed ? listed.get() : configured;
     SwifterKitVideoBufferInfo info = {};
     info.objectID = buffer->GetObjectID();
@@ -449,7 +450,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ApplyMemberChange() {
 
 kern_return_t SwifterKitRuntimeVideoDevice::ApplyBufferCapacity(uint32_t stream, uint64_t value) {
     const uint32_t bufferCount = kSwifterKitVideoStreams[stream].bufferCount;
-    const uint32_t sizes[2] = {static_cast<uint32_t>(value), static_cast<uint32_t>(value >> 32)};
+    const uint32_t sizes[2] = {static_cast<uint32_t>(value), static_cast<uint32_t>(value >> 32U)};
     IOBufferMemoryDescriptor* descriptors[2][kSwifterKitVideoMaximumBuffers] = {};
     IOMemoryMap* maps[2][kSwifterKitVideoMaximumBuffers] = {};
     kern_return_t result = kIOReturnSuccess;
@@ -565,7 +566,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::EnqueueOutputBuffer(
     const kern_return_t result = NativeEntry(streamIndex, entry, &native);
     if (result != kIOReturnSuccess)
         return result;
-    OSSharedPtr<IOUserVideoBuffer> buffer =
+    const OSSharedPtr<IOUserVideoBuffer> buffer =
         ivars->streams[streamIndex]->GetBufferWithID(native.bufferID);
     return buffer ? ivars->streams[streamIndex]->enqueueOutputBuffer(
                         buffer.get(),

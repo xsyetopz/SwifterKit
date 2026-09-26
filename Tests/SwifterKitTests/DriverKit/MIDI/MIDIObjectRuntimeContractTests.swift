@@ -66,9 +66,9 @@ struct MIDIObjectRuntimeContractTests {
       let objects = try source("SwifterKitRuntimeMIDIObjects.cpp", in: output)
       for call in [
         "GetMIDIObjectForObjectID(index)", "GetObjectID()", "GetOwnerObjectID()", "GetClassID()",
-        "GetBaseClassID()", "GetName()", "SetName(name)", "GetPropertyType(selector, &type)",
-        "CopyProperty(key.name, &value)", "CopyProperty(selector, &value)",
-        "SetProperty(key.name, value)", "SetProperty(selector, value)", "GetProperties()",
+        "GetBaseClassID()", "GetName()", "SetName(name)", "GetPropertyType(Selector(key), &type)",
+        "CopyProperty(key.name, &value)", "CopyProperty(Selector(key), &value)",
+        "SetProperty(key.name, value)", "SetProperty(Selector(key), value)", "GetProperties()",
         "SetProperties(dictionary)", "GetEntities()", "GetDeviceIsRunning()", "GetSources()",
         "GetDestinations()", "AddEntity(entity)", "RemoveEntity(entity)", "AddSource(source)",
         "RemoveSource(source)", "AddDestination(destination)", "RemoveDestination(destination)",

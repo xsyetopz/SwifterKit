@@ -9,6 +9,7 @@
     #include <DriverKit/OSString.h>
 
     #include "SwifterKitRuntimeAudioDeviceState.h"
+    #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
 
@@ -30,6 +31,8 @@ namespace {
     }
 
     bool IsSupportedSampleRate(double sampleRate) {
+        // A count of zero still renders a one-element array, so iterate by the generated count.
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for (uint32_t index = 0; index < kSwifterKitAudioSampleRateCount; ++index)
             if (kSwifterKitAudioSampleRates[index] == sampleRate)
                 return true;
@@ -102,7 +105,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::Configure() {
          ++index) {
         const auto& config = kSwifterKitAudioStreams[index];
         uint32_t maximumBytesPerFrame = 0;
-        IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats] = {};
+        IOUserAudioStreamBasicDescription formats[kSwifterKitAudioMaximumStreamFormats];
         for (uint32_t formatIndex = 0; formatIndex < config.formatCount; ++formatIndex) {
             const auto& source = kSwifterKitAudioFormats[config.formatStart + formatIndex];
             formats[formatIndex] = NativeFormat(source);
@@ -144,7 +147,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::Configure() {
         result = ConfigureControls();
     if (result != kIOReturnSuccess)
         return result;
-    auto state = ivars;
+    auto* state = ivars;
     return SetIOOperationHandler(^kern_return_t(
         IOUserAudioObjectID,
         IOUserAudioIOOperation operation,
@@ -177,7 +180,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::ReadMappedStream(
         return kIOReturnNoMemory;
     const uint64_t remaining = map->GetLength() - transfer->byteOffset;
     const uint64_t firstLength = transfer->length < remaining ? transfer->length : remaining;
-    const auto* base = reinterpret_cast<const uint8_t*>(map->GetAddress() + map->GetOffset());
+    const auto* base = SwifterKitMappedPointer<const uint8_t>(map->GetAddress() + map->GetOffset());
     bool appended = data->appendBytes(base + transfer->byteOffset, firstLength);
     if (appended && firstLength < transfer->length)
         appended = data->appendBytes(base, transfer->length - firstLength);
@@ -202,7 +205,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::WriteMappedStream(
         return kIOReturnBadArgument;
     const uint64_t remaining = map->GetLength() - transfer->byteOffset;
     const uint64_t firstLength = transfer->length < remaining ? transfer->length : remaining;
-    auto* base = reinterpret_cast<uint8_t*>(map->GetAddress() + map->GetOffset());
+    auto* base = SwifterKitMappedPointer(map->GetAddress() + map->GetOffset());
     memcpy(base + transfer->byteOffset, bytes, firstLength);
     if (firstLength < transfer->length)
         memcpy(base, bytes + firstLength, transfer->length - firstLength);
@@ -215,7 +218,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::CopyIOState(OSData** response) {
     SwifterKitAudioIOState state = {};
     for (uint32_t attempt = 0; attempt < 4; ++attempt) {
         state.sequence = __atomic_load_n(&ivars->sequence, __ATOMIC_ACQUIRE);
-        if ((state.sequence & 1) != 0)
+        if ((state.sequence & 1U) != 0)
             continue;
         state.operation = __atomic_load_n(&ivars->operation, __ATOMIC_RELAXED);
         state.frameCount = __atomic_load_n(&ivars->frameCount, __ATOMIC_RELAXED);
@@ -274,7 +277,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::PerformDeviceConfigurationChange(
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const uint64_t sampleRateBits =
         __atomic_exchange_n(&ivars->pendingSampleRateBits, 0, __ATOMIC_ACQUIRE);
-    const double sampleRate = __builtin_bit_cast(double, sampleRateBits);
+    const auto sampleRate = __builtin_bit_cast(double, sampleRateBits);
     kern_return_t result =
         IsSupportedSampleRate(sampleRate) ? SetSampleRate(sampleRate) : kIOReturnBadArgument;
     for (uint32_t index = 0; result == kIOReturnSuccess && index < kSwifterKitAudioStreamCount;

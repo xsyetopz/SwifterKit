@@ -11,6 +11,7 @@
     #include <USBDriverKit/IOUSBHostPipe.h>
     #include <USBDriverKit/USBDriverKitDefs.h>
 
+    #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeServiceState.h"
@@ -77,7 +78,7 @@ namespace {
     kern_return_t QueueCompletion(
         SwifterKitRuntimeService* service,
         const SwifterKitUSBPendingTransfer& transfer) {
-        const bool input = (transfer.endpoint & 0x80) != 0;
+        const bool input = (transfer.endpoint & 0x80U) != 0;
         const uint8_t* data = SwifterKitUSBMappedBytes(transfer.map);
         uint32_t length = 0;
         if (transfer.deviceRequest) {
@@ -181,8 +182,7 @@ namespace {
             || transfer->frameMap->GetAddress() == 0 || transfer->frameMap->GetLength() < length) {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
         }
-        auto* frames =
-            reinterpret_cast<uint8_t*>(static_cast<uintptr_t>(transfer->frameMap->GetAddress()));
+        auto* frames = SwifterKitMappedPointer(transfer->frameMap->GetAddress());
         for (uint32_t index = 0; index < frameCount; ++index) {
             SwifterKitUSBIsochFrame frame = {};
             memcpy(&frame.requestCount, counts + index * sizeof(uint32_t), sizeof(uint32_t));
@@ -310,7 +310,7 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
             || header->reserved32 != 0 || header->length == 0) {
             return kIOReturnBadArgument;
         }
-        const bool input = (header->endpoint & 0x80) != 0;
+        const bool input = (header->endpoint & 0x80U) != 0;
         const uint32_t bytesLength = payloadLength - sizeof(*header);
         const bool valid =
             input ? bytesLength == 0 && header->length <= kSwifterKitUSBMaximumAsyncInputLength
@@ -342,7 +342,7 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
             || payloadLength - sizeof(*header) < header->frameCount * sizeof(uint32_t)) {
             return kIOReturnBadArgument;
         }
-        const bool input = (header->endpoint & 0x80) != 0;
+        const bool input = (header->endpoint & 0x80U) != 0;
         const uint8_t* counts = payload + sizeof(*header);
         uint64_t total = 0;
         for (uint32_t index = 0; index < header->frameCount; ++index) {

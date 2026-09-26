@@ -2,6 +2,7 @@
 #include <DriverKit/OSCollections.h>
 
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeProtocol.h"
 #include "SwifterKitRuntimeService.h"
 #include "SwifterKitRuntimeServiceState.h"
@@ -185,7 +186,7 @@ namespace {
         for (uint32_t index = 0; index < header.count && result == kIOReturnSuccess; ++index) {
             uint32_t cookie = 0;
             memcpy(&cookie, payload + sizeof(header) + index * sizeof(cookie), sizeof(cookie));
-            IOHIDElement* element = FindElement(elements, cookie);
+            const IOHIDElement* element = FindElement(elements, cookie);
             if (element == nullptr) {
                 result = kIOReturnNotFound;
             } else if (!batch->setObject(element)) {
@@ -237,7 +238,7 @@ namespace {
             result = kIOReturnNoMemory;
         }
         if (result == kIOReturnSuccess && bytes != nullptr) {
-            memcpy(reinterpret_cast<void*>(static_cast<uintptr_t>(address)), bytes, length);
+            memcpy(SwifterKitMappedPointer<void>(address), bytes, length);
         }
         if (result != kIOReturnSuccess) {
             OSSafeReleaseNULL(*buffer);
@@ -280,9 +281,8 @@ namespace {
                 result = buffer->Map(0, 0, 0, 0, &address, &length);
             }
             if (result == kIOReturnSuccess) {
-                *response = OSData::withBytes(
-                    reinterpret_cast<const void*>(static_cast<uintptr_t>(address)),
-                    request.length);
+                *response =
+                    OSData::withBytes(SwifterKitMappedPointer<const void>(address), request.length);
                 result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
             }
         }

@@ -153,7 +153,7 @@ kern_return_t SwifterKitSetControlProperty(IVars* ivars, const Request* request)
     if (control == nullptr)
         return kIOReturnNotFound;
     const auto low = static_cast<uint32_t>(request->value);
-    const auto high = static_cast<uint32_t>(request->value >> 32);
+    const auto high = static_cast<uint32_t>(request->value >> 32U);
     if (request->selector == Family::kControlPropertySliderRange) {
         auto* slider = SwifterKitDynamicCast<typename Family::SliderControl>(control);
         if (slider == nullptr || low > high)

@@ -31,6 +31,17 @@ namespace {
         };
         return service->EnqueueEvent(kSwifterKitEventMIDI, &event, sizeof(event));
     }
+
+    // Clears each destination's I/O block and releases every endpoint the arrays hold.
+    void ReleaseEndpoints(IOUserMIDISource** sources, IOUserMIDIDestination** destinations) {
+        for (uint32_t index = 0; index < 32; ++index) {
+            if (destinations[index] != nullptr) {
+                (void)destinations[index]->SetIOBlock(nullptr);
+                OSSafeReleaseNULL(destinations[index]);
+            }
+            OSSafeReleaseNULL(sources[index]);
+        }
+    }
 }  // namespace
 
 kern_return_t SwifterKitRuntimeService::StartMIDI() {
@@ -60,9 +71,9 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
     }
 
     kern_return_t result = SetName(driverName);
-    auto device =
+    const auto device =
         IOUserMIDIDevice::Create(this, deviceIdentifier, modelIdentifier, manufacturerIdentifier);
-    auto entity = IOUserMIDIEntity::Create(
+    const auto entity = IOUserMIDIEntity::Create(
         this,
         device.get(),
         entityName,
@@ -90,7 +101,7 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
     IOUserMIDIDestination* destinations[32] = {};
     for (uint32_t index = 0; result == kIOReturnSuccess && index < kSwifterKitMIDISourceCount;
          ++index) {
-        auto source = entity->GetSource(index);
+        const auto source = entity->GetSource(index);
         if (!source) {
             result = kIOReturnNotFound;
             break;
@@ -101,7 +112,7 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
 
     for (uint32_t index = 0; result == kIOReturnSuccess && index < kSwifterKitMIDIDestinationCount;
          ++index) {
-        auto destination = entity->GetDestination(index);
+        const auto destination = entity->GetDestination(index);
         if (!destination) {
             result = kIOReturnNotFound;
             break;
@@ -135,13 +146,7 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
         return kIOReturnSuccess;
     }
 
-    for (uint32_t index = 0; index < 32; ++index) {
-        if (destinations[index] != nullptr) {
-            (void)destinations[index]->SetIOBlock(nullptr);
-            OSSafeReleaseNULL(destinations[index]);
-        }
-        OSSafeReleaseNULL(sources[index]);
-    }
+    ReleaseEndpoints(sources, destinations);
     if (added) {
         (void)RemoveObject(device.get());
     }
@@ -156,7 +161,7 @@ void SwifterKitRuntimeService::StopMIDI() {
     IOUserMIDIDestination* destinations[32] = {};
     IOLockLock(ivars->midiLock);
     IOUserMIDIDevice* device = ivars->midiDevice;
-    IOUserMIDIEntity* entity = ivars->midiEntity;
+    const IOUserMIDIEntity* entity = ivars->midiEntity;
     ivars->midiDevice = nullptr;
     ivars->midiEntity = nullptr;
     for (uint32_t index = 0; index < 32; ++index) {
@@ -167,13 +172,7 @@ void SwifterKitRuntimeService::StopMIDI() {
     }
     IOLockUnlock(ivars->midiLock);
 
-    for (uint32_t index = 0; index < 32; ++index) {
-        if (destinations[index] != nullptr) {
-            (void)destinations[index]->SetIOBlock(nullptr);
-            OSSafeReleaseNULL(destinations[index]);
-        }
-        OSSafeReleaseNULL(sources[index]);
-    }
+    ReleaseEndpoints(sources, destinations);
     OSSafeReleaseNULL(entity);
     if (device != nullptr) {
         (void)RemoveObject(device);

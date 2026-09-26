@@ -1,4 +1,5 @@
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeService.h"
 
 #if SWIFTERKIT_ENABLE_MEMORY
@@ -41,9 +42,9 @@ namespace {
         if (state == nullptr || handle == 0) {
             return nullptr;
         }
-        for (uint32_t index = 0; index < kMaximumMemoryEntries; ++index) {
-            if (state->memoryEntries[index].handle == handle) {
-                return &state->memoryEntries[index];
+        for (auto& entry : state->memoryEntries) {
+            if (entry.handle == handle) {
+                return &entry;
             }
         }
         return nullptr;
@@ -87,7 +88,7 @@ kern_return_t SwifterKitRuntimeService::StartMemory(IOService* provider) {
     if (provider == nullptr || ivars == nullptr || ivars->memoryLock == nullptr) {
         return kIOReturnBadArgument;
     }
-    MemoryLockGuard guard(ivars->memoryLock);
+    const MemoryLockGuard guard(ivars->memoryLock);
     if (ivars->memoryProvider != nullptr || kSwifterKitMaximumMemoryBuffers == 0
         || kSwifterKitMaximumMemoryBuffers > kMaximumMemoryEntries
         || kSwifterKitMaximumMemoryBufferSize == 0
@@ -104,9 +105,9 @@ void SwifterKitRuntimeService::StopMemory() {
     if (ivars == nullptr || ivars->memoryLock == nullptr) {
         return;
     }
-    MemoryLockGuard guard(ivars->memoryLock);
-    for (uint32_t index = 0; index < kMaximumMemoryEntries; ++index) {
-        ReleaseMemoryEntry(ivars, &ivars->memoryEntries[index]);
+    const MemoryLockGuard guard(ivars->memoryLock);
+    for (auto& entry : ivars->memoryEntries) {
+        ReleaseMemoryEntry(ivars, &entry);
     }
     OSSafeReleaseNULL(ivars->memoryProvider);
     ivars->allocatedMemory = 0;
@@ -121,7 +122,7 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
         || response == nullptr) {
         return kIOReturnNotReady;
     }
-    MemoryLockGuard guard(ivars->memoryLock);
+    const MemoryLockGuard guard(ivars->memoryLock);
     if (ivars->memoryProvider == nullptr) {
         return kIOReturnNotReady;
     }
@@ -146,6 +147,8 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             }
 
             SwifterKitMemoryEntry* entry = nullptr;
+            // The configured buffer limit can be below the entry array's extent.
+            // NOLINTNEXTLINE(modernize-loop-convert)
             for (uint32_t index = 0; index < kSwifterKitMaximumMemoryBuffers; ++index) {
                 if (ivars->memoryEntries[index].handle == 0) {
                     entry = &ivars->memoryEntries[index];
@@ -258,7 +261,7 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
                 || (write && bytesLength != header->length) || (!write && bytesLength != 0)) {
                 return kIOReturnBadArgument;
             }
-            SwifterKitMemoryEntry* entry = FindMemory(ivars, header->handle);
+            const SwifterKitMemoryEntry* entry = FindMemory(ivars, header->handle);
             if (entry == nullptr) {
                 return kIOReturnNotFound;
             }
@@ -267,8 +270,7 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
                 return kIOReturnBadArgument;
             }
 
-            auto* address = reinterpret_cast<uint8_t*>(
-                static_cast<uintptr_t>(entry->map->GetAddress() + header->offset));
+            auto* address = SwifterKitMappedPointer(entry->map->GetAddress() + header->offset);
             if (write) {
                 memcpy(address, payload + sizeof(*header), header->length);
                 return kIOReturnSuccess;

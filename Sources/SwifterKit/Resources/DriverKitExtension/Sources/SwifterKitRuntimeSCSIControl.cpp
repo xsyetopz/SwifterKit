@@ -1,4 +1,5 @@
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeService.h"
 
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
@@ -23,7 +24,7 @@ namespace {
     constexpr uint32_t kMaximumRetryDelayMilliseconds = 64;
 
     // Whether a host is registered to take events, so a full required queue will drain.
-    bool HasEventClient(SwifterKitRuntimeService_IVars* state) {
+    bool HasEventClient(const SwifterKitRuntimeService_IVars* state) {
         IOLockLock(state->eventLock);
         const bool attached = state->eventClient != nullptr;
         IOLockUnlock(state->eventLock);
@@ -74,8 +75,8 @@ namespace {
                 break;
             }
             offset += entry.keyLength + entry.valueLength;
-            OSString* name = OSString::withCString(key, entry.keyLength);
-            OSString* string =
+            const OSString* name = OSString::withCString(key, entry.keyLength);
+            const OSString* string =
                 values != nullptr ? OSString::withCString(value, entry.valueLength) : nullptr;
             if (name == nullptr || (values != nullptr && string == nullptr)) {
                 result = kIOReturnNoMemory;
@@ -290,9 +291,8 @@ kern_return_t SwifterKitRuntimeService::SCSITaskData(
         const uint64_t mapped = task.dataMap == nullptr ? 0 : task.dataMap->GetLength();
         const uint64_t available =
             mapped < task.requestedTransferCount ? mapped : task.requestedTransferCount;
-        auto* bytes = task.dataMap == nullptr
-                          ? nullptr
-                          : reinterpret_cast<uint8_t*>(task.dataMap->GetAddress());
+        auto* bytes =
+            task.dataMap == nullptr ? nullptr : SwifterKitMappedPointer(task.dataMap->GetAddress());
         if (bytes == nullptr) {
             result = kIOReturnNotReady;
         } else if (header.offset > available || header.length > available - header.offset) {

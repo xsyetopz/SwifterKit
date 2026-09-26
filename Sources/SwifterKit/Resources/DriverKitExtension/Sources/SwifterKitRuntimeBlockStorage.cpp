@@ -308,7 +308,7 @@ kern_return_t SwifterKitRuntimeService::DoAsyncReadWrite_Impl(
         || lba >= kSwifterKitBlockCount || blockCount > kSwifterKitBlockCount - lba
         || blockCount > UINT64_MAX / kSwifterKitBlockSize
         || byteCount != blockCount * kSwifterKitBlockSize
-        || (options & ~kIOUserStorageOptionForceUnitAccess) != 0
+        || (options & ~IOUserStorageOptions {kIOUserStorageOptionForceUnitAccess}) != 0
         || ((options & kIOUserStorageOptionForceUnitAccess) != 0 && !kSwifterKitBlockSupportsFUA)) {
         return RejectRequest(this, requestID, true, kIOReturnBadArgument);
     }

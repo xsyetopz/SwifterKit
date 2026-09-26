@@ -66,6 +66,8 @@ kern_return_t SwifterKitRuntimeService::NetworkPacketCommand(
             .enabled = 2};
         if (payloadLength == sizeof(request))
             memcpy(&request, payload, sizeof(request));
+        // The check misses setEnable() through an element; its suggested const fails to build.
+        // NOLINTNEXTLINE(misc-const-correctness)
         IOUserNetworkPacketQueue* queues[kSwifterKitNetworkQueueCount] = {
             ivars->networkTxSubmission,
             ivars->networkTxCompletion,
@@ -197,6 +199,8 @@ kern_return_t SwifterKitRuntimeService::NetworkCompleteTransmits(
     if (ivars->networkStopping || ivars->networkTxCompletion == nullptr)
         result = kIOReturnNotReady;
     // Every ID must name a distinct pending transmit before any packet leaves its slot.
+    // The check misses the `*slots[index] = {}` write below; its suggested const fails to build.
+    // NOLINTNEXTLINE(misc-const-correctness)
     SwifterKitNetworkPendingTransmit* slots[kSwifterKitNetworkMaximumBatch] = {};
     for (uint32_t index = 0; result == kIOReturnSuccess && index < batch.count; ++index) {
         for (auto& pending : ivars->networkTransmits)

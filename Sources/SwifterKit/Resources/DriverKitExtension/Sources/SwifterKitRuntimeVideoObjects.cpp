@@ -26,7 +26,7 @@ namespace {
     // Resolves a device, box, clock-device, or object-ID target; the driver is not an object.
     IOUserVideoObject* ResolveObject(
         SwifterKitRuntimeService* service,
-        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitRuntimeService_IVars* state,
         const SwifterKitVideoObjectTarget& target,
         OSSharedPtr<IOUserVideoObject>& holder) {
         const bool indexed = target.index < kSwifterKitVideoObjectTableCount;
@@ -47,7 +47,7 @@ namespace {
 
     // The video device is an IOUserVideoClockDevice, so it answers clock-state reads too.
     IOUserVideoClockDevice* ResolveClock(
-        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitRuntimeService_IVars* state,
         const SwifterKitVideoObjectTarget& target) {
         if (target.kind == kSwifterKitVideoTargetDevice && target.index == 0)
             return state->videoDevice;
@@ -132,7 +132,7 @@ namespace {
 
     kern_return_t ObjectInfo(
         SwifterKitRuntimeService* service,
-        SwifterKitRuntimeService_IVars* state,
+        const SwifterKitRuntimeService_IVars* state,
         const SwifterKitVideoObjectTarget& target,
         OSData** response) {
         IOUserVideoObject* object = nullptr;
@@ -264,7 +264,7 @@ namespace {
         if (!SwifterKitReadExactPayload(payload, payloadLength, &request) || request.reserved != 0)
             return kIOReturnBadArgument;
         if (Is(opcode, Opcode::VideoRequestClockSampleRate)) {
-            const double rate = __builtin_bit_cast(double, request.value);
+            const auto rate = __builtin_bit_cast(double, request.value);
             if (request.selector != 0 || !IsValidRate(rate))
                 return kIOReturnBadArgument;
             return clockDevice == nullptr ? kIOReturnNotFound

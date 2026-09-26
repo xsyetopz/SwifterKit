@@ -103,7 +103,7 @@ kern_return_t SwifterKitRuntimeService::StartAudioRequests() {
     if (ivars == nullptr || ivars->audioRequestLock == nullptr)
         return kIOReturnNotReady;
     // The timer shares the driver work queue with the callbacks that create requests.
-    OSSharedPtr<IODispatchQueue> queue = GetWorkQueue();
+    const OSSharedPtr<IODispatchQueue> queue = GetWorkQueue();
     return SwifterKitStartRequests<AudioRequestFamily>(
         ivars,
         queue.get(),

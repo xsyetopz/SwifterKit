@@ -9,6 +9,7 @@
     #include <DriverKit/OSString.h>
     #include <VideoDriverKit/VideoDriverKit.h>
 
+    #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeMediaMembers.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeVideoDeviceState.h"
@@ -42,6 +43,8 @@ namespace {
     }
 
     bool IsSupportedSampleRate(double sampleRate) {
+        // A count of zero still renders a one-element array, so iterate by the generated count.
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for (uint32_t index = 0; index < kSwifterKitVideoSampleRateCount; ++index)
             if (kSwifterKitVideoSampleRates[index] == sampleRate)
                 return true;
@@ -187,7 +190,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::Configure() {
         OSSafeReleaseNULL(identifier);
         OSSafeReleaseNULL(bufferList);
 
-        IOUserVideoStreamBasicDescription formats[kSwifterKitVideoMaximumStreamFormats] = {};
+        IOUserVideoStreamBasicDescription formats[kSwifterKitVideoMaximumStreamFormats];
         for (uint32_t formatIndex = 0; formatIndex < config.formatCount; ++formatIndex)
             formats[formatIndex] =
                 NativeFormat(kSwifterKitVideoFormats[config.formatStart + formatIndex]);
@@ -225,7 +228,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ReadBuffer(
     if (map != nullptr && map->GetAddress() != 0
         && IsValidRange(transfer->byteOffset, transfer->length, map->GetLength())) {
         *response = OSData::withBytes(
-            reinterpret_cast<const uint8_t*>(map->GetAddress() + map->GetOffset())
+            SwifterKitMappedPointer<const uint8_t>(map->GetAddress() + map->GetOffset())
                 + transfer->byteOffset,
             transfer->length);
         result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
@@ -253,7 +256,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::WriteBuffer(
                        && IsValidRange(transfer->byteOffset, transfer->length, map->GetLength());
     if (valid)
         memcpy(
-            reinterpret_cast<uint8_t*>(map->GetAddress() + map->GetOffset()) + transfer->byteOffset,
+            SwifterKitMappedPointer(map->GetAddress() + map->GetOffset()) + transfer->byteOffset,
             bytes,
             transfer->length);
     IOLockUnlock(ivars->bufferLock);

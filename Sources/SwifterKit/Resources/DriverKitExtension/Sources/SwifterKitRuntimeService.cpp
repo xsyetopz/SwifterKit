@@ -19,7 +19,7 @@ namespace {
     [[maybe_unused]] kern_return_t OpenUSBProvider(
         SwifterKitRuntimeService* service,
         IOService* provider,
-        SwifterKitRuntimeService_IVars* state) {
+        const SwifterKitRuntimeService_IVars* state) {
         if (service == nullptr || state == nullptr) {
             return kIOReturnBadArgument;
         }
@@ -28,7 +28,7 @@ namespace {
 
     void CloseUSBProvider(
         SwifterKitRuntimeService* service,
-        SwifterKitRuntimeService_IVars* state) {
+        const SwifterKitRuntimeService_IVars* state) {
         if (service != nullptr && state != nullptr) {
             service->StopUSB();
         }
@@ -38,7 +38,7 @@ namespace {
 #if SWIFTERKIT_ENABLE_PCI
     [[maybe_unused]] kern_return_t OpenPCIProvider(
         SwifterKitRuntimeService* service,
-        IOService* provider,
+        const IOService* provider,
         SwifterKitRuntimeService_IVars* state) {
         if (service == nullptr || provider == nullptr || state == nullptr) {
             return kIOReturnBadArgument;

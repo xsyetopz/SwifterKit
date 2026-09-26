@@ -1,4 +1,5 @@
 #include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeMappedMemory.h"
 #include "SwifterKitRuntimeService.h"
 
 #if SWIFTERKIT_ENABLE_SCSI_PERIPHERAL
@@ -64,7 +65,7 @@ namespace {
         }
 
         uint8_t* Bytes() const {
-            return reinterpret_cast<uint8_t*>(static_cast<uintptr_t>(Address()));
+            return SwifterKitMappedPointer(Address());
         }
 
         MappedBuffer(const MappedBuffer&) = delete;
@@ -130,7 +131,7 @@ kern_return_t SwifterKitRuntimeService::SCSIPeripheralCommand(
             if (result != kIOReturnSuccess) {
                 return result;
             }
-            const uint32_t rawResponse = static_cast<uint32_t>(serviceResponse);
+            const auto rawResponse = static_cast<uint32_t>(serviceResponse);
             return DataResponse(&rawResponse, sizeof(rawResponse), response);
         }
         case SwifterKitRuntimeOpcode::SCSIPeripheralReportMediumBlockSize: {
