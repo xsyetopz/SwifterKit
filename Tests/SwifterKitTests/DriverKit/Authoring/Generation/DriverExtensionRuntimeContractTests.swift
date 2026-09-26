@@ -8,6 +8,29 @@ struct DriverExtensionRuntimeContractTests {
   private static let bundleIdentifier = "com.example.contract-block"
 
   @Test
+  func commandDispatchNamesEveryOpcodeWithoutADefault() throws {
+    try withGeneratedExtension { output in
+      let dispatch = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
+      // -Wswitch catches an unhandled opcode only while the switch has no default.
+      #expect(!dispatch.contains("default:"))
+      let schema = RuntimeSchemaHeader.render()
+      let opcodes = try #require(
+        schema.range(of: "enum class SwifterKitRuntimeOpcode").map { schema[$0.upperBound...] }
+      )
+      let body = opcodes.prefix { $0 != "}" }
+      let names = body.split(separator: "\n").compactMap { line in
+        line.contains(" = 0x") ? line.split(separator: " ").first.map(String.init) : nil
+      }
+      #expect(names.count == RuntimeOpcode.allCases.count)
+      for name in names {
+        #expect(dispatch.contains("case SwifterKitRuntimeOpcode::\(name):"), "\(name)")
+      }
+      let userClient = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      #expect(!userClient.contains("case SwifterKitRuntimeOpcode::"))
+    }
+  }
+
+  @Test
   func nonAudioRuntimeRequiresClientEntitlement() throws {
     try withGeneratedExtension { output in
       let header = try source("SwifterKitRuntimeConfiguration.h", in: output)

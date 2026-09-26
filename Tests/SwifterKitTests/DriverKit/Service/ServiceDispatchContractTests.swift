@@ -39,11 +39,11 @@ struct ServiceDispatchContractTests {
   @Test
   func everyDispatchOpcodeRoutesWithoutACapability() throws {
     try withGeneratedExtension { output in
-      let userClient = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      let userClient = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
       let group = try section(
         of: userClient,
         from: "case SwifterKitRuntimeOpcode::ServiceSetProperties:",
-        to: "service->ServiceCommand("
+        to: "return DispatchServiceCommand(context);"
       )
       let control = try source("SwifterKitRuntimeServiceControl.cpp", in: output)
       let opcodes = RuntimeOpcode.allCases.filter { $0.rawValue & 0xFF00 == 0x0E00 }

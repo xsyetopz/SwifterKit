@@ -95,7 +95,7 @@ struct ServiceReportingContractTests {
 
       let control = try source("SwifterKitRuntimeServiceControl.cpp", in: output)
       #expect(control.contains("return ReporterCommand(opcode, payload, payloadLength, response);"))
-      let userClient = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      let userClient = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
       #expect(userClient.contains("case SwifterKitRuntimeOpcode::ReporterUpdate:"))
       #expect(userClient.contains("case SwifterKitRuntimeOpcode::ReporterRead:"))
 

@@ -105,7 +105,7 @@ struct NetworkingCapabilitiesGeneratorTests {
         "kSwifterKitEthernetMaximumPollInterval = \(EthernetPacketPolling.maximumPollInterval);"
       )
     )
-    let client = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+    let client = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
     for opcode in RuntimeOpcode.allCases where (0x0910...0x0915).contains(opcode.rawValue) {
       let name = String(describing: opcode)
       let native = name.prefix(1).uppercased() + name.dropFirst()

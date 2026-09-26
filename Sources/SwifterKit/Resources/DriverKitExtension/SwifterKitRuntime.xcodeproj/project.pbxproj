@@ -30,6 +30,7 @@
 		0D001BB32AAAAAAA00000001 /* SwifterKitRuntimeService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB42AAAAAAA00000001 /* SwifterKitRuntimeService.cpp */; };
 		0D001BB52AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB62AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig */; };
 		0D001BB72AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BB82AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp */; };
+		0D001F712AAAAAAA00000001 /* SwifterKitRuntimeCommandDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001F722AAAAAAA00000001 /* SwifterKitRuntimeCommandDispatch.cpp */; };
 		0D001BD12AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */; };
 		0D001BD32AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BD42AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp */; };
 		0D001BD52AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001BD62AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp */; };
@@ -106,6 +107,7 @@
 		0D001BB42AAAAAAA00000001 /* SwifterKitRuntimeService.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeService.cpp; sourceTree = "<group>"; };
 		0D001BB62AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeUserClient.iig; sourceTree = "<group>"; };
 		0D001BB82AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUserClient.cpp; sourceTree = "<group>"; };
+		0D001F722AAAAAAA00000001 /* SwifterKitRuntimeCommandDispatch.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeCommandDispatch.cpp; sourceTree = "<group>"; };
 		0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSB.cpp; sourceTree = "<group>"; };
 		0D001BD42AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSBDevice.cpp; sourceTree = "<group>"; };
 		0D001BD62AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeUSBPipes.cpp; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 				0D001BB42AAAAAAA00000001 /* SwifterKitRuntimeService.cpp */,
 				0D001BB62AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig */,
 				0D001BB82AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp */,
+				0D001F722AAAAAAA00000001 /* SwifterKitRuntimeCommandDispatch.cpp */,
 				0D001BD22AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp */,
 				0D001BD42AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp */,
 				0D001BD62AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp */,
@@ -336,6 +339,7 @@
 				0D001BB32AAAAAAA00000001 /* SwifterKitRuntimeService.cpp in Sources */,
 				0D001BB52AAAAAAA00000001 /* SwifterKitRuntimeUserClient.iig in Sources */,
 				0D001BB72AAAAAAA00000001 /* SwifterKitRuntimeUserClient.cpp in Sources */,
+				0D001F712AAAAAAA00000001 /* SwifterKitRuntimeCommandDispatch.cpp in Sources */,
 				0D001BD12AAAAAAA00000001 /* SwifterKitRuntimeUSB.cpp in Sources */,
 				0D001BD32AAAAAAA00000001 /* SwifterKitRuntimeUSBDevice.cpp in Sources */,
 				0D001BD52AAAAAAA00000001 /* SwifterKitRuntimeUSBPipes.cpp in Sources */,

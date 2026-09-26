@@ -62,11 +62,11 @@ struct HIDRuntimeContractTests {
   @Test
   func everyHIDOpcodeReachesTheRuntime() throws {
     try withGeneratedExtension { output in
-      let client = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      let client = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
       let routed = try section(
         of: client,
         from: "case SwifterKitRuntimeOpcode::HIDCompleteGetReport:",
-        to: "HandleHIDCommand("
+        to: "return DispatchHIDCommand(context);"
       )
       let names = RuntimeOpcode.allCases.filter { $0.rawValue >= 0x0310 && $0.rawValue < 0x0400 }
       #expect(names.count == 28)

@@ -8,7 +8,7 @@ struct ServiceRuntimeContractTests {
   @Test
   func userClientRoutesEveryServiceOpcodeWithoutACapability() throws {
     try withGeneratedExtension { output in
-      let userClient = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      let userClient = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
       let group = try section(
         of: userClient,
         from: "case SwifterKitRuntimeOpcode::ServiceSetProperties:",
@@ -21,8 +21,15 @@ struct ServiceRuntimeContractTests {
         let native = name.prefix(1).uppercased() + name.dropFirst()
         #expect(group.contains("case SwifterKitRuntimeOpcode::\(native):"))
       }
-      #expect(group.contains("service->ServiceCommand("))
+      #expect(group.contains("return DispatchServiceCommand(context);"))
       #expect(!group.contains("#if"))
+      let dispatch = try section(
+        of: userClient,
+        from: "kern_return_t DispatchServiceCommand(",
+        to: "kern_return_t DispatchInterruptCommand("
+      )
+      #expect(dispatch.contains("service->ServiceCommand("))
+      #expect(!dispatch.contains("#if"))
       // Service replies use RespondWithData, so no family flag may compile it out.
       let helpers = try source("SwifterKitRuntimeUserClientHelpers.h", in: output)
       let respond = try #require(helpers.range(of: "kern_return_t RespondWithData(")?.lowerBound)

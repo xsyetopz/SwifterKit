@@ -43,7 +43,7 @@ struct USBAsyncRuntimeContractTests {
   @Test
   func everyNewOpcodeReachesTheRuntime() throws {
     try withGeneratedExtension { output in
-      let client = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      let client = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
       for opcode in RuntimeOpcode.allCases where (0x0240..<0x0300).contains(opcode.rawValue) {
         let native = "USB" + "\(opcode)".dropFirst(3)
         #expect(client.contains("case SwifterKitRuntimeOpcode::\(native):"), "\(opcode)")
