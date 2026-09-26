@@ -253,32 +253,30 @@ struct VideoObjectRuntimeContractTests {
     )
   }
 
+  /// One 64x64 BGRA output stream at 60 frames per second.
+  static var outputStream: VideoStreamConfiguration {
+    VideoStreamConfiguration(
+      identifier: "Out",
+      direction: .output,
+      formats: [
+        VideoStreamFormat(frameRate: 60, frameTimeScale: 60, codec: .bgra32, width: 64, height: 64)
+      ],
+      dataBufferCapacity: 16_384
+    )
+  }
+
   private func device(
     boxes: [VideoBoxConfiguration] = [],
     clocks: [VideoClockDeviceConfiguration] = []
   ) -> VideoDeviceConfiguration {
-    let format = VideoStreamFormat(
-      frameRate: 60,
-      frameTimeScale: 60,
-      codec: .bgra32,
-      width: 64,
-      height: 64
-    )
-    return VideoDeviceConfiguration(
+    VideoDeviceConfiguration(
       deviceUID: "Device",
       modelUID: "Model",
       manufacturerUID: "Maker",
       name: "Video",
       sampleRates: [60],
       initialSampleRate: 60,
-      streams: [
-        VideoStreamConfiguration(
-          identifier: "Out",
-          direction: .output,
-          formats: [format],
-          dataBufferCapacity: 16_384
-        )
-      ],
+      streams: [Self.outputStream],
       customProperties: [
         VideoCustomPropertyConfiguration(identifier: 3, selector: 0x7377_6B70, values: ["A": "B"])
       ],

@@ -27,3 +27,8 @@ func loadDriverPersonality(
     sourceLocation: sourceLocation
   )
 }
+
+/// Returns the entitlements of the extension at `output`.
+func loadEntitlements(in output: URL) throws -> [String: Any] {
+  try loadPropertyList(at: output.appendingPathComponent("SwifterKitRuntime.entitlements"))
+}

@@ -90,9 +90,7 @@ struct DriverExtensionRuntimeContractTests {
       #expect(rejection < binding)
       #expect(userClient.contains("identifier->getLength() != 0"))
 
-      let entitlements = try loadPropertyList(
-        at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-      )
+      let entitlements = try loadEntitlements(in: output)
       #expect(entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] == nil)
     }
   }

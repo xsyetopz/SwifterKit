@@ -23,10 +23,7 @@ struct HIDGeneratorTests {
       at: output
     )
 
-    let header = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(header.contains("kSwifterKitHIDAcceptedHostReportTypes =\n    1;"))
 
     try expectGeneratedExtensionBuilds(

@@ -26,32 +26,21 @@ struct NetworkingGeneratorTests {
 
     let personality = try loadDriverPersonality(in: output)
     #expect(personality["CFBundleIdentifierKernel"] as? String == "com.apple.iokit.IOSkywalkFamily")
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.networking"] as? Bool == true)
 
-    let config = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let config = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(config.contains("SWIFTERKIT_ENABLE_NETWORKING 1"))
     #expect(config.contains("kSwifterKitEthernetAddress[] = {2, 3, 4, 5, 6, 7}"))
     #expect(config.contains("kSwifterKitEthernetMTU = 1500"))
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserNetworkEthernet"))
     #expect(service.contains("NetworkTxPacketAvailable"))
     #expect(service.contains("setInterfaceEnable"))
 
     // The family's power change is acknowledged through super whether or not Swift is notified,
     // and never through SUPERDISPATCH here, which SwifterKitRuntimeServicePower already owns.
-    let setup = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeNetworkSetup.cpp"),
-      encoding: .utf8
-    )
+    let setup = try source("SwifterKitRuntimeNetworkSetup.cpp", in: output)
     let power = try #require(
       setup.range(of: "SwifterKitRuntimeService::setPowerState(")?.upperBound
     )

@@ -27,15 +27,10 @@ struct SCSIGeneratorTests {
       at: output
     )
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.scsicontroller"] as? Bool == true)
 
-    let header = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(header.contains("SWIFTERKIT_ENABLE_SCSI_CONTROLLER 1"))
     #expect(header.contains("kSwifterKitSCSIMaximumTaskCount =\n    32"))
     #expect(header.contains("kSwifterKitSCSISupportedFeatures =\n    3"))
@@ -45,10 +40,7 @@ struct SCSIGeneratorTests {
     #expect(header.contains("kSwifterKitSCSIMinimumHBADataAlignmentMask =\n    3"))
     #expect(header.contains("kSwifterKitSCSISupportsHierarchicalLogicalUnits =\n    true"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserSCSIParallelInterfaceController"))
     #expect(service.contains("UserProcessParallelTask"))
     #expect(service.contains("SCSICommand"))
@@ -56,10 +48,7 @@ struct SCSIGeneratorTests {
     #expect(service.contains("SCSIControlCommand"))
     #expect(service.contains("SCSIFetchTaskBuffer"))
 
-    let scsi = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeSCSI.cpp"),
-      encoding: .utf8
-    )
+    let scsi = try source("SwifterKitRuntimeSCSI.cpp", in: output)
     let enqueueFailure = try #require(
       scsi.range(of: "EnqueueRequiredEvent(kSwifterKitEventSCSIParallelTask")?.upperBound
     )

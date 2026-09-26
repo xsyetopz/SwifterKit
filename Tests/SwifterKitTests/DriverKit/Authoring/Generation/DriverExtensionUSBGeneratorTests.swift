@@ -38,9 +38,7 @@ struct DriverExtensionUSBGeneratorTests {
       #expect(personality[key] == nil)
     }
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     let usbEntitlement = try #require(
       entitlements["com.apple.developer.driverkit.transport.usb"] as? [[String: Any]]
     )

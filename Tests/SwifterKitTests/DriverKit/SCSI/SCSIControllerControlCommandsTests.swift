@@ -207,6 +207,4 @@ struct SCSIControllerControlCommandsTests {
     )
     #expect(fullMask.isValid)
   }
-
-  private func bytes(_ parts: [UInt8]...) -> [UInt8] { parts.flatMap { $0 } }
 }

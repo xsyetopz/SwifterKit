@@ -246,28 +246,14 @@ struct VideoMemberRuntimeContractTests {
   }
 
   private var configuration: VideoDeviceConfiguration {
-    let format = VideoStreamFormat(
-      frameRate: 60,
-      frameTimeScale: 60,
-      codec: .bgra32,
-      width: 64,
-      height: 64
-    )
-    return VideoDeviceConfiguration(
+    VideoDeviceConfiguration(
       deviceUID: "Device",
       modelUID: "Model",
       manufacturerUID: "Maker",
       name: "Video",
       sampleRates: [60],
       initialSampleRate: 60,
-      streams: [
-        VideoStreamConfiguration(
-          identifier: "Out",
-          direction: .output,
-          formats: [format],
-          dataBufferCapacity: 16_384
-        )
-      ],
+      streams: [VideoObjectRuntimeContractTests.outputStream],
       controls: [
         .slider(
           VideoSliderControlConfiguration(

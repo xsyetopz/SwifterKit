@@ -31,23 +31,15 @@ struct DriverExtensionSerialGeneratorTests {
     #expect(personality["IOTTYBaseName"] as? String == "usbserial")
     #expect(personality["IOTTYSuffix"] as? String == "Example")
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.serial"] as? Bool == true)
 
-    let configurationHeader = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let configurationHeader = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(configurationHeader.contains("SWIFTERKIT_ENABLE_SERIAL 1"))
     #expect(configurationHeader.contains("kSwifterKitSerialInitialCTS =\n    true"))
     #expect(configurationHeader.contains("kSwifterKitSerialInitialDCD =\n    true"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserSerial"))
     #expect(service.contains("SerialCommand"))
     #expect(service.contains("HwProgramUART"))
@@ -76,10 +68,7 @@ struct DriverExtensionSerialGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: configuration, at: output)
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserSerial"))
     #expect(service.contains("SerialCommand"))
     #expect(service.contains("USBControlTransfer"))

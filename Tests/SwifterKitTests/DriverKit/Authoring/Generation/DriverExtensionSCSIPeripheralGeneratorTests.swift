@@ -34,9 +34,7 @@ struct SCSIPeripheralGeneratorTests {
       at: output
     )
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit"] as? Bool == true)
     #expect(entitlements["com.apple.developer.driverkit.family.scsicontroller"] == nil)
 
@@ -47,18 +45,12 @@ struct SCSIPeripheralGeneratorTests {
     #expect(personality["IOMaximumSegmentAddressableBitCount"] as? UInt64 == 64)
     #expect(personality["IOMaximumBlockCountWrite"] == nil)
 
-    let header = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(header.contains("SWIFTERKIT_ENABLE_SCSI_CONTROLLER 0"))
     #expect(header.contains("SWIFTERKIT_ENABLE_SCSI_PERIPHERAL 1"))
     #expect(header.contains("SWIFTERKIT_SCSI_PERIPHERAL_TYPE \(type.rawValue)"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public \(superclass(for: type))"))
     #expect(service.contains("SCSIPeripheralCommand"))
     let callback =

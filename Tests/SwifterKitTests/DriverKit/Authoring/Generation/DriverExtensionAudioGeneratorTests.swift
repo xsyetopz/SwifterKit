@@ -30,46 +30,29 @@ struct AudioGeneratorTests {
     )
     #expect(audioClient["IOUserClass"] as? String == "IOUserAudioDriverUserClient")
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.audio"] as? Bool == true)
     #expect(
       entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] as? Bool == true
     )
 
-    let config = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let config = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(config.contains("SWIFTERKIT_ENABLE_AUDIO 1"))
     #expect(config.contains("kSwifterKitAudioSampleRateCount = 2"))
     #expect(config.contains("kSwifterKitAudioStreamCount = 2"))
     #expect(config.contains("kSwifterKitAudioControlCount = 5"))
     #expect(config.contains("kSwifterKitAudioCustomPropertyCount ="))
     #expect(config.contains("kSwifterKitAudioCustomProperties[] ="))
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserAudioDriver"))
     #expect(service.contains("StartAudio()"))
-    let userClient = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeUserClient.cpp"),
-      encoding: .utf8
-    )
+    let userClient = try source("SwifterKitRuntimeUserClient.cpp", in: output)
     #expect(userClient.contains("CopyClientEntitlements"))
     #expect(userClient.contains("kSwifterKitBundleIdentifier"))
-    let audioDevice = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeAudioDevice.cpp"),
-      encoding: .utf8
-    )
+    let audioDevice = try source("SwifterKitRuntimeAudioDevice.cpp", in: output)
     #expect(audioDevice.contains("__atomic_add_fetch"))
     #expect(!audioDevice.contains("EnqueueEvent(kSwifterKitEventAudio"))
-    let audioRuntime = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeAudio.cpp"),
-      encoding: .utf8
-    )
+    let audioRuntime = try source("SwifterKitRuntimeAudio.cpp", in: output)
     #expect(audioRuntime.contains("AudioControlValueEvent"))
     #expect(audioRuntime.contains("EnqueueRequiredEvent"))
     let callbacks = try String(
@@ -267,11 +250,17 @@ struct AudioGeneratorTests {
           maximumDecibels: 0
         )
       ),
+    ] + Self.selectorSliderAndPanControls(selectorName: "Input")
+  }
+
+  /// A data-source selector (identifier 3), a slider (4), and a stereo pan (5).
+  static func selectorSliderAndPanControls(selectorName: String) -> [AudioControlConfiguration] {
+    [
       .selector(
         AudioSelectorControlConfiguration(
           metadata: AudioControlMetadata(
             identifier: 3,
-            name: "Input",
+            name: selectorName,
             scope: .input,
             controlClass: .dataSource
           ),

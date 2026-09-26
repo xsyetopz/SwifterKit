@@ -30,24 +30,16 @@ struct BlockStorageGeneratorTests {
     let personality = try loadDriverPersonality(in: output)
     #expect(personality["CFBundleIdentifierKernel"] as? String == "com.apple.iokit.IOStorageFamily")
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(
       entitlements["com.apple.developer.driverkit.family.block-storage-device"] as? Bool == true
     )
 
-    let header = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(header.contains("SWIFTERKIT_ENABLE_BLOCK_STORAGE 1"))
     #expect(header.contains("kSwifterKitBlockCount = 1048576"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserBlockStorageDevice"))
     #expect(service.contains("DoAsyncReadWrite"))
     #expect(service.contains("BlockStorageCommand"))
@@ -55,10 +47,7 @@ struct BlockStorageGeneratorTests {
 
     // Requests the runtime cannot take complete through Complete or CompleteIO, except a
     // duplicate identifier, which would otherwise answer the outstanding request.
-    let storage = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeBlockStorage.cpp"),
-      encoding: .utf8
-    )
+    let storage = try source("SwifterKitRuntimeBlockStorage.cpp", in: output)
     let queue = try #require(storage.range(of: "kern_return_t QueueRequest(")?.upperBound)
     let queueBody = storage[queue...]
     let duplicate = try #require(

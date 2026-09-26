@@ -13,23 +13,13 @@ struct VideoGeneratorTests {
     )
     defer { try? FileManager.default.removeItem(at: root) }
     let output = root.appendingPathComponent("VideoDriver", isDirectory: true)
-    let configuration = DriverConfiguration(
-      bundleIdentifier: "com.example.video",
-      providerClass: "IOService",
-      capabilities: .video,
-      videoDevice: sampleDevice()
-    )
-
     try DriverExtensionGenerator.generate(
-      configuration: configuration,
+      configuration: videoConfiguration,
       options: DriverExtensionGenerationOptions(deploymentTarget: "25.5"),
       at: output
     )
 
-    let header = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(header.contains("SWIFTERKIT_ENABLE_VIDEO 1"))
     #expect(header.contains("kSwifterKitVideoStreamCount = 2"))
     #expect(header.contains("1920, 1080"))
@@ -39,10 +29,7 @@ struct VideoGeneratorTests {
     #expect(selector.split(separator: ",").count == 16)
     #expect(selector.hasSuffix(", 0, 2, 0, 1}"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserVideoDriver"))
     #expect(service.contains("StartVideo"))
     #expect(service.contains("VideoCommand"))
@@ -50,9 +37,7 @@ struct VideoGeneratorTests {
     let personality = try loadDriverPersonality(in: output)
     #expect(personality["IOUserVideoDriverUserClientProperties"] != nil)
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(
       entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] as? Bool == true
     )
@@ -70,25 +55,24 @@ struct VideoGeneratorTests {
 
   @Test(.enabled(if: DriverKitSDK.supports(deploymentTarget: "25.5")))
   func buildsVideoRuntime() throws {
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
-      UUID().uuidString,
-      isDirectory: true
-    )
-    defer { try? FileManager.default.removeItem(at: root) }
-    let output = root.appendingPathComponent("VideoDriver", isDirectory: true)
-    try DriverExtensionGenerator.generate(
-      configuration: DriverConfiguration(
-        bundleIdentifier: "com.example.video",
-        providerClass: "IOService",
-        capabilities: .video,
-        videoDevice: sampleDevice()
-      ),
-      options: DriverExtensionGenerationOptions(deploymentTarget: "25.5"),
-      at: output
-    )
-    try expectGeneratedExtensionBuilds(
-      at: output,
-      derivedData: root.appendingPathComponent("DerivedData")
+    try withTemporaryExtension(
+      named: "VideoDriver",
+      configuration: videoConfiguration,
+      options: DriverExtensionGenerationOptions(deploymentTarget: "25.5")
+    ) { output, root in
+      try expectGeneratedExtensionBuilds(
+        at: output,
+        derivedData: root.appendingPathComponent("DerivedData")
+      )
+    }
+  }
+
+  private var videoConfiguration: DriverConfiguration {
+    DriverConfiguration(
+      bundleIdentifier: "com.example.video",
+      providerClass: "IOService",
+      capabilities: .video,
+      videoDevice: sampleDevice()
     )
   }
 

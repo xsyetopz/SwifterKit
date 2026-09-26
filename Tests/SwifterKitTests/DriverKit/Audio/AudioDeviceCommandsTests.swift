@@ -250,10 +250,4 @@ struct AudioDeviceCommandsTests {
     #expect(sliderInfo.kind == .slider && sliderInfo.sliderRange == 10...90)
     #expect(sliderInfo.selectorItems.isEmpty)
   }
-
-  private func bytes(_ chunks: [UInt8]...) -> [UInt8] { chunks.flatMap { $0 } }
-
-  private func le<T: FixedWidthInteger>(_ value: T) -> [UInt8] {
-    withUnsafeBytes(of: value.littleEndian) { Array($0) }
-  }
 }

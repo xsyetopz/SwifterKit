@@ -11,6 +11,7 @@ let checkedInNativeSources = (0..<6).reduce(URL(fileURLWithPath: #filePath)) { u
 
 /// Generates `configuration` into a fresh temporary directory, then runs `body` with the
 /// extension directory named `name` and the temporary root, which is removed afterwards.
+@discardableResult
 func withTemporaryExtension<Result>(
   named name: String,
   configuration: DriverConfiguration,

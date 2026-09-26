@@ -33,34 +33,23 @@ struct MIDIGeneratorTests {
     )
     #expect(midiClient["IOUserClass"] as? String == "IOUserMIDIDriverUserClient")
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.midi"] as? Bool == true)
     // MIDIServer's driver-access entitlement admits family.midi dexts, so the family client
     // needs no allow-any-userclient-access, and the runtime client keeps its host check.
     #expect(entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] == nil)
 
-    let header = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let header = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(header.contains("SWIFTERKIT_ENABLE_MIDI 1"))
     #expect(header.contains("kSwifterKitMIDISourceCount = 2"))
     #expect(header.contains("kSwifterKitMIDIDestinationCount =\n    3"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserMIDIDriver"))
     #expect(service.contains("MIDICommand"))
     #expect(service.contains("MIDIReceived"))
 
-    let midiRuntime = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeMIDI.cpp"),
-      encoding: .utf8
-    )
+    let midiRuntime = try source("SwifterKitRuntimeMIDI.cpp", in: output)
     #expect(midiRuntime.contains("result = AddObject(device.get())"))
     #expect(!midiRuntime.contains("AddObject(entity.get())"))
     #expect(midiRuntime.contains("result = device->StartIO();"))

@@ -43,28 +43,17 @@ struct DriverExtensionGeneratorTests {
     #expect(personality["PrimaryUsagePage"] as? Int == 0xFF00)
     #expect(personality["PrimaryUsage"] as? Int == 1)
 
-    let header = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeProtocol.h"),
-      encoding: .utf8
-    )
+    let header = try source("SwifterKitRuntimeProtocol.h", in: output)
     #expect(header.contains("kSwifterKitRuntimeCapabilities = 8;"))
 
-    let runtimeConfiguration = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let runtimeConfiguration = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(runtimeConfiguration.contains("SWIFTERKIT_ENABLE_HID 1"))
     #expect(runtimeConfiguration.contains("kSwifterKitHIDVendorID = 4660"))
 
-    let hidSource = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeHID.cpp"),
-      encoding: .utf8
-    )
+    let hidSource = try source("SwifterKitRuntimeHID.cpp", in: output)
     #expect(hidSource.contains("kIOHIDDeviceUsagePairsKey"))
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.hid.device"] as? Bool == true)
 
     let project = try String(
@@ -111,18 +100,13 @@ struct DriverExtensionGeneratorTests {
     #expect(personality["idVendor"] as? UInt32 == 0x1234)
     #expect(personality["idProductArray"] as? [UInt32] == [0x1000, 0x1001])
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     let usbEntitlement = try #require(
       entitlements["com.apple.developer.driverkit.transport.usb"] as? [[String: Any]]
     )
     #expect(usbEntitlement.first?["idVendor"] as? UInt32 == 0x1234)
 
-    let configurationHeader = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let configurationHeader = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(configurationHeader.contains("SWIFTERKIT_ENABLE_USB 1"))
 
     try expectGeneratedExtensionBuilds(
@@ -149,19 +133,13 @@ struct DriverExtensionGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: configuration, at: output)
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserHIDDevice"))
     #expect(service.contains("USBControlTransfer"))
     #expect(service.contains("SubmitHIDInputReport"))
     #expect(service.contains("CopyHIDRuntimeStatistics"))
 
-    let schemaHeader = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeSchema.h"),
-      encoding: .utf8
-    )
+    let schemaHeader = try source("SwifterKitRuntimeSchema.h", in: output)
     #expect(schemaHeader.contains("HIDGetRuntimeStatistics = 0x0301"))
 
     try expectGeneratedExtensionBuilds(
@@ -192,25 +170,17 @@ struct DriverExtensionGeneratorTests {
     #expect(personality["IOProviderClass"] as? String == "IOPCIDevice")
     #expect(personality["IOPCIPrimaryMatch"] as? String == "0x00261011")
 
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     let pciEntitlement = try #require(
       entitlements["com.apple.developer.driverkit.transport.pci"] as? [[String: Any]]
     )
     #expect(pciEntitlement.first?["IOPCIPrimaryMatch"] as? String == "0x00261011")
 
-    let configurationHeader = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let configurationHeader = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(configurationHeader.contains("SWIFTERKIT_ENABLE_PCI 1"))
     #expect(configurationHeader.contains("SWIFTERKIT_ENABLE_MEMORY 1"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("MemoryCommand"))
 
     try expectGeneratedExtensionBuilds(
@@ -253,10 +223,7 @@ struct DriverExtensionGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: configuration, at: output)
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("public IOUserHIDDevice"))
     #expect(service.contains("PCICommand"))
     #expect(service.contains("SubmitHIDInputReport"))
@@ -288,18 +255,12 @@ struct DriverExtensionGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: configuration, at: output)
 
-    let runtimeConfiguration = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let runtimeConfiguration = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(runtimeConfiguration.contains("SWIFTERKIT_ENABLE_INTERRUPTS 1"))
     #expect(runtimeConfiguration.contains("kSwifterKitInterruptIndices[] = {0, 65538, 0}"))
     #expect(runtimeConfiguration.contains("kSwifterKitInterruptSourceCount =\n    2;"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("IOInterruptDispatchSource.iig"))
     #expect(service.contains("InterruptOccurred"))
 
@@ -387,18 +348,12 @@ struct DriverExtensionGeneratorTests {
 
     try DriverExtensionGenerator.generate(configuration: configuration, at: output)
 
-    let runtimeConfiguration = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),
-      encoding: .utf8
-    )
+    let runtimeConfiguration = try source("SwifterKitRuntimeConfiguration.h", in: output)
     #expect(runtimeConfiguration.contains("SWIFTERKIT_ENABLE_MEMORY 1"))
     #expect(runtimeConfiguration.contains("kSwifterKitMaximumMemoryBuffers = 8"))
     #expect(runtimeConfiguration.contains("kSwifterKitMaximumMemoryBufferSize =\n    1048576"))
 
-    let service = try String(
-      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeService.iig"),
-      encoding: .utf8
-    )
+    let service = try source("SwifterKitRuntimeService.iig", in: output)
     #expect(service.contains("StartMemory"))
     #expect(service.contains("MemoryCommand"))
 

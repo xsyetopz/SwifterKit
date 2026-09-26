@@ -45,9 +45,7 @@ struct USBSerialGeneratorTests {
     #expect(personality["IOProviderClass"] as? String == "IOUSBHostInterface")
     #expect(personality["IOTTYBaseName"] as? String == "usbserial")
     #expect(personality["IOTTYSuffix"] as? String == "Example")
-    let entitlements = try loadPropertyList(
-      at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
-    )
+    let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.serial"] as? Bool == true)
     #expect(entitlements["com.apple.developer.driverkit.transport.usb"] != nil)
 

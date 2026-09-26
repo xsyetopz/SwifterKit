@@ -232,13 +232,4 @@ struct USBAsyncCommandsTests {
       }
     }
   }
-
-  /// Joins byte chunks; one call keeps the Swift 6.1 type checker within its time limit.
-  private func bytes(_ chunks: [UInt8]...) -> [UInt8] { chunks.flatMap { $0 } }
-
-  private func le<T: FixedWidthInteger>(_ value: T) -> [UInt8] {
-    var data = Data()
-    data.appendRuntimeInteger(value)
-    return [UInt8](data)
-  }
 }

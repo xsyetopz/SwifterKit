@@ -214,42 +214,7 @@ struct AudioDeviceRuntimeContractTests {
         AudioStreamConfiguration(direction: .output, name: "Out", formats: [format]),
         AudioStreamConfiguration(direction: .input, name: "In", formats: [format]),
       ],
-      controls: [
-        .selector(
-          AudioSelectorControlConfiguration(
-            metadata: AudioControlMetadata(
-              identifier: 3,
-              name: "Source",
-              scope: .input,
-              controlClass: .dataSource
-            ),
-            values: [
-              AudioSelectorValue(value: 1, name: "Line"), AudioSelectorValue(value: 2, name: "Mic"),
-            ],
-            initialValues: [1]
-          )
-        ),
-        .slider(
-          AudioSliderControlConfiguration(
-            metadata: AudioControlMetadata(identifier: 4, name: "Blend", controlClass: .slider),
-            initialValue: 50,
-            minimumValue: 0,
-            maximumValue: 100
-          )
-        ),
-        .stereoPan(
-          AudioStereoPanControlConfiguration(
-            metadata: AudioControlMetadata(
-              identifier: 5,
-              name: "Pan",
-              scope: .output,
-              controlClass: .stereoPan
-            ),
-            leftChannel: 1,
-            rightChannel: 2
-          )
-        ),
-      ],
+      controls: AudioGeneratorTests.selectorSliderAndPanControls(selectorName: "Source"),
       customProperties: [
         AudioCustomPropertyConfiguration(
           identifier: 20,

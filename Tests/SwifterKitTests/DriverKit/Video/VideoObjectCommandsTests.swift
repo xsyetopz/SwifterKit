@@ -292,12 +292,4 @@ struct VideoObjectCommandsTests {
     #expect(schema.contains("kSwifterKitVideoClockStateAll = 0xF;"))
     #expect(try DriverEvent(type: 0x0C00, payload: []).videoObject() == nil)
   }
-
-  private func bytes(_ chunks: [UInt8]...) -> [UInt8] { chunks.flatMap { $0 } }
-
-  private func le<T: FixedWidthInteger>(_ value: T) -> [UInt8] {
-    var data = Data()
-    data.appendRuntimeInteger(value)
-    return [UInt8](data)
-  }
 }
