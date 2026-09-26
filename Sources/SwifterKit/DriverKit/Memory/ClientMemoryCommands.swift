@@ -1,3 +1,5 @@
+import Foundation
+
 extension DriverContext {
   /// Maps a runtime buffer, subrange, or chain into this process without copying.
   ///
@@ -31,5 +33,63 @@ extension DriverContext {
       let type = RuntimeClientMemoryType(kind: .ring, identifier: UInt64(id))
     else { throw FastPathRuntimeError.unknownRing(id) }
     return try await mapMemory(type, readOnly: false, requiring: .pci)
+  }
+}
+
+extension DriverCommand {
+  /// Creates a request that wraps host memory as a runtime memory entry without copying it.
+  ///
+  /// The segments are checked here and again in the extension: 1 to 32 of them, each nonzero
+  /// and not wrapping past the end of the address space.
+  public static func wrapClientMemory(
+    _ segments: [DriverClientMemorySegment],
+    direction: DriverMemoryDirection
+  ) throws -> Self {
+    guard (1...RuntimeMemoryLimits.maximumClientSegments).contains(segments.count) else {
+      throw DriverMemoryError.invalidSegmentCount
+    }
+    var payload = Data(
+      capacity: RuntimeMemoryLimits.clientHeaderSize + segments.count
+        * RuntimeMemoryLimits.clientSegmentSize
+    )
+    payload.appendRuntimeInteger(UInt32(segments.count))
+    payload.appendRuntimeInteger(direction.rawValue)
+    for segment in segments {
+      guard segment.length != 0, segment.address <= UInt64.max - segment.length else {
+        throw DriverMemoryError.invalidSegment
+      }
+      payload.appendRuntimeInteger(segment.address)
+      payload.appendRuntimeInteger(segment.length)
+    }
+    return Self(
+      opcode: .memoryWrapClient,
+      requiredCapabilities: .memory,
+      payload: payload,
+      maximumResponseSize: RuntimeMessage.headerSize + 8
+    )
+  }
+}
+
+extension DriverContext {
+  /// Wraps memory this process owns as a runtime memory entry, without copying it.
+  ///
+  /// The extension describes the segments with `IOUserClient::CreateMemoryDescriptorFromClient`
+  /// while it handles this request, so the handle names this process's own pages: the device
+  /// reads or writes them after ``prepareMemoryForDMA(_:offset:length:maximumAddressBits:)``, and
+  /// ``readMemory(_:offset:length:)``, ``writeMemory(_:offset:bytes:)``,
+  /// ``memorySubrange(_:offset:length:direction:)``, and ``memoryChain(_:direction:)`` work as for
+  /// an allocated buffer. The entry takes one of ``MemoryPoolConfiguration/maximumBuffers`` slots
+  /// but none of the pool's byte budget, and its length cannot change.
+  ///
+  /// The memory must stay allocated, and must not be unmapped or reused, until
+  /// ``releaseMemory(_:)`` returns for this handle and every subrange or chain built from it;
+  /// ``DriverHostMemory`` keeps an allocation alive for that long.
+  public func wrapClientMemory(
+    _ segments: [DriverClientMemorySegment],
+    direction: DriverMemoryDirection
+  ) async throws -> DriverMemoryHandle {
+    try await DriverMemoryHandle(
+      runtimePayload: execute(.wrapClientMemory(segments, direction: direction))
+    )
   }
 }

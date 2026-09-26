@@ -158,4 +158,22 @@ public enum DriverMemoryError: Error, Sendable, Equatable {
   case invalidPayload
   /// A chain must combine between 1 and 32 handles.
   case invalidChainLength
+  /// Wrapped host memory must name between 1 and 32 segments.
+  case invalidSegmentCount
+  /// A host segment is empty or its address plus length overflows.
+  case invalidSegment
+}
+
+/// A range of this process's memory for ``DriverContext/wrapClientMemory(_:direction:)``.
+public struct DriverClientMemorySegment: Sendable, Hashable {
+  /// The first byte's address in this process.
+  public let address: UInt64
+  /// The number of bytes, nonzero.
+  public let length: UInt64
+
+  /// Creates a segment.
+  public init(address: UInt64, length: UInt64) {
+    self.address = address
+    self.length = length
+  }
 }

@@ -153,6 +153,12 @@ struct __attribute__((packed)) SwifterKitMemoryChainHeader {
     uint32_t direction;
 };
 
+// Followed by `count` IOAddressSegment values in the host's address space.
+struct __attribute__((packed)) SwifterKitMemoryClientHeader {
+    uint32_t count;
+    uint32_t direction;
+};
+
 struct __attribute__((packed)) SwifterKitHIDReportHeader {
     uint64_t timestamp;
     uint32_t reportType;
@@ -609,5 +615,6 @@ static_assert(sizeof(SwifterKitMemoryInfo) == 32);
 static_assert(sizeof(SwifterKitMemoryDMAResponseHeader) == 16);
 static_assert(sizeof(SwifterKitMemorySubrangeHeader) == kSwifterKitMemorySubrangeHeaderSize);
 static_assert(sizeof(SwifterKitMemoryChainHeader) == kSwifterKitMemoryChainHeaderSize);
+static_assert(sizeof(SwifterKitMemoryClientHeader) == kSwifterKitMemoryClientHeaderSize);
 
 #endif

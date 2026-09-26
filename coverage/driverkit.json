@@ -11248,14 +11248,15 @@
           ],
           "introduced" : "20.0",
           "name" : "CreateMemoryDescriptorFromClient",
-          "note" : "deferred to the fast-path phase: wrapping host memory for zero-copy I/O; runtime messages copy payloads today",
+          "note" : "wrapClientMemory describes 1 to 32 segments of the calling host's memory inside that client's ExternalMethod and stores the descriptor as a runtime memory entry that reads, writes, prepares for DMA, and composes into subranges and chains without copying; it takes a buffer slot but none of the pool's byte budget, and DriverHostMemory keeps the host pages allocated while they are wrapped",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t CreateMemoryDescriptorFromClient(uint64_t, uint32_t, const IOAddressSegment[32], IOMemoryDescriptor**)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "wrapClientMemory"
         },
         {
           "access" : "public",

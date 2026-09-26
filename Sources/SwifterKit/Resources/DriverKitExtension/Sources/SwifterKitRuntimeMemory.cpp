@@ -9,6 +9,7 @@
     #include <DriverKit/IOLib.h>
     #include <DriverKit/IOMemoryMap.h>
     #include <DriverKit/IOReturn.h>
+    #include <DriverKit/IOUserClient.h>
     #include <DriverKit/OSArray.h>
     #include <DriverKit/OSData.h>
 
@@ -143,7 +144,8 @@ namespace {
         if (result == kIOReturnSuccess && entry->composed == nullptr) {
             result = kIOReturnNoMemory;
         }
-        if (result == kIOReturnSuccess) {
+        // Wrapped host memory has no source entries to retain.
+        if (result == kIOReturnSuccess && sourceCount != 0) {
             entry->sources = OSArray::withCapacity(sourceCount);
             result = entry->sources == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
         }
@@ -276,6 +278,72 @@ namespace {
             response);
     }
 }  // namespace
+
+// Opcode MemoryWrapClient: a new entry for 1...32 segments of the calling host's own memory,
+// described with CreateMemoryDescriptorFromClient while `client`'s ExternalMethod runs. The entry
+// takes a buffer slot but none of the byte budget, which counts only buffers the extension
+// allocates; its length is fixed. The descriptor references the host's pages, so the host must
+// keep them allocated until it releases the entry and everything composed from it.
+kern_return_t SwifterKitRuntimeService::WrapClientMemory(
+    IOUserClient* client,
+    const uint8_t* payload,
+    uint32_t payloadLength,
+    OSData** response) {
+    // CreateMemoryDescriptorFromClient takes a fixed array of this many segments.
+    static_assert(kSwifterKitMemoryMaximumClientSegments == 32);
+    static_assert(sizeof(IOAddressSegment) == kSwifterKitMemoryClientSegmentSize);
+    if (ivars == nullptr || ivars->memoryLock == nullptr || client == nullptr || payload == nullptr
+        || response == nullptr) {
+        return kIOReturnNotReady;
+    }
+    *response = nullptr;
+    if (payloadLength < sizeof(SwifterKitMemoryClientHeader)) {
+        return kIOReturnBadArgument;
+    }
+    SwifterKitMemoryClientHeader header = {};
+    memcpy(&header, payload, sizeof(header));
+    if (header.count == 0 || header.count > kSwifterKitMemoryMaximumClientSegments
+        || !IsDirection(header.direction)
+        || payloadLength != sizeof(header) + header.count * sizeof(IOAddressSegment)) {
+        return kIOReturnBadArgument;
+    }
+    IOAddressSegment segments[kSwifterKitMemoryMaximumClientSegments] = {};
+    memcpy(segments, payload + sizeof(header), header.count * sizeof(IOAddressSegment));
+    uint64_t length = 0;
+    for (uint32_t index = 0; index < header.count; ++index) {
+        const IOAddressSegment& segment = segments[index];
+        if (segment.length == 0 || segment.address > UINT64_MAX - segment.length
+            || segment.length > UINT64_MAX - length) {
+            return kIOReturnBadArgument;
+        }
+        length += segment.length;
+    }
+    const MemoryLockGuard guard(ivars->memoryLock);
+    if (ivars->memoryProvider == nullptr) {
+        return kIOReturnNotReady;
+    }
+    SwifterKitMemoryEntry* entry = FreeMemoryEntry(ivars);
+    if (entry == nullptr) {
+        return kIOReturnNoResources;
+    }
+    kern_return_t result = kIOReturnUnsupported;
+    if (__builtin_available(driverkit 20.0, *)) {
+        result = client->CreateMemoryDescriptorFromClient(
+            header.direction,
+            header.count,
+            segments,
+            &entry->composed);
+    }
+    return FinishComposedEntry(
+        ivars,
+        entry,
+        result,
+        nullptr,
+        0,
+        length,
+        header.direction,
+        response);
+}
 
 kern_return_t SwifterKitRuntimeService::CopyMemoryForClient(
     uint64_t handle,

@@ -171,6 +171,9 @@ static constexpr uint64_t kSwifterKitMemoryMaximumHandle = 0xFFFFFF;
 static constexpr uint32_t kSwifterKitMemoryMaximumChainLength = 32;
 static constexpr uint32_t kSwifterKitMemorySubrangeHeaderSize = 32;
 static constexpr uint32_t kSwifterKitMemoryChainHeaderSize = 8;
+static constexpr uint32_t kSwifterKitMemoryMaximumClientSegments = 32;
+static constexpr uint32_t kSwifterKitMemoryClientHeaderSize = 8;
+static constexpr uint32_t kSwifterKitMemoryClientSegmentSize = 16;
 static constexpr uint32_t kSwifterKitClientMemoryKindShift = 24;
 static constexpr uint32_t kSwifterKitClientMemoryIdentifierMask = 0xFFFFFF;
 

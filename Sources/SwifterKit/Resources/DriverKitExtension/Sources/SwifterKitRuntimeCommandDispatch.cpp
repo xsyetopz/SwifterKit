@@ -15,6 +15,7 @@
 // when its capability is off.
 namespace {
     struct CommandContext {
+        IOUserClient* client;
         SwifterKitRuntimeService* service;
         IOUserClientMethodArguments* arguments;
         uint64_t requestID;
@@ -192,11 +193,20 @@ namespace {
             return kIOReturnNotReady;
         }
         OSData* response = nullptr;
-        const kern_return_t result = context.service->MemoryCommand(
-            context.opcode,
-            context.payload,
-            context.payloadLength,
-            &response);
+        // CreateMemoryDescriptorFromClient describes the calling task's memory, so the wrap runs
+        // here, inside that client's ExternalMethod.
+        const kern_return_t result =
+            context.opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::MemoryWrapClient)
+                ? context.service->WrapClientMemory(
+                      context.client,
+                      context.payload,
+                      context.payloadLength,
+                      &response)
+                : context.service->MemoryCommand(
+                      context.opcode,
+                      context.payload,
+                      context.payloadLength,
+                      &response);
         return RespondToCommand(context, result, response);
 #else
         return kIOReturnUnsupported;
@@ -356,6 +366,7 @@ namespace {
     }
 
     kern_return_t HandleCommand(
+        IOUserClient* client,
         SwifterKitRuntimeService* service,
         IOUserClientMethodArguments* arguments,
         const SwifterKitRuntimeHeader* request,
@@ -371,6 +382,7 @@ namespace {
         }
 
         const CommandContext context = {
+            .client = client,
             .service = service,
             .arguments = arguments,
             .requestID = request->requestID,
@@ -493,6 +505,7 @@ namespace {
             case SwifterKitRuntimeOpcode::MemoryCompleteDMA:
             case SwifterKitRuntimeOpcode::MemorySubrange:
             case SwifterKitRuntimeOpcode::MemoryChain:
+            case SwifterKitRuntimeOpcode::MemoryWrapClient:
                 return DispatchMemoryCommand(context);
             case SwifterKitRuntimeOpcode::NetworkReceive:
             case SwifterKitRuntimeOpcode::NetworkCompleteTransmit:
@@ -661,6 +674,7 @@ namespace {
 }  // namespace
 
 kern_return_t SwifterKitHandleMessage(
+    IOUserClient* client,
     SwifterKitRuntimeService* service,
     IOUserClientMethodArguments* arguments,
     const SwifterKitRuntimeHeader* request,
@@ -675,7 +689,7 @@ kern_return_t SwifterKitHandleMessage(
         case SwifterKitRuntimeMessageKind::Handshake:
             return HandleHandshake(arguments, request, payload);
         case SwifterKitRuntimeMessageKind::Command:
-            return HandleCommand(service, arguments, request, payload);
+            return HandleCommand(client, service, arguments, request, payload);
         case SwifterKitRuntimeMessageKind::Response:
         case SwifterKitRuntimeMessageKind::Event:
         case SwifterKitRuntimeMessageKind::Error:

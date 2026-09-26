@@ -187,6 +187,7 @@ auto SwifterKitRuntimeUserClient::ExternalMethod(
     }
 
     return SwifterKitHandleMessage(
+        this,
         ivars == nullptr ? nullptr : ivars->service,
         arguments,
         request,

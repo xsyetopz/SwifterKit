@@ -149,6 +149,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case memoryCompleteDMA = 0x0507
   case memorySubrange = 0x0508
   case memoryChain = 0x0509
+  case memoryWrapClient = 0x050A
   case serialEnqueueReceive = 0x0600
   case serialDequeueTransmit = 0x0601
   case serialSetModemStatus = 0x0602

@@ -91,7 +91,34 @@ struct ClientMemoryRuntimeContractTests {
       let service = try source("SwifterKitRuntimeService.iig", in: output)
       #expect(service.contains("kern_return_t CopyClientMemory("))
       #expect(service.contains("kern_return_t CopyMemoryForClient(uint64_t handle,"))
+      #expect(service.contains("kern_return_t WrapClientMemory(\n        IOUserClient* client,"))
       let memory = try source("SwifterKitRuntimeMemory.cpp", in: output)
+      // The wrap checks every segment before it takes the lock, describes the calling client's
+      // memory, and stores it without a byte-budget charge or retained sources.
+      let wrap = try section(
+        of: memory,
+        from: "kern_return_t SwifterKitRuntimeService::WrapClientMemory(",
+        to: "kern_return_t SwifterKitRuntimeService::CopyMemoryForClient("
+      )
+      try expectOrder(
+        in: wrap,
+        "header.count > kSwifterKitMemoryMaximumClientSegments",
+        "payloadLength != sizeof(header) + header.count * sizeof(IOAddressSegment)",
+        "segment.length == 0 || segment.address > UINT64_MAX - segment.length",
+        "const MemoryLockGuard guard(ivars->memoryLock);",
+        "FreeMemoryEntry(ivars);",
+        "client->CreateMemoryDescriptorFromClient(",
+        "&entry->composed);",
+        "return FinishComposedEntry("
+      )
+      #expect(!wrap.contains("allocatedMemory"))
+      let messages = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
+      #expect(messages.contains("context.service->WrapClientMemory(\n"))
+      #expect(
+        messages.contains("return HandleCommand(client, service, arguments, request, payload);")
+      )
+      let client = try source("SwifterKitRuntimeUserClient.cpp", in: output)
+      #expect(client.contains("return SwifterKitHandleMessage(\n        this,"))
       let copy = try section(
         of: memory,
         from: "kern_return_t SwifterKitRuntimeService::CopyMemoryForClient(",

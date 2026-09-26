@@ -16,6 +16,13 @@ enum RuntimeMemoryLimits {
   static let subrangeHeaderSize = 32
   /// The bytes of `SwifterKitMemoryChainHeader`, which precedes the chained handles.
   static let chainHeaderSize = 8
+  /// The most host address segments one wrap names, the `CreateMemoryDescriptorFromClient`
+  /// array size.
+  static let maximumClientSegments = 32
+  /// The bytes of `SwifterKitMemoryClientHeader`, which precedes the segments.
+  static let clientHeaderSize = 8
+  /// The bytes of one segment: a 64-bit address and a 64-bit length, as `IOAddressSegment`.
+  static let clientSegmentSize = 16
 }
 
 /// What a client-memory type maps, stored in its top bits.
@@ -65,6 +72,9 @@ extension RuntimeSchemaHeader {
             ("kSwifterKitMemoryMaximumChainLength", "\(limits.maximumChainLength)"),
             ("kSwifterKitMemorySubrangeHeaderSize", "\(limits.subrangeHeaderSize)"),
             ("kSwifterKitMemoryChainHeaderSize", "\(limits.chainHeaderSize)"),
+            ("kSwifterKitMemoryMaximumClientSegments", "\(limits.maximumClientSegments)"),
+            ("kSwifterKitMemoryClientHeaderSize", "\(limits.clientHeaderSize)"),
+            ("kSwifterKitMemoryClientSegmentSize", "\(limits.clientSegmentSize)"),
             ("kSwifterKitClientMemoryKindShift", "\(RuntimeClientMemoryType.kindShift)"),
             (
               "kSwifterKitClientMemoryIdentifierMask",
