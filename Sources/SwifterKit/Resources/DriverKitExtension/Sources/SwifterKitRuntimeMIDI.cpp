@@ -37,7 +37,13 @@ namespace {
 }  // namespace
 
 kern_return_t SwifterKitRuntimeService::StartMIDI() {
-    if (ivars == nullptr || ivars->midiDevice != nullptr) {
+    if (ivars == nullptr || ivars->midiLock == nullptr) {
+        return kIOReturnNotReady;
+    }
+    IOLockLock(ivars->midiLock);
+    const bool started = ivars->midiDevice != nullptr;
+    IOLockUnlock(ivars->midiLock);
+    if (started) {
         return kIOReturnNotReady;
     }
 
@@ -76,16 +82,15 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
     }
 
     result = device->AddEntity(entity.get());
+    bool added = false;
     if (result == kIOReturnSuccess) {
         result = AddObject(device.get());
-    }
-    if (result == kIOReturnSuccess) {
-        device->retain();
-        ivars->midiDevice = device.get();
-        entity->retain();
-        ivars->midiEntity = entity.get();
+        added = result == kIOReturnSuccess;
     }
 
+    // Endpoints are gathered locally and published together under midiLock.
+    IOUserMIDISource* sources[32] = {};
+    IOUserMIDIDestination* destinations[32] = {};
     for (uint32_t index = 0; result == kIOReturnSuccess && index < kSwifterKitMIDISourceCount;
          ++index) {
         auto source = entity->GetSource(index);
@@ -94,7 +99,7 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
             break;
         }
         source->retain();
-        ivars->midiSources[index] = source.get();
+        sources[index] = source.get();
     }
 
     for (uint32_t index = 0; result == kIOReturnSuccess && index < kSwifterKitMIDIDestinationCount;
@@ -115,57 +120,105 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
             });
         if (result == kIOReturnSuccess) {
             destination->retain();
-            ivars->midiDestinations[index] = destination.get();
+            destinations[index] = destination.get();
         }
     }
 
-    if (result != kIOReturnSuccess) {
-        StopMIDI();
+    if (result == kIOReturnSuccess) {
+        IOLockLock(ivars->midiLock);
+        device->retain();
+        ivars->midiDevice = device.get();
+        entity->retain();
+        ivars->midiEntity = entity.get();
+        for (uint32_t index = 0; index < 32; ++index) {
+            ivars->midiSources[index] = sources[index];
+            ivars->midiDestinations[index] = destinations[index];
+        }
+        IOLockUnlock(ivars->midiLock);
+        return kIOReturnSuccess;
+    }
+
+    for (uint32_t index = 0; index < 32; ++index) {
+        if (destinations[index] != nullptr) {
+            (void)destinations[index]->SetIOBlock(nullptr);
+            OSSafeReleaseNULL(destinations[index]);
+        }
+        OSSafeReleaseNULL(sources[index]);
+    }
+    if (added) {
+        (void)RemoveObject(device.get());
     }
     return result;
 }
 
 void SwifterKitRuntimeService::StopMIDI() {
-    if (ivars == nullptr) {
+    if (ivars == nullptr || ivars->midiLock == nullptr) {
         return;
     }
+    IOUserMIDISource* sources[32] = {};
+    IOUserMIDIDestination* destinations[32] = {};
+    IOLockLock(ivars->midiLock);
+    IOUserMIDIDevice* device = ivars->midiDevice;
+    IOUserMIDIEntity* entity = ivars->midiEntity;
+    ivars->midiDevice = nullptr;
+    ivars->midiEntity = nullptr;
     for (uint32_t index = 0; index < 32; ++index) {
-        if (ivars->midiDestinations[index] != nullptr) {
-            (void)ivars->midiDestinations[index]->SetIOBlock(nullptr);
-            OSSafeReleaseNULL(ivars->midiDestinations[index]);
-        }
-        if (ivars->midiSources[index] != nullptr) {
-            OSSafeReleaseNULL(ivars->midiSources[index]);
-        }
+        sources[index] = ivars->midiSources[index];
+        destinations[index] = ivars->midiDestinations[index];
+        ivars->midiSources[index] = nullptr;
+        ivars->midiDestinations[index] = nullptr;
     }
-    if (ivars->midiEntity != nullptr) {
-        OSSafeReleaseNULL(ivars->midiEntity);
+    IOLockUnlock(ivars->midiLock);
+
+    for (uint32_t index = 0; index < 32; ++index) {
+        if (destinations[index] != nullptr) {
+            (void)destinations[index]->SetIOBlock(nullptr);
+            OSSafeReleaseNULL(destinations[index]);
+        }
+        OSSafeReleaseNULL(sources[index]);
     }
-    if (ivars->midiDevice != nullptr) {
-        (void)RemoveObject(ivars->midiDevice);
-        OSSafeReleaseNULL(ivars->midiDevice);
+    OSSafeReleaseNULL(entity);
+    if (device != nullptr) {
+        (void)RemoveObject(device);
+        OSSafeReleaseNULL(device);
     }
 }
 
 kern_return_t SwifterKitRuntimeService::MIDICommand(
     uint32_t opcode,
     const uint8_t* payload,
-    uint32_t payloadLength) {
-    if (ivars == nullptr || payload == nullptr
-        || opcode != static_cast<uint32_t>(SwifterKitRuntimeOpcode::MIDISend)
-        || payloadLength < sizeof(SwifterKitMIDIHeader)) {
+    uint32_t payloadLength,
+    OSData** response) {
+    if (ivars == nullptr || ivars->midiLock == nullptr || response == nullptr) {
+        return kIOReturnBadArgument;
+    }
+    *response = nullptr;
+    if (opcode != static_cast<uint32_t>(SwifterKitRuntimeOpcode::MIDISend)) {
+        return MIDIObjectCommand(opcode, payload, payloadLength, response);
+    }
+    if (payload == nullptr || payloadLength < sizeof(SwifterKitMIDIHeader)) {
         return kIOReturnBadArgument;
     }
     const auto* header = reinterpret_cast<const SwifterKitMIDIHeader*>(payload);
     const uint64_t expectedLength =
         sizeof(*header) + static_cast<uint64_t>(header->wordCount) * sizeof(IOUserMIDIUMPWord);
     if (header->wordCount == 0 || expectedLength != payloadLength
-        || header->endpointIndex >= kSwifterKitMIDISourceCount
-        || ivars->midiSources[header->endpointIndex] == nullptr) {
+        || header->endpointIndex >= kSwifterKitMIDISourceCount) {
+        return kIOReturnBadArgument;
+    }
+    IOLockLock(ivars->midiLock);
+    IOUserMIDISource* source = ivars->midiSources[header->endpointIndex];
+    if (source != nullptr) {
+        source->retain();
+    }
+    IOLockUnlock(ivars->midiLock);
+    if (source == nullptr) {
         return kIOReturnBadArgument;
     }
     const auto* words = reinterpret_cast<const IOUserMIDIUMPWord*>(payload + sizeof(*header));
-    return ivars->midiSources[header->endpointIndex]->Send(words, header->wordCount);
+    const kern_return_t result = source->Send(words, header->wordCount);
+    source->release();
+    return result;
 }
 
 kern_return_t SwifterKitRuntimeService::MIDIReceived(
@@ -197,31 +250,48 @@ kern_return_t SwifterKitRuntimeService::MIDIReceived(
     return result;
 }
 
+IOUserMIDIDevice* SwifterKitRuntimeService::CopyMIDIDevice() {
+    if (ivars == nullptr || ivars->midiLock == nullptr) {
+        return nullptr;
+    }
+    IOLockLock(ivars->midiLock);
+    IOUserMIDIDevice* device = ivars->midiDevice;
+    if (device != nullptr) {
+        device->retain();
+    }
+    IOLockUnlock(ivars->midiLock);
+    return device;
+}
+
 kern_return_t SwifterKitRuntimeService::StartIO(OSArray* deviceList) {
-    if (ivars == nullptr || ivars->midiDevice == nullptr) {
+    IOUserMIDIDevice* device = CopyMIDIDevice();
+    if (device == nullptr) {
         return kIOReturnNotReady;
     }
     kern_return_t result = super::StartIO(deviceList);
-    if (result != kIOReturnSuccess) {
-        return result;
+    if (result == kIOReturnSuccess) {
+        result = device->StartIO();
+        if (result != kIOReturnSuccess) {
+            (void)super::StopIO();
+        }
     }
-    result = ivars->midiDevice->StartIO();
-    if (result != kIOReturnSuccess) {
-        (void)super::StopIO();
-        return result;
+    if (result == kIOReturnSuccess) {
+        result = QueueLifecycleEvent(this, MIDIEventKind::StartIO);
+        if (result != kIOReturnSuccess) {
+            (void)device->StopIO();
+            (void)super::StopIO();
+        }
     }
-    result = QueueLifecycleEvent(this, MIDIEventKind::StartIO);
-    if (result != kIOReturnSuccess) {
-        (void)ivars->midiDevice->StopIO();
-        (void)super::StopIO();
-    }
+    device->release();
     return result;
 }
 
 kern_return_t SwifterKitRuntimeService::StopIO() {
     kern_return_t deviceResult = kIOReturnNotReady;
-    if (ivars != nullptr && ivars->midiDevice != nullptr) {
-        deviceResult = ivars->midiDevice->StopIO();
+    IOUserMIDIDevice* device = CopyMIDIDevice();
+    if (device != nullptr) {
+        deviceResult = device->StopIO();
+        device->release();
     }
     const kern_return_t driverResult = super::StopIO();
     const kern_return_t eventResult = QueueLifecycleEvent(this, MIDIEventKind::StopIO);

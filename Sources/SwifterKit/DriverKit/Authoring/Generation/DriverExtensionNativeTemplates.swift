@@ -215,7 +215,14 @@ extension DriverExtensionGenerator {
           kern_return_t MIDICommand(
               uint32_t opcode,
               const uint8_t* payload,
-              uint32_t payloadLength) LOCALONLY;
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+          kern_return_t MIDIObjectCommand(
+              uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+          IOUserMIDIDevice* CopyMIDIDevice() LOCALONLY;
           kern_return_t MIDIReceived(
               uint32_t destinationIndex,
               const uint32_t* words,

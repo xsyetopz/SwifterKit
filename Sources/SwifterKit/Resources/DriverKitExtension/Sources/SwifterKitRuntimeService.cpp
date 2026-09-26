@@ -88,6 +88,7 @@ void SwifterKitRuntimeService::free() {
 #endif
 #if SWIFTERKIT_ENABLE_MIDI
         StopMIDI();
+        IOLockFreeZero(ivars->midiLock);
 #endif
 #if SWIFTERKIT_ENABLE_BLOCK_STORAGE
         StopBlockStorage();

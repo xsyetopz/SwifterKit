@@ -221,12 +221,13 @@ namespace {
         if (context.service == nullptr) {
             return kIOReturnNotReady;
         }
-        const kern_return_t result =
-            context.service->MIDICommand(context.opcode, context.payload, context.payloadLength);
-        if (result != kIOReturnSuccess) {
-            return result;
-        }
-        return RespondEmpty(context);
+        OSData* response = nullptr;
+        const kern_return_t result = context.service->MIDICommand(
+            context.opcode,
+            context.payload,
+            context.payloadLength,
+            &response);
+        return RespondToCommand(context, result, response);
 #else
         return kIOReturnUnsupported;
 #endif

@@ -353,6 +353,10 @@ struct SwifterKitRuntimeService_IVars {
     bool networkCommandAnswered = false;
 #endif
 #if SWIFTERKIT_ENABLE_MIDI
+    // Guards the pointers below: StartMIDI and StopMIDI publish and clear them on the service
+    // queue while MIDI commands read them on the user-client queue. The destination I/O blocks
+    // never take it.
+    IOLock* midiLock = nullptr;
     IOUserMIDIDevice* midiDevice = nullptr;
     IOUserMIDIEntity* midiEntity = nullptr;
     IOUserMIDISource* midiSources[32] = {};

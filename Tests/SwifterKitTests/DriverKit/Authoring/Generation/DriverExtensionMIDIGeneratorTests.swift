@@ -65,8 +65,10 @@ struct MIDIGeneratorTests {
     )
     #expect(midiRuntime.contains("result = AddObject(device.get())"))
     #expect(!midiRuntime.contains("AddObject(entity.get())"))
-    #expect(midiRuntime.contains("ivars->midiDevice->StartIO()"))
-    #expect(midiRuntime.contains("ivars->midiDevice->StopIO()"))
+    #expect(midiRuntime.contains("result = device->StartIO();"))
+    #expect(midiRuntime.contains("deviceResult = device->StopIO();"))
+    #expect(service.contains("MIDIObjectCommand("))
+    #expect(service.contains("IOUserMIDIDevice* CopyMIDIDevice() LOCALONLY;"))
 
     try expectGeneratedExtensionBuilds(
       at: output,

@@ -29,6 +29,9 @@ auto SwifterKitRuntimeService::init() -> bool {
 #if SWIFTERKIT_ENABLE_NETWORKING
     ivars->networkLock = IOLockAlloc();
 #endif
+#if SWIFTERKIT_ENABLE_MIDI
+    ivars->midiLock = IOLockAlloc();
+#endif
 #if SWIFTERKIT_ENABLE_BLOCK_STORAGE
     ivars->blockStorageLock = IOLockAlloc();
 #endif
@@ -58,6 +61,9 @@ auto SwifterKitRuntimeService::init() -> bool {
 #endif
 #if SWIFTERKIT_ENABLE_NETWORKING
            && ivars->networkLock != nullptr
+#endif
+#if SWIFTERKIT_ENABLE_MIDI
+           && ivars->midiLock != nullptr
 #endif
 #if SWIFTERKIT_ENABLE_BLOCK_STORAGE
            && ivars->blockStorageLock != nullptr
