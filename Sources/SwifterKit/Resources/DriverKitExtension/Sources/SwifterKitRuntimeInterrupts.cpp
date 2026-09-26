@@ -178,6 +178,12 @@ void SwifterKitRuntimeService::InterruptOccurred_Impl(
         .count = count,
         .time = time,
     };
+    #if SWIFTERKIT_ENABLE_FAST_PATH
+    // The source's fast-path program runs first; its trigger decides whether the event follows.
+    if (!RunFastPathInterrupt(event.index)) {
+        return;
+    }
+    #endif
     (void)EnqueueEvent(kSwifterKitEventInterrupt, &event, sizeof(event));
 }
 

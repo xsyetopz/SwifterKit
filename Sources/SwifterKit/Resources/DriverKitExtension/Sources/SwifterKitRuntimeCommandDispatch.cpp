@@ -60,6 +60,23 @@ namespace {
         return RespondToCommand(context, result, response);
     }
 
+    kern_return_t DispatchFastPathCommand([[maybe_unused]] const CommandContext& context) {
+#if SWIFTERKIT_ENABLE_FAST_PATH
+        if (context.service == nullptr) {
+            return kIOReturnNotReady;
+        }
+        OSData* response = nullptr;
+        const kern_return_t result = context.service->FastPathCommand(
+            context.opcode,
+            context.payload,
+            context.payloadLength,
+            &response);
+        return RespondToCommand(context, result, response);
+#else
+        return kIOReturnUnsupported;
+#endif
+    }
+
     kern_return_t DispatchInterruptCommand([[maybe_unused]] const CommandContext& context) {
 #if SWIFTERKIT_ENABLE_INTERRUPTS
         return HandleInterruptCommand(
@@ -404,6 +421,9 @@ namespace {
             case SwifterKitRuntimeOpcode::ReporterUpdate:
             case SwifterKitRuntimeOpcode::ReporterRead:
                 return DispatchServiceCommand(context);
+            case SwifterKitRuntimeOpcode::FastPathRun:
+            case SwifterKitRuntimeOpcode::FastPathStatus:
+                return DispatchFastPathCommand(context);
             case SwifterKitRuntimeOpcode::InterruptSetEnabled:
             case SwifterKitRuntimeOpcode::InterruptGetType:
             case SwifterKitRuntimeOpcode::InterruptGetLast:

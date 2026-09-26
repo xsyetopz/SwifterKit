@@ -8,13 +8,28 @@ Some device work cannot wait for a round trip to the Swift driver: acknowledging
 
 A fast path is data, not a transpiler. No Swift code is translated to C++. The generator validates each program and emits it as `static constexpr` tables in the generated `SwifterKitRuntimeConfiguration.h`. The opcodes, row layouts, and limits come from the same Swift schema that renders `SwifterKitRuntimeFastPathSchema.h`, so the extension reads the numbers the generator wrote.
 
-> Note: This release defines the representation, its validation, and the generated tables. The native interpreter that runs the tables, and the Swift API that runs command programs, land in the next change.
+The extension runs the tables with one fixed interpreter, `SwifterKitRuntimeFastPathInterpreter.h`. It depends on no framework, so the package's tests compile it with the host compiler and run every operation against a fake register file. The interpreter checks each table again before it runs anything: a program with a malformed row, an out-of-range BAR access, or a budget that does not add up is rejected with `kIOReturnBadArgument` before its first register access, never partway through.
 
 ## Programs and operations
 
 Each program runs from one ``FastPathTrigger``: after the provider starts, before the service stops, in `InterruptOccurred` for one configured ``InterruptSourceConfiguration``, or when Swift runs it as a command. An interrupt trigger's ``FastPathTrigger/Delivery`` says whether the normal ``InterruptEvent`` still reaches Swift after the program.
 
 A program works in eight 64-bit ``FastPathSlot`` values, zeroed at entry; a command program receives up to four arguments in `v0` onward. Its operations read, write, and read-modify-write a ``FastPathRegister`` in a PCI BAR, compute with wrapping 64-bit arithmetic and shifts, poll a register with a bounded iteration count, delay, skip forward on a ``FastPathCondition``, emit slot values to Swift, or fail with an `IOReturn`. There are no backward jumps, so every program terminates.
+
+## Triggers
+
+- term `start`: After the provider opens, and before interrupt sources are enabled, the extension re-validates every table and checks each BAR in ``FastPathConfiguration/barSizes`` with `IOPCIDevice::GetBARInfo`. When a table fails the check or a BAR is missing or smaller than declared, the whole fast path is refused with `kIOReturnNoResources`: no program runs, and interrupt events reach Swift as they would without a fast path. Otherwise the start programs run in table order; one that ends with a nonzero status refuses the fast path with that status, and the later ones do not run.
+- term `stop`: The stop programs run first when the service stops, before any teardown, while the device is still open. No program runs after them.
+- term `interrupt`: The source's program runs in `InterruptOccurred`, before the ``InterruptEvent`` is queued. The trigger's ``FastPathTrigger/Delivery`` then decides whether the event follows: ``FastPathTrigger/Delivery/always``, ``FastPathTrigger/Delivery/never``, or ``FastPathTrigger/Delivery/whenProgramEmits`` when the program ran an `emit`. When no program ran, because the fast path is refused or stopped or the program was rejected, the event is delivered.
+- term `command`: ``DriverContext/runFastPathProgram(_:arguments:)`` checks the program index and argument count against ``FastPathLimits`` and against ``DriverContext/fastPath``, which ``DriverHost`` sets from the driver's configuration, and throws ``FastPathRuntimeError`` before sending. The extension checks them again against its tables and answers the command exactly once with a ``FastPathResult``: the program's status and its eight slots. A program that times out in a `poll` or runs `fail` still returns a result carrying that status; the call throws only when the request is refused or the fast path does not run.
+
+An `emit` queues a ``FastPathEvent`` that ``DriverEvent/fastPath()`` decodes. It uses the extension's lossy event queue, like interrupt events: when the queue is full the event is dropped and counted. ``DriverContext/fastPathStatus()`` returns a ``FastPathStatus`` with that drop count and whether the fast path runs.
+
+## Locking
+
+One lock serializes every run, so the read-modify-write sequences of an interrupt program, a command, and a start or stop program never interleave. The lock is held for exactly one program: at most its 10 ms delay and poll budget plus its register accesses and emits. A command or interrupt waits at most that long for each program ahead of it. A `delay` of a whole millisecond sleeps with `IOSleep`; shorter delays and poll intervals spin in `IODelay`.
+
+A PCI reset through ``DriverContext`` can move BARs, so the next program resolves every declared BAR again and refuses the fast path when one no longer fits.
 
 ## Limits
 
@@ -31,6 +46,16 @@ A program works in eight 64-bit ``FastPathSlot`` values, zeroed at entry; a comm
 - ``FastPathTrigger``
 - ``FastPathLimits``
 - ``FastPathError``
+
+### Running programs
+
+- ``DriverContext/runFastPathProgram(_:arguments:)``
+- ``DriverContext/fastPathStatus()``
+- ``DriverEvent/fastPath()``
+- ``FastPathResult``
+- ``FastPathEvent``
+- ``FastPathStatus``
+- ``FastPathRuntimeError``
 
 ### Operations
 

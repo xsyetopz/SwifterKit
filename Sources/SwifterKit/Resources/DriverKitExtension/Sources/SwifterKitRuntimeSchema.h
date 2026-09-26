@@ -283,6 +283,8 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     WatchCancel = 0x0E12,
     ReporterUpdate = 0x0E20,
     ReporterRead = 0x0E21,
+    FastPathRun = 0x0F00,
+    FastPathStatus = 0x0F01,
 };
 
 static constexpr uint32_t kSwifterKitEventInterrupt = 0x0100;
@@ -312,6 +314,7 @@ static constexpr uint32_t kSwifterKitEventServicePowerState = 0x0D00;
 static constexpr uint32_t kSwifterKitEventTimer = 0x0E00;
 static constexpr uint32_t kSwifterKitEventWatchServices = 0x0E10;
 static constexpr uint32_t kSwifterKitEventWatchSystemState = 0x0E11;
+static constexpr uint32_t kSwifterKitEventFastPath = 0x0F00;
 
 static constexpr uint32_t kSwifterKitMaximumTimers = 16;
 static constexpr uint32_t kSwifterKitMaximumServiceWatches = 8;

@@ -301,6 +301,20 @@ extension DriverExtensionGenerator {
               uint64_t count,
               uint64_t time) TYPE(IOInterruptDispatchSource::InterruptOccurred);
       """ : ""
+    let fastPathMethods =
+      configuration.fastPath == nil
+      ? ""
+      : """
+          void StartFastPath() LOCALONLY;
+          void StopFastPath() LOCALONLY;
+          void InvalidateFastPathBARs() LOCALONLY;
+          bool RunFastPathInterrupt(uint32_t sourceIndex) LOCALONLY;
+          kern_return_t FastPathCommand(
+              uint32_t opcode,
+              const uint8_t* payload,
+              uint32_t payloadLength,
+              OSData** response) LOCALONLY;
+      """
     let interruptInclude = interrupts ? "#include <DriverKit/IOInterruptDispatchSource.iig>" : ""
     let hidMethods = hidServiceMethods(hidMode)
 
@@ -343,6 +357,7 @@ extension DriverExtensionGenerator {
           void DetachEventClient(IOService* client) LOCALONLY;
       \(serviceControlMethods)
       \(reportingMethods)
+      \(fastPathMethods)
       \(memoryMethods)
       \(audioMethods)
       \(videoMethods)

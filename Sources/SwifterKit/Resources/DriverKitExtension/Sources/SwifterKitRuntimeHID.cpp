@@ -156,6 +156,9 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
         return false;
     }
     #endif
+    #if SWIFTERKIT_ENABLE_FAST_PATH
+    StartFastPath();
+    #endif
     #if SWIFTERKIT_ENABLE_INTERRUPTS
     if (StartInterrupts(provider) != kIOReturnSuccess) {
         #if SWIFTERKIT_ENABLE_MEMORY

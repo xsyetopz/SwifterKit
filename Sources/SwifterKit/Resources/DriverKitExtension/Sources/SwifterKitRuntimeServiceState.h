@@ -42,6 +42,10 @@
     #include <DriverKit/IOMemoryMap.h>
 #endif
 
+#if SWIFTERKIT_ENABLE_FAST_PATH
+    #include "SwifterKitRuntimeFastPathInterpreter.h"
+#endif
+
 #if SWIFTERKIT_ENABLE_INTERRUPTS
     #include <DriverKit/IODispatchQueue.h>
     #include <DriverKit/IOInterruptDispatchSource.h>
@@ -420,6 +424,19 @@ struct SwifterKitRuntimeService_IVars {
     IODispatchQueue* interruptQueue = nullptr;
     IOInterruptDispatchSource* interruptSources[32] = {};
     OSAction* interruptActions[32] = {};
+#endif
+#if SWIFTERKIT_ENABLE_FAST_PATH
+    // Serializes fast-path runs and guards the fields below; see SwifterKitRuntimeFastPath.cpp.
+    // It is held for one program at a time: at most the 10 ms delay budget plus its accesses.
+    IOLock* fastPathLock = nullptr;
+    // Programs run only between a successful StartFastPath and StopFastPath; otherwise
+    // fastPathRefusal says why (zero before start).
+    bool fastPathRunning = false;
+    bool fastPathBARsStale = false;
+    kern_return_t fastPathRefusal = 0;
+    SwifterKitFastPathBARSizes fastPathBARs = {};
+    uint8_t fastPathMemoryIndices[kSwifterKitFastPathBARCount] = {};
+    uint64_t fastPathEventDrops = 0;
 #endif
 };
 

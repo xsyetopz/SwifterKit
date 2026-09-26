@@ -154,7 +154,11 @@ struct FastPathInterpreterTests {
 
   static let hostCompilerAvailable: Bool = {
     #if os(macOS)
-      (try? runTool("/usr/bin/xcrun", ["--sdk", "macosx", "--find", "clang++"]))?.status == 0
+      (try? runTool(
+        "/usr/bin/xcrun",
+        ["--sdk", "macosx", "--find", "clang++"],
+        driverKitXcode: false
+      ))?.status == 0
     #else
       false
     #endif
@@ -174,7 +178,10 @@ struct FastPathInterpreterTests {
     }
     for name in Self.rejections {
       let line = lines["reject-\(name)"]
-      #expect(line?.hasSuffix("status=E00002C2 accesses=0") == true, "\(name): \(line ?? "")")
+      #expect(
+        line?.hasSuffix("executed=0 status=E00002C2 accesses=0") == true,
+        "\(name): \(line ?? "")"
+      )
     }
     // A BAR declared smaller than a register it names still loads; the program is rejected.
     #expect(lines["reject-bar-smaller"]?.contains("loaded=1") == true)
@@ -215,10 +222,11 @@ struct FastPathInterpreterTests {
         "-fno-exceptions", "-fno-rtti", "-fsanitize=address,undefined", "-fno-sanitize-recover=all",
         "-I", checkedInNativeSources.path, "-I", directory.path, harness.path, "-o",
         executable.path,
-      ]
+      ],
+      driverKitXcode: false
     )
     try #require(build.status == 0, Comment(rawValue: build.output))
-    let run = try runTool(executable.path, [])
+    let run = try runTool(executable.path, [], driverKitXcode: false)
     try #require(run.status == 0, Comment(rawValue: run.output))
     let lines = run.output.split(separator: "\n").map {
       (String($0.prefix { $0 != " " }), String($0))

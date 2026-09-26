@@ -46,6 +46,9 @@ auto SwifterKitRuntimeService::init() -> bool {
 #if SWIFTERKIT_ENABLE_USB
     ivars->usbLock = IOLockAlloc();
 #endif
+#if SWIFTERKIT_ENABLE_FAST_PATH
+    ivars->fastPathLock = IOLockAlloc();
+#endif
 #if SWIFTERKIT_ENABLE_HID
     ivars->hidLock = IORecursiveLockAlloc();
     ivars->hidEventDriverHandling = kSwifterKitHIDEventDriverCategories;
@@ -78,6 +81,9 @@ auto SwifterKitRuntimeService::init() -> bool {
 #endif
 #if SWIFTERKIT_ENABLE_USB
            && ivars->usbLock != nullptr
+#endif
+#if SWIFTERKIT_ENABLE_FAST_PATH
+           && ivars->fastPathLock != nullptr
 #endif
 #if SWIFTERKIT_ENABLE_HID
            && ivars->hidLock != nullptr

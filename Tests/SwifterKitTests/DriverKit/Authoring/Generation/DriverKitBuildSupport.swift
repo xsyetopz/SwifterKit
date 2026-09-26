@@ -116,11 +116,14 @@ private func captureForNativeAnalysis(
 }
 
 /// Runs a tool with the DriverKit Xcode and without the caller's `TOOLCHAINS` override, so
-/// Xcode uses its own compilers.
+/// Xcode uses its own compilers. Host builds pass `driverKitXcode: false` to keep the selected
+/// Xcode, because an older Xcode's host runtimes, such as its sanitizers, may not run on a newer
+/// macOS.
 func runTool(
   _ executable: String,
   _ arguments: [String],
-  currentDirectory: URL? = nil
+  currentDirectory: URL? = nil,
+  driverKitXcode: Bool = true
 ) throws -> (status: Int32, output: String) {
   #if os(macOS)
     let process = Process()
@@ -130,7 +133,7 @@ func runTool(
     process.currentDirectoryURL = currentDirectory
     var environment = ProcessInfo.processInfo.environment
     environment.removeValue(forKey: "TOOLCHAINS")
-    if let developerDirectory = environment["SWIFTERKIT_DRIVERKIT_DEVELOPER_DIR"] {
+    if driverKitXcode, let developerDirectory = environment["SWIFTERKIT_DRIVERKIT_DEVELOPER_DIR"] {
       environment["DEVELOPER_DIR"] = developerDirectory
     }
     process.environment = environment

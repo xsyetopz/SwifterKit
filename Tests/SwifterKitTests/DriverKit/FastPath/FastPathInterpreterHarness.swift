@@ -115,8 +115,8 @@ let fastPathInterpreterHarness = #"""
           Fake fake;
           const SwifterKitFastPathOutcome outcome =
               SwifterKitFastPathExecute(tables.view, program, bars, arguments, count, fake);
-          printf("reject-%s loaded=%d status=%X accesses=%u\n", name, loaded ? 1 : 0,
-              outcome.status, fake.accesses);
+          printf("reject-%s loaded=%d executed=%d status=%X accesses=%u\n", name,
+              loaded ? 1 : 0, outcome.executed ? 1 : 0, outcome.status, fake.accesses);
       }
 
       template<typename Mutation>

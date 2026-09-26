@@ -1,0 +1,391 @@
+#include "SwifterKitRuntimeConfiguration.h"
+
+#if SWIFTERKIT_ENABLE_FAST_PATH
+
+    #include <DriverKit/IOInterruptDispatchSource.h>
+    #include <DriverKit/IOLib.h>
+    #include <DriverKit/IOReturn.h>
+    #include <DriverKit/OSData.h>
+
+    #include "SwifterKitRuntimeFastPathInterpreter.h"
+    #include "SwifterKitRuntimeProtocol.h"
+    #include "SwifterKitRuntimeService.h"
+    #include "SwifterKitRuntimeServiceState.h"
+
+// Fast-path contract:
+// - StartFastPath runs after the provider is open and before interrupt sources are enabled. It
+//   re-validates every generated table, then checks each declared BAR with GetBARInfo. When a
+//   table is invalid or a BAR is missing or smaller than declared, the whole fast path is
+//   refused with kIOReturnNoResources: no program runs, commands answer that status, and
+//   interrupt events are delivered as without a fast path. Nothing runs partially.
+// - Start programs then run in table order; one that ends with a nonzero status refuses the fast
+//   path with that status and the later ones do not run.
+// - fastPathLock serializes every run, so a program's read-modify-write sequences never
+//   interleave with another program's. It is held for one program: at most its 10 ms delay and
+//   poll budget plus its register accesses and emits. A caller waits at most that long per
+//   program ahead of it.
+// - Interrupt programs run in InterruptOccurred before the interrupt event, which is then
+//   delivered according to the trigger's delivery. Command programs answer their command
+//   exactly once, with the program's status and slots. Stop programs run first in Stop, before
+//   any teardown; after them no program runs again.
+// - emit queues a fast-path event through the lossy EnqueueEvent path; an event the full queue
+//   rejects increments fastPathEventDrops, which Swift reads with FastPathStatus.
+
+static_assert(
+    SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Success)
+    == static_cast<uint32_t>(kIOReturnSuccess));
+static_assert(
+    SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Refused)
+    == static_cast<uint32_t>(kIOReturnNoResources));
+static_assert(
+    SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Rejected)
+    == static_cast<uint32_t>(kIOReturnBadArgument));
+static_assert(
+    SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Timeout)
+    == static_cast<uint32_t>(kIOReturnTimeout));
+static_assert(
+    SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::NotReady)
+    == static_cast<uint32_t>(kIOReturnNotReady));
+
+namespace {
+    constexpr SwifterKitFastPathTables kTables = {
+        .programs = kSwifterKitFastPathPrograms,
+        .programCount = kSwifterKitFastPathProgramCount,
+        .operations = kSwifterKitFastPathOperations,
+        .operationCount = kSwifterKitFastPathOperationCount,
+        .triggers = kSwifterKitFastPathTriggers,
+        .triggerCount = kSwifterKitFastPathTriggerCount,
+        .bars = kSwifterKitFastPathBARSizes,
+        .barCount = kSwifterKitFastPathBARSizeCount,
+    };
+    constexpr uint32_t kMicrosecondsPerMillisecond = 1000;
+    constexpr uint32_t kMaximumInterruptSources = 32;
+
+    // The interpreter's register interface over the provider's PCI memory. The interpreter only
+    // names a BAR whose size StartFastPath checked, at an offset inside that size.
+    struct DeviceAccess {
+        SwifterKitRuntimeService* service;
+        SwifterKitRuntimeService_IVars* state;
+        uint32_t program;
+
+        [[nodiscard]] uint64_t Read(
+            [[maybe_unused]] uint32_t bar,
+            [[maybe_unused]] uint64_t offset,
+            [[maybe_unused]] uint32_t width) const {
+    #if SWIFTERKIT_ENABLE_PCI
+            IOPCIDevice* device = state->pciDevice;
+            const uint8_t index = state->fastPathMemoryIndices[bar % kSwifterKitFastPathBARCount];
+            switch (width) {
+                case 1: {
+                    uint8_t value = 0;
+                    device->MemoryRead8(index, offset, &value);
+                    return value;
+                }
+                case 2: {
+                    uint16_t value = 0;
+                    device->MemoryRead16(index, offset, &value);
+                    return value;
+                }
+                case 4: {
+                    uint32_t value = 0;
+                    device->MemoryRead32(index, offset, &value);
+                    return value;
+                }
+                default: {
+                    uint64_t value = 0;
+                    device->MemoryRead64(index, offset, &value);
+                    return value;
+                }
+            }
+    #else
+            return 0;
+    #endif
+        }
+
+        void Write(
+            [[maybe_unused]] uint32_t bar,
+            [[maybe_unused]] uint64_t offset,
+            [[maybe_unused]] uint32_t width,
+            [[maybe_unused]] uint64_t value) const {
+    #if SWIFTERKIT_ENABLE_PCI
+            IOPCIDevice* device = state->pciDevice;
+            const uint8_t index = state->fastPathMemoryIndices[bar % kSwifterKitFastPathBARCount];
+            switch (width) {
+                case 1:
+                    device->MemoryWrite8(index, offset, static_cast<uint8_t>(value));
+                    break;
+                case 2:
+                    device->MemoryWrite16(index, offset, static_cast<uint16_t>(value));
+                    break;
+                case 4:
+                    device->MemoryWrite32(index, offset, static_cast<uint32_t>(value));
+                    break;
+                default:
+                    device->MemoryWrite64(index, offset, value);
+                    break;
+            }
+    #endif
+        }
+
+        // A whole millisecond sleeps; shorter waits spin in IODelay.
+        static void Delay(uint32_t microseconds) {
+            if (microseconds % kMicrosecondsPerMillisecond == 0) {
+                IOSleep(microseconds / kMicrosecondsPerMillisecond);
+            } else {
+                IODelay(microseconds);
+            }
+        }
+
+        void Emit(const uint64_t* values, uint32_t count) const {
+            SwifterKitFastPathEvent event = {.program = program, .count = count, .values = {}};
+            for (uint32_t index = 0; index < count && index < kSwifterKitFastPathSlotCount;
+                 ++index) {
+                event.values[index] = values[index];
+            }
+            if (service->EnqueueEvent(kSwifterKitEventFastPath, &event, sizeof(event))
+                != kIOReturnSuccess) {
+                state->fastPathEventDrops += 1;
+            }
+        }
+    };
+
+    // Re-validates the tables and resolves each declared BAR to its memory index, refusing the
+    // fast path when a BAR is missing or smaller than declared.
+    kern_return_t PrepareBARs(SwifterKitRuntimeService_IVars* state) {
+        const SwifterKitFastPathBARSizes& bars = state->fastPathBARs;
+        for (uint32_t bar = 0; bar < kSwifterKitFastPathBARCount; ++bar) {
+            if (bars.sizes[bar] == 0) {
+                continue;
+            }
+    #if SWIFTERKIT_ENABLE_PCI
+            uint8_t memoryIndex = 0;
+            uint64_t size = 0;
+            uint8_t type = 0;
+            if (state->pciDevice == nullptr
+                || state->pciDevice
+                           ->GetBARInfo(static_cast<uint8_t>(bar), &memoryIndex, &size, &type)
+                       != kIOReturnSuccess
+                || size < bars.sizes[bar]) {
+                return kIOReturnNoResources;
+            }
+            state->fastPathMemoryIndices[bar] = memoryIndex;
+    #else
+            return kIOReturnNoResources;
+    #endif
+        }
+        state->fastPathBARsStale = false;
+        return kIOReturnSuccess;
+    }
+
+    kern_return_t PrepareFastPath(SwifterKitRuntimeService_IVars* state) {
+        uint32_t sources[kMaximumInterruptSources] = {};
+        const uint32_t sourceCount = kSwifterKitInterruptSourceCount < kMaximumInterruptSources
+                                         ? kSwifterKitInterruptSourceCount
+                                         : kMaximumInterruptSources;
+        for (uint32_t index = 0; index < sourceCount; ++index) {
+            sources[index] = kSwifterKitInterruptIndices[index] & kIOInterruptSourceIndexMask;
+        }
+        if (!SwifterKitFastPathIsValidConfiguration(
+                kTables,
+                sources,
+                sourceCount,
+                &state->fastPathBARs)) {
+            return kIOReturnNoResources;
+        }
+        return PrepareBARs(state);
+    }
+
+    // Runs one program under fastPathLock. Returns the fast path's refusal or stop status when
+    // it cannot run; otherwise kIOReturnSuccess with the program's own status in `outcome`.
+    kern_return_t RunProgram(
+        SwifterKitRuntimeService* service,
+        SwifterKitRuntimeService_IVars* state,
+        uint32_t program,
+        const uint64_t* arguments,
+        uint32_t argumentCount,
+        SwifterKitFastPathOutcome* outcome) {
+        *outcome = {};
+        IOLockLock(state->fastPathLock);
+        kern_return_t result = state->fastPathRunning ? kIOReturnSuccess : kIOReturnNotReady;
+        // A PCI reset can move BARs; resolve them again before the next access.
+        if (result == kIOReturnSuccess && state->fastPathBARsStale) {
+            result = PrepareBARs(state);
+            if (result != kIOReturnSuccess) {
+                state->fastPathRunning = false;
+                state->fastPathRefusal = result;
+            }
+        }
+        if (result == kIOReturnSuccess) {
+            DeviceAccess access = {.service = service, .state = state, .program = program};
+            *outcome = SwifterKitFastPathExecute(
+                kTables,
+                program,
+                state->fastPathBARs,
+                arguments,
+                argumentCount,
+                access);
+        }
+        IOLockUnlock(state->fastPathLock);
+        return result;
+    }
+
+    // Runs every program of `kind` in table order and returns the first nonzero status.
+    kern_return_t RunPrograms(
+        SwifterKitRuntimeService* service,
+        SwifterKitRuntimeService_IVars* state,
+        SwifterKitFastPathTriggerKind kind) {
+        for (uint32_t program = 0; program < kTables.triggerCount; ++program) {
+            if (kTables.triggers[program].kind != static_cast<uint32_t>(kind)) {
+                continue;
+            }
+            SwifterKitFastPathOutcome outcome = {};
+            const kern_return_t result = RunProgram(service, state, program, nullptr, 0, &outcome);
+            if (result != kIOReturnSuccess) {
+                return result;
+            }
+            if (outcome.status != SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Success)) {
+                return static_cast<kern_return_t>(outcome.status);
+            }
+        }
+        return kIOReturnSuccess;
+    }
+
+    kern_return_t RunCommand(
+        SwifterKitRuntimeService* service,
+        SwifterKitRuntimeService_IVars* state,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) {
+        SwifterKitFastPathRunRequest request = {};
+        if (payloadLength != sizeof(request)) {
+            return kIOReturnBadArgument;
+        }
+        __builtin_memcpy(&request, payload, sizeof(request));
+        if (request.argumentCount > kSwifterKitFastPathMaximumArguments) {
+            return kIOReturnBadArgument;
+        }
+        for (uint32_t index = request.argumentCount; index < kSwifterKitFastPathMaximumArguments;
+             ++index) {
+            if (request.arguments[index] != 0) {
+                return kIOReturnBadArgument;
+            }
+        }
+        if (!SwifterKitFastPathIsCommand(kTables, request.program, request.argumentCount)) {
+            return kIOReturnBadArgument;
+        }
+        SwifterKitFastPathOutcome outcome = {};
+        const kern_return_t result = RunProgram(
+            service,
+            state,
+            request.program,
+            request.arguments,
+            request.argumentCount,
+            &outcome);
+        if (result != kIOReturnSuccess) {
+            return result;
+        }
+        if (!outcome.executed) {
+            return static_cast<kern_return_t>(outcome.status);
+        }
+        SwifterKitFastPathRunResult reply = {.status = outcome.status, .reserved = 0, .values = {}};
+        for (uint32_t slot = 0; slot < kSwifterKitFastPathSlotCount; ++slot) {
+            reply.values[slot] = outcome.slots[slot];
+        }
+        *response = OSData::withBytes(&reply, sizeof(reply));
+        return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+    }
+}  // namespace
+
+void SwifterKitRuntimeService::StartFastPath() {
+    if (ivars == nullptr || ivars->fastPathLock == nullptr) {
+        return;
+    }
+    IOLockLock(ivars->fastPathLock);
+    const kern_return_t prepared = PrepareFastPath(ivars);
+    ivars->fastPathRunning = prepared == kIOReturnSuccess;
+    ivars->fastPathRefusal = prepared;
+    IOLockUnlock(ivars->fastPathLock);
+    if (prepared != kIOReturnSuccess) {
+        return;
+    }
+    const kern_return_t started = RunPrograms(this, ivars, SwifterKitFastPathTriggerKind::Start);
+    if (started != kIOReturnSuccess) {
+        IOLockLock(ivars->fastPathLock);
+        ivars->fastPathRunning = false;
+        ivars->fastPathRefusal = started;
+        IOLockUnlock(ivars->fastPathLock);
+    }
+}
+
+void SwifterKitRuntimeService::StopFastPath() {
+    if (ivars == nullptr || ivars->fastPathLock == nullptr) {
+        return;
+    }
+    (void)RunPrograms(this, ivars, SwifterKitFastPathTriggerKind::Stop);
+    IOLockLock(ivars->fastPathLock);
+    ivars->fastPathRunning = false;
+    ivars->fastPathRefusal = kIOReturnNotReady;
+    IOLockUnlock(ivars->fastPathLock);
+}
+
+void SwifterKitRuntimeService::InvalidateFastPathBARs() {
+    if (ivars == nullptr || ivars->fastPathLock == nullptr) {
+        return;
+    }
+    IOLockLock(ivars->fastPathLock);
+    ivars->fastPathBARsStale = true;
+    IOLockUnlock(ivars->fastPathLock);
+}
+
+bool SwifterKitRuntimeService::RunFastPathInterrupt(uint32_t sourceIndex) {
+    const uint32_t program = SwifterKitFastPathInterruptProgram(kTables, sourceIndex);
+    if (ivars == nullptr || ivars->fastPathLock == nullptr || program >= kTables.programCount) {
+        return true;
+    }
+    SwifterKitFastPathOutcome outcome = {};
+    const bool ran = RunProgram(this, ivars, program, nullptr, 0, &outcome) == kIOReturnSuccess
+                     && outcome.executed;
+    return SwifterKitFastPathDeliversInterrupt(
+        kTables.triggers[program].delivery,
+        ran,
+        outcome.emitted);
+}
+
+kern_return_t SwifterKitRuntimeService::FastPathCommand(
+    uint32_t opcode,
+    const uint8_t* payload,
+    uint32_t payloadLength,
+    OSData** response) {
+    if (ivars == nullptr || ivars->fastPathLock == nullptr || response == nullptr
+        || (payloadLength != 0 && payload == nullptr)) {
+        return kIOReturnBadArgument;
+    }
+    *response = nullptr;
+    switch (static_cast<SwifterKitRuntimeOpcode>(opcode)) {
+        case SwifterKitRuntimeOpcode::FastPathRun:
+            return RunCommand(this, ivars, payload, payloadLength, response);
+        case SwifterKitRuntimeOpcode::FastPathStatus: {
+            if (payloadLength != 0) {
+                return kIOReturnBadArgument;
+            }
+            IOLockLock(ivars->fastPathLock);
+            const kern_return_t status =
+                ivars->fastPathRunning
+                    ? kIOReturnSuccess
+                    : (ivars->fastPathRefusal == kIOReturnSuccess ? kIOReturnNotReady
+                                                                  : ivars->fastPathRefusal);
+            const SwifterKitFastPathStatusReply reply = {
+                .status = static_cast<uint32_t>(status),
+                .reserved = 0,
+                .droppedEvents = ivars->fastPathEventDrops,
+            };
+            IOLockUnlock(ivars->fastPathLock);
+            *response = OSData::withBytes(&reply, sizeof(reply));
+            return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+        }
+        default:
+            return kIOReturnUnsupported;
+    }
+}
+
+#endif

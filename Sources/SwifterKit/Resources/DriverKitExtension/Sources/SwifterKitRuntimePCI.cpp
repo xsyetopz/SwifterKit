@@ -451,6 +451,9 @@ kern_return_t SwifterKitRuntimeService::PCIControl(
             }
             // Reset can change BAR assignments; reload them before the next aperture access.
             ivars->pciAperturesLoaded = false;
+    #if SWIFTERKIT_ENABLE_FAST_PATH
+            InvalidateFastPathBARs();
+    #endif
             // With kIOPCIDeviceResetOptionTerminate, Reset starts the asynchronous termination
             // "but not block on its completion" (IOPCIFamilyDefinitions.h), so it returns and the
             // caller answers Swift with its result. Termination can stop this service

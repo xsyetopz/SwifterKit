@@ -275,7 +275,23 @@ SwifterKit records user-visible changes in this file.
   programs as `constexpr` tables under `SWIFTERKIT_ENABLE_FAST_PATH`. The
   opcodes, row layouts, and limits render into the generated
   `SwifterKitRuntimeFastPathSchema.h`.
-  The native interpreter that runs the tables lands in the next change.
+- The generated extension runs fast-path programs with a fixed,
+  framework-free interpreter that re-validates every row before a program's
+  first register access. Start programs run after the provider opens, once
+  each declared BAR passes a `GetBARInfo` size check (otherwise the fast path
+  is refused with `kIOReturnNoResources`); stop programs run before teardown;
+  interrupt programs run in `InterruptOccurred` before the `InterruptEvent`,
+  which is delivered according to the trigger's `Delivery`. One lock
+  serializes all runs, held for at most one program's 10 ms budget.
+  `DriverContext.runFastPathProgram(_:arguments:)` runs a command program on
+  opcode 0x0F00 and returns a `FastPathResult` with its status and slots,
+  after checking the index and argument count against `DriverContext.fastPath`
+  and throwing `FastPathRuntimeError`. `DriverEvent.fastPath()` decodes the
+  `FastPathEvent` values an `emit` queues (event 0x0F00), and
+  `DriverContext.fastPathStatus()` (opcode 0x0F01) reports whether the fast
+  path runs and how many emitted events the full lossy queue dropped.
+  `DriverContext` gains `fastPath` and a `fastPath` initializer parameter,
+  which `DriverHost` fills from the driver's configuration.
 - SCSI controller drivers create, destroy, and query targets with
   `DriverContext.scsiCreateTarget(_:properties:)`, `scsiDestroyTarget(_:)`, and
   `scsiTargetPresent(_:)`; set and remove HBA and target registry properties

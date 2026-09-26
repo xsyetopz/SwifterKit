@@ -122,6 +122,9 @@ void SwifterKitRuntimeService::free() {
         StopTimers();
         StopWatches();
         StopReporting();
+#if SWIFTERKIT_ENABLE_FAST_PATH
+        IOLockFreeZero(ivars->fastPathLock);
+#endif
         IOLockFreeZero(ivars->dispatchLock);
         OSSafeReleaseNULL(ivars->eventClient);
         OSSafeReleaseNULL(ivars->requiredEvents);
@@ -215,6 +218,12 @@ auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t 
         Stop(provider, SUPERDISPATCH);
         return result;
     }
+    #endif
+
+    #if SWIFTERKIT_ENABLE_FAST_PATH
+    // Checks the declared BARs and runs the start programs before interrupts are enabled; a
+    // refused fast path leaves the service running without it.
+    StartFastPath();
     #endif
 
     #if SWIFTERKIT_ENABLE_INTERRUPTS
@@ -358,6 +367,10 @@ auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t 
 #endif
 
 auto SwifterKitRuntimeService::Stop_Impl(IOService* provider) -> kern_return_t {
+#if SWIFTERKIT_ENABLE_FAST_PATH
+    // Stop programs run before any teardown, while the device is still open.
+    StopFastPath();
+#endif
     DetachEventClient(nullptr);
 #if SWIFTERKIT_ENABLE_HID
     StopHID();

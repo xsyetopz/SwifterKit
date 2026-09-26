@@ -53,7 +53,7 @@ public actor DriverHost<Driver: SwiftDriver> {
         session: session,
         requiring: configuration.capabilities
       )
-      let context = await DriverContext(runtime: runtime)
+      let context = await DriverContext(runtime: runtime, fastPath: configuration.fastPath)
 
       do { try await driver.start(context: context) } catch {
         await runtime.close()

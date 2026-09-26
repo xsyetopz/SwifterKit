@@ -44,18 +44,23 @@ public struct DriverEvent: Sendable, Equatable {
 public struct DriverContext: Sendable {
   /// Capabilities negotiated with the internal extension.
   public let capabilities: RuntimeCapabilities
+  /// The fast-path programs the extension was generated with, when known;
+  /// ``runFastPathProgram(_:arguments:)`` checks each request against them before sending it.
+  public let fastPath: FastPathConfiguration?
 
   private let runtime: DriverRuntimeConnection?
 
   /// Creates a detached context for validation or testing.
-  public init(capabilities: RuntimeCapabilities) {
+  public init(capabilities: RuntimeCapabilities, fastPath: FastPathConfiguration? = nil) {
     self.capabilities = capabilities
+    self.fastPath = fastPath
     self.runtime = nil
   }
 
   /// Creates a context attached to a negotiated runtime.
-  public init(runtime: DriverRuntimeConnection) async {
+  public init(runtime: DriverRuntimeConnection, fastPath: FastPathConfiguration? = nil) async {
     self.capabilities = await runtime.capabilities
+    self.fastPath = fastPath
     self.runtime = runtime
   }
 

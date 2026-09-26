@@ -41,10 +41,11 @@ struct SwifterKitFastPathBARSizes {
     uint64_t sizes[kSwifterKitFastPathBARCount];
 };
 
-// How one run ended: a SwifterKitFastPathStatus value or a fail row's status, whether an emit
-// row ran, and the slots when the program ended.
+// How one run ended: a SwifterKitFastPathStatus value or a fail row's status, whether the
+// program passed re-validation and ran, whether an emit row ran, and the slots when it ended.
 struct SwifterKitFastPathOutcome {
     uint32_t status;
+    bool executed;
     bool emitted;
     uint64_t slots[kSwifterKitFastPathSlotCount];
 };
@@ -87,9 +88,9 @@ namespace swifterkit_fast_path {
     inline bool IsValidRegister(
         const SwifterKitFastPathOperation& row,
         const SwifterKitFastPathBARSizes& bars) {
-        const uint32_t bar = row.a & 0xFF;
-        const uint32_t width = (row.a >> 8) & 0xFF;
-        if ((row.a >> 16) != 0 || bar >= kSwifterKitFastPathBARCount
+        const uint32_t bar = row.a & 0xFFU;
+        const uint32_t width = (row.a >> 8U) & 0xFFU;
+        if ((row.a >> 16U) != 0 || bar >= kSwifterKitFastPathBARCount
             || (width != 1 && width != 2 && width != 4 && width != 8)) {
             return false;
         }
@@ -98,7 +99,7 @@ namespace swifterkit_fast_path {
     }
 
     inline uint64_t RegisterMask(const SwifterKitFastPathOperation& row) {
-        return SwifterKitFastPathWidthMask((row.a >> 8) & 0xFF);
+        return SwifterKitFastPathWidthMask((row.a >> 8U) & 0xFFU);
     }
 
     inline bool IsValidOperand(uint32_t kind, uint64_t value, uint64_t constantLimit) {
@@ -149,7 +150,7 @@ namespace swifterkit_fast_path {
             return false;
         }
         for (uint32_t index = 0; index < kSwifterKitFastPathSlotCount; ++index) {
-            const uint64_t slot = (row.immediate1 >> (uint64_t {index} * 8)) & 0xFF;
+            const uint64_t slot = (row.immediate1 >> (uint64_t {index} * 8)) & 0xFFU;
             if (index < row.b ? slot >= kSwifterKitFastPathSlotCount : slot != 0) {
                 return false;
             }
@@ -376,13 +377,14 @@ SwifterKitFastPathOutcome SwifterKitFastPathExecute(
         outcome.slots[index] = arguments[index];
     }
     outcome.status = SwifterKitFastPathStatusCode(SwifterKitFastPathStatus::Success);
+    outcome.executed = true;
     uint64_t* const slots = outcome.slots;
     uint32_t index = 0;
     while (index < row.operationCount) {
         const SwifterKitFastPathOperation& operation =
             tables.operations[row.operationStart + index];
-        const uint32_t bar = operation.a & 0xFF;
-        const uint32_t width = (operation.a >> 8) & 0xFF;
+        const uint32_t bar = operation.a & 0xFFU;
+        const uint32_t width = (operation.a >> 8U) & 0xFFU;
         const uint64_t mask = SwifterKitFastPathWidthMask(width);
         index += 1;
         switch (static_cast<SwifterKitFastPathOpcode>(operation.opcode)) {
