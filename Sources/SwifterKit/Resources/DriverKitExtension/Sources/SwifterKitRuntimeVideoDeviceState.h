@@ -14,6 +14,7 @@
     #include <VideoDriverKit/IOUserVideoStream.h>
     #include <string.h>
 
+    #include "SwifterKitRuntimeMediaObjects.h"
     #include "SwifterKitRuntimeSchema.h"
 
 class SwifterKitRuntimeService;
@@ -79,24 +80,16 @@ inline kern_return_t SwifterKitRequestVideoStructureChange(
     uint32_t selector,
     uint32_t index,
     uint64_t value) {
-    const SwifterKitVideoStructureChange change = {selector, index, value};
-    OSData* info = OSData::withBytes(&change, sizeof(change));
-    if (info == nullptr)
-        return kIOReturnNoMemory;
-    const kern_return_t result =
-        device->RequestDeviceConfigurationChange(kSwifterKitVideoStructureChangeAction, info);
-    info->release();
-    return result;
+    return SwifterKitRequestConfigurationChange(
+        device,
+        kSwifterKitVideoStructureChangeAction,
+        SwifterKitVideoStructureChange {selector, index, value});
 }
 
 inline bool SwifterKitReadVideoStructureChange(
     OSObject* info,
     SwifterKitVideoStructureChange* change) {
-    auto* data = OSDynamicCast(OSData, info);
-    if (data == nullptr || data->getLength() != sizeof(*change))
-        return false;
-    memcpy(change, data->getBytesNoCopy(), sizeof(*change));
-    return true;
+    return SwifterKitReadConfigurationChange(info, change);
 }
 #endif
 #endif

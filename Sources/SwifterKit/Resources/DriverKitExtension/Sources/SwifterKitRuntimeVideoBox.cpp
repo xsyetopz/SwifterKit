@@ -5,6 +5,7 @@
     #include <DriverKit/OSString.h>
     #include <VideoDriverKit/VideoDriverKit.h>
 
+    #include "SwifterKitRuntimeMediaObjects.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeVideoProtocol.h"
 
@@ -22,19 +23,11 @@ bool SwifterKitRuntimeVideoBox::init(
     if (driver == nullptr || service == nullptr || index >= kSwifterKitVideoObjectTableCount
         || !super::init(driver, isAcquirable, uid))
         return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoBox_IVars, 1);
-    if (ivars == nullptr)
-        return false;
-    ivars->service = service;
-    ivars->index = index;
-    service->retain();
-    return true;
+    return SwifterKitAttachObjectState(ivars, service, index);
 }
 
 void SwifterKitRuntimeVideoBox::free() {
-    if (ivars != nullptr)
-        OSSafeReleaseNULL(ivars->service);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoBox_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -42,22 +35,7 @@ kern_return_t SwifterKitRuntimeVideoBox::Configure(
     const SwifterKitVideoBoxConfiguration* configuration) {
     if (ivars == nullptr || configuration == nullptr)
         return kIOReturnBadArgument;
-    OSString* name = OSString::withCString(configuration->name);
-    kern_return_t result = name == nullptr ? kIOReturnNoMemory : SetName(name);
-    OSSafeReleaseNULL(name);
-    if (result == kIOReturnSuccess)
-        result = SetTransportType(static_cast<IOUserVideoTransportType>(configuration->transport));
-    if (result == kIOReturnSuccess)
-        result = SetHasAudio(configuration->hasAudio);
-    if (result == kIOReturnSuccess)
-        result = SetHasMIDI(configuration->hasMIDI);
-    if (result == kIOReturnSuccess)
-        result = SetHasVideo(configuration->hasVideo);
-    if (result == kIOReturnSuccess)
-        result = SetIsProtected(configuration->isProtected);
-    if (result == kIOReturnSuccess)
-        result = SetIsAcquired(configuration->isAcquired);
-    return result;
+    return SwifterKitConfigureBox<IOUserVideoTransportType>(this, configuration);
 }
 
 kern_return_t SwifterKitRuntimeVideoBox::HandleChangeAcquireBox(bool acquire) {

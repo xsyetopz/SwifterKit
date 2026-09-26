@@ -84,14 +84,31 @@ struct AudioObjectRuntimeContractTests {
         from: "::ApplyAudioRequest(",
         to: "::RejectAudioRequests("
       )
-      #expect(apply.contains("SetAcquisitionFailure("))
-      #expect(apply.contains("SetIsAcquired(accept ? value != 0 : value == 0)"))
-      #expect(apply.contains("FinishSampleRateRequest("))
-      // Answers also run on the work queue, so they must not take audioLock.
+      #expect(apply.contains("SwifterKitApplyRequest<AudioRequestFamily>("))
+      let media = try source("SwifterKitRuntimeMediaRequests.h", in: output)
+      let sharedApply = try section(
+        of: media,
+        from: "kern_return_t SwifterKitApplyRequest(",
+        to: "void SwifterKitEndRequests("
+      )
+      #expect(sharedApply.contains("SetAcquisitionFailure("))
+      #expect(sharedApply.contains("SetIsAcquired(accept ? value != 0 : value == 0)"))
+      #expect(sharedApply.contains("FinishSampleRateRequest("))
+      // Answers also run on the work queue, so they must not take audioLock or any other lock.
       #expect(!apply.contains("audioLock"))
-      #expect(requests.contains("object->retain();"))
+      #expect(!sharedApply.contains("IOLockLock"))
+      let sharedBegin = try section(
+        of: media,
+        from: "kern_return_t SwifterKitBeginRequest(",
+        to: "kern_return_t SwifterKitApplyRequest("
+      )
+      #expect(sharedBegin.contains("object->retain();"))
+      #expect(requests.contains("SwifterKitBeginRequest<AudioRequestFamily>("))
       let timer = try section(of: requests, from: "::AudioRequestTimerOccurred_Impl(", to: "#endif")
-      #expect(timer.contains("kIOReturnTimeout"))
+      #expect(timer.contains("SwifterKitExpireRequests<AudioRequestFamily>("))
+      #expect(timer.contains("RejectAudioRequests(kIOReturnTimeout)"))
+      let expire = try section(of: media, from: "void SwifterKitExpireRequests(", to: "#endif")
+      #expect(expire.contains("SwifterKitEndRequests<Family>(expired, kIOReturnTimeout);"))
       let stop = try section(
         of: requests,
         from: "::StopAudioRequests()",
@@ -140,10 +157,13 @@ struct AudioObjectRuntimeContractTests {
       #expect(finish.contains("RequestSampleRate(previous)"))
 
       let requests = try source("SwifterKitRuntimeAudioRequests.cpp", in: output)
+      let media = try source("SwifterKitRuntimeMediaRequests.h", in: output)
       #expect(
-        requests.contains("*slot = {object, requestID, kind, index, value, previous, deadline};")
+        media.contains("*slot = {object, requestID, kind, index, value, previous, deadline};")
       )
+      #expect(requests.contains("SwifterKitBeginRequest<AudioRequestFamily>("))
       #expect(!requests.contains("starts a device configuration change"))
+      #expect(!media.contains("starts a device configuration change"))
     }
   }
 

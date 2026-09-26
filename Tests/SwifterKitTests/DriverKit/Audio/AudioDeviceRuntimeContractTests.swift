@@ -115,7 +115,14 @@ struct AudioDeviceRuntimeContractTests {
         from: "::ApplyAudioRequest(",
         to: "::RejectAudioRequests("
       )
-      #expect(apply.contains("SetIsAcquired(accept ? value != 0 : value == 0)"))
+      #expect(apply.contains("SwifterKitApplyRequest<AudioRequestFamily>("))
+      let media = try source("SwifterKitRuntimeMediaRequests.h", in: output)
+      let sharedApply = try section(
+        of: media,
+        from: "kern_return_t SwifterKitApplyRequest(",
+        to: "void SwifterKitEndRequests("
+      )
+      #expect(sharedApply.contains("SetIsAcquired(accept ? value != 0 : value == 0)"))
     }
   }
 

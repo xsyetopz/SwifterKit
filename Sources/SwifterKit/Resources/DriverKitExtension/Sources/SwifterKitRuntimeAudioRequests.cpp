@@ -7,11 +7,11 @@
     #include <DriverKit/IOLib.h>
     #include <DriverKit/IOTimerDispatchSource.h>
     #include <DriverKit/OSAction.h>
-    #include <time.h>
 
     #include "SwifterKitRuntimeAudioBox.h"
     #include "SwifterKitRuntimeAudioClockDevice.h"
     #include "SwifterKitRuntimeAudioProtocol.h"
+    #include "SwifterKitRuntimeMediaRequests.h"
     #include "SwifterKitRuntimeServiceState.h"
 
 // Audio request contract:
@@ -40,29 +40,34 @@ namespace {
     constexpr uint64_t kAudioRequestTimeoutNanoseconds = 10'000'000'000ULL;
     constexpr uint64_t kAudioRequestLeewayNanoseconds = 100'000'000ULL;
 
-    uint64_t Now() {
-        return clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
-    }
+    // The AudioDriverKit classes, schema values, and service ivars the
+    // SwifterKitRuntimeMediaObjects.h request templates operate on.
+    struct AudioRequestFamily {
+        using RuntimeBox = SwifterKitRuntimeAudioBox;
+        using RuntimeClockDevice = SwifterKitRuntimeAudioClockDevice;
+        using PendingRequest = SwifterKitAudioPendingRequest;
+
+        static constexpr uint32_t kBoxRequest = kSwifterKitAudioObjectEventBoxRequest;
+        static constexpr uint32_t kClockRequest = kSwifterKitAudioObjectEventClockRequest;
+        static constexpr uint32_t kPendingRequestCount = kSwifterKitAudioPendingRequestCount;
+        static constexpr uint64_t kRequestTimeout = kAudioRequestTimeoutNanoseconds;
+        static constexpr uint64_t kRequestLeeway = kAudioRequestLeewayNanoseconds;
+
+        static constexpr auto kRequestLock = &SwifterKitRuntimeService_IVars::audioRequestLock;
+        static constexpr auto kRequests = &SwifterKitRuntimeService_IVars::audioRequests;
+        static constexpr auto kNextRequestID = &SwifterKitRuntimeService_IVars::nextAudioRequestID;
+        static constexpr auto kRequestsStopped =
+            &SwifterKitRuntimeService_IVars::audioRequestsStopped;
+        static constexpr auto kRequestTimer = &SwifterKitRuntimeService_IVars::audioRequestTimer;
+        static constexpr auto kRequestTimerAction =
+            &SwifterKitRuntimeService_IVars::audioRequestTimerAction;
+    };
 
     bool TakeRequest(
         SwifterKitRuntimeService_IVars* state,
         uint32_t requestID,
         SwifterKitAudioPendingRequest* request) {
-        bool found = false;
-        IOLockLock(state->audioRequestLock);
-        for (auto& entry : state->audioRequests) {
-            if (requestID != 0 && entry.requestID == requestID) {
-                if (request != nullptr)
-                    *request = entry;
-                else
-                    OSSafeReleaseNULL(entry.object);
-                entry = {};
-                found = true;
-                break;
-            }
-        }
-        IOLockUnlock(state->audioRequestLock);
-        return found;
+        return SwifterKitTakeRequest<AudioRequestFamily>(state, requestID, request);
     }
 }  // namespace
 
@@ -99,38 +104,18 @@ kern_return_t SwifterKitRuntimeService::StartAudioRequests() {
         return kIOReturnNotReady;
     // The timer shares the driver work queue with the callbacks that create requests.
     OSSharedPtr<IODispatchQueue> queue = GetWorkQueue();
-    kern_return_t result =
-        queue ? IOTimerDispatchSource::Create(queue.get(), &ivars->audioRequestTimer)
-              : kIOReturnNotReady;
-    if (result == kIOReturnSuccess)
-        result = CreateActionAudioRequestTimerOccurred(0, &ivars->audioRequestTimerAction);
-    if (result == kIOReturnSuccess)
-        result = ivars->audioRequestTimer->SetHandler(ivars->audioRequestTimerAction);
-    if (result == kIOReturnSuccess)
-        result = ivars->audioRequestTimer->SetEnableWithCompletion(true, nullptr);
-    if (result != kIOReturnSuccess) {
-        OSSafeReleaseNULL(ivars->audioRequestTimer);
-        OSSafeReleaseNULL(ivars->audioRequestTimerAction);
-    }
-    IOLockLock(ivars->audioRequestLock);
-    ivars->audioRequestsStopped = result != kIOReturnSuccess;
-    IOLockUnlock(ivars->audioRequestLock);
-    return result;
+    return SwifterKitStartRequests<AudioRequestFamily>(
+        ivars,
+        queue.get(),
+        [this](OSAction** action) { return CreateActionAudioRequestTimerOccurred(0, action); });
 }
 
 void SwifterKitRuntimeService::StopAudioRequests() {
     if (ivars == nullptr || ivars->audioRequestLock == nullptr)
         return;
-    IOLockLock(ivars->audioRequestLock);
-    ivars->audioRequestsStopped = true;
-    IOLockUnlock(ivars->audioRequestLock);
-    RejectAudioRequests(kIOReturnAborted);
-    if (ivars->audioRequestTimer != nullptr)
-        (void)ivars->audioRequestTimer->Cancel(nullptr);
-    if (ivars->audioRequestTimerAction != nullptr)
-        (void)ivars->audioRequestTimerAction->Cancel(nullptr);
-    OSSafeReleaseNULL(ivars->audioRequestTimer);
-    OSSafeReleaseNULL(ivars->audioRequestTimerAction);
+    SwifterKitStopRequests<AudioRequestFamily>(ivars, [this] {
+        RejectAudioRequests(kIOReturnAborted);
+    });
 }
 
 kern_return_t SwifterKitRuntimeService::BeginAudioRequest(
@@ -142,43 +127,19 @@ kern_return_t SwifterKitRuntimeService::BeginAudioRequest(
     if (ivars == nullptr || ivars->eventLock == nullptr || ivars->audioRequestLock == nullptr
         || object == nullptr)
         return kIOReturnNotReady;
-    IOLockLock(ivars->eventLock);
-    const bool attached = ivars->eventClient != nullptr;
-    IOLockUnlock(ivars->eventLock);
-    if (!attached)
-        return kIOReturnNotAttached;
-    const uint64_t deadline = Now() + kAudioRequestTimeoutNanoseconds;
     uint32_t requestID = 0;
-    bool arm = true;
-    IOLockLock(ivars->audioRequestLock);
-    SwifterKitAudioPendingRequest* slot = nullptr;
-    for (auto& entry : ivars->audioRequests) {
-        if (entry.requestID != 0)
-            arm = false;
-        else if (slot == nullptr)
-            slot = &entry;
-    }
-    if (ivars->audioRequestsStopped || ivars->audioRequestTimer == nullptr)
-        slot = nullptr;
-    if (slot != nullptr) {
-        requestID = ivars->nextAudioRequestID == 0 ? 1 : ivars->nextAudioRequestID;
-        ivars->nextAudioRequestID = requestID == UINT32_MAX ? 1 : requestID + 1;
-        object->retain();
-        *slot = {object, requestID, kind, index, value, previous, deadline};
-    }
-    IOLockUnlock(ivars->audioRequestLock);
-    if (slot == nullptr)
-        return ivars->audioRequestTimer == nullptr ? kIOReturnNotAttached : kIOReturnNoResources;
-    // An earlier pending request already armed the timer for an earlier deadline.
-    kern_return_t result = arm ? ivars->audioRequestTimer->WakeAtTime(
-                                     kIOTimerClockUptimeRaw,
-                                     deadline,
-                                     kAudioRequestLeewayNanoseconds)
-                               : kIOReturnSuccess;
+    kern_return_t result = SwifterKitBeginRequest<AudioRequestFamily>(
+        ivars,
+        object,
+        kind,
+        index,
+        value,
+        previous,
+        &requestID);
     const SwifterKitAudioObjectEvent event = {kind, index, requestID, 0, value};
     if (result == kIOReturnSuccess)
         result = EnqueueRequiredEvent(kSwifterKitEventAudioObject, &event, sizeof(event));
-    if (result != kIOReturnSuccess)
+    if (result != kIOReturnSuccess && requestID != 0)
         (void)TakeRequest(ivars, requestID, nullptr);
     return result;
 }
@@ -210,83 +171,28 @@ kern_return_t SwifterKitRuntimeService::ApplyAudioRequest(
     uint64_t previous,
     bool accept,
     int32_t failure) {
-    auto* box = OSDynamicCast(SwifterKitRuntimeAudioBox, object);
-    auto* clock = OSDynamicCast(SwifterKitRuntimeAudioClockDevice, object);
-    if (kind == kSwifterKitAudioObjectEventBoxRequest && box != nullptr) {
-        // HandleChangeAcquireBox already applied the requested state; a rejection restores it.
-        kern_return_t result = box->SetIsAcquired(accept ? value != 0 : value == 0);
-        const kern_return_t failed = box->SetAcquisitionFailure(
-            accept         ? kIOReturnSuccess
-            : failure != 0 ? failure
-                           : kIOReturnError);
-        return result == kIOReturnSuccess ? failed : result;
-    }
-    if (kind == kSwifterKitAudioObjectEventClockRequest && clock != nullptr)
-        return clock->FinishSampleRateRequest(
-            __builtin_bit_cast(double, value),
-            __builtin_bit_cast(double, previous),
-            accept);
-    return kIOReturnBadArgument;
+    return SwifterKitApplyRequest<AudioRequestFamily>(
+        object,
+        kind,
+        value,
+        previous,
+        accept,
+        failure);
 }
 
 void SwifterKitRuntimeService::RejectAudioRequests(int32_t failure) {
     if (ivars == nullptr || ivars->audioRequestLock == nullptr)
         return;
-    SwifterKitAudioPendingRequest taken[kSwifterKitAudioPendingRequestCount] = {};
-    IOLockLock(ivars->audioRequestLock);
-    for (uint32_t index = 0; index < kSwifterKitAudioPendingRequestCount; ++index) {
-        taken[index] = ivars->audioRequests[index];
-        ivars->audioRequests[index] = {};
-    }
-    IOLockUnlock(ivars->audioRequestLock);
-    for (auto& request : taken) {
-        if (request.requestID != 0)
-            (void)ApplyAudioRequest(
-                request.object,
-                request.kind,
-                request.value,
-                request.previous,
-                false,
-                failure);
-        OSSafeReleaseNULL(request.object);
-    }
+    SwifterKitRejectRequests<AudioRequestFamily>(ivars, failure);
 }
 
 void SwifterKitRuntimeService::AudioRequestTimerOccurred_Impl(OSAction*, uint64_t) {
     if (ivars == nullptr || ivars->audioRequestLock == nullptr)
         return;
-    const uint64_t now = Now();
-    SwifterKitAudioPendingRequest expired[kSwifterKitAudioPendingRequestCount] = {};
-    uint64_t next = 0;
-    IOLockLock(ivars->audioRequestLock);
-    for (uint32_t index = 0; index < kSwifterKitAudioPendingRequestCount; ++index) {
-        auto& entry = ivars->audioRequests[index];
-        if (entry.requestID == 0)
-            continue;
-        if (entry.deadline <= now) {
-            expired[index] = entry;
-            entry = {};
-        } else if (next == 0 || entry.deadline < next) {
-            next = entry.deadline;
-        }
-    }
-    IOTimerDispatchSource* timer = ivars->audioRequestsStopped ? nullptr : ivars->audioRequestTimer;
-    IOLockUnlock(ivars->audioRequestLock);
-    if (next != 0 && timer != nullptr
-        && timer->WakeAtTime(kIOTimerClockUptimeRaw, next, kAudioRequestLeewayNanoseconds)
-               != kIOReturnSuccess)
-        // A deadline that cannot be re-armed must not strand its request.
+    // A deadline that cannot be re-armed must not strand its request, so every request then
+    // ends with kIOReturnTimeout.
+    SwifterKitExpireRequests<AudioRequestFamily>(ivars, [this] {
         RejectAudioRequests(kIOReturnTimeout);
-    for (auto& request : expired) {
-        if (request.requestID != 0)
-            (void)ApplyAudioRequest(
-                request.object,
-                request.kind,
-                request.value,
-                request.previous,
-                false,
-                kIOReturnTimeout);
-        OSSafeReleaseNULL(request.object);
-    }
+    });
 }
 #endif

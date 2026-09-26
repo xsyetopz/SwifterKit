@@ -5,12 +5,23 @@
     #include <DriverKit/OSString.h>
     #include <VideoDriverKit/VideoDriverKit.h>
 
+    #include "SwifterKitRuntimeMediaObjects.h"
     #include "SwifterKitRuntimeService.h"
     #include "SwifterKitRuntimeVideoDeviceState.h"
     #include "SwifterKitRuntimeVideoProtocol.h"
 
 namespace {
     constexpr uint64_t kClockSampleRateChangeAction = 0x53574B56434C4F43ULL;
+
+    // The VideoDriverKit types and schema values the SwifterKitRuntimeMediaObjects.h clock
+    // templates operate on.
+    struct VideoClockFamily {
+        using TransportType = IOUserVideoTransportType;
+        using ClockAlgorithm = IOUserVideoClockAlgorithm;
+
+        static constexpr uint32_t kMaximumSampleRates = kSwifterKitVideoMaximumSampleRates;
+        static constexpr const auto* kClockSampleRates = kSwifterKitVideoClockSampleRates;
+    };
 }  // namespace
 
 struct SwifterKitRuntimeVideoClockDevice_IVars {
@@ -29,71 +40,33 @@ bool SwifterKitRuntimeVideoClockDevice::init(
     if (driver == nullptr || service == nullptr || index >= kSwifterKitVideoObjectTableCount
         || !super::init(driver, deviceUID, modelUID, manufacturerUID))
         return false;
-    ivars = IONewZero(SwifterKitRuntimeVideoClockDevice_IVars, 1);
-    if (ivars == nullptr)
-        return false;
-    ivars->service = service;
-    ivars->index = index;
-    service->retain();
-    return true;
+    return SwifterKitAttachObjectState(ivars, service, index);
 }
 
 void SwifterKitRuntimeVideoClockDevice::free() {
-    if (ivars != nullptr)
-        OSSafeReleaseNULL(ivars->service);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeVideoClockDevice_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
 kern_return_t SwifterKitRuntimeVideoClockDevice::Configure(
     const SwifterKitVideoClockConfiguration* configuration) {
-    if (ivars == nullptr || configuration == nullptr
-        || configuration->rateCount > kSwifterKitVideoMaximumSampleRates)
+    if (ivars == nullptr || configuration == nullptr)
         return kIOReturnBadArgument;
-    OSString* name = OSString::withCString(configuration->name);
-    kern_return_t result = name == nullptr ? kIOReturnNoMemory : SetName(name);
-    OSSafeReleaseNULL(name);
-    if (result == kIOReturnSuccess)
-        result = SetTransportType(static_cast<IOUserVideoTransportType>(configuration->transport));
-    if (result == kIOReturnSuccess)
-        result = SetAvailableSampleRates(
-            kSwifterKitVideoClockSampleRates + configuration->rateStart,
-            configuration->rateCount);
-    if (result == kIOReturnSuccess)
-        result = SetSampleRate(configuration->initialSampleRate);
-    if (result == kIOReturnSuccess)
-        result = SetClockDomain(configuration->clockDomain);
-    if (result == kIOReturnSuccess)
-        result = SetClockAlgorithm(
-            static_cast<IOUserVideoClockAlgorithm>(configuration->clockAlgorithm));
-    if (result == kIOReturnSuccess)
-        result = SetClockIsStable(configuration->clockIsStable);
-    if (result == kIOReturnSuccess)
-        result = SetIsHidden(configuration->isHidden);
-    if (result == kIOReturnSuccess)
-        result = SetInputLatency(configuration->inputLatency);
-    if (result == kIOReturnSuccess)
-        result = SetOutputLatency(configuration->outputLatency);
-    return result;
+    return SwifterKitConfigureClockDevice<VideoClockFamily>(this, configuration);
 }
 
 bool SwifterKitRuntimeVideoClockDevice::IsAvailableSampleRate(double sampleRate) {
-    double rates[kSwifterKitVideoMaximumSampleRates] = {};
-    const size_t count = GetAvailableSampleRates(rates, kSwifterKitVideoMaximumSampleRates);
-    for (size_t index = 0; index < count && index < kSwifterKitVideoMaximumSampleRates; ++index)
-        if (rates[index] == sampleRate)
-            return true;
-    return false;
+    return SwifterKitIsAvailableSampleRate<VideoClockFamily>(this, sampleRate);
 }
 
 kern_return_t SwifterKitRuntimeVideoClockDevice::RequestSampleRate(double sampleRate) {
     if (ivars == nullptr || !IsAvailableSampleRate(sampleRate))
         return kIOReturnBadArgument;
-    __atomic_store_n(
+    return SwifterKitRequestSampleRateChange(
+        this,
         &ivars->pendingSampleRateBits,
-        __builtin_bit_cast(uint64_t, sampleRate),
-        __ATOMIC_RELEASE);
-    return RequestDeviceConfigurationChange(kClockSampleRateChangeAction, nullptr);
+        kClockSampleRateChangeAction,
+        sampleRate);
 }
 
 kern_return_t SwifterKitRuntimeVideoClockDevice::StartIO(IOUserVideoStartStopFlags flags) {
@@ -133,17 +106,15 @@ kern_return_t SwifterKitRuntimeVideoClockDevice::PerformDeviceConfigurationChang
     }
     if (changeAction != kClockSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
-    const double sampleRate = __builtin_bit_cast(
-        double,
-        __atomic_exchange_n(&ivars->pendingSampleRateBits, 0, __ATOMIC_ACQUIRE));
-    kern_return_t result =
-        IsAvailableSampleRate(sampleRate) ? SetSampleRate(sampleRate) : kIOReturnBadArgument;
-    if (result == kIOReturnSuccess)
-        result = ivars->service->VideoObjectEvent(
-            kSwifterKitVideoObjectEventClockRateChanged,
-            ivars->index,
-            __builtin_bit_cast(uint64_t, sampleRate));
-    return result;
+    return SwifterKitApplySampleRateChange<VideoClockFamily>(
+        this,
+        &ivars->pendingSampleRateBits,
+        [this](uint64_t sampleRateBits) {
+            return ivars->service->VideoObjectEvent(
+                kSwifterKitVideoObjectEventClockRateChanged,
+                ivars->index,
+                sampleRateBits);
+        });
 }
 
 kern_return_t SwifterKitRuntimeVideoClockDevice::AbortDeviceConfigurationChange(

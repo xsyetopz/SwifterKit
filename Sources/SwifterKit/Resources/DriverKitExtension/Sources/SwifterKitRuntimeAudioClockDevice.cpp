@@ -7,10 +7,21 @@
 
     #include "SwifterKitRuntimeAudioDeviceState.h"
     #include "SwifterKitRuntimeAudioProtocol.h"
+    #include "SwifterKitRuntimeMediaObjects.h"
     #include "SwifterKitRuntimeService.h"
 
 namespace {
     constexpr uint64_t kClockSampleRateChangeAction = 0x53574B434C4F434BULL;
+
+    // The AudioDriverKit types and schema values the SwifterKitRuntimeMediaObjects.h clock
+    // templates operate on.
+    struct AudioClockFamily {
+        using TransportType = IOUserAudioTransportType;
+        using ClockAlgorithm = IOUserAudioClockAlgorithm;
+
+        static constexpr uint32_t kMaximumSampleRates = kSwifterKitAudioMaximumSampleRates;
+        static constexpr const auto* kClockSampleRates = kSwifterKitAudioClockSampleRates;
+    };
 }  // namespace
 
 struct SwifterKitRuntimeAudioClockDevice_IVars {
@@ -37,51 +48,20 @@ bool SwifterKitRuntimeAudioClockDevice::init(
             manufacturerUID,
             zeroTimestampPeriod))
         return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioClockDevice_IVars, 1);
-    if (ivars == nullptr)
-        return false;
-    ivars->service = service;
-    ivars->index = index;
-    service->retain();
-    return true;
+    return SwifterKitAttachObjectState(ivars, service, index);
 }
 
 void SwifterKitRuntimeAudioClockDevice::free() {
-    if (ivars != nullptr)
-        OSSafeReleaseNULL(ivars->service);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioClockDevice_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
 kern_return_t SwifterKitRuntimeAudioClockDevice::Configure(
     const SwifterKitAudioClockConfiguration* configuration) {
-    if (ivars == nullptr || configuration == nullptr
-        || configuration->rateCount > kSwifterKitAudioMaximumSampleRates)
+    if (ivars == nullptr || configuration == nullptr)
         return kIOReturnBadArgument;
-    OSString* name = OSString::withCString(configuration->name);
-    kern_return_t result = name == nullptr ? kIOReturnNoMemory : SetName(name);
-    OSSafeReleaseNULL(name);
-    if (result == kIOReturnSuccess)
-        result = SetTransportType(static_cast<IOUserAudioTransportType>(configuration->transport));
-    if (result == kIOReturnSuccess)
-        result = SetAvailableSampleRates(
-            kSwifterKitAudioClockSampleRates + configuration->rateStart,
-            configuration->rateCount);
-    if (result == kIOReturnSuccess)
-        result = SetSampleRate(configuration->initialSampleRate);
-    if (result == kIOReturnSuccess)
-        result = SetClockDomain(configuration->clockDomain);
-    if (result == kIOReturnSuccess)
-        result = SetClockAlgorithm(
-            static_cast<IOUserAudioClockAlgorithm>(configuration->clockAlgorithm));
-    if (result == kIOReturnSuccess)
-        result = SetClockIsStable(configuration->clockIsStable);
-    if (result == kIOReturnSuccess)
-        result = SetIsHidden(configuration->isHidden);
-    if (result == kIOReturnSuccess)
-        result = SetInputLatency(configuration->inputLatency);
-    if (result == kIOReturnSuccess)
-        result = SetOutputLatency(configuration->outputLatency);
+    const kern_return_t result =
+        SwifterKitConfigureClockDevice<AudioClockFamily>(this, configuration);
     #if defined(__DRIVERKIT_25_5) && __DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5
     if (result == kIOReturnSuccess && configuration->wantsControlsRestored >= 0)
         SetWantsControlsRestored(configuration->wantsControlsRestored != 0);
@@ -90,22 +70,17 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::Configure(
 }
 
 bool SwifterKitRuntimeAudioClockDevice::IsAvailableSampleRate(double sampleRate) {
-    double rates[kSwifterKitAudioMaximumSampleRates] = {};
-    const size_t count = GetAvailableSampleRates(rates, kSwifterKitAudioMaximumSampleRates);
-    for (size_t index = 0; index < count && index < kSwifterKitAudioMaximumSampleRates; ++index)
-        if (rates[index] == sampleRate)
-            return true;
-    return false;
+    return SwifterKitIsAvailableSampleRate<AudioClockFamily>(this, sampleRate);
 }
 
 kern_return_t SwifterKitRuntimeAudioClockDevice::RequestSampleRate(double sampleRate) {
     if (ivars == nullptr || !IsAvailableSampleRate(sampleRate))
         return kIOReturnBadArgument;
-    __atomic_store_n(
+    return SwifterKitRequestSampleRateChange(
+        this,
         &ivars->pendingSampleRateBits,
-        __builtin_bit_cast(uint64_t, sampleRate),
-        __ATOMIC_RELEASE);
-    return RequestDeviceConfigurationChange(kClockSampleRateChangeAction, nullptr);
+        kClockSampleRateChangeAction,
+        sampleRate);
 }
 
 kern_return_t SwifterKitRuntimeAudioClockDevice::StartIO(IOUserAudioStartStopFlags flags) {
@@ -147,17 +122,15 @@ kern_return_t SwifterKitRuntimeAudioClockDevice::PerformDeviceConfigurationChang
     }
     if (changeAction != kClockSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
-    const double sampleRate = __builtin_bit_cast(
-        double,
-        __atomic_exchange_n(&ivars->pendingSampleRateBits, 0, __ATOMIC_ACQUIRE));
-    kern_return_t result =
-        IsAvailableSampleRate(sampleRate) ? SetSampleRate(sampleRate) : kIOReturnBadArgument;
-    if (result == kIOReturnSuccess)
-        result = ivars->service->AudioObjectEvent(
-            kSwifterKitAudioObjectEventClockRateChanged,
-            ivars->index,
-            __builtin_bit_cast(uint64_t, sampleRate));
-    return result;
+    return SwifterKitApplySampleRateChange<AudioClockFamily>(
+        this,
+        &ivars->pendingSampleRateBits,
+        [this](uint64_t sampleRateBits) {
+            return ivars->service->AudioObjectEvent(
+                kSwifterKitAudioObjectEventClockRateChanged,
+                ivars->index,
+                sampleRateBits);
+        });
 }
 
 kern_return_t SwifterKitRuntimeAudioClockDevice::AbortDeviceConfigurationChange(

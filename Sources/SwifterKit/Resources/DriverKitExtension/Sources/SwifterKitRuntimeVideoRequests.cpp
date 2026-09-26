@@ -7,8 +7,8 @@
     #include <DriverKit/IOTimerDispatchSource.h>
     #include <DriverKit/OSAction.h>
     #include <VideoDriverKit/VideoDriverKit.h>
-    #include <time.h>
 
+    #include "SwifterKitRuntimeMediaRequests.h"
     #include "SwifterKitRuntimeServiceState.h"
     #include "SwifterKitRuntimeVideoBox.h"
     #include "SwifterKitRuntimeVideoClockDevice.h"
@@ -40,29 +40,34 @@ namespace {
     constexpr uint64_t kVideoRequestTimeoutNanoseconds = 10'000'000'000ULL;
     constexpr uint64_t kVideoRequestLeewayNanoseconds = 100'000'000ULL;
 
-    uint64_t Now() {
-        return clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
-    }
+    // The VideoDriverKit classes, schema values, and service ivars the
+    // SwifterKitRuntimeMediaObjects.h request templates operate on.
+    struct VideoRequestFamily {
+        using RuntimeBox = SwifterKitRuntimeVideoBox;
+        using RuntimeClockDevice = SwifterKitRuntimeVideoClockDevice;
+        using PendingRequest = SwifterKitVideoPendingRequest;
+
+        static constexpr uint32_t kBoxRequest = kSwifterKitVideoObjectEventBoxRequest;
+        static constexpr uint32_t kClockRequest = kSwifterKitVideoObjectEventClockRequest;
+        static constexpr uint32_t kPendingRequestCount = kSwifterKitVideoPendingRequestCount;
+        static constexpr uint64_t kRequestTimeout = kVideoRequestTimeoutNanoseconds;
+        static constexpr uint64_t kRequestLeeway = kVideoRequestLeewayNanoseconds;
+
+        static constexpr auto kRequestLock = &SwifterKitRuntimeService_IVars::videoRequestLock;
+        static constexpr auto kRequests = &SwifterKitRuntimeService_IVars::videoRequests;
+        static constexpr auto kNextRequestID = &SwifterKitRuntimeService_IVars::nextVideoRequestID;
+        static constexpr auto kRequestsStopped =
+            &SwifterKitRuntimeService_IVars::videoRequestsStopped;
+        static constexpr auto kRequestTimer = &SwifterKitRuntimeService_IVars::videoRequestTimer;
+        static constexpr auto kRequestTimerAction =
+            &SwifterKitRuntimeService_IVars::videoRequestTimerAction;
+    };
 
     bool TakeRequest(
         SwifterKitRuntimeService_IVars* state,
         uint32_t requestID,
         SwifterKitVideoPendingRequest* request) {
-        bool found = false;
-        IOLockLock(state->videoRequestLock);
-        for (auto& entry : state->videoRequests) {
-            if (requestID != 0 && entry.requestID == requestID) {
-                if (request != nullptr)
-                    *request = entry;
-                else
-                    OSSafeReleaseNULL(entry.object);
-                entry = {};
-                found = true;
-                break;
-            }
-        }
-        IOLockUnlock(state->videoRequestLock);
-        return found;
+        return SwifterKitTakeRequest<VideoRequestFamily>(state, requestID, request);
     }
 }  // namespace
 
@@ -99,38 +104,18 @@ kern_return_t SwifterKitRuntimeService::StartVideoRequests() {
         return kIOReturnNotReady;
     // The timer shares the driver work queue with the callbacks that create requests.
     OSSharedPtr<IODispatchQueue> queue = GetWorkQueue();
-    kern_return_t result =
-        queue ? IOTimerDispatchSource::Create(queue.get(), &ivars->videoRequestTimer)
-              : kIOReturnNotReady;
-    if (result == kIOReturnSuccess)
-        result = CreateActionVideoRequestTimerOccurred(0, &ivars->videoRequestTimerAction);
-    if (result == kIOReturnSuccess)
-        result = ivars->videoRequestTimer->SetHandler(ivars->videoRequestTimerAction);
-    if (result == kIOReturnSuccess)
-        result = ivars->videoRequestTimer->SetEnableWithCompletion(true, nullptr);
-    if (result != kIOReturnSuccess) {
-        OSSafeReleaseNULL(ivars->videoRequestTimer);
-        OSSafeReleaseNULL(ivars->videoRequestTimerAction);
-    }
-    IOLockLock(ivars->videoRequestLock);
-    ivars->videoRequestsStopped = result != kIOReturnSuccess;
-    IOLockUnlock(ivars->videoRequestLock);
-    return result;
+    return SwifterKitStartRequests<VideoRequestFamily>(
+        ivars,
+        queue.get(),
+        [this](OSAction** action) { return CreateActionVideoRequestTimerOccurred(0, action); });
 }
 
 void SwifterKitRuntimeService::StopVideoRequests() {
     if (ivars == nullptr || ivars->videoRequestLock == nullptr)
         return;
-    IOLockLock(ivars->videoRequestLock);
-    ivars->videoRequestsStopped = true;
-    IOLockUnlock(ivars->videoRequestLock);
-    RejectVideoRequests(kIOReturnAborted);
-    if (ivars->videoRequestTimer != nullptr)
-        (void)ivars->videoRequestTimer->Cancel(nullptr);
-    if (ivars->videoRequestTimerAction != nullptr)
-        (void)ivars->videoRequestTimerAction->Cancel(nullptr);
-    OSSafeReleaseNULL(ivars->videoRequestTimer);
-    OSSafeReleaseNULL(ivars->videoRequestTimerAction);
+    SwifterKitStopRequests<VideoRequestFamily>(ivars, [this] {
+        RejectVideoRequests(kIOReturnAborted);
+    });
 }
 
 kern_return_t SwifterKitRuntimeService::BeginVideoRequest(
@@ -142,43 +127,19 @@ kern_return_t SwifterKitRuntimeService::BeginVideoRequest(
     if (ivars == nullptr || ivars->eventLock == nullptr || ivars->videoRequestLock == nullptr
         || object == nullptr)
         return kIOReturnNotReady;
-    IOLockLock(ivars->eventLock);
-    const bool attached = ivars->eventClient != nullptr;
-    IOLockUnlock(ivars->eventLock);
-    if (!attached)
-        return kIOReturnNotAttached;
-    const uint64_t deadline = Now() + kVideoRequestTimeoutNanoseconds;
     uint32_t requestID = 0;
-    bool arm = true;
-    IOLockLock(ivars->videoRequestLock);
-    SwifterKitVideoPendingRequest* slot = nullptr;
-    for (auto& entry : ivars->videoRequests) {
-        if (entry.requestID != 0)
-            arm = false;
-        else if (slot == nullptr)
-            slot = &entry;
-    }
-    if (ivars->videoRequestsStopped || ivars->videoRequestTimer == nullptr)
-        slot = nullptr;
-    if (slot != nullptr) {
-        requestID = ivars->nextVideoRequestID == 0 ? 1 : ivars->nextVideoRequestID;
-        ivars->nextVideoRequestID = requestID == UINT32_MAX ? 1 : requestID + 1;
-        object->retain();
-        *slot = {object, requestID, kind, index, value, previous, deadline};
-    }
-    IOLockUnlock(ivars->videoRequestLock);
-    if (slot == nullptr)
-        return ivars->videoRequestTimer == nullptr ? kIOReturnNotAttached : kIOReturnNoResources;
-    // An earlier pending request already armed the timer for an earlier deadline.
-    kern_return_t result = arm ? ivars->videoRequestTimer->WakeAtTime(
-                                     kIOTimerClockUptimeRaw,
-                                     deadline,
-                                     kVideoRequestLeewayNanoseconds)
-                               : kIOReturnSuccess;
+    kern_return_t result = SwifterKitBeginRequest<VideoRequestFamily>(
+        ivars,
+        object,
+        kind,
+        index,
+        value,
+        previous,
+        &requestID);
     const SwifterKitVideoObjectEvent event = {kind, index, requestID, 0, value};
     if (result == kIOReturnSuccess)
         result = EnqueueRequiredEvent(kSwifterKitEventVideoObject, &event, sizeof(event));
-    if (result != kIOReturnSuccess)
+    if (result != kIOReturnSuccess && requestID != 0)
         (void)TakeRequest(ivars, requestID, nullptr);
     return result;
 }
@@ -210,83 +171,28 @@ kern_return_t SwifterKitRuntimeService::ApplyVideoRequest(
     uint64_t previous,
     bool accept,
     int32_t failure) {
-    auto* box = OSDynamicCast(SwifterKitRuntimeVideoBox, object);
-    auto* clock = OSDynamicCast(SwifterKitRuntimeVideoClockDevice, object);
-    if (kind == kSwifterKitVideoObjectEventBoxRequest && box != nullptr) {
-        // HandleChangeAcquireBox already applied the requested state; a rejection restores it.
-        kern_return_t result = box->SetIsAcquired(accept ? value != 0 : value == 0);
-        const kern_return_t failed = box->SetAcquisitionFailure(
-            accept         ? kIOReturnSuccess
-            : failure != 0 ? failure
-                           : kIOReturnError);
-        return result == kIOReturnSuccess ? failed : result;
-    }
-    if (kind == kSwifterKitVideoObjectEventClockRequest && clock != nullptr)
-        return clock->FinishSampleRateRequest(
-            __builtin_bit_cast(double, value),
-            __builtin_bit_cast(double, previous),
-            accept);
-    return kIOReturnBadArgument;
+    return SwifterKitApplyRequest<VideoRequestFamily>(
+        object,
+        kind,
+        value,
+        previous,
+        accept,
+        failure);
 }
 
 void SwifterKitRuntimeService::RejectVideoRequests(int32_t failure) {
     if (ivars == nullptr || ivars->videoRequestLock == nullptr)
         return;
-    SwifterKitVideoPendingRequest taken[kSwifterKitVideoPendingRequestCount] = {};
-    IOLockLock(ivars->videoRequestLock);
-    for (uint32_t index = 0; index < kSwifterKitVideoPendingRequestCount; ++index) {
-        taken[index] = ivars->videoRequests[index];
-        ivars->videoRequests[index] = {};
-    }
-    IOLockUnlock(ivars->videoRequestLock);
-    for (auto& request : taken) {
-        if (request.requestID != 0)
-            (void)ApplyVideoRequest(
-                request.object,
-                request.kind,
-                request.value,
-                request.previous,
-                false,
-                failure);
-        OSSafeReleaseNULL(request.object);
-    }
+    SwifterKitRejectRequests<VideoRequestFamily>(ivars, failure);
 }
 
 void SwifterKitRuntimeService::VideoRequestTimerOccurred_Impl(OSAction*, uint64_t) {
     if (ivars == nullptr || ivars->videoRequestLock == nullptr)
         return;
-    const uint64_t now = Now();
-    SwifterKitVideoPendingRequest expired[kSwifterKitVideoPendingRequestCount] = {};
-    uint64_t next = 0;
-    IOLockLock(ivars->videoRequestLock);
-    for (uint32_t index = 0; index < kSwifterKitVideoPendingRequestCount; ++index) {
-        auto& entry = ivars->videoRequests[index];
-        if (entry.requestID == 0)
-            continue;
-        if (entry.deadline <= now) {
-            expired[index] = entry;
-            entry = {};
-        } else if (next == 0 || entry.deadline < next) {
-            next = entry.deadline;
-        }
-    }
-    IOTimerDispatchSource* timer = ivars->videoRequestsStopped ? nullptr : ivars->videoRequestTimer;
-    IOLockUnlock(ivars->videoRequestLock);
-    if (next != 0 && timer != nullptr
-        && timer->WakeAtTime(kIOTimerClockUptimeRaw, next, kVideoRequestLeewayNanoseconds)
-               != kIOReturnSuccess)
-        // A deadline that cannot be re-armed must not strand its request.
+    // A deadline that cannot be re-armed must not strand its request, so every request then
+    // ends with kIOReturnTimeout.
+    SwifterKitExpireRequests<VideoRequestFamily>(ivars, [this] {
         RejectVideoRequests(kIOReturnTimeout);
-    for (auto& request : expired) {
-        if (request.requestID != 0)
-            (void)ApplyVideoRequest(
-                request.object,
-                request.kind,
-                request.value,
-                request.previous,
-                false,
-                kIOReturnTimeout);
-        OSSafeReleaseNULL(request.object);
-    }
+    });
 }
 #endif

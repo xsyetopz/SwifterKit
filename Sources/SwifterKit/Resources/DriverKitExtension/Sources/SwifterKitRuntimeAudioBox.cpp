@@ -6,6 +6,7 @@
     #include <DriverKit/OSString.h>
 
     #include "SwifterKitRuntimeAudioProtocol.h"
+    #include "SwifterKitRuntimeMediaObjects.h"
     #include "SwifterKitRuntimeService.h"
 
 struct SwifterKitRuntimeAudioBox_IVars {
@@ -22,19 +23,11 @@ bool SwifterKitRuntimeAudioBox::init(
     if (driver == nullptr || service == nullptr || index >= kSwifterKitAudioObjectTableCount
         || !super::init(driver, isAcquirable, uid))
         return false;
-    ivars = IONewZero(SwifterKitRuntimeAudioBox_IVars, 1);
-    if (ivars == nullptr)
-        return false;
-    ivars->service = service;
-    ivars->index = index;
-    service->retain();
-    return true;
+    return SwifterKitAttachObjectState(ivars, service, index);
 }
 
 void SwifterKitRuntimeAudioBox::free() {
-    if (ivars != nullptr)
-        OSSafeReleaseNULL(ivars->service);
-    IOSafeDeleteNULL(ivars, SwifterKitRuntimeAudioBox_IVars, 1);
+    SwifterKitDetachCallbackState(ivars);
     super::free();
 }
 
@@ -42,22 +35,7 @@ kern_return_t SwifterKitRuntimeAudioBox::Configure(
     const SwifterKitAudioBoxConfiguration* configuration) {
     if (ivars == nullptr || configuration == nullptr)
         return kIOReturnBadArgument;
-    OSString* name = OSString::withCString(configuration->name);
-    kern_return_t result = name == nullptr ? kIOReturnNoMemory : SetName(name);
-    OSSafeReleaseNULL(name);
-    if (result == kIOReturnSuccess)
-        result = SetTransportType(static_cast<IOUserAudioTransportType>(configuration->transport));
-    if (result == kIOReturnSuccess)
-        result = SetHasAudio(configuration->hasAudio);
-    if (result == kIOReturnSuccess)
-        result = SetHasMIDI(configuration->hasMIDI);
-    if (result == kIOReturnSuccess)
-        result = SetHasVideo(configuration->hasVideo);
-    if (result == kIOReturnSuccess)
-        result = SetIsProtected(configuration->isProtected);
-    if (result == kIOReturnSuccess)
-        result = SetIsAcquired(configuration->isAcquired);
-    return result;
+    return SwifterKitConfigureBox<IOUserAudioTransportType>(this, configuration);
 }
 
 kern_return_t SwifterKitRuntimeAudioBox::HandleChangeAcquireBox(bool acquire) {
