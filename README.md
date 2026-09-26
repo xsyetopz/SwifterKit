@@ -47,12 +47,15 @@ narrowest DriverKit target required by its capabilities.
 | Block storage, audio, HID event service | 21.0 | macOS 12 |
 | Networking, SCSI peripheral | 22.0 | macOS 13 |
 | MIDI | 24.0 | macOS 15 |
-| Video | 27.0 | macOS 27 beta |
+| Video | 25.5 | macOS 26.5 beta |
 
 The networking runtime uses queue registration introduced in DriverKit 22.0
 even though NetworkingDriverKit itself appeared earlier. Apple currently marks
 VideoDriverKit as beta; video generation requires an SDK containing that
-framework. See [DriverKit](https://developer.apple.com/documentation/driverkit)
+framework. The DriverKit 25.5 SDK in Xcode 26.6, which pairs with the macOS
+26.5 SDK, is the oldest SDK known to contain it: its VideoDriverKit headers and
+exported symbols match the DriverKit 27.0 SDK's, and the DriverKit 24.4 SDK has
+no VideoDriverKit. See [DriverKit](https://developer.apple.com/documentation/driverkit)
 and the family framework documentation for Apple’s platform availability.
 
 ## Installation
@@ -252,8 +255,8 @@ Point it at Xcode 16.3 to build the default DriverKit 19.0 target unchanged.
 framework including VideoDriverKit, with `DEVELOPER_DIR`. With a newer SDK the
 build's deployment target is raised to the SDK minimum (the Xcode 27 SDK starts
 at DriverKit 21.0). Build tests for projects that need a newer SDK, such as
-video (DriverKit 27.0), report as skipped on older SDKs; only the Xcode 27 SDK
-builds video. Set `SWIFTERKIT_REQUIRE_DRIVERKIT=1` to fail
+video (DriverKit 25.5), report as skipped on older SDKs; the Xcode 26.6 and
+Xcode 27 SDKs build video. Set `SWIFTERKIT_REQUIRE_DRIVERKIT=1` to fail
 the run when no SDK is installed. Unset `TOOLCHAINS` when it selects a
 swift.org toolchain, because the generated-project builds must use Xcode's
 compilers.

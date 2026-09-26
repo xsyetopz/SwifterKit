@@ -22,7 +22,7 @@ struct VideoGeneratorTests {
 
     try DriverExtensionGenerator.generate(
       configuration: configuration,
-      options: DriverExtensionGenerationOptions(deploymentTarget: "27.0"),
+      options: DriverExtensionGenerationOptions(deploymentTarget: "25.5"),
       at: output
     )
 
@@ -70,7 +70,7 @@ struct VideoGeneratorTests {
     #expect(project.contains("SwifterKitRuntimeVideoStream.iig in Sources"))
   }
 
-  @Test(.enabled(if: DriverKitSDK.supports(deploymentTarget: "27.0")))
+  @Test(.enabled(if: DriverKitSDK.supports(deploymentTarget: "25.5")))
   func buildsVideoRuntime() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,
@@ -85,7 +85,7 @@ struct VideoGeneratorTests {
         capabilities: .video,
         videoDevice: sampleDevice()
       ),
-      options: DriverExtensionGenerationOptions(deploymentTarget: "27.0"),
+      options: DriverExtensionGenerationOptions(deploymentTarget: "25.5"),
       at: output
     )
     try expectGeneratedExtensionBuilds(
@@ -105,7 +105,7 @@ struct VideoGeneratorTests {
     #expect(throws: DriverExtensionGenerationError.invalidVideoConfiguration) {
       try DriverExtensionGenerator.generate(
         configuration: missing,
-        options: DriverExtensionGenerationOptions(deploymentTarget: "27.0"),
+        options: DriverExtensionGenerationOptions(deploymentTarget: "25.5"),
         at: root.appendingPathComponent(UUID().uuidString)
       )
     }
@@ -119,7 +119,7 @@ struct VideoGeneratorTests {
     #expect(throws: DriverExtensionGenerationError.invalidVideoConfiguration) {
       try DriverExtensionGenerator.generate(
         configuration: valid,
-        options: DriverExtensionGenerationOptions(deploymentTarget: "26.0"),
+        options: DriverExtensionGenerationOptions(deploymentTarget: "25.4"),
         at: root.appendingPathComponent(UUID().uuidString)
       )
     }

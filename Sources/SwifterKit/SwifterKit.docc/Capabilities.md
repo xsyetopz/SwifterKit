@@ -14,9 +14,9 @@ The Swift package supports macOS 10.15 and later. ``DriverExtensionGenerationOpt
 | Block storage, audio, HID event service | 21.0 | macOS 12 |
 | Networking, SCSI peripheral | 22.0 | macOS 13 |
 | MIDI | 24.0 | macOS 15 |
-| Video | 27.0 | macOS 27 beta |
+| Video | 25.5 | macOS 26.5 beta |
 
-Networking uses the DriverKit 22.0 queue-registration API. VideoDriverKit is currently beta and requires an SDK that contains the framework. The generator reports the existing capability-specific configuration error when a selected deployment target is too old.
+Networking uses the DriverKit 22.0 queue-registration API. VideoDriverKit is currently beta and requires an SDK that contains the framework; the DriverKit 25.5 SDK (Xcode 26.6, paired with the macOS 26.5 SDK) is the oldest known to include it, with the same headers and exported symbols as the DriverKit 27.0 SDK. The generator reports the existing capability-specific configuration error when a selected deployment target is too old.
 
 ## Device families
 

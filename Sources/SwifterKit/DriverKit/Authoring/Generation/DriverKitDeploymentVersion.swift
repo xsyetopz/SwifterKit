@@ -4,7 +4,7 @@ struct DriverKitDeploymentVersion: Comparable, Sendable {
   static let v21 = Self(major: 21, minor: 0)
   static let v22 = Self(major: 22, minor: 0)
   static let v24 = Self(major: 24, minor: 0)
-  static let v27 = Self(major: 27, minor: 0)
+  static let v25Point5 = Self(major: 25, minor: 5)
 
   let major: Int
   let minor: Int

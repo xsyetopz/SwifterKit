@@ -31,7 +31,7 @@ struct VideoObjectRuntimeContractTests {
     }
   }
 
-  @Test(.enabled(if: DriverKitSDK.supports(deploymentTarget: "27.0")))
+  @Test(.enabled(if: DriverKitSDK.supports(deploymentTarget: "25.5")))
   func buildsBoxesAndClockDevices() throws {
     try withGeneratedExtension(topology) { output, derivedData in
       try expectGeneratedExtensionBuilds(at: output, derivedData: derivedData)
@@ -272,7 +272,7 @@ struct VideoObjectRuntimeContractTests {
         capabilities: .video,
         videoDevice: video
       ),
-      options: DriverExtensionGenerationOptions(deploymentTarget: "27.0"),
+      options: DriverExtensionGenerationOptions(deploymentTarget: "25.5"),
       at: output
     )
     try body(output, root.appendingPathComponent("DerivedData"))
