@@ -47,6 +47,12 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- A generated `IOUserHIDDevice` or `IOUserUSBHostHIDDevice` that accepts
+  output or feature reports from the host now calls `CompleteReport` exactly
+  once, with success and the report length, as soon as `setReport` queues the
+  report to Swift. Before this, `setReport` returned success without ever
+  completing the request. An error return still leaves completion to the
+  caller.
 - Required events (block-storage requests, SCSI tasks, Ethernet transmits and
   controls, and audio and video changes that wait for Swift) now have a
   512-event queue separate from the 64-event lossy queue. Lossy events cannot

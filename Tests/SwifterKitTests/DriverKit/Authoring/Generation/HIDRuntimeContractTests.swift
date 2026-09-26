@@ -107,6 +107,24 @@ struct HIDRuntimeContractTests {
   }
 
   @Test
+  func setReportCompletesAcceptedReportsExactlyOnce() throws {
+    try withGeneratedExtension { output in
+      let hid = try source("SwifterKitRuntimeHID.cpp", in: output)
+      let body = try section(of: hid, from: "::setReport(", to: "::handleReport(")
+      // Unaccepted report types go to the superclass, which owns their completion.
+      #expect(body.contains("return super::setReport("))
+      // An accepted report completes once, with success, only after it is queued to Swift.
+      let enqueue = try #require(body.range(of: "EnqueueEvent(")?.lowerBound)
+      let complete = try #require(
+        body.range(of: "CompleteReport(action, kIOReturnSuccess, header.reportLength);")?.lowerBound
+      )
+      #expect(enqueue < complete)
+      #expect(body.contains("if (result == kIOReturnSuccess && action != nullptr) {"))
+      #expect(body.components(separatedBy: "CompleteReport(").count == 2)
+    }
+  }
+
+  @Test
   func elementsAndDispatchRunUnderTheHIDLock() throws {
     try withGeneratedExtension { output in
       let elements = try source("SwifterKitRuntimeHIDElements.cpp", in: output)

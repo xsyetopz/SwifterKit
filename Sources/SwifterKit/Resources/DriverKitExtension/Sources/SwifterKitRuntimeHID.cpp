@@ -316,7 +316,7 @@ kern_return_t SwifterKitRuntimeService::setReport(
     IOHIDReportType reportType,
     IOOptionBits options,
     [[maybe_unused]] uint32_t completionTimeout,
-    [[maybe_unused]] OSAction* action) {
+    OSAction* action) {
     if (!AcceptsHostReportType(reportType)) {
     #if SWIFTERKIT_HID_USB_DEVICE
         return super::setReport(report, reportType, options, completionTimeout, action);
@@ -358,6 +358,12 @@ kern_return_t SwifterKitRuntimeService::setReport(
             static_cast<uint32_t>(payload->getLength()));
     }
     payload->release();
+    // Completion ownership: Swift observes host reports and never answers them, so an accepted
+    // report completes here, exactly once, as soon as it is queued. An error return leaves
+    // completion to the caller.
+    if (result == kIOReturnSuccess && action != nullptr) {
+        CompleteReport(action, kIOReturnSuccess, header.reportLength);
+    }
     return result;
 }
 
