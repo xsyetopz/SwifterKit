@@ -6,10 +6,6 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
-- Generated audio extensions no longer carry
-  `com.apple.developer.driverkit.allow-any-userclient-access`: coreaudiod's
-  `com.apple.private.driverkit.driver-access` entitlement admits any extension
-  with `com.apple.developer.driverkit.family.audio`.
 - **Breaking:** `AudioRuntimeError` gains `invalidObjectTarget`, `invalidName`,
   `invalidPropertySelectors`, and `invalidSampleRates`.
 - Stopping the audio runtime removes the device's controls and custom
@@ -76,6 +72,11 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- An audio box's `HandleChangeAcquireBox` returned success before
+  `SetIsAcquired` ran, although `IOUserAudioBox` requires the acquired state
+  to be updated when the callback reports success. The box now takes the
+  requested state before it queues the request, and rejecting the request with
+  `audioCompleteRequest` restores the previous state.
 - `HIDSubmitInputReport` called into the service without checking that the
   user client still had one, so a report sent after the service detached
   dereferenced a null pointer. It now returns `kIOReturnBadArgument`, as
@@ -144,6 +145,17 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- AudioDriverKit device, stream, control, and custom-property state on opcodes
+  0x0A20-0x0A29: `audioDeviceState` and `audioSetDeviceProperty` for
+  default-device flags, safety offsets, preferred stereo channels, stream-format
+  restoration, and client I/O times; `audioSetPreferredChannelLayout`;
+  `audioStreamState` and `audioSetStreamProperty` for direction, terminal type,
+  starting channel, latency, activity, formats, and ring-buffer size;
+  `audioControlInfo`, `audioSetControlProperty`, and `audioRemoveSelectorItems`
+  for control scope, element, slider ranges, panning channels, and selector
+  items; `audioCustomPropertyInfo`; and `audioSetMemberAttachment`, which
+  removes and re-adds streams, controls, and custom properties and moves a
+  custom property to the driver.
 - Audio drivers declare up to four `IOUserAudioBox` objects and four
   stream-less `IOUserAudioClockDevice` objects through
   `AudioDeviceConfiguration.boxes` and `clockDevices`. `AudioObjectTarget`

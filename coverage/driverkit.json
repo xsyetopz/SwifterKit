@@ -20,7 +20,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -37,7 +38,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -1955,7 +1957,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -1972,7 +1975,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -1989,7 +1993,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioObjectPropertyElement GetControlElement()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioControlInfo"
         },
         {
           "access" : "public",
@@ -2006,7 +2011,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioObjectPropertyScope GetControlScope()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioControlInfo"
         },
         {
           "access" : "public",
@@ -2023,7 +2029,8 @@
             "27.0"
           ],
           "signature" : "bool GetIsSettable()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioControlInfo"
         },
         {
           "access" : "public",
@@ -2194,7 +2201,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -2211,7 +2219,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioCustomPropertyInfo GetCustomPropertyInfo()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioCustomPropertyInfo"
         },
         {
           "access" : "public",
@@ -2312,13 +2321,14 @@
 
           ],
           "name" : "RemoveCustomProperty",
+          "note" : "final override on a custom property, which cannot own custom properties; the framework always returns kIOReturnError",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t RemoveCustomProperty(IOUserAudioCustomProperty*)",
-          "status" : "gap"
+          "status" : "excluded"
         },
         {
           "access" : "public",
@@ -2507,7 +2517,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -2524,7 +2535,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -2649,7 +2661,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveStream(IOUserAudioStream*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -2666,7 +2679,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetCanBeDefaultInputDevice(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -2683,7 +2697,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetCanBeDefaultOutputDevice(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -2700,7 +2715,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetCanBeDefaultSystemOutputDevice(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -2735,7 +2751,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetInputSafetyOffset(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -2752,7 +2769,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetOutputSafetyOffset(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -2769,7 +2787,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPreferredChannelsForStereo(uint32_t, uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -2786,7 +2805,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPreferredInputChannelLayout(IOUserAudioChannelLabel*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetPreferredChannelLayout"
         },
         {
           "access" : "public",
@@ -2803,7 +2823,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPreferredOutputChannelLayout(IOUserAudioChannelLabel*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetPreferredChannelLayout"
         },
         {
           "access" : "public",
@@ -2856,7 +2877,8 @@
             "27.0"
           ],
           "signature" : "uint32_t CanBeDefaultInputDevice()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioDeviceState"
         },
         {
           "access" : "public",
@@ -2873,7 +2895,8 @@
             "27.0"
           ],
           "signature" : "uint32_t CanBeDefaultOutputDevice()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioDeviceState"
         },
         {
           "access" : "public",
@@ -2890,7 +2913,8 @@
             "27.0"
           ],
           "signature" : "uint32_t CanBeDefaultSystemOutputDevice()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioDeviceState"
         },
         {
           "access" : "public",
@@ -2907,7 +2931,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetInputSafetyOffset()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioDeviceState"
         },
         {
           "access" : "public",
@@ -2924,7 +2949,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetOutputSafetyOffset()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioDeviceState"
         },
         {
           "access" : "public",
@@ -2941,7 +2967,8 @@
             "27.0"
           ],
           "signature" : "void GetCurrentClientIOTime(bool, uint64_t*, uint64_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioDeviceState"
         },
         {
           "access" : "public",
@@ -2958,7 +2985,8 @@
             "27.0"
           ],
           "signature" : "void GetPreferredChannelsForStereo(uint32_t*, uint32_t*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioDeviceState"
         },
         {
           "access" : "public",
@@ -2974,7 +3002,8 @@
             "27.0"
           ],
           "signature" : "void SetWantsStreamFormatsRestored(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetDeviceProperty"
         },
         {
           "access" : "public",
@@ -3433,7 +3462,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveCustomProperty(IOUserAudioCustomProperty*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetMemberAttachment"
         },
         {
           "access" : "public",
@@ -4036,7 +4066,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4053,7 +4084,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4936,7 +4968,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -4953,7 +4986,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -5042,7 +5076,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t RemoveControlValueDescriptions(const IOUserAudioSelectorValueDescription*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioRemoveSelectorItems"
         },
         {
           "access" : "public",
@@ -5077,7 +5112,8 @@
             "27.0"
           ],
           "signature" : "size_t GetControlValueDescriptions(IOUserAudioSelectorValueDescription*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioControlInfo"
         },
         {
           "access" : "public",
@@ -5094,7 +5130,8 @@
             "27.0"
           ],
           "signature" : "size_t GetControlValuesCount()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioControlInfo"
         },
         {
           "access" : "public",
@@ -5265,7 +5302,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -5282,7 +5320,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -5299,7 +5338,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioSliderRange GetRange()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioControlInfo"
         },
         {
           "access" : "public",
@@ -5388,7 +5428,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetRange(IOUserAudioSliderRange)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetControlProperty"
         },
         {
           "access" : "public",
@@ -5559,7 +5600,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -5576,7 +5618,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -5683,7 +5726,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetPanningChannels(IOUserAudioObjectPropertyElement, IOUserAudioObjectPropertyElement)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetControlProperty"
         },
         {
           "access" : "public",
@@ -5700,7 +5744,8 @@
             "27.0"
           ],
           "signature" : "void GetPanningChannels(IOUserAudioObjectPropertyElement*, IOUserAudioObjectPropertyElement*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioControlInfo"
         },
         {
           "access" : "public",
@@ -5853,7 +5898,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetBaseClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -5870,7 +5916,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioClassID GetClassID()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioObjectInfo"
         },
         {
           "access" : "public",
@@ -5887,7 +5934,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioStreamBasicDescription GetCurrentStreamFormat()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -5904,7 +5952,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioStreamDirection GetStreamDirection()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -5921,7 +5970,8 @@
             "27.0"
           ],
           "signature" : "IOUserAudioStreamTerminalType GetTerminalType()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -5938,7 +5988,8 @@
             "27.0"
           ],
           "signature" : "OSSharedPtr<IOMemoryDescriptor> GetIOMemoryDescriptor()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -5973,7 +6024,8 @@
             "27.0"
           ],
           "signature" : "bool GetStreamIsActive()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -6098,7 +6150,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetIOMemoryDescriptor(IOMemoryDescriptor*)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetStreamProperty"
         },
         {
           "access" : "public",
@@ -6115,7 +6168,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetLatency(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetStreamProperty"
         },
         {
           "access" : "public",
@@ -6132,7 +6186,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetStartingChannel(uint32_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetStreamProperty"
         },
         {
           "access" : "public",
@@ -6149,7 +6204,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetStreamIsActive(bool)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetStreamProperty"
         },
         {
           "access" : "public",
@@ -6166,7 +6222,8 @@
             "27.0"
           ],
           "signature" : "kern_return_t SetTerminalType(IOUserAudioStreamTerminalType)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioSetStreamProperty"
         },
         {
           "access" : "public",
@@ -6219,7 +6276,8 @@
             "27.0"
           ],
           "signature" : "size_t GetAvailableStreamFormats(IOUserAudioStreamBasicDescription*, size_t)",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -6236,7 +6294,8 @@
             "27.0"
           ],
           "signature" : "size_t GetNumberAvailableStreamFormats()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -6253,7 +6312,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetLatency()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
@@ -6270,7 +6330,8 @@
             "27.0"
           ],
           "signature" : "uint32_t GetStartingChannel()",
-          "status" : "gap"
+          "status" : "swift-api",
+          "swiftSymbol" : "audioStreamState"
         },
         {
           "access" : "public",
