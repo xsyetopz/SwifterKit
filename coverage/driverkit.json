@@ -6604,14 +6604,15 @@
 
           ],
           "name" : "DoAsyncUnmap",
-          "note" : "the inherited LOCAL implementation maps the range buffer and passes the ranges to DoAsyncUnmapPriv, which the runtime overrides to forward unmap requests to Swift as BlockStorageRequest.unmap; overriding DoAsyncUnmap too would bypass that path",
+          "note" : "unmap requests reach Swift as BlockStorageRequest.unmap and are completed with completeBlockStorageRequest; the inherited DoAsyncUnmap hands off to the runtime's DoAsyncUnmapPriv override",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "kern_return_t DoAsyncUnmap(uint32_t, IOMemoryDescriptor*, uint32_t)",
-          "status" : "excluded"
+          "status" : "swift-api",
+          "swiftSymbol" : "BlockStorageRequest"
         },
         {
           "access" : "private",
