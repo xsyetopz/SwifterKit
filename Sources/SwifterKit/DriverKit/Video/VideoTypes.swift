@@ -142,6 +142,10 @@ public struct VideoDeviceConfiguration: Sendable, Hashable {
   public let controls: [VideoControlConfiguration]
   /// String-backed custom properties.
   public let customProperties: [VideoCustomPropertyConfiguration]
+  /// Boxes that group the device and clock devices, at most four.
+  public let boxes: [VideoBoxConfiguration]
+  /// Clock-only devices, at most four.
+  public let clockDevices: [VideoClockDeviceConfiguration]
 
   /// Creates one device and its stream topology.
   public init(
@@ -154,7 +158,9 @@ public struct VideoDeviceConfiguration: Sendable, Hashable {
     initialSampleRate: Double,
     streams: [VideoStreamConfiguration],
     controls: [VideoControlConfiguration] = [],
-    customProperties: [VideoCustomPropertyConfiguration] = []
+    customProperties: [VideoCustomPropertyConfiguration] = [],
+    boxes: [VideoBoxConfiguration] = [],
+    clockDevices: [VideoClockDeviceConfiguration] = []
   ) {
     self.deviceUID = deviceUID
     self.modelUID = modelUID
@@ -166,6 +172,8 @@ public struct VideoDeviceConfiguration: Sendable, Hashable {
     self.streams = streams
     self.controls = controls
     self.customProperties = customProperties
+    self.boxes = boxes
+    self.clockDevices = clockDevices
   }
 }
 
@@ -329,4 +337,12 @@ public enum VideoRuntimeError: Error, Sendable, Equatable {
   case invalidControlValue
   /// A custom-property qualifier or value is malformed.
   case invalidCustomPropertyValue
+  /// An object target is not valid for the command.
+  case invalidObjectTarget
+  /// A name is empty, longer than 255 UTF-8 bytes, or contains NUL.
+  case invalidName
+  /// Property selectors are empty, more than 32, or contain zero.
+  case invalidPropertySelectors
+  /// Clock rates are empty, duplicated, more than 16, or not finite and positive.
+  case invalidSampleRates
 }
