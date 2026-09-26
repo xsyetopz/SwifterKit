@@ -87,8 +87,10 @@ extension DriverContext {
   /// may access the device until the call returns. DriverKit saves configuration state before the
   /// reset and restores it afterwards. The call blocks until the link is up again, except for
   /// ``PCIResetType/warmDisable``, which leaves the device unusable until a
-  /// ``PCIResetType/warmEnable`` reset. With ``PCIResetOptions/terminate``, DriverKit terminates
-  /// the device and this extension, so the response may never arrive.
+  /// ``PCIResetType/warmEnable`` reset. With ``PCIResetOptions/terminate``, DriverKit starts
+  /// terminating the device and this extension without waiting for it, so the call still returns
+  /// the reset's result. Later calls fail once the service stops, and a call in flight when the
+  /// connection closes throws a ``DriverKitError``.
   public func pciReset(type: PCIResetType, options: PCIResetOptions = []) async throws {
     _ = try await execute(.pciReset(type: type, options: options))
   }

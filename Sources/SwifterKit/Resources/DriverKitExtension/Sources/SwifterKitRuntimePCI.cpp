@@ -431,7 +431,14 @@ kern_return_t SwifterKitRuntimeService::PCIControl(
             }
             // Reset can change BAR assignments; reload them before the next aperture access.
             ivars->pciAperturesLoaded = false;
-            return device->Reset(header.type, header.options);
+            // With kIOPCIDeviceResetOptionTerminate, Reset starts the asynchronous termination
+            // "but not block on its completion" (IOPCIFamilyDefinitions.h), so it returns and the
+            // caller answers Swift with its result. Termination can stop this service
+            // concurrently and release ivars->pciDevice, so hold the device across the call.
+            device->retain();
+            const kern_return_t result = device->Reset(header.type, header.options);
+            device->release();
+            return result;
         }
         case SwifterKitRuntimeOpcode::PCISaveDeviceState: {
             uint32_t options = 0;

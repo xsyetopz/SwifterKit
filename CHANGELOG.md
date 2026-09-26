@@ -51,6 +51,11 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- `pciReset(type:options:)` with `.terminate` now documents that the call
+  returns the reset's result: DriverKit starts termination without waiting for
+  it. The extension holds the PCI device across the reset, since termination
+  can stop the service concurrently. Before this, the documentation said the
+  response might never arrive.
 - A serial extension whose start fails after its queues are connected now
   disconnects them before the service stops.
 - A generated `IOUserHIDDevice` or `IOUserUSBHostHIDDevice` that accepts

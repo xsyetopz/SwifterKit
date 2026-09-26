@@ -155,6 +155,20 @@ struct DriverExtensionPCIGeneratorTests {
     #expect(control.contains("!IsPowerManagementState(state)"))
     #expect(control.contains("!IsLinkSpeed(header.speed)"))
     #expect(control.contains("(state & ~kASPMMask) != 0"))
+
+    // A terminating reset returns without waiting for termination, so Swift gets its result.
+    let reset = try section(
+      of: String(control),
+      from: "case SwifterKitRuntimeOpcode::PCIReset:",
+      to: "case SwifterKitRuntimeOpcode::PCISaveDeviceState:"
+    )
+    let retain = try #require(reset.range(of: "device->retain();")?.lowerBound)
+    let call = try #require(
+      reset.range(of: "device->Reset(header.type, header.options)")?.lowerBound
+    )
+    let release = try #require(reset.range(of: "device->release();")?.lowerBound)
+    #expect(retain < call && call < release)
+    #expect(reset.contains("return result;"))
   }
 
   private func packagedSource(_ name: String) throws -> String {
