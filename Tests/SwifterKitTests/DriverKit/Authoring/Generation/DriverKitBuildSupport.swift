@@ -70,14 +70,49 @@ func expectGeneratedExtensionBuilds(
     derivedData.path, "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "DEVELOPMENT_TEAM=",
     "ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO", "GCC_TREAT_WARNINGS_AS_ERRORS=YES",
   ]
-  if let target, target < sdk.minimumDeploymentTarget {
-    let minimum = sdk.minimumDeploymentTarget
-    arguments.append("DRIVERKIT_DEPLOYMENT_TARGET=\(minimum.major).\(minimum.minor)")
+  let builtTarget = max(target ?? sdk.minimumDeploymentTarget, sdk.minimumDeploymentTarget)
+  if let target, target < builtTarget {
+    arguments.append("DRIVERKIT_DEPLOYMENT_TARGET=\(builtTarget.major).\(builtTarget.minor)")
   }
   arguments.append("build")
   let build = try runTool("/usr/bin/xcrun", arguments, currentDirectory: directory)
   #expect(build.status == 0, Comment(rawValue: build.output), sourceLocation: sourceLocation)
+  if build.status == 0,
+    let capture = ProcessInfo.processInfo.environment["SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE"]
+  {
+    try captureForNativeAnalysis(
+      directory,
+      derivedData: derivedData,
+      target: builtTarget,
+      into: URL(fileURLWithPath: capture)
+    )
+  }
   return build.status == 0
+}
+
+/// Copies a built tree's sources, IIG-generated headers, and deployment target so
+/// `scripts/ci/validate-native.sh` can analyze every family configuration the build tests cover.
+private func captureForNativeAnalysis(
+  _ directory: URL,
+  derivedData: URL,
+  target: DriverKitDeploymentVersion,
+  into capture: URL
+) throws {
+  let generated = try #require(
+    FileManager.default.enumerator(at: derivedData, includingPropertiesForKeys: nil)?.compactMap {
+      $0 as? URL
+    }.first { $0.path.hasSuffix("/DerivedSources/SwifterKitRuntime") }
+  )
+  let tree = capture.appendingPathComponent(UUID().uuidString)
+  try FileManager.default.createDirectory(at: tree, withIntermediateDirectories: true)
+  try FileManager.default.copyItem(
+    at: directory.appendingPathComponent("Sources"),
+    to: tree.appendingPathComponent("Sources")
+  )
+  try FileManager.default.copyItem(at: generated, to: tree.appendingPathComponent("DerivedSources"))
+  try Data("\(target.major).\(target.minor)\n".utf8).write(
+    to: tree.appendingPathComponent("DeploymentTarget")
+  )
 }
 
 /// Runs a tool with the DriverKit Xcode and without the caller's `TOOLCHAINS` override, so

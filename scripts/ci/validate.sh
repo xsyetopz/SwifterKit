@@ -3,7 +3,10 @@ set -euo pipefail
 
 xcrun swift-format lint --strict --recursive Sources Tests Package.swift
 swiftlint lint --strict Sources Tests Package.swift
-swift test -Xswiftc -warnings-as-errors
+# The generated-extension build tests keep each built tree for validate-native.sh to analyze.
+generated_trees="$PWD/.build/SwifterKitGeneratedTrees"
+rm -rf "$generated_trees"
+SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE="$generated_trees" swift test -Xswiftc -warnings-as-errors
 swift build -c release -Xswiftc -warnings-as-errors
 
 # Remove symbol graphs left by earlier builds or other toolchains so only this dump is found.
@@ -79,7 +82,7 @@ xcodebuild -quiet \
 	DRIVERKIT_DEPLOYMENT_TARGET="$driverkit_target" \
 	analyze
 
-./scripts/ci/validate-native.sh "$derived_data"
+./scripts/ci/validate-native.sh "$derived_data" "$generated_trees"
 
 plutil -lint \
 	Sources/SwifterKit/Resources/DriverKitExtension/Info.plist \
