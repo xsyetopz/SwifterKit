@@ -260,7 +260,8 @@ public struct SCSIParallelTaskCompletion: Sendable, Hashable {
     featureResults: [SCSIParallelFeatureResult] = [],
     senseData: [UInt8] = []
   ) throws {
-    guard featureResults.count <= 5, senseData.count <= 256, taskStatus.rawValue <= UInt8.max,
+    guard featureResults.count <= RuntimeSCSILimits.maximumFeatureRequests, senseData.count <= 256,
+      taskStatus.rawValue <= UInt8.max,
       serviceResponse.rawValue <= SCSIServiceResponse.functionRejected.rawValue,
       featureResults.allSatisfy({ $0.rawValue <= SCSIParallelFeatureResult.success.rawValue })
     else { throw SCSIControllerRuntimeError.invalidCompletion }

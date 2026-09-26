@@ -25,6 +25,13 @@ enum RuntimeSCSILimits {
   static let propertyKeyMaximumLength = 127
   /// The longest property value, in UTF-8 bytes; the wire carries it in a `u16`.
   static let propertyValueMaximumLength = 1_024
+  /// The most parallel-feature requests or results one task carries,
+  /// `kSCSIParallelFeature_TotalFeatureCount`.
+  static let maximumFeatureRequests = 5
+  /// The longest Command Descriptor Block, `kSCSICDBSize_Maximum`.
+  static let commandDescriptorBlockMaximumSize = 16
+  /// The most data bytes one peripheral CDB command moves through a runtime message.
+  static let peripheralMaximumDataLength = 61_440
 }
 
 /// The `IOUserBlockStorageDevice` call a `blockStorage` event forwards.

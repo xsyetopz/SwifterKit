@@ -367,6 +367,9 @@ enum class SwifterKitSCSIManagementKind : uint32_t {
     TargetReset = 7,
 };
 static constexpr uint32_t kSwifterKitSCSIMaximumPropertyCount = 32;
+static constexpr uint32_t kSwifterKitSCSIMaximumFeatureRequests = 5;
+static constexpr uint32_t kSwifterKitSCSICommandDescriptorBlockMaximumSize = 16;
+static constexpr uint32_t kSwifterKitSCSIPeripheralMaximumDataLength = 61440;
 static constexpr uint16_t kSwifterKitSCSIPropertyKeyMaximumLength = 127;
 static constexpr uint16_t kSwifterKitSCSIPropertyValueMaximumLength = 1024;
 

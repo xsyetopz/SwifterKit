@@ -10,7 +10,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(completion.serviceResponse.rawValue)
     payload.appendRuntimeInteger(completion.bytesTransferred)
     payload.appendRuntimeInteger(UInt32(completion.senseData.count))
-    for index in 0..<5 {
+    for index in 0..<RuntimeSCSILimits.maximumFeatureRequests {
       payload.appendRuntimeInteger(
         index < completion.featureResults.count ? completion.featureResults[index].rawValue : 0
       )
@@ -51,9 +51,9 @@ extension SCSIParallelTask {
     guard data.count == 100 else { throw SCSIControllerRuntimeError.invalidPayload }
     let requestCount: UInt32 = try data.readRuntimeInteger(at: 4)
     let commandSize = Int(data[54])
-    guard requestCount <= 5, (1...16).contains(commandSize), data[55] == 0 else {
-      throw SCSIControllerRuntimeError.invalidPayload
-    }
+    guard requestCount <= RuntimeSCSILimits.maximumFeatureRequests,
+      (1...RuntimeSCSILimits.commandDescriptorBlockMaximumSize).contains(commandSize), data[55] == 0
+    else { throw SCSIControllerRuntimeError.invalidPayload }
     requestID = try data.readRuntimeInteger(at: 0)
     targetIdentifier = try data.readRuntimeInteger(at: 8)
     controllerTaskIdentifier = try data.readRuntimeInteger(at: 16)

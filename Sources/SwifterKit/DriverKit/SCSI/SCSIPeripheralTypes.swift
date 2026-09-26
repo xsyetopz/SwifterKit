@@ -111,7 +111,7 @@ public struct SCSIPeripheralConfiguration: Sendable, Hashable {
 /// One custom Command Descriptor Block request.
 public struct SCSIPeripheralCommand: Sendable, Hashable {
   /// Maximum data bytes transported through one runtime call.
-  public static let maximumDataLength = 61_440
+  public static let maximumDataLength = RuntimeSCSILimits.peripheralMaximumDataLength
 
   /// Logical unit receiving the command.
   public let logicalUnitNumber: UInt64
@@ -138,8 +138,10 @@ public struct SCSIPeripheralCommand: Sendable, Hashable {
     requestedDataLength: UInt32 = 0,
     requestedSenseLength: UInt8 = 0
   ) throws {
-    guard (1...16).contains(commandDescriptorBlock.count),
-      transferDirection.rawValue <= SCSIDataTransferDirection.targetToInitiator.rawValue,
+    guard
+      (1...RuntimeSCSILimits.commandDescriptorBlockMaximumSize).contains(
+        commandDescriptorBlock.count
+      ), transferDirection.rawValue <= SCSIDataTransferDirection.targetToInitiator.rawValue,
       outboundData.count <= Self.maximumDataLength, requestedDataLength <= Self.maximumDataLength
     else { throw SCSIPeripheralRuntimeError.invalidCommand }
 

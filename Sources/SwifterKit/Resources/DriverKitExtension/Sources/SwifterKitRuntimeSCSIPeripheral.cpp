@@ -12,7 +12,7 @@
     #include "SwifterKitRuntimeProtocol.h"
 
 namespace {
-    constexpr uint32_t kMaximumPeripheralDataLength = 61'440;
+    static_assert(kSwifterKitSCSICommandDescriptorBlockMaximumSize == kSCSICDBSize_Maximum);
 
     #if SWIFTERKIT_SCSI_PERIPHERAL_TYPE == 0
     using PeripheralOutParameters = SCSIType00OutParameters;
@@ -155,7 +155,7 @@ kern_return_t SwifterKitRuntimeService::SCSIPeripheralCommand(
     const auto* header = reinterpret_cast<const SwifterKitSCSIPeripheralCommandHeader*>(payload);
     const uint8_t* outboundBytes = payload + sizeof(*header);
     const uint32_t outboundLength = payloadLength - sizeof(*header);
-    if (header->requestedDataLength > kMaximumPeripheralDataLength
+    if (header->requestedDataLength > kSwifterKitSCSIPeripheralMaximumDataLength
         || header->transferDirection > kSCSIDataTransfer_FromTargetToInitiator
         || !ReservedBytesAreZero(header->reserved, sizeof(header->reserved))) {
         return kIOReturnBadArgument;

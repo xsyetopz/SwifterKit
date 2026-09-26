@@ -79,6 +79,38 @@ struct SCSIControllerRuntimeContractTests {
   }
 
   @Test
+  func nativeTaskAndPeripheralBoundsComeFromTheSchema() throws {
+    try withGeneratedExtension { output in
+      let header = try source(RuntimeSchemaHeader.fileName, in: output)
+      let scsi = RuntimeSCSILimits.self
+      #expect(header.contains("kSwifterKitSCSIMaximumFeatureRequests = 5;"))
+      #expect(header.contains("kSwifterKitSCSICommandDescriptorBlockMaximumSize = 16;"))
+      #expect(
+        header.contains(
+          "kSwifterKitSCSIPeripheralMaximumDataLength = \(SCSIPeripheralCommand.maximumDataLength);"
+        )
+      )
+      #expect(scsi.maximumFeatureRequests == 5 && scsi.commandDescriptorBlockMaximumSize == 16)
+      let protocolHeader = try source("SwifterKitRuntimeProtocol.h", in: output)
+      #expect(protocolHeader.contains("featureRequests[kSwifterKitSCSIMaximumFeatureRequests];"))
+      let task = try source("SwifterKitRuntimeSCSI.cpp", in: output)
+      #expect(
+        task.contains(
+          "static_assert(kSwifterKitSCSIMaximumFeatureRequests == "
+            + "kSCSIParallelFeature_TotalFeatureCount);"
+        )
+      )
+      #expect(
+        task.contains("request.fCommandSize > kSwifterKitSCSICommandDescriptorBlockMaximumSize")
+      )
+      let peripheral = try source("SwifterKitRuntimeSCSIPeripheral.cpp", in: output)
+      #expect(
+        peripheral.contains("requestedDataLength > kSwifterKitSCSIPeripheralMaximumDataLength")
+      )
+    }
+  }
+
+  @Test
   func releasesTaskBuffersOnEveryExitAndAnswersBundledTasks() throws {
     try withGeneratedExtension { output in
       let scsi = try source("SwifterKitRuntimeSCSI.cpp", in: output)

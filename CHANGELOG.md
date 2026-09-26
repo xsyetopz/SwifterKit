@@ -104,6 +104,8 @@ SwifterKit records user-visible changes in this file.
   value kinds with the MIDI driver class, listed-object, name, and property
   limits, which the SCSI, BlockStorage, Serial, USBSerial, and MIDI runtime
   sources and their Swift decoders each spelled out, come from the same schema.
+  So do the SCSI parallel-task feature-request and CDB-size bounds and the SCSI
+  peripheral data limit.
 - The queued `UserCreateTargetForID` discarded the result of enqueueing its
   required `SCSIControllerEvent.targetCreated` event, so a registered host that
   had let the required queue fill lost the event. The create's queue now

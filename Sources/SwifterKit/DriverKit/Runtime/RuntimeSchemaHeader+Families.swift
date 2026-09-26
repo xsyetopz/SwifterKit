@@ -98,7 +98,15 @@ extension RuntimeSchemaHeader {
         ),
         constants(
           "uint32_t",
-          [("kSwifterKitSCSIMaximumPropertyCount", "\(scsi.maximumPropertyCount)")]
+          [
+            ("kSwifterKitSCSIMaximumPropertyCount", "\(scsi.maximumPropertyCount)"),
+            ("kSwifterKitSCSIMaximumFeatureRequests", "\(scsi.maximumFeatureRequests)"),
+            (
+              "kSwifterKitSCSICommandDescriptorBlockMaximumSize",
+              "\(scsi.commandDescriptorBlockMaximumSize)"
+            ),
+            ("kSwifterKitSCSIPeripheralMaximumDataLength", "\(scsi.peripheralMaximumDataLength)"),
+          ]
         ),
         constants(
           "uint16_t",

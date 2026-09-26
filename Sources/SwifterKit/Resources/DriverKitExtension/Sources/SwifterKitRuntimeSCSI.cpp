@@ -14,6 +14,9 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 namespace {
+    static_assert(kSwifterKitSCSIMaximumFeatureRequests == kSCSIParallelFeature_TotalFeatureCount);
+    static_assert(kSwifterKitSCSICommandDescriptorBlockMaximumSize == kSCSICDBSize_Maximum);
+
     // SwifterKitSCSIManagementKind comes from RuntimeSchema+Storage.swift.
     using ManagementKind = SwifterKitSCSIManagementKind;
 
@@ -264,8 +267,9 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
     // with a delivery failure and reports Request_In_Process, as an enqueue failure does.
     *response = kSCSIServiceResponse_Request_In_Process;
     if (request.version != kScsiUserParallelTaskCurrentVersion1
-        || request.fSCSIParallelFeatureRequestCount > kSCSIParallelFeature_TotalFeatureCount
-        || request.fCommandSize == 0 || request.fCommandSize > kSCSICDBSize_Maximum) {
+        || request.fSCSIParallelFeatureRequestCount > kSwifterKitSCSIMaximumFeatureRequests
+        || request.fCommandSize == 0
+        || request.fCommandSize > kSwifterKitSCSICommandDescriptorBlockMaximumSize) {
         CompleteWithDeliveryFailure(this, completion, request);
         return kIOReturnSuccess;
     }
@@ -421,8 +425,7 @@ kern_return_t SwifterKitRuntimeService::SCSICommand(
         return kIOReturnBadArgument;
     }
     const auto* header = reinterpret_cast<const SwifterKitSCSICompletionHeader*>(payload);
-    if (header->requestID == 0
-        || header->featureResultCount > kSCSIParallelFeature_TotalFeatureCount
+    if (header->requestID == 0 || header->featureResultCount > kSwifterKitSCSIMaximumFeatureRequests
         || header->taskStatus > UINT8_MAX
         || header->serviceResponse > kSCSIServiceResponse_FUNCTION_REJECTED
         || header->senseLength > kMaxSenseBufferSize

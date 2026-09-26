@@ -8,7 +8,13 @@ extension DriverCommand {
     payload.appendRuntimeInteger(command.timeoutMilliseconds)
     payload.appendRuntimeInteger(command.requestedDataLength)
     payload.append(contentsOf: command.commandDescriptorBlock)
-    payload.append(contentsOf: repeatElement(0, count: 16 - command.commandDescriptorBlock.count))
+    payload.append(
+      contentsOf: repeatElement(
+        0,
+        count: RuntimeSCSILimits.commandDescriptorBlockMaximumSize
+          - command.commandDescriptorBlock.count
+      )
+    )
     payload.append(UInt8(command.transferDirection.rawValue))
     payload.append(command.requestedSenseLength)
     payload.append(contentsOf: repeatElement(0, count: 6))

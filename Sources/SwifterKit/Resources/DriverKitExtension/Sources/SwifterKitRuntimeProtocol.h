@@ -459,7 +459,7 @@ struct __attribute__((packed)) SwifterKitSCSIPeripheralCommandHeader {
     uint64_t logicalUnitNumber;
     uint32_t timeoutMilliseconds;
     uint32_t requestedDataLength;
-    uint8_t commandDescriptorBlock[16];
+    uint8_t commandDescriptorBlock[kSwifterKitSCSICommandDescriptorBlockMaximumSize];
     uint8_t transferDirection;
     uint8_t requestedSenseLength;
     uint8_t reserved[6];
@@ -489,8 +489,8 @@ struct __attribute__((packed)) SwifterKitSCSIParallelTaskEvent {
     uint8_t commandSize;
     uint8_t reserved;
     uint8_t logicalUnitBytes[8];
-    uint8_t commandDescriptorBlock[16];
-    uint32_t featureRequests[5];
+    uint8_t commandDescriptorBlock[kSwifterKitSCSICommandDescriptorBlockMaximumSize];
+    uint32_t featureRequests[kSwifterKitSCSIMaximumFeatureRequests];
 };
 
 struct __attribute__((packed)) SwifterKitSCSIManagementEvent {
@@ -515,7 +515,7 @@ struct __attribute__((packed)) SwifterKitSCSICompletionHeader {
     uint32_t serviceResponse;
     uint64_t bytesTransferred;
     uint32_t senseLength;
-    uint32_t featureResults[5];
+    uint32_t featureResults[kSwifterKitSCSIMaximumFeatureRequests];
 };
 
 // Precedes the entries of the SCSI create-target and property commands. Each entry is a
