@@ -45,7 +45,7 @@ struct DriverExtensionUSBContractTests {
       #expect(check.upperBound < buffer.lowerBound)
       #expect(outputCheck.upperBound < buffer.lowerBound)
       #expect(submit.contains("header->frameCount > kSwifterKitUSBMaximumIsochronousFrames"))
-      #expect(submit.contains("eventLength > kSwifterKitUSBMaximumEventPayload"))
+      #expect(submit.contains("eventLength > kSwifterKitMaximumEventPayloadLength"))
       #expect(submit.contains("bytesLength != (input ? 0 : total)"))
       #expect(submit.contains("return kIOReturnNoResources;"))
 

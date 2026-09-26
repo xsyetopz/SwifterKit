@@ -355,7 +355,7 @@ kern_return_t SwifterKitRuntimeService::USBPipeCommand(
         const uint64_t eventLength =
             sizeof(SwifterKitUSBIsochIOEvent)
             + uint64_t {header->frameCount} * sizeof(SwifterKitUSBIsochFrame) + (input ? total : 0);
-        if (total == 0 || eventLength > kSwifterKitUSBMaximumEventPayload
+        if (total == 0 || eventLength > kSwifterKitMaximumEventPayloadLength
             || bytesLength != (input ? 0 : total)) {
             return kIOReturnBadArgument;
         }

@@ -34,9 +34,6 @@
 //   is dropped.
 
 namespace {
-    constexpr uint32_t kMaximumEventPayloadLength =
-        kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);
-
     SwifterKitServiceWatch* FindWatch(SwifterKitRuntimeService_IVars* state, uint32_t watchID) {
         for (auto& slot : state->watches) {
             if (watchID != 0 && slot.watchID == watchID) {
@@ -361,7 +358,7 @@ void SwifterKitRuntimeService::SystemStateChanged_Impl(OSAction* action) {
             if (valid && value != nullptr) {
                 // A value too large for one event travels without its dictionary.
                 const size_t prefix = event->getLength();
-                if (SwifterKitEncodeProperty(value, event, kMaximumEventPayloadLength)
+                if (SwifterKitEncodeProperty(value, event, kSwifterKitMaximumEventPayloadLength)
                     != kIOReturnSuccess) {
                     OSData* truncated = OSData::withBytes(event->getBytesNoCopy(), prefix);
                     OSSafeReleaseNULL(event);

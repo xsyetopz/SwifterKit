@@ -16,9 +16,6 @@ static constexpr uint32_t kSwifterKitUSBMaximumCommandPayload =
 // The largest payload in one response after the runtime header.
 static constexpr uint32_t kSwifterKitUSBMaximumResponsePayload =
     kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize;
-// The largest event payload after the runtime header and the event type.
-static constexpr uint32_t kSwifterKitUSBMaximumEventPayload =
-    kSwifterKitUSBMaximumResponsePayload - sizeof(uint32_t);
 
 // A descriptor response is its full length followed by the bytes when they fit.
 static constexpr uint32_t kSwifterKitUSBMaximumDescriptorLength =
@@ -183,12 +180,12 @@ struct __attribute__((packed)) SwifterKitUSBAdjustPipeRequest {
 };
 
 static constexpr uint32_t kSwifterKitUSBMaximumAsyncRequestInputLength =
-    kSwifterKitUSBMaximumEventPayload - sizeof(SwifterKitUSBDeviceRequestEvent);
+    kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitUSBDeviceRequestEvent);
 static constexpr uint32_t kSwifterKitUSBMaximumBundleBufferLength =
-    kSwifterKitUSBMaximumEventPayload - sizeof(SwifterKitUSBBundledIOEvent);
+    kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitUSBBundledIOEvent);
 
 static constexpr uint32_t kSwifterKitUSBMaximumAsyncInputLength =
-    kSwifterKitUSBMaximumEventPayload - sizeof(SwifterKitUSBPipeIOEvent);
+    kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitUSBPipeIOEvent);
 static constexpr uint32_t kSwifterKitUSBMaximumAsyncOutputLength =
     kSwifterKitUSBMaximumCommandPayload - sizeof(SwifterKitUSBAsyncIOHeader);
 

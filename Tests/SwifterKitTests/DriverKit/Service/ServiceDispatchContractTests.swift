@@ -126,8 +126,12 @@ struct ServiceDispatchContractTests {
       let copy = try #require(watches.range(of: "->StateNotificationItemCopy(name")?.lowerBound)
       #expect(begin < copy)
       #expect(
-        watches.contains("SwifterKitEncodeProperty(value, event, kMaximumEventPayloadLength)")
+        watches.contains(
+          "SwifterKitEncodeProperty(value, event, kSwifterKitMaximumEventPayloadLength)"
+        )
       )
+      // The shared protocol bound is the only copy, so the limits cannot drift.
+      #expect(!watches.contains("kMaximumEventPayloadLength ="))
     }
   }
 
