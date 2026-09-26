@@ -36,8 +36,9 @@ struct AudioGeneratorTests {
       at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
     )
     #expect(entitlements["com.apple.developer.driverkit.family.audio"] as? Bool == true)
-    // coreaudiod's driver-access entitlement admits any dext holding family.audio.
-    #expect(entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] == nil)
+    #expect(
+      entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] as? Bool == true
+    )
 
     let config = try String(
       contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeConfiguration.h"),

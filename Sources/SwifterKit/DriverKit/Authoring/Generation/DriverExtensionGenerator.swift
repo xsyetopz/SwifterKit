@@ -413,15 +413,13 @@ public enum DriverExtensionGenerator {
     if configuration.capabilities.contains(.networking) {
       entitlements["com.apple.developer.driverkit.family.networking"] = true
     }
-    // coreaudiod opens the audio family user client through its
-    // com.apple.private.driverkit.driver-access entitlement, which admits any
-    // dext holding family.audio, so audio needs no allow-any-userclient-access.
+    // Audio and video system daemons open the family user-client types, which
+    // bypass SwifterKitRuntimeUserClient. The runtime client still checks the
+    // host's userclient-access entitlement for this bundle identifier.
     if configuration.capabilities.contains(.audio) {
       entitlements["com.apple.developer.driverkit.family.audio"] = true
+      entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] = true
     }
-    // The video system service opens the family user-client type, which
-    // bypasses SwifterKitRuntimeUserClient. The runtime client still checks the
-    // host's userclient-access entitlement for this bundle identifier.
     if configuration.capabilities.contains(.video) {
       entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] = true
     }
