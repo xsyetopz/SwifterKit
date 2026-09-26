@@ -98,11 +98,11 @@ struct PCIControlCommandsTests {
     }.appendingPathComponent("Sources/SwifterKit/Resources/DriverKitExtension/Sources")
       .appendingPathComponent("SwifterKitRuntimeCommandDispatch.cpp")
     let source = try String(contentsOf: userClient, encoding: .utf8)
-    // Native opcode names come from the rendered schema, e.g. "    PCIReset = 0x0410,".
-    let names = RuntimeSchemaHeader.render().split(separator: "\n").compactMap { line in
-      line.contains(" = 0x04") ? line.split(separator: " ").first.map(String.init) : nil
+    // Native opcode names are the schema's, e.g. `PCIReset` for `RuntimeOpcode.pciReset`.
+    let names = RuntimeOpcode.allCases.filter { $0.rawValue >> 8 == 0x04 }.map {
+      RuntimeSchemaHeader.nativeName($0)
     }
-    #expect(names.count == RuntimeOpcode.allCases.filter { $0.rawValue >> 8 == 0x04 }.count)
+    #expect(!names.isEmpty)
     for name in names {
       #expect(source.contains("case SwifterKitRuntimeOpcode::\(name):"), "\(name)")
     }
