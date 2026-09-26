@@ -230,8 +230,13 @@ kern_return_t SwifterKitRuntimeAudioDevice::SetDeviceProperty(
                 return kIOReturnBadArgument;
             return SetPreferredChannelsForStereo(low, high);
         case 7:
+    #if defined(__DRIVERKIT_25_5) && __DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5
             SetWantsStreamFormatsRestored(value != 0);
             return kIOReturnSuccess;
+    #else
+            // DriverKit SDKs before 25.5 do not declare SetWantsStreamFormatsRestored.
+            return kIOReturnUnsupported;
+    #endif
         default:
             return kIOReturnBadArgument;
     }

@@ -129,7 +129,8 @@ public enum AudioDeviceProperty: Sendable, Hashable {
   case outputSafetyOffset(UInt32)
   /// `SetPreferredChannelsForStereo`, as one-based channel numbers.
   case preferredStereoChannels(AudioStereoChannels)
-  /// `SetWantsStreamFormatsRestored`.
+  /// `SetWantsStreamFormatsRestored`. Extensions built with a DriverKit SDK older than 25.5
+  /// fail it with `kIOReturnUnsupported`.
   case wantsStreamFormatsRestored(Bool)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {

@@ -25,6 +25,9 @@ struct AudioDeviceRuntimeContractTests {
         "SetPanningChannels(", "GetCustomPropertyInfo()", "RemoveStream(",
         "driver->RemoveCustomProperty(property)",
       ] { #expect(members.contains(call), "missing \(call)") }
+      let restore = try section(of: members, from: "case 7:", to: "default:")
+      #expect(restore.contains("__DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5"))
+      #expect(restore.contains("return kIOReturnUnsupported;"))
       let teardown = try section(
         of: members,
         from: "::RemoveControlsAndProperties()",
