@@ -25,21 +25,8 @@ extension DriverExtensionGenerator {
     }.joined(separator: ",\n")
     let boxCapacity = max(boxes.count, 1)
     let rates = clocks.flatMap(\.sampleRates).map { String($0) }.joined(separator: ", ")
-    return """
+    return "\n" + mediaBoxStructDeclaration(family: "Audio") + """
 
-      struct SwifterKitAudioBoxConfiguration {
-          const char* uid;
-          const char* name;
-          uint32_t transport;
-          bool isAcquirable;
-          bool isAcquired;
-          bool hasAudio;
-          bool hasMIDI;
-          bool hasVideo;
-          bool isProtected;
-          bool ownsDevice;
-          uint32_t clockMask;
-      };
       struct SwifterKitAudioClockConfiguration {
           const char* deviceUID;
           const char* modelUID;

@@ -21,42 +21,8 @@ extension DriverExtensionGenerator {
           uint32_t initialFormatIndex;
           uint32_t ringBufferFrameCapacity;
       };
-      struct SwifterKitAudioControlConfiguration {
-          uint32_t kind;
-          uint32_t identifier;
-          const char* name;
-          bool isSettable;
-          uint32_t element;
-          uint32_t scope;
-          uint32_t classID;
-          uint32_t value;
-          uint32_t minimum;
-          uint32_t maximum;
-          uint32_t auxiliary0;
-          uint32_t auxiliary1;
-          uint32_t selectorStart;
-          uint32_t selectorCount;
-          uint32_t initialStart;
-          uint32_t initialCount;
-      };
-      struct SwifterKitAudioSelectorConfiguration {
-          uint32_t value;
-          const char* name;
-      };
-      struct SwifterKitAudioCustomPropertyConfiguration {
-          uint32_t identifier;
-          uint32_t selector;
-          uint32_t scope;
-          uint32_t element;
-          bool isSettable;
-          uint32_t valueStart;
-          uint32_t valueCount;
-      };
-      struct SwifterKitAudioCustomPropertyValueConfiguration {
-          const char* qualifier;
-          const char* value;
-      };
-      """
+
+      """ + mediaControlStructDeclarations(family: "Audio")
 
     guard let audio = configuration.audioDevice else {
       return declarations + """
@@ -73,17 +39,8 @@ extension DriverExtensionGenerator {
         static constexpr SwifterKitAudioFormatConfiguration kSwifterKitAudioFormats[1] = {};
         static constexpr SwifterKitAudioStreamConfiguration kSwifterKitAudioStreams[1] = {};
         static constexpr uint32_t kSwifterKitAudioStreamCount = 0;
-        static constexpr SwifterKitAudioControlConfiguration kSwifterKitAudioControls[1] = {};
-        static constexpr uint32_t kSwifterKitAudioControlCount = 0;
-        static constexpr SwifterKitAudioSelectorConfiguration kSwifterKitAudioSelectors[1] = {};
-        static constexpr uint32_t kSwifterKitAudioSelectorCount = 0;
-        static constexpr uint32_t kSwifterKitAudioInitialSelections[1] = {};
-        static constexpr SwifterKitAudioCustomPropertyConfiguration
-            kSwifterKitAudioCustomProperties[1] = {};
-        static constexpr uint32_t kSwifterKitAudioCustomPropertyCount = 0;
-        static constexpr SwifterKitAudioCustomPropertyValueConfiguration
-            kSwifterKitAudioCustomPropertyValues[1] = {};
-        """ + audioTopologyDeclarations(nil)
+
+        """ + mediaEmptyControlTables(family: "Audio") + audioTopologyDeclarations(nil)
     }
 
     let formats = audio.streams.flatMap(\.formats).map { format in
@@ -99,69 +56,6 @@ extension DriverExtensionGenerator {
         + "\(stream.ringBufferFrameCapacity)}"
     }.joined(separator: ",\n")
 
-    var selectorStart = 0
-    var initialStart = 0
-    let controls = audio.controls.map { control -> String in
-      let metadata = control.metadata
-      typealias Kind = RuntimeAudioControlKind
-      var fields: [UInt32]
-      switch control {
-      case .boolean(let value):
-        fields = [Kind.boolean.rawValue, value.initialValue ? 1 : 0, 0, 1, 0, 0, 0, 0, 0]
-      case .level(let value):
-        fields = [
-          Kind.level.rawValue, value.initialDecibels.bitPattern, value.minimumDecibels.bitPattern,
-          value.maximumDecibels.bitPattern, 0, 0, 0, 0, 0,
-        ]
-      case .selector(let value):
-        fields = [
-          Kind.selector.rawValue, 0, 0, 0, 0, UInt32(selectorStart), UInt32(value.values.count),
-          UInt32(initialStart), UInt32(value.initialValues.count),
-        ]
-        selectorStart += value.values.count
-        initialStart += value.initialValues.count
-      case .slider(let value):
-        fields = [
-          Kind.slider.rawValue, value.initialValue, value.minimumValue, value.maximumValue, 0, 0, 0,
-          0, 0,
-        ]
-      case .stereoPan(let value):
-        fields = [
-          Kind.stereoPan.rawValue, value.initialValue.bitPattern, 0, 0, value.leftChannel, 0, 0, 0,
-          0,
-        ]
-      }
-      let auxiliary1: UInt32
-      if case .stereoPan(let value) = control {
-        auxiliary1 = value.rightChannel
-      } else {
-        auxiliary1 = 0
-      }
-      return "    {\(fields[0]), \(metadata.identifier), \(cString(metadata.name)), "
-        + "\(metadata.isSettable ? "true" : "false"), \(metadata.element), "
-        + "\(metadata.scope.rawValue), \(metadata.controlClass.rawValue), \(fields[1]), "
-        + "\(fields[2]), \(fields[3]), \(fields[4]), \(auxiliary1), \(fields[5]), "
-        + "\(fields[6]), \(fields[7]), \(fields[8])}"
-    }.joined(separator: ",\n")
-    let selectors = audio.controls.compactMap { control -> [AudioSelectorValue]? in
-      guard case .selector(let value) = control else { return nil }
-      return value.values
-    }.flatMap { $0 }.map { "    {\($0.value), \(cString($0.name))}" }.joined(separator: ",\n")
-    let initialSelections = audio.controls.compactMap { control -> [UInt32]? in
-      guard case .selector(let value) = control else { return nil }
-      return value.initialValues
-    }.flatMap { $0 }.map(String.init).joined(separator: ", ")
-
-    var propertyValueStart = 0
-    let properties = audio.customProperties.map { property in
-      defer { propertyValueStart += property.values.count }
-      return "    {\(property.identifier), \(property.selector), \(property.scope.rawValue), "
-        + "\(property.element), \(property.isSettable ? "true" : "false"), "
-        + "\(propertyValueStart), \(property.values.count)}"
-    }.joined(separator: ",\n")
-    let propertyValues = audio.customProperties.flatMap { property in
-      property.values.sorted { $0.key < $1.key }
-    }.map { "    {\(cString($0.key)), \(cString($0.value))}" }.joined(separator: ",\n")
     let sampleRates = audio.sampleRates.map { String($0) }.joined(separator: ", ")
 
     return declarations + """
@@ -185,26 +79,55 @@ extension DriverExtensionGenerator {
       \(streams)
       };
       static constexpr uint32_t kSwifterKitAudioStreamCount = \(audio.streams.count);
-      static constexpr SwifterKitAudioControlConfiguration kSwifterKitAudioControls[] = {
-      \(controls)
-      };
-      static constexpr uint32_t kSwifterKitAudioControlCount = \(audio.controls.count);
-      static constexpr SwifterKitAudioSelectorConfiguration kSwifterKitAudioSelectors[] = {
-      \(selectors)
-      };
-      static constexpr uint32_t kSwifterKitAudioSelectorCount = \(selectorStart);
-      static constexpr uint32_t kSwifterKitAudioInitialSelections[] = {\(initialSelections)};
-      static constexpr SwifterKitAudioCustomPropertyConfiguration
-          kSwifterKitAudioCustomProperties[] = {
-      \(properties)
-      };
-      static constexpr uint32_t kSwifterKitAudioCustomPropertyCount =
-          \(audio.customProperties.count);
-      static constexpr SwifterKitAudioCustomPropertyValueConfiguration
-          kSwifterKitAudioCustomPropertyValues[] = {
-      \(propertyValues)
-      };
-      """ + audioTopologyDeclarations(audio)
+
+      """
+      + mediaControlTables(
+        family: "Audio",
+        controls: audio.controls.map(mediaControlRow),
+        customProperties: audio.customProperties.map {
+          MediaCustomPropertyTableRow(
+            identifier: $0.identifier,
+            selector: $0.selector,
+            scope: $0.scope.rawValue,
+            element: $0.element,
+            isSettable: $0.isSettable,
+            values: $0.values
+          )
+        }
+      ) + audioTopologyDeclarations(audio)
+  }
+
+  static func mediaControlRow(_ control: AudioControlConfiguration) -> MediaControlTableRow {
+    let metadata = control.metadata
+    typealias Kind = RuntimeAudioControlKind
+    var row = MediaControlTableRow(
+      kind: 0,
+      identifier: metadata.identifier,
+      name: metadata.name,
+      isSettable: metadata.isSettable,
+      element: metadata.element,
+      scope: metadata.scope.rawValue,
+      classID: metadata.controlClass.rawValue
+    )
+    switch control {
+    case .boolean(let value):
+      (row.kind, row.value, row.maximum) = (Kind.boolean.rawValue, value.initialValue ? 1 : 0, 1)
+    case .level(let value):
+      row.kind = Kind.level.rawValue
+      row.value = value.initialDecibels.bitPattern
+      row.minimum = value.minimumDecibels.bitPattern
+      row.maximum = value.maximumDecibels.bitPattern
+    case .selector(let value):
+      row.kind = Kind.selector.rawValue
+      row.selector = (value.values.map { ($0.value, $0.name) }, value.initialValues)
+    case .slider(let value):
+      (row.kind, row.value) = (Kind.slider.rawValue, value.initialValue)
+      (row.minimum, row.maximum) = (value.minimumValue, value.maximumValue)
+    case .stereoPan(let value):
+      (row.kind, row.value) = (Kind.stereoPan.rawValue, value.initialValue.bitPattern)
+      (row.auxiliary0, row.auxiliary1) = (value.leftChannel, value.rightChannel)
+    }
+    return row
   }
 
   static func audioServiceMethods(enabled: Bool) -> String {

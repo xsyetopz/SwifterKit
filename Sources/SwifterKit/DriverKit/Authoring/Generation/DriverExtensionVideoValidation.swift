@@ -6,7 +6,7 @@ extension DriverExtensionGenerator {
     let strings =
       [value.deviceUID, value.modelUID, value.manufacturerUID, value.name]
       + value.streams.map(\.identifier)
-    guard strings.allSatisfy({ !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }),
+    guard strings.allSatisfy(isValidVideoName),
       (1...limits.maximumSampleRates).contains(value.sampleRates.count),
       Set(value.sampleRates).count == value.sampleRates.count,
       value.sampleRates.allSatisfy({ $0.isFinite && $0 > 0 }),
@@ -35,43 +35,36 @@ extension DriverExtensionGenerator {
     }
     guard totalCapacity <= 268_435_456 else { return false }
 
-    let controlIDs = value.controls.map { $0.metadata.identifier }
-    guard controlIDs.allSatisfy({ $0 != 0 }), Set(controlIDs).count == controlIDs.count,
+    guard hasUniqueNonzeroIdentifiers(value.controls.map(\.metadata.identifier)),
       value.controls.allSatisfy(isValid(videoControl:))
     else { return false }
-    let propertyIDs = value.customProperties.map(\.identifier)
-    return propertyIDs.allSatisfy { $0 != 0 } && Set(propertyIDs).count == propertyIDs.count
-      && value.customProperties.allSatisfy { property in
-        property.selector != 0 && !property.values.isEmpty && property.values.count <= 32
-          && property.values.allSatisfy { qualifier, data in
-            !qualifier.isEmpty && !qualifier.contains("\0") && !data.contains("\0")
-              && qualifier.utf8.count <= limits.nameMaximumLength
-              && data.utf8.count <= limits.customPropertyValueMaximumLength
-          }
-      }
+    return areValidMediaCustomProperties(
+      value.customProperties.map { ($0.identifier, $0.selector, $0.values) },
+      valueMaximumLength: limits.customPropertyValueMaximumLength,
+      isValidName: isValidVideoName
+    )
   }
 
   static func isValid(videoControl value: VideoControlConfiguration) -> Bool {
     let metadata = value.metadata
-    guard !metadata.name.isEmpty, !metadata.name.contains("\0"), metadata.name.utf8.count < 256,
-      metadata.controlClass.rawValue != 0
-    else { return false }
+    guard isValidVideoName(metadata.name), metadata.controlClass.rawValue != 0 else { return false }
     switch value {
     case .boolean: return true
     case .direction: return metadata.controlClass == .direction
     case .level(let level):
-      return level.initialDecibels.isFinite && level.minimumDecibels.isFinite
-        && level.maximumDecibels.isFinite && level.minimumDecibels <= level.initialDecibels
-        && level.initialDecibels <= level.maximumDecibels
+      return isValidMediaLevel(
+        initial: level.initialDecibels,
+        minimum: level.minimumDecibels,
+        maximum: level.maximumDecibels
+      )
     case .selector(let selector):
-      let values = selector.values.map(\.value)
-      let names = selector.values.map(\.name)
-      let maximum = RuntimeVideoLimits.maximumSelectorItems
-      return !values.isEmpty && values.count <= maximum && Set(values).count == values.count
-        && !selector.initialValues.isEmpty && selector.initialValues.count <= maximum
-        && Set(selector.initialValues).count == selector.initialValues.count
-        && selector.initialValues.allSatisfy(Set(values).contains)
-        && names.allSatisfy { !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }
+      return isValidMediaSelector(
+        values: selector.values.map(\.value),
+        names: selector.values.map(\.name),
+        initialValues: selector.initialValues,
+        maximum: RuntimeVideoLimits.maximumSelectorItems,
+        isValidName: isValidVideoName
+      )
     case .slider(let slider):
       return slider.minimumValue <= slider.initialValue
         && slider.initialValue <= slider.maximumValue
@@ -79,5 +72,10 @@ extension DriverExtensionGenerator {
       return pan.initialValue.isFinite && (-1...1).contains(pan.initialValue)
         && pan.leftChannel != pan.rightChannel
     }
+  }
+
+  /// Whether a configured name fits the extension's name buffers: non-empty and NUL-free.
+  static func isValidVideoName(_ name: String) -> Bool {
+    !name.isEmpty && !name.contains("\0") && name.utf8.count <= RuntimeVideoLimits.nameMaximumLength
   }
 }

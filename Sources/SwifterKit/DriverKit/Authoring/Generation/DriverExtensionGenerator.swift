@@ -125,47 +125,41 @@ public enum DriverExtensionGenerator {
     }
     if configuration.capabilities.contains(.blockStorage) {
       guard let block = configuration.blockStorageDevice, isValid(blockStorage: block),
-        !configuration.capabilities.contains(.hid), !configuration.capabilities.contains(.serial)
+        configuration.capabilities.isDisjoint(with: [.hid, .serial])
       else { throw DriverExtensionGenerationError.invalidBlockStorageConfiguration }
     } else if configuration.blockStorageDevice != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.blockStorage)
     }
     if configuration.capabilities.contains(.midi) {
       guard let midi = configuration.midiDevice, isValid(midi: midi),
-        !configuration.capabilities.contains(.hid), !configuration.capabilities.contains(.serial),
-        !configuration.capabilities.contains(.blockStorage)
+        configuration.capabilities.isDisjoint(with: [.hid, .serial, .blockStorage])
       else { throw DriverExtensionGenerationError.invalidMIDIConfiguration }
     } else if configuration.midiDevice != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.midi)
     }
     if configuration.capabilities.contains(.networking) {
       guard let ethernet = configuration.ethernetDevice, isValid(ethernet: ethernet),
-        deploymentVersion >= .v22, !configuration.capabilities.contains(.hid),
-        !configuration.capabilities.contains(.serial),
-        !configuration.capabilities.contains(.blockStorage),
-        !configuration.capabilities.contains(.midi)
+        deploymentVersion >= .v22,
+        configuration.capabilities.isDisjoint(with: [.hid, .serial, .blockStorage, .midi])
       else { throw DriverExtensionGenerationError.invalidEthernetConfiguration }
     } else if configuration.ethernetDevice != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.networking)
     }
     if configuration.capabilities.contains(.audio) {
       guard let audio = configuration.audioDevice, isValid(audio: audio), deploymentVersion >= .v21,
-        !configuration.capabilities.contains(.hid), !configuration.capabilities.contains(.serial),
-        !configuration.capabilities.contains(.blockStorage),
-        !configuration.capabilities.contains(.midi),
-        !configuration.capabilities.contains(.networking)
+        configuration.capabilities.isDisjoint(with: [
+          .hid, .serial, .blockStorage, .midi, .networking,
+        ])
       else { throw DriverExtensionGenerationError.invalidAudioConfiguration }
     } else if configuration.audioDevice != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.audio)
     }
     if configuration.capabilities.contains(.video) {
       guard let video = configuration.videoDevice, isValid(video: video),
-        deploymentVersion >= .v25Point5, !configuration.capabilities.contains(.hid),
-        !configuration.capabilities.contains(.serial),
-        !configuration.capabilities.contains(.blockStorage),
-        !configuration.capabilities.contains(.midi),
-        !configuration.capabilities.contains(.networking),
-        !configuration.capabilities.contains(.audio), !configuration.capabilities.contains(.scsi)
+        deploymentVersion >= .v25Point5,
+        configuration.capabilities.isDisjoint(with: [
+          .hid, .serial, .blockStorage, .midi, .networking, .audio, .scsi,
+        ])
       else { throw DriverExtensionGenerationError.invalidVideoConfiguration }
     } else if configuration.videoDevice != nil {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.video)
@@ -173,12 +167,10 @@ public enum DriverExtensionGenerator {
     if configuration.capabilities.contains(.scsi) {
       let hasController = configuration.scsiController != nil
       let hasPeripheral = configuration.scsiPeripheral != nil
-      guard hasController != hasPeripheral, !configuration.capabilities.contains(.hid),
-        !configuration.capabilities.contains(.serial),
-        !configuration.capabilities.contains(.blockStorage),
-        !configuration.capabilities.contains(.midi),
-        !configuration.capabilities.contains(.networking),
-        !configuration.capabilities.contains(.audio), !configuration.capabilities.contains(.video)
+      guard hasController != hasPeripheral,
+        configuration.capabilities.isDisjoint(with: [
+          .hid, .serial, .blockStorage, .midi, .networking, .audio, .video,
+        ])
       else { throw DriverExtensionGenerationError.invalidSCSIConfiguration }
       if let controller = configuration.scsiController {
         guard deploymentVersion >= .v20Point4, isValid(scsi: controller) else {

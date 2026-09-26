@@ -22,21 +22,8 @@ extension DriverExtensionGenerator {
         + "\(clock.outputLatency)}"
     }.joined(separator: ",\n")
     let rates = clocks.flatMap(\.sampleRates).map { String($0) }.joined(separator: ", ")
-    return """
+    return "\n" + mediaBoxStructDeclaration(family: "Video") + """
 
-      struct SwifterKitVideoBoxConfiguration {
-          const char* uid;
-          const char* name;
-          uint32_t transport;
-          bool isAcquirable;
-          bool isAcquired;
-          bool hasAudio;
-          bool hasMIDI;
-          bool hasVideo;
-          bool isProtected;
-          bool ownsDevice;
-          uint32_t clockMask;
-      };
       struct SwifterKitVideoClockConfiguration {
           const char* deviceUID;
           const char* modelUID;
@@ -75,9 +62,9 @@ extension DriverExtensionGenerator {
       + value.clockDevices.flatMap { [$0.deviceUID, $0.modelUID, $0.manufacturerUID, $0.name] }
     let uids = [value.deviceUID] + value.boxes.map(\.uid) + value.clockDevices.map(\.deviceUID)
     let owned = value.boxes.flatMap(\.clockDevices)
-    guard strings.allSatisfy({ !$0.isEmpty && !$0.contains("\0") && $0.utf8.count < 256 }),
-      Set(uids).count == uids.count, value.boxes.filter(\.ownsDevice).count <= 1,
-      Set(owned).count == owned.count, owned.allSatisfy({ Int($0) < value.clockDevices.count })
+    guard strings.allSatisfy(isValidVideoName), Set(uids).count == uids.count,
+      value.boxes.filter(\.ownsDevice).count <= 1, Set(owned).count == owned.count,
+      owned.allSatisfy({ Int($0) < value.clockDevices.count })
     else { return false }
     return value.clockDevices.allSatisfy { clock in
       (1...VideoClockDeviceState.maximumSampleRates).contains(clock.sampleRates.count)

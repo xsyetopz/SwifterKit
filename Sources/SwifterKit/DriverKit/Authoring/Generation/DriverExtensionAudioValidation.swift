@@ -37,19 +37,14 @@ extension DriverExtensionGenerator {
       value.customProperties.count <= limits.maximumCustomProperties
     else { return false }
 
-    let controlIDs = value.controls.map { $0.metadata.identifier }
-    guard controlIDs.allSatisfy({ $0 != 0 }), Set(controlIDs).count == controlIDs.count,
+    guard hasUniqueNonzeroIdentifiers(value.controls.map(\.metadata.identifier)),
       value.controls.allSatisfy(isValid(audioControl:))
     else { return false }
-    let propertyIDs = value.customProperties.map(\.identifier)
-    return propertyIDs.allSatisfy { $0 != 0 } && Set(propertyIDs).count == propertyIDs.count
-      && value.customProperties.allSatisfy { property in
-        property.selector != 0 && !property.values.isEmpty && property.values.count <= 32
-          && property.values.allSatisfy { qualifier, data in
-            isValidAudioName(qualifier) && !data.contains("\0")
-              && data.utf8.count <= limits.customPropertyValueMaximumLength
-          }
-      }
+    return areValidMediaCustomProperties(
+      value.customProperties.map { ($0.identifier, $0.selector, $0.values) },
+      valueMaximumLength: limits.customPropertyValueMaximumLength,
+      isValidName: isValidAudioName
+    )
   }
 
   static func isValid(audioControl value: AudioControlConfiguration) -> Bool {
@@ -58,18 +53,19 @@ extension DriverExtensionGenerator {
     switch value {
     case .boolean: return true
     case .level(let level):
-      return level.initialDecibels.isFinite && level.minimumDecibels.isFinite
-        && level.maximumDecibels.isFinite && level.minimumDecibels <= level.initialDecibels
-        && level.initialDecibels <= level.maximumDecibels
+      return isValidMediaLevel(
+        initial: level.initialDecibels,
+        minimum: level.minimumDecibels,
+        maximum: level.maximumDecibels
+      )
     case .selector(let selector):
-      let values = selector.values.map(\.value)
-      let names = selector.values.map(\.name)
-      let maximum = RuntimeAudioLimits.maximumSelectorItems
-      return !values.isEmpty && values.count <= maximum && Set(values).count == values.count
-        && !selector.initialValues.isEmpty && selector.initialValues.count <= maximum
-        && Set(selector.initialValues).count == selector.initialValues.count
-        && selector.initialValues.allSatisfy(Set(values).contains)
-        && names.allSatisfy(isValidAudioName)
+      return isValidMediaSelector(
+        values: selector.values.map(\.value),
+        names: selector.values.map(\.name),
+        initialValues: selector.initialValues,
+        maximum: RuntimeAudioLimits.maximumSelectorItems,
+        isValidName: isValidAudioName
+      )
     case .slider(let slider):
       return slider.minimumValue <= slider.initialValue
         && slider.initialValue <= slider.maximumValue
