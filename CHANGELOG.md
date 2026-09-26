@@ -6,6 +6,12 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- Video generation requires DriverKit 25.5 instead of 27.0. The DriverKit 25.5
+  SDK in Xcode 26.6 ships VideoDriverKit with the same headers and exported
+  symbols as the DriverKit 27.0 SDK, and generated video extensions build
+  against it; the DriverKit 24.4 SDK has no VideoDriverKit.
+- **Breaking:** `VideoRuntimeError` gains `invalidObjectTarget`, `invalidName`,
+  `invalidPropertySelectors`, and `invalidSampleRates`.
 - **Breaking:** `AudioRuntimeError` gains `invalidObjectTarget`, `invalidName`,
   `invalidPropertySelectors`, and `invalidSampleRates`.
 - Stopping the audio runtime removes the device's controls and custom
@@ -72,6 +78,15 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- `StartVideo` stored the video device without `videoLock`, which
+  `VideoCommand` holds while it reads the device; the device is now published
+  under the lock.
+- Stopping the video runtime removed the device from the driver while its
+  controls and custom properties were still attached; they are now removed
+  first.
+- `coverage/driverkit.json` listed `IOUserVideoDriver::AddCustomProperty` as
+  generated although the runtime never called it; `videoSetCustomPropertyOwner`
+  now calls it and its removal counterpart.
 - An audio box's `HandleChangeAcquireBox` returned success before
   `SetIsAcquired` ran, although `IOUserAudioBox` requires the acquired state
   to be updated when the callback reports success. The box now takes the
@@ -146,6 +161,20 @@ SwifterKit records user-visible changes in this file.
 
 ### Added
 
+- VideoDriverKit object, box, and clock-device support on opcodes
+  0x0C10-0x0C1F and the `videoObject` event type 0x0C01, mirroring audio:
+  `VideoDeviceConfiguration` gains `boxes` and `clockDevices`;
+  `videoObjectInfo`, `videoSetObjectName`, `videoElementName`,
+  `videoSetElementName`, `videoPropertiesChanged`, `videoBoxState`,
+  `videoSetBoxProperty`, `videoSetBoxOwnership`, `videoClockDeviceState`,
+  `videoSetClockDeviceProperty`, `videoSetClockSampleRates`,
+  `videoUpdateClockTimestamp`, `videoRequestClockSampleRate`, and
+  `videoCompleteRequest` on `DriverContext`; `videoNotifyBufferQueue` for
+  `BufferQueueChange` and `OutputBufferNotification`;
+  `videoSetCustomPropertyOwner` to move custom properties between the device
+  and the driver; and `DriverEvent.videoObject()` decoding `VideoObjectEvent`,
+  whose box-acquisition and clock-rate requests must be answered within ten
+  seconds.
 - AudioDriverKit device, stream, control, and custom-property state on opcodes
   0x0A20-0x0A29: `audioDeviceState` and `audioSetDeviceProperty` for
   default-device flags, safety offsets, preferred stereo channels, stream-format
