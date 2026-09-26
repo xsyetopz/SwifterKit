@@ -3,26 +3,18 @@
 
 #include <stdint.h>
 
+#include "SwifterKitRuntimeSchema.h"
+
 // Payload layouts for timers and service watches (opcodes 0x0E00-0x0E12) and their lossy
 // events. ServiceTimerCommands.swift and ServiceWatchCommands.swift encode the same layouts.
 
 // Timers: at most kSwifterKitMaximumTimers at once. Durations are nanoseconds; a delay or
 // leeway is at most kSwifterKitTimerMaximumNanoseconds, and a repeating interval lies in
 // kSwifterKitTimerMinimumIntervalNanoseconds...kSwifterKitTimerMaximumNanoseconds.
-static constexpr uint32_t kSwifterKitMaximumTimers = 16;
-static constexpr uint64_t kSwifterKitTimerMinimumIntervalNanoseconds = 1'000'000ULL;
-static constexpr uint64_t kSwifterKitTimerMaximumNanoseconds = 86'400'000'000'000ULL;
-
 // Watches: at most kSwifterKitMaximumServiceWatches service-matching and system-state watches
 // together; a state watch names 1...kSwifterKitMaximumWatchedStateItems items.
-static constexpr uint32_t kSwifterKitMaximumServiceWatches = 8;
-static constexpr uint32_t kSwifterKitMaximumWatchedStateItems = 8;
-
-// Matches kIOServiceNotificationTypeTerminated and kIOServiceNotificationTypeMatched.
-enum class SwifterKitServiceWatchKind : uint32_t {
-    Terminated = 0,
-    Matched = 1,
-};
+// SwifterKitServiceWatchKind matches kIOServiceNotificationTypeTerminated and
+// kIOServiceNotificationTypeMatched. The limits and kinds come from RuntimeSchema+Service.swift.
 
 struct __attribute__((packed)) SwifterKitTimerStart {
     uint64_t delay;

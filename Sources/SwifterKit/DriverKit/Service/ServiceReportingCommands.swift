@@ -99,15 +99,7 @@ extension DriverCommand {
     channel: UInt64
   ) throws -> Self { try reporterRead(reporter: reporter, channel: channel, state: state) }
 
-  enum ReporterOperation: UInt32 {
-    case setValue = 1
-    case incrementValue = 2
-    case setState = 3
-    case overrideState = 4
-    case incrementState = 5
-    case tallyValue = 6
-    case overrideBucket = 7
-  }
+  typealias ReporterOperation = RuntimeReporterOperation
 
   private static func reporterUpdate(
     _ operation: ReporterOperation,

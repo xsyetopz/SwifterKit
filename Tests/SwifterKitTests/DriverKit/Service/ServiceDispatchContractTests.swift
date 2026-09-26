@@ -8,10 +8,12 @@ struct ServiceDispatchContractTests {
   @Test
   func nativeLimitsMatchSwift() throws {
     try withGeneratedExtension { output in
-      let header = try source("SwifterKitRuntimeDispatchProtocol.h", in: output)
+      let layouts = try source("SwifterKitRuntimeDispatchProtocol.h", in: output)
+      #expect(layouts.contains("#include \"SwifterKitRuntimeSchema.h\""))
+      let header = try source(RuntimeSchemaHeader.fileName, in: output)
       #expect(header.contains("kSwifterKitMaximumTimers = \(ServiceTimerLimits.maximumTimers);"))
-      let minimum = grouped(ServiceTimerLimits.minimumIntervalNanoseconds)
-      let maximum = grouped(ServiceTimerLimits.maximumNanoseconds)
+      let minimum = ServiceTimerLimits.minimumIntervalNanoseconds
+      let maximum = ServiceTimerLimits.maximumNanoseconds
       #expect(header.contains("kSwifterKitTimerMinimumIntervalNanoseconds = \(minimum)ULL;"))
       #expect(header.contains("kSwifterKitTimerMaximumNanoseconds = \(maximum)ULL;"))
       #expect(
@@ -32,7 +34,7 @@ struct ServiceDispatchContractTests {
         "SwifterKitTimerStart) == 24", "SwifterKitDispatchIdentifier) == 8",
         "SwifterKitTimerEvent) == 24", "SwifterKitServiceWatchEvent) == 32",
         "SwifterKitSystemStateEvent) == 16",
-      ] { #expect(header.contains("static_assert(sizeof(\(size));")) }
+      ] { #expect(layouts.contains("static_assert(sizeof(\(size));")) }
     }
   }
 
@@ -165,16 +167,6 @@ struct ServiceDispatchContractTests {
       let lifecycle = try source("SwifterKitRuntimeLifecycle.cpp", in: output)
       #expect(lifecycle.contains("ivars->dispatchLock = IOLockAlloc();"))
     }
-  }
-
-  private func grouped(_ value: UInt64) -> String {
-    let digits = Array(String(value))
-    var result = ""
-    for (index, digit) in digits.enumerated() {
-      if index > 0, (digits.count - index).isMultiple(of: 3) { result += "'" }
-      result.append(digit)
-    }
-    return result
   }
 
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {

@@ -30,6 +30,48 @@ struct RuntimeSchemaTests {
   }
 
   @Test
+  func nativeSourcesDeclareNoSchemaNameAgain() throws {
+    let header = RuntimeSchemaHeader.render()
+    let declared = try Self.names(
+      in: header,
+      matching: #"static constexpr [A-Za-z0-9_]+ ([A-Za-z0-9_]+) ="#,
+      #"enum class ([A-Za-z0-9_]+) :"#
+    )
+    #expect(declared.count > 20)
+    let directory = Self.headerURL.deletingLastPathComponent()
+    let files = try FileManager.default.contentsOfDirectory(atPath: directory.path).filter {
+      $0 != RuntimeSchemaHeader.fileName
+    }.filter { [".h", ".cpp", ".iig"].contains(where: $0.hasSuffix) }
+    #expect(!files.isEmpty)
+    for file in files.sorted() {
+      let text = try String(contentsOf: directory.appendingPathComponent(file), encoding: .utf8)
+      let redeclared = try Self.names(
+        in: text,
+        matching: #"constexpr\s+[A-Za-z0-9_:]+\s+([A-Za-z0-9_]+)\s*[=\[{]"#,
+        #"enum\s+(?:class\s+)?([A-Za-z0-9_]+)\s*[:{]"#,
+        #"(?m)^\s*([A-Za-z0-9_]+)\s*=\s*[-0-9]"#,
+        #"#define\s+([A-Za-z0-9_]+)"#
+      ).intersection(declared)
+      #expect(
+        redeclared.isEmpty,
+        "\(file) declares \(redeclared.sorted()), which \(RuntimeSchemaHeader.fileName) generates"
+      )
+    }
+  }
+
+  private static func names(in text: String, matching patterns: String...) throws -> Set<String> {
+    var names: Set<String> = []
+    for pattern in patterns {
+      let expression = try NSRegularExpression(pattern: pattern)
+      let range = NSRange(text.startIndex..., in: text)
+      for match in expression.matches(in: text, range: range) {
+        if let name = Range(match.range(at: 1), in: text) { names.insert(String(text[name])) }
+      }
+    }
+    return names
+  }
+
+  @Test
   func rendersNativeNamesForAcronymPrefixes() {
     let header = RuntimeSchemaHeader.render()
 

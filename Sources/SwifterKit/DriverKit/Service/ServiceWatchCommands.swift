@@ -13,9 +13,9 @@ public struct ServiceWatch: Sendable, Hashable {
 /// Limits the extension enforces on watches.
 public enum ServiceWatchLimits {
   /// The most service and system-state watches that run at once, together.
-  public static let maximumWatches = 8
+  public static let maximumWatches = RuntimeDispatchLimits.maximumServiceWatches
   /// The most items one system-state watch names.
-  public static let maximumStateItems = 8
+  public static let maximumStateItems = RuntimeDispatchLimits.maximumWatchedStateItems
 }
 
 /// A service that started or stopped matching a ``ServiceWatch``, from

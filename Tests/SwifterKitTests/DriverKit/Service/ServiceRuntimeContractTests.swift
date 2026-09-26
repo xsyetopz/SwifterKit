@@ -43,7 +43,12 @@ struct ServiceRuntimeContractTests {
   @Test
   func propertyCodecMatchesSwiftLimits() throws {
     try withGeneratedExtension { output in
-      let protocolHeader = try source("SwifterKitRuntimeServiceProtocol.h", in: output)
+      #expect(
+        try source("SwifterKitRuntimeServiceProtocol.h", in: output).contains(
+          "#include \"SwifterKitRuntimeSchema.h\""
+        )
+      )
+      let protocolHeader = try source(RuntimeSchemaHeader.fileName, in: output)
       #expect(
         protocolHeader.contains(
           "kSwifterKitPropertyMaximumDepth = \(ServicePropertyCoding.maximumDepth);"

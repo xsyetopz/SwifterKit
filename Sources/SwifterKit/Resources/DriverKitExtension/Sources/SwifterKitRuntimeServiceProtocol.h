@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "SwifterKitRuntimeSchema.h"
+
 // Payload layouts for the IOService operations (opcodes 0x0Dxx) and the power-state event.
 // ServicePropertyCoding.swift encodes the same property values.
 
@@ -14,19 +16,9 @@
 //   Data:       tag, uint32_t byte count, bytes
 //   Array:      tag, uint32_t count, values
 //   Dictionary: tag, uint32_t count, then per entry uint32_t key byte count, key, value
-// Keys are unique, nonempty, and NUL-free. A payload holds exactly one value.
-enum class SwifterKitPropertyTag : uint8_t {
-    Boolean = 1,
-    Number = 2,
-    String = 3,
-    Data = 4,
-    Array = 5,
-    Dictionary = 6,
-};
-
-static constexpr uint32_t kSwifterKitPropertyMaximumDepth = 8;
-// IOPropertyName and IORegistryPlaneName hold 128 bytes including the terminating NUL.
-static constexpr uint32_t kSwifterKitPropertyNameMaximumLength = 127;
+// Keys are unique, nonempty, and NUL-free. A payload holds exactly one value. The tags,
+// the depth, and kSwifterKitPropertyNameMaximumLength (IOPropertyName and IORegistryPlaneName
+// hold 128 bytes including the terminating NUL) come from RuntimeSchema+Service.swift.
 
 struct __attribute__((packed)) SwifterKitServiceSearchHeader {
     uint32_t options;

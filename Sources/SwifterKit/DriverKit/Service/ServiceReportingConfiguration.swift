@@ -175,15 +175,15 @@ public struct ReportUnit: RawRepresentable, Sendable, Hashable {
 /// Limits the generator and extension enforce on reporting.
 public enum ReportingLimits {
   /// The most reporters in one configuration.
-  public static let maximumReporters = 16
+  public static let maximumReporters = RuntimeReportingLimits.maximumReporters
   /// The most channels in one reporter.
-  public static let maximumChannels = 32
+  public static let maximumChannels = RuntimeReportingLimits.maximumReportChannels
   /// The most states in one state reporter.
-  public static let maximumStates = 16
+  public static let maximumStates = RuntimeReportingLimits.maximumReportStates
   /// The most segments in one histogram.
-  public static let maximumSegments = 8
+  public static let maximumSegments = RuntimeReportingLimits.maximumHistogramSegments
   /// The most buckets in one histogram, across its segments.
-  public static let maximumBuckets = 128
+  public static let maximumBuckets = RuntimeReportingLimits.maximumHistogramBuckets
   /// The longest group, subgroup, or channel name in UTF-8 bytes.
   public static let maximumNameLength = 63
 }

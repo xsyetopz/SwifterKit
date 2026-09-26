@@ -45,7 +45,7 @@ struct ServiceReportingContractTests {
   @Test
   func nativeLimitsAndLayoutsMatchSwift() throws {
     try withGeneratedExtension(nil) { output, _ in
-      let header = try source("SwifterKitRuntimeReportingProtocol.h", in: output)
+      let header = try source(RuntimeSchemaHeader.fileName, in: output)
       for (name, value) in [
         ("Reporters", ReportingLimits.maximumReporters),
         ("ReportChannels", ReportingLimits.maximumChannels),
@@ -61,8 +61,10 @@ struct ServiceReportingContractTests {
       for (name, operation) in operations {
         #expect(header.contains("    \(name) = \(operation.rawValue),"))
       }
-      #expect(header.contains("static_assert(sizeof(SwifterKitReporterUpdate) == 56);"))
-      #expect(header.contains("static_assert(sizeof(SwifterKitReporterRead) == 24);"))
+      let layouts = try source("SwifterKitRuntimeReportingProtocol.h", in: output)
+      #expect(layouts.contains("#include \"SwifterKitRuntimeSchema.h\""))
+      #expect(layouts.contains("static_assert(sizeof(SwifterKitReporterUpdate) == 56);"))
+      #expect(layouts.contains("static_assert(sizeof(SwifterKitReporterRead) == 24);"))
 
       let defaults = try source("SwifterKitRuntimeConfiguration.h", in: output)
       #expect(defaults.contains("kSwifterKitReporterCount = 0;"))

@@ -313,4 +313,48 @@ static constexpr uint32_t kSwifterKitEventTimer = 0x0E00;
 static constexpr uint32_t kSwifterKitEventWatchServices = 0x0E10;
 static constexpr uint32_t kSwifterKitEventWatchSystemState = 0x0E11;
 
+static constexpr uint32_t kSwifterKitMaximumTimers = 16;
+static constexpr uint32_t kSwifterKitMaximumServiceWatches = 8;
+static constexpr uint32_t kSwifterKitMaximumWatchedStateItems = 8;
+static constexpr uint64_t kSwifterKitTimerMinimumIntervalNanoseconds = 1000000ULL;
+static constexpr uint64_t kSwifterKitTimerMaximumNanoseconds = 86400000000000ULL;
+
+enum class SwifterKitServiceWatchKind : uint32_t {
+    Terminated = 0,
+    Matched = 1,
+};
+
+static constexpr uint32_t kSwifterKitMaximumReporters = 16;
+static constexpr uint32_t kSwifterKitMaximumReportChannels = 32;
+static constexpr uint32_t kSwifterKitMaximumReportStates = 16;
+static constexpr uint32_t kSwifterKitMaximumHistogramSegments = 8;
+static constexpr uint32_t kSwifterKitMaximumHistogramBuckets = 128;
+
+enum class SwifterKitReporterKind : uint32_t {
+    Simple = 1,
+    State = 2,
+    Histogram = 3,
+};
+
+enum class SwifterKitReporterOperation : uint32_t {
+    SetValue = 1,
+    IncrementValue = 2,
+    SetState = 3,
+    OverrideState = 4,
+    IncrementState = 5,
+    TallyValue = 6,
+    OverrideBucket = 7,
+};
+
+enum class SwifterKitPropertyTag : uint8_t {
+    Boolean = 1,
+    Number = 2,
+    String = 3,
+    Data = 4,
+    Array = 5,
+    Dictionary = 6,
+};
+static constexpr uint32_t kSwifterKitPropertyMaximumDepth = 8;
+static constexpr uint32_t kSwifterKitPropertyNameMaximumLength = 127;
+
 #endif

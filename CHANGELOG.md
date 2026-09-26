@@ -92,6 +92,13 @@ SwifterKit records user-visible changes in this file.
   which the queued create had discarded so a failure never reached Swift, now
   arrives as a required `SCSIControllerEvent.targetCreated` event with the
   target identifier and status.
+- The timer and watch limits, `SwifterKitServiceWatchKind`, the IOReporting
+  limits, `SwifterKitReporterKind`, `SwifterKitReporterOperation`,
+  `SwifterKitPropertyTag`, and the registry-property depth and name limits were
+  written by hand in both the Swift sources and the native Dispatch, Reporting,
+  and Service protocol headers. They are now declared once in the Swift runtime
+  schema and emitted into the generated `SwifterKitRuntimeSchema.h`, which
+  `RuntimeSchemaTests` checks for drift and for native redeclarations.
 - The queued `UserCreateTargetForID` discarded the result of enqueueing its
   required `SCSIControllerEvent.targetCreated` event, so a registered host that
   had let the required queue fill lost the event. The create's queue now

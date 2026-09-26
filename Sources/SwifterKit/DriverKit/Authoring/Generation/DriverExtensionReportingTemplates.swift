@@ -13,20 +13,21 @@ extension DriverExtensionGenerator {
       let stateStart = states.count
       let segmentStart = segments.count
       channels += reporter.channels.map { "    {\($0.id)ULL, \(cString($0.name))}" }
-      let kind: Int
+      let kind: RuntimeReporterKind
       switch reporter.kind {
-      case .simple: kind = 1
+      case .simple: kind = .simple
       case .state(let values):
-        kind = 2
+        kind = .state
         states += values.map { "\($0)ULL" }
       case .histogram(let values):
-        kind = 3
+        kind = .histogram
         segments += values.map {
           "    {\($0.baseBucketWidth), \($0.scale.rawValue), \($0.bucketCount)}"
         }
       }
       let subgroup = reporter.subgroup.map(cString) ?? "nullptr"
-      return "    {\(kind), \(reporter.categories.rawValue), \(reporter.unit.rawValue)ULL, "
+      return
+        "    {\(kind.rawValue), \(reporter.categories.rawValue), \(reporter.unit.rawValue)ULL, "
         + "\(cString(reporter.group)), \(subgroup), \(channelStart), "
         + "\(reporter.channels.count), \(stateStart), \(states.count - stateStart), "
         + "\(segmentStart), \(segments.count - segmentStart)}"

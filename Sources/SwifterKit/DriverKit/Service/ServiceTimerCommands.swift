@@ -36,11 +36,12 @@ public struct ServiceTimerFiring: Sendable, Hashable {
 /// Limits the extension enforces on timers.
 public enum ServiceTimerLimits {
   /// The most timers that run at once.
-  public static let maximumTimers = 16
+  public static let maximumTimers = RuntimeDispatchLimits.maximumTimers
   /// The shortest repeating interval, one millisecond.
-  public static let minimumIntervalNanoseconds: UInt64 = 1_000_000
+  public static let minimumIntervalNanoseconds = RuntimeDispatchLimits
+    .timerMinimumIntervalNanoseconds
   /// The longest delay, interval, or leeway, one day.
-  public static let maximumNanoseconds: UInt64 = 86_400_000_000_000
+  public static let maximumNanoseconds = RuntimeDispatchLimits.timerMaximumNanoseconds
 }
 
 extension DriverCommand {

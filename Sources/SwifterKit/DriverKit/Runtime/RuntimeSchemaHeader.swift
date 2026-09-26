@@ -45,6 +45,7 @@ enum RuntimeSchemaHeader {
     lines += RuntimeEventType.allCases.map {
       constant("uint32_t", "kSwifterKitEvent" + nativeName($0), hex($0.rawValue, digits: 4))
     }
+    for section in familySections() { lines += [""] + section }
     lines += ["", "#endif"]
     return lines.joined(separator: "\n") + "\n"
   }
@@ -63,7 +64,7 @@ enum RuntimeSchemaHeader {
   private static let acronyms: Set<String> = ["usb", "hid", "pci", "midi", "scsi"]
 
   /// Converts a Swift case name such as `pciGetBARInfo` to a native name such as `PCIGetBARInfo`.
-  private static func nativeName(_ value: some Any) -> String {
+  static func nativeName(_ value: some Any) -> String {
     let name = String(describing: value)
     let prefix = String(name.prefix { $0.isLowercase })
     let rest = name.dropFirst(prefix.count)
@@ -71,11 +72,11 @@ enum RuntimeSchemaHeader {
     return prefix.prefix(1).uppercased() + prefix.dropFirst() + rest
   }
 
-  private static func constant(_ type: String, _ name: String, _ value: String) -> String {
+  static func constant(_ type: String, _ name: String, _ value: String) -> String {
     "static constexpr \(type) \(name) = \(value);"
   }
 
-  private static func enumeration(
+  static func enumeration(
     _ name: String,
     type: String,
     cases: [(name: String, value: String)]
@@ -83,7 +84,7 @@ enum RuntimeSchemaHeader {
     ["enum class \(name) : \(type) {"] + cases.map { "    \($0.name) = \($0.value)," } + ["};"]
   }
 
-  private static func hex(_ value: some BinaryInteger, digits: Int) -> String {
+  static func hex(_ value: some BinaryInteger, digits: Int) -> String {
     let text = String(value, radix: 16, uppercase: true)
     return "0x" + String(repeating: "0", count: max(0, digits - text.count)) + text
   }
