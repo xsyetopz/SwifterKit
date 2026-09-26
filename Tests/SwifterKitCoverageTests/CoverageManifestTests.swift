@@ -119,6 +119,62 @@ struct CoverageManifestTests {
   }
 
   @Test
+  func fastPathClaimsNeedANoteASwiftSymbolAndARuntimeReference() throws {
+    var manifest = CoverageManifest().merging([surface("24.4", older)])
+    let start = try #require(manifest.classes[0].methods.firstIndex { $0.name == "Start" })
+    manifest.classes[0].methods[start].status = .fastPath
+    let native = SourceIndex(text: "IOExample* provider; provider->Start(nullptr);")
+    let swift = SourceIndex(text: "enum FastPathOp {}")
+    func problems(note: String?, symbol: String?, native: SourceIndex = native) -> [String] {
+      var claimed = manifest
+      claimed.classes[0].methods[start].note = note
+      claimed.classes[0].methods[start].swiftSymbol = symbol
+      return CoverageAudit(manifest: claimed, native: native, swift: swift).problems()
+    }
+    let member = "ExampleKit/IOExample::kern_return_t Start(IOService*)"
+
+    #expect(problems(note: "Started by a start program", symbol: "FastPathOp").isEmpty)
+    #expect(
+      problems(note: nil, symbol: "FastPathOp") == ["\(member) is marked fast-path without a note"]
+    )
+    let missingSymbol = ["\(member) is marked fast-path without a Swift symbol in Sources"]
+    #expect(problems(note: "Runs", symbol: nil) == missingSymbol)
+    #expect(problems(note: "Runs", symbol: "FastPathRing") == missingSymbol)
+    #expect(
+      problems(note: "Runs", symbol: "FastPathOp", native: SourceIndex(text: "IOExample")) == [
+        "\(member) is marked fast-path but the runtime does not reference it"
+      ]
+    )
+  }
+
+  @Test
+  func coveredNotesDescribeWhatTheSourcesDo() throws {
+    var manifest = CoverageManifest().merging([surface("24.4", older)])
+    let plumbing = try #require(manifest.classes[0].methods.firstIndex { $0.name == "_Plumbing" })
+    func problems(_ note: String, status: CoverageStatus = .excluded) -> [String] {
+      manifest.classes[0].methods[plumbing].status = status
+      manifest.classes[0].methods[plumbing].note = note
+      return CoverageAudit(
+        manifest: manifest,
+        native: SourceIndex(text: ""),
+        swift: SourceIndex(text: "")
+      ).problems()
+    }
+    let member = "ExampleKit/IOExample::void _Plumbing()"
+
+    for word in ["deferred", "Planned", "not yet", "HARD", "today", "TODO"] {
+      #expect(
+        problems("Support is \(word) here") == [
+          "\(member) note says \"\(word)\"; describe what SwifterKit does now"
+        ]
+      )
+    }
+    #expect(problems("Private hardware plumbing that DriverKit calls itself").isEmpty)
+    #expect(problems("Hardcoded and undated notes stay valid").isEmpty)
+    #expect(problems("TODO", status: .gap).isEmpty)
+  }
+
+  @Test
   func summarizesCoveredMembers() {
     let summary = CoverageAudit.summary(CoverageManifest().merging([surface("24.4", older)]))
     #expect(summary.contains("ExampleKit | 2 | 0 | 0 | 0 | 2 | 0/2 (0%)"))

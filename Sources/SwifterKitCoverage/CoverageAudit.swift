@@ -89,14 +89,39 @@ struct CoverageAudit {
         case .swiftAPI:
           if let swiftSymbol = method.swiftSymbol, swift.words.contains(swiftSymbol) { break }
           problems.append("\(symbol) is marked swift-api without a Swift symbol in Sources")
-        case .fastPath, .excluded:
+        case .fastPath:
           if method.note?.trimmed.isEmpty ?? true {
-            problems.append("\(symbol) is marked \(method.status.rawValue) without a note")
+            problems.append("\(symbol) is marked fast-path without a note")
           }
+          if !(method.swiftSymbol.map(swift.words.contains) ?? false) {
+            problems.append("\(symbol) is marked fast-path without a Swift symbol in Sources")
+          }
+          if !native.references(className: entry.name, method: method.name) {
+            problems.append("\(symbol) is marked fast-path but the runtime does not reference it")
+          }
+        case .excluded:
+          if method.note?.trimmed.isEmpty ?? true {
+            problems.append("\(symbol) is marked excluded without a note")
+          }
+        }
+        if method.status != .gap, let note = method.note, let word = Self.provisionalWord(in: note)
+        {
+          problems.append("\(symbol) note says \"\(word)\"; describe what SwifterKit does now")
         }
       }
     }
     return problems
+  }
+
+  /// Words that describe intent rather than what the sources do, which a covered member's note
+  /// must not use.
+  private static let provisionalPattern = #"\b(deferred|planned|not yet|hard|today|TODO)\b"#
+
+  /// Returns the first provisional word in `note`, if any.
+  static func provisionalWord(in note: String) -> String? {
+    note.range(of: provisionalPattern, options: [.regularExpression, .caseInsensitive]).map {
+      String(note[$0])
+    }
   }
 
   /// Describes members that `merging` would add or remove.

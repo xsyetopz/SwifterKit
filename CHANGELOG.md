@@ -9,6 +9,10 @@ SwifterKit records user-visible changes in this file.
 - **Breaking:** `DriverExtensionGenerationError` gains
   `invalidFastPathConfiguration(_:)`, which carries the `FastPathError` that
   refused a fast-path configuration.
+- `SwifterKitCoverage check` requires a `fast-path` member to name a
+  `swiftSymbol` found in the Swift sources and to be referenced by the native
+  runtime, and rejects notes on covered members that say "deferred",
+  "planned", "not yet", "hard", "today", or "TODO".
 - **Breaking:** `SCSIControllerRuntimeError` gains `invalidPropertyUpdate` and
   `invalidDataRange`.
 - **Breaking:** `SCSIControllerEvent` gains the `targetCreated` case, which

@@ -56,7 +56,7 @@ Public Swift APIs require documentation and Swift 6 concurrency-safe behavior. P
 
 Driver authors should not need to copy or maintain C++, C, Objective-C, or IIG glue. Add native work inside SwifterKit and expose it through typed Swift configuration, commands, events, and tests.
 
-When a change adds or removes support for a DriverKit member, update its entry in `coverage/driverkit.json`: set `status`, and add `swiftSymbol` for `swift-api` or `note` for `fast-path` and `excluded`. `swift run SwifterKitCoverage check --manifest coverage/driverkit.json --sdk "$(xcrun --sdk driverkit --show-sdk-path)"` verifies the claims against the sources and the selected SDK.
+When a change adds or removes support for a DriverKit member, update its entry in `coverage/driverkit.json`: set `status`, and add `swiftSymbol` for `swift-api`, `note` for `excluded`, and both for `fast-path`, whose member the native runtime must also reference. A note on a covered member describes what SwifterKit does, never intent such as "planned" or "not yet". `swift run SwifterKitCoverage check --manifest coverage/driverkit.json --sdk "$(xcrun --sdk driverkit --show-sdk-path)"` verifies the claims against the sources and the selected SDK.
 
 ## Pull requests
 
