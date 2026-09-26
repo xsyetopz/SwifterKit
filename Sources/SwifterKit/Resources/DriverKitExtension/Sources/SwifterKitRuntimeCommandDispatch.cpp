@@ -318,7 +318,8 @@ namespace {
 
     kern_return_t DispatchHIDInputReport([[maybe_unused]] const CommandContext& context) {
 #if SWIFTERKIT_HID_DEVICE
-        if (context.payloadLength < sizeof(SwifterKitHIDReportHeader)) {
+        if (context.service == nullptr
+            || context.payloadLength < sizeof(SwifterKitHIDReportHeader)) {
             return kIOReturnBadArgument;
         }
         const auto* report = reinterpret_cast<const SwifterKitHIDReportHeader*>(context.payload);

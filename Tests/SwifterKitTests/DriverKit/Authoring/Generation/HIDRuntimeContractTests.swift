@@ -78,6 +78,22 @@ struct HIDRuntimeContractTests {
   }
 
   @Test
+  func inputReportsNeedAService() throws {
+    try withGeneratedExtension { output in
+      let dispatch = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
+      let submit = try section(
+        of: dispatch,
+        from: "kern_return_t DispatchHIDInputReport(",
+        to: "kern_return_t HandleCommand("
+      )
+      // A client whose service is gone passes nullptr, so the check precedes the call.
+      let check = try #require(submit.range(of: "context.service == nullptr")?.lowerBound)
+      let call = try #require(submit.range(of: "->SubmitHIDInputReport(")?.lowerBound)
+      #expect(check < call)
+    }
+  }
+
+  @Test
   func getReportOwnsCompletionExactlyOnce() throws {
     try withGeneratedExtension { output in
       let requests = try source("SwifterKitRuntimeHIDRequests.cpp", in: output)

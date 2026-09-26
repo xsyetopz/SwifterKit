@@ -68,6 +68,10 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- `HIDSubmitInputReport` called into the service without checking that the
+  user client still had one, so a report sent after the service detached
+  dereferenced a null pointer. It now returns `kIOReturnBadArgument`, as
+  `HIDGetRuntimeStatistics` does.
 - A transmit Swift completed with a nonzero status was freed back to the pool
   instead of returning to the stack. It now carries the status through
   `setCompletionStatus` and returns through the transmit completion queue, and
