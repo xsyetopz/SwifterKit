@@ -159,6 +159,36 @@ struct SCSIControllerRuntimeContractTests {
     }
   }
 
+  @Test
+  func retriesTheCreateResultWhileAHostIsRegistered() throws {
+    try withGeneratedExtension { output in
+      let control = try source("SwifterKitRuntimeSCSIControl.cpp", in: output)
+      let create = try section(
+        of: control,
+        from: "case SwifterKitRuntimeOpcode::SCSICreateTarget:",
+        to: "case SwifterKitRuntimeOpcode::SCSIDestroyTarget:"
+      )
+      #expect(!create.contains("(void)EnqueueRequiredEvent"))
+      let first = try #require(create.range(of: "queued = EnqueueRequiredEvent(")?.upperBound)
+      let retry = try #require(
+        create.range(of: "queued == kIOReturnNoSpace && HasEventClient(ivars)")?.lowerBound
+      )
+      let sleep = try #require(create.range(of: "IOSleep(delay);")?.lowerBound)
+      let again = try #require(
+        create.range(of: "queued = EnqueueRequiredEvent(", range: sleep..<create.endIndex)
+      )
+      let release = try #require(
+        create.range(of: "release();\n", range: again.upperBound..<create.endIndex)
+      )
+      #expect(first < retry && retry < sleep && again.upperBound < release.lowerBound)
+      #expect(create.contains("scsiTargetPresent"))
+
+      let helper = try section(of: control, from: "bool HasEventClient(", to: "return attached;")
+      #expect(helper.contains("IOLockLock(state->eventLock);"))
+      #expect(helper.contains("state->eventClient != nullptr"))
+    }
+  }
+
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,

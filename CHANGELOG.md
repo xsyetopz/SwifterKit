@@ -92,6 +92,12 @@ SwifterKit records user-visible changes in this file.
   which the queued create had discarded so a failure never reached Swift, now
   arrives as a required `SCSIControllerEvent.targetCreated` event with the
   target identifier and status.
+- The queued `UserCreateTargetForID` discarded the result of enqueueing its
+  required `SCSIControllerEvent.targetCreated` event, so a registered host that
+  had let the required queue fill lost the event. The create's queue now
+  retries with a backoff of up to 64 ms while a host is registered. When that
+  host detaches, the extension empties its queues and stops retrying, and the
+  next host finds the target through `scsiTargetPresent`.
 - The video runtime attached and detached streams, set safety offsets, and set
   clock latencies directly. `IOUserVideoDriver.iig` allows changes that affect
   IO or the device's structure only in `PerformDeviceConfigurationChange`.
