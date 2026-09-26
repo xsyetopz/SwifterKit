@@ -154,6 +154,16 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case blockStorageComplete = 0x0700
   case blockStorageCompleteIO = 0x0701
   case midiSend = 0x0800
+  case midiGetObjectInfo = 0x0810
+  case midiSetObjectName = 0x0811
+  case midiGetPropertyType = 0x0812
+  case midiCopyProperty = 0x0813
+  case midiSetProperty = 0x0814
+  case midiGetProperties = 0x0815
+  case midiSetProperties = 0x0816
+  case midiGetDeviceState = 0x0817
+  case midiGetEntityMembers = 0x0818
+  case midiSetMemberAttachment = 0x0819
   case networkReceive = 0x0900
   case networkCompleteTransmit = 0x0901
   case networkReportLink = 0x0902

@@ -112,4 +112,17 @@ public enum MIDIRuntimeError: Error, Sendable, Equatable {
   case invalidPayload
   /// The native runtime returned an unknown MIDI event kind.
   case invalidEventKind(UInt32)
+  /// The object target is out of range or cannot take the command.
+  case invalidObjectTarget
+  /// The name is empty, longer than 255 UTF-8 bytes, or contains NUL.
+  case invalidName
+  /// The property selector is zero, or the string key is empty, longer than 255 UTF-8 bytes,
+  /// or contains NUL.
+  case invalidPropertyKey
+  /// A property value has an invalid number width or range, a string with NUL, or nesting or
+  /// entry counts beyond ``MIDIPropertyValue/maximumDepth`` or
+  /// ``MIDIPropertyValue/maximumEntries``.
+  case invalidPropertyValue
+  /// The encoded property value cannot fit in one runtime message.
+  case propertyValueTooLarge
 }

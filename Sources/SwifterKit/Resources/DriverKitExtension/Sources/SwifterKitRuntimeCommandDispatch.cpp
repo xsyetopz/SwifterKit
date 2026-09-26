@@ -563,6 +563,16 @@ namespace {
             case SwifterKitRuntimeOpcode::VideoGetStreamMemoryObjectID:
                 return DispatchMediaCommand(context);
             case SwifterKitRuntimeOpcode::MIDISend:
+            case SwifterKitRuntimeOpcode::MIDIGetObjectInfo:
+            case SwifterKitRuntimeOpcode::MIDISetObjectName:
+            case SwifterKitRuntimeOpcode::MIDIGetPropertyType:
+            case SwifterKitRuntimeOpcode::MIDICopyProperty:
+            case SwifterKitRuntimeOpcode::MIDISetProperty:
+            case SwifterKitRuntimeOpcode::MIDIGetProperties:
+            case SwifterKitRuntimeOpcode::MIDISetProperties:
+            case SwifterKitRuntimeOpcode::MIDIGetDeviceState:
+            case SwifterKitRuntimeOpcode::MIDIGetEntityMembers:
+            case SwifterKitRuntimeOpcode::MIDISetMemberAttachment:
                 return DispatchMIDICommand(context);
             case SwifterKitRuntimeOpcode::SCSIPeripheralSendCDB:
             case SwifterKitRuntimeOpcode::SCSIPeripheralSuspendServices:
