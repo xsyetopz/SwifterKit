@@ -81,13 +81,15 @@ struct USBAsyncCommandsTests {
     )
     #expect(reads.opcode == RuntimeOpcode.usbPipeEnqueueBundled.rawValue)
     #expect(reads.maximumResponseSize == RuntimeMessage.headerSize + 4)
-    #expect(
-      reads.payload
-        == Data(
-          [0x81, 2, 0, 0] + le(UInt32(6)) + le(UInt32(10)) + le(UInt32(0)) + le(UInt32(512))
-            + le(UInt32(64))
-        )
+    let expectedReads: [UInt8] = bytes(
+      [0x81, 2, 0, 0],
+      le(UInt32(6)),
+      le(UInt32(10)),
+      le(UInt32(0)),
+      le(UInt32(512)),
+      le(UInt32(64))
     )
+    #expect(reads.payload == Data(expectedReads))
     let writes = try DriverCommand.usbEnqueueBundledWrites(
       endpoint: 0x02,
       firstIndex: 0,
@@ -193,11 +195,12 @@ struct USBAsyncCommandsTests {
     #expect(!output.succeeded)
     #expect(output.data.isEmpty)
 
-    for payload in [
-      le(UInt32(0)) + le(Int32(0)) + le(UInt32(0)) + [0x40, 0, 0, 0],
-      le(UInt32(1)) + le(Int32(0)) + le(UInt32(2)) + [0xC0, 0, 0, 0] + [1],
-      le(UInt32(1)) + le(Int32(0)) + le(UInt32(0)) + [0x40, 1, 0, 0], [1, 2, 3],
-    ] {
+    let malformed: [[UInt8]] = [
+      bytes(le(UInt32(0)), le(Int32(0)), le(UInt32(0)), [0x40, 0, 0, 0]),
+      bytes(le(UInt32(1)), le(Int32(0)), le(UInt32(2)), [0xC0, 0, 0, 0], [1]),
+      bytes(le(UInt32(1)), le(Int32(0)), le(UInt32(0)), [0x40, 1, 0, 0]), [1, 2, 3],
+    ]
+    for payload in malformed {
       #expect(throws: USBRuntimeError.invalidResponse) {
         try DriverEvent(type: 0x0210, payload: payload).usb()
       }
@@ -218,16 +221,20 @@ struct USBAsyncCommandsTests {
     #expect(completion.index == 3)
     #expect(completion.data == [5, 6])
 
-    for payload in [
-      [0x81, 0, 0, 0] + le(UInt32(64)) + le(Int32(0)) + le(UInt32(0)),
-      [0x02, 0, 0, 0] + le(UInt32(1)) + le(Int32(0)) + le(UInt32(4)) + [1],
-      [0x81, 1, 0, 0] + le(UInt32(1)) + le(Int32(0)) + le(UInt32(0)),
-    ] {
+    let malformed: [[UInt8]] = [
+      bytes([0x81, 0, 0, 0], le(UInt32(64)), le(Int32(0)), le(UInt32(0))),
+      bytes([0x02, 0, 0, 0], le(UInt32(1)), le(Int32(0)), le(UInt32(4)), [1]),
+      bytes([0x81, 1, 0, 0], le(UInt32(1)), le(Int32(0)), le(UInt32(0))),
+    ]
+    for payload in malformed {
       #expect(throws: USBRuntimeError.invalidResponse) {
         try DriverEvent(type: 0x0220, payload: payload).usb()
       }
     }
   }
+
+  /// Joins byte chunks; one call keeps the Swift 6.1 type checker within its time limit.
+  private func bytes(_ chunks: [UInt8]...) -> [UInt8] { chunks.flatMap { $0 } }
 
   private func le<T: FixedWidthInteger>(_ value: T) -> [UInt8] {
     var data = Data()
