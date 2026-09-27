@@ -4,7 +4,7 @@ name: Release
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing SemVer tag to publish, for example 0.1.0-rc.1
+        description: SemVer tag to publish, for example 0.1.0-rc.1; created at the dispatched commit if missing
         required: true
         type: string
   push:
@@ -41,16 +41,24 @@ jobs:
             exit 1
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]] &&
+            ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --silent 2>/dev/null; then
+            echo "create=true" >> "$GITHUB_OUTPUT"
+            echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "create=false" >> "$GITHUB_OUTPUT"
+            echo "ref=$tag" >> "$GITHUB_OUTPUT"
+          fi
           if [[ "$tag" == *-* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Checkout tag
+      - name: Checkout release commit
         uses: actions/checkout@v7.0.1
         with:
-          ref: ${{ steps.release.outputs.tag }}
+          ref: ${{ steps.release.outputs.ref }}
           fetch-depth: 0
 
       - name: Install validation tools
@@ -58,6 +66,12 @@ jobs:
 
       - name: Validate
         run: ./scripts/ci/validate.sh
+
+      - name: Create release tag
+        if: steps.release.outputs.create == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: git tag "$RELEASE_TAG"
 
       - name: Build source archive
         env:
@@ -71,6 +85,12 @@ jobs:
           path: .build/release-artifacts/*
           if-no-files-found: error
           retention-days: 14
+
+      - name: Push release tag
+        if: steps.release.outputs.create == 'true'
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: git push origin "refs/tags/$RELEASE_TAG"
 
       - name: Publish GitHub release
         env:

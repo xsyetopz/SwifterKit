@@ -7,7 +7,7 @@ A generated DriverKit extension belongs to a downstream driver. Its bundle ident
 ## Workflows
 
 - `CI` checks formatting, lint, Swift 6 tests and release builds, DocC links, C++20 formatting and static analysis, unsigned DriverKit builds, plist files, and the 800-LOC source limit.
-- `Release` accepts an existing SemVer tag, repeats validation, creates the archive and checksum, and publishes a GitHub release.
+- `Release` runs on a pushed SemVer tag or a manual dispatch, repeats validation, creates the archive and checksum, and publishes a GitHub release. A dispatch for a tag that does not exist creates it at the dispatched commit after validation passes.
 - `Signed DriverKit Validation` manually builds the validation extension with the protected `driverkit-signing` environment. The signed artifact expires after one day.
 
 The release workflow cannot access DriverKit signing secrets.
@@ -19,7 +19,7 @@ The release workflow cannot access DriverKit signing secrets.
 3. The `Release` workflow validates the tagged commit and creates the GitHub release.
 4. Consumers can use SwiftPM's `from: "0.1.0"` requirement.
 
-Manual dispatch publishes an existing tag. It does not create or move tags.
+Alternatively, run `Release` manually from `main` with the new version as `tag`. The workflow validates the `main` head, then creates and pushes the tag before publishing. Manual dispatch never moves an existing tag; it publishes that tag's commit.
 
 ## Downstream Apple requirements
 
