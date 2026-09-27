@@ -115,19 +115,33 @@ private func captureForNativeAnalysis(
   )
 }
 
+/// How long a host harness may run; they finish in seconds, so reaching this means it is stuck.
+let hostHarnessTimeout: TimeInterval = 300
+
 /// Runs a tool with the DriverKit Xcode and without the caller's `TOOLCHAINS` override, so
 /// Xcode uses its own compilers. Host builds pass `driverKitXcode: false` to keep the selected
 /// Xcode, because an older Xcode's host runtimes, such as its sanitizers, may not run on a newer
 /// macOS.
+///
+/// A tool still running after `timeout` seconds is killed, and the result carries a nonzero
+/// status and says so, so a stuck host harness fails its test instead of hanging the run. Output
+/// goes through a file rather than a pipe, so no read blocks on a stuck process.
 func runTool(
   _ executable: String,
   _ arguments: [String],
   currentDirectory: URL? = nil,
-  driverKitXcode: Bool = true
+  driverKitXcode: Bool = true,
+  timeout: TimeInterval? = nil
 ) throws -> (status: Int32, output: String) {
   #if os(macOS)
     let process = Process()
-    let output = Pipe()
+    let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try Data().write(to: outputURL)
+    defer { try? FileManager.default.removeItem(at: outputURL) }
+    let output = try FileHandle(forWritingTo: outputURL)
+    defer { try? output.close() }
+    let exited = DispatchSemaphore(value: 0)
+    process.terminationHandler = { _ in exited.signal() }
     process.executableURL = URL(fileURLWithPath: executable)
     process.arguments = arguments
     process.currentDirectoryURL = currentDirectory
@@ -140,12 +154,19 @@ func runTool(
     process.standardOutput = output
     process.standardError = output
     try process.run()
-    let data = output.fileHandleForReading.readDataToEndOfFile()
-    process.waitUntilExit()
-    return (
-      process.terminationStatus,
-      String(bytes: data, encoding: .utf8) ?? "\(executable) emitted non-UTF-8 output"
-    )
+    let deadline = timeout.map { DispatchTime.now() + $0 } ?? .distantFuture
+    let timedOut = exited.wait(timeout: deadline) == .timedOut
+    if timedOut {
+      // Only the child: it shares the test runner's process group.
+      kill(process.processIdentifier, SIGKILL)
+      exited.wait()
+    }
+    let data = try Data(contentsOf: outputURL)
+    let text = String(bytes: data, encoding: .utf8) ?? "\(executable) emitted non-UTF-8 output"
+    guard !timedOut else {
+      return (-1, "\(text)\n\(executable) timed out after \(Int(timeout ?? 0)) seconds")
+    }
+    return (process.terminationStatus, text)
   #else
     return (-1, "\(executable) requires macOS")
   #endif
@@ -174,4 +195,13 @@ struct DriverKitSDKTests {
   func requiredSDKIsInstalled() {
     #expect(DriverKitSDK.current != nil, "DEVELOPER_DIR does not contain a DriverKit SDK")
   }
+
+  #if os(macOS)
+    @Test
+    func runToolKillsAToolThatOutlivesItsTimeout() throws {
+      let result = try runTool("/bin/sleep", ["30"], driverKitXcode: false, timeout: 1)
+      #expect(result.status != 0)
+      #expect(result.output.hasSuffix("/bin/sleep timed out after 1 seconds"))
+    }
+  #endif
 }

@@ -87,7 +87,7 @@ struct FastPathDataQueueTransferTests {
       driverKitXcode: false
     )
     try #require(build.status == 0, Comment(rawValue: build.output))
-    let run = try runTool(executable.path, [], driverKitXcode: false)
+    let run = try runTool(executable.path, [], driverKitXcode: false, timeout: hostHarnessTimeout)
     try #require(run.status == 0, Comment(rawValue: run.output))
     return run.output.split(separator: "\n").map(String.init)
   }

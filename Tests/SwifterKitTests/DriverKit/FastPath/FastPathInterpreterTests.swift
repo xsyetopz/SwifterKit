@@ -264,7 +264,7 @@ struct FastPathInterpreterTests {
       driverKitXcode: false
     )
     try #require(build.status == 0, Comment(rawValue: build.output))
-    let run = try runTool(executable.path, [], driverKitXcode: false)
+    let run = try runTool(executable.path, [], driverKitXcode: false, timeout: hostHarnessTimeout)
     try #require(run.status == 0, Comment(rawValue: run.output))
     let lines = run.output.split(separator: "\n").map {
       (String($0.prefix { $0 != " " }), String($0))
