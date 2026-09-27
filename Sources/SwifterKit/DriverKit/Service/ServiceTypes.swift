@@ -42,6 +42,7 @@ public struct ServicePowerStateRequest: Sendable, Hashable {
 
 /// Kinds of power-management assertion, the `CreatePMAssertion` bits.
 public struct ServicePMAssertionOptions: OptionSet, Sendable, Hashable {
+  /// The encoded `CreatePMAssertion` option bits.
   public let rawValue: UInt32
 
   /// Creates options from `CreatePMAssertion` bits.
@@ -86,6 +87,7 @@ public enum ServiceBusStall: UInt64, Sendable, CaseIterable {
 
 /// Options for ``DriverContext/searchServiceProperty(named:options:plane:)``.
 public struct ServicePropertySearchOptions: OptionSet, Sendable, Hashable {
+  /// The encoded `IOService::SearchProperty` option bits.
   public let rawValue: UInt32
 
   /// Creates options from `IOService::SearchProperty` bits.

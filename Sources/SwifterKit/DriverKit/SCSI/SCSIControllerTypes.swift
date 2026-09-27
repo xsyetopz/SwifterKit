@@ -276,18 +276,27 @@ public struct SCSIParallelTaskCompletion: Sendable, Hashable {
 
 /// A SCSI task-management function forwarded to Swift.
 public enum SCSITaskManagementRequest: Sendable, Hashable {
+  /// Aborts the task identified by its target, logical unit, and task tag.
   case abortTask(targetIdentifier: UInt64, logicalUnit: UInt64, taskTag: UInt64)
+  /// Aborts all tasks for the specified target and logical unit.
   case abortTaskSet(targetIdentifier: UInt64, logicalUnit: UInt64)
+  /// Clears auto contingent allegiance for the specified target and logical unit.
   case clearAutoContingentAllegiance(targetIdentifier: UInt64, logicalUnit: UInt64)
+  /// Clears all tasks for the specified target and logical unit.
   case clearTaskSet(targetIdentifier: UInt64, logicalUnit: UInt64)
+  /// Resets the specified logical unit on the target.
   case logicalUnitReset(targetIdentifier: UInt64, logicalUnit: UInt64)
+  /// Resets the specified target.
   case targetReset(targetIdentifier: UInt64)
 }
 
 /// A controller callback forwarded by the native runtime.
 public enum SCSIControllerEvent: Sendable, Hashable {
+  /// Asks the driver to initialize the target with this identifier.
   case initializeTarget(UInt64)
+  /// Delivers a parallel SCSI task received through `UserProcessParallelTask`.
   case parallelTask(SCSIParallelTask)
+  /// Delivers a SCSI task-management request from the matching DriverKit callback.
   case taskManagement(SCSITaskManagementRequest)
   /// The result of a create that ``DriverContext/scsiCreateTarget(_:properties:)`` queued.
   case targetCreated(SCSITargetCreationResult)
@@ -295,8 +304,11 @@ public enum SCSIControllerEvent: Sendable, Hashable {
 
 /// A malformed SCSI controller event or completion.
 public enum SCSIControllerRuntimeError: Error, Sendable, Equatable {
+  /// A controller event payload has an invalid size or field value.
   case invalidPayload
+  /// A controller event uses an event kind that the runtime does not define.
   case invalidEventKind(UInt32)
+  /// A completion has an invalid request identifier or response value.
   case invalidCompletion
   /// A property update was empty, too large, repeated a key, or contained a NUL byte.
   case invalidPropertyUpdate

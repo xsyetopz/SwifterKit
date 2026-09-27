@@ -111,6 +111,7 @@ public struct HistogramSegment: Sendable, Hashable {
 
 /// IOReporting categories, the `kIOReportCategory*` bits.
 public struct ReportCategories: OptionSet, Sendable, Hashable {
+  /// The encoded `kIOReportCategory*` bits.
   public let rawValue: UInt16
 
   /// Creates categories from `IOReportCategories` bits.

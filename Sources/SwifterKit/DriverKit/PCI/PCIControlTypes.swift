@@ -4,6 +4,7 @@ import Foundation
 ///
 /// Configuration-space accesses accept no options.
 public struct PCIAccessOptions: OptionSet, Sendable, Hashable {
+  /// The encoded `tIOPCIAccessOptions` bits.
   public let rawValue: UInt32
 
   /// Creates access options from `tIOPCIAccessOptions` bits.
@@ -35,6 +36,7 @@ public enum PCIResetType: UInt32, Sendable, Hashable, CaseIterable {
 
 /// Options for `IOPCIDevice::Reset`, `tIOPCIDeviceResetOptions`.
 public struct PCIResetOptions: OptionSet, Sendable, Hashable {
+  /// The encoded `tIOPCIDeviceResetOptions` bits.
   public let rawValue: UInt32
 
   /// Creates reset options from `tIOPCIDeviceResetOptions` bits.
@@ -50,6 +52,7 @@ public struct PCIResetOptions: OptionSet, Sendable, Hashable {
 
 /// Options for `IOPCIDevice::SaveDeviceState`, `IOPCISaveDeviceStateOptions`.
 public struct PCISaveStateOptions: OptionSet, Sendable, Hashable {
+  /// The encoded `IOPCISaveDeviceStateOptions` bits.
   public let rawValue: UInt32
 
   /// Creates save options from `IOPCISaveDeviceStateOptions` bits.
@@ -67,6 +70,7 @@ public struct PCISaveStateOptions: OptionSet, Sendable, Hashable {
 ///
 /// An empty set asks whether the registry names the state the hardware expects during sleep.
 public struct PCIPowerManagementSupport: OptionSet, Sendable, Hashable {
+  /// The PCI power-management capability register bits.
   public let rawValue: UInt64
 
   /// Creates capability bits from the PCI power-management capabilities register.
@@ -142,6 +146,7 @@ public enum PCILinkSpeed: UInt32, Sendable, Hashable, CaseIterable {
 ///
 /// An empty set disables ASPM and L1 substates on the link.
 public struct PCIASPMState: OptionSet, Sendable, Hashable {
+  /// The encoded `tIOPCILinkControlASPMBits` bits.
   public let rawValue: UInt32
 
   /// Creates ASPM levels from `tIOPCILinkControlASPMBits`.

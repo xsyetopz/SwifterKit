@@ -132,10 +132,15 @@ public struct BlockStorageIORequest: Sendable, Hashable {
 
 /// An asynchronous storage operation that Swift behavior must complete.
 public enum BlockStorageRequest: Sendable, Hashable {
+  /// Ejects the media and identifies the request for its completion.
   case eject(requestID: UInt32)
+  /// Synchronizes the specified block range and identifies the request for its completion.
   case synchronize(requestID: UInt32, startBlock: UInt64, blockCount: UInt64)
+  /// Unmaps the block ranges and identifies the request for its completion.
   case unmap(requestID: UInt32, ranges: [BlockStorageRange])
+  /// Reads the blocks described by the I/O request from the device.
   case read(BlockStorageIORequest)
+  /// Writes the blocks described by the I/O request to the device.
   case write(BlockStorageIORequest)
 
   /// Opaque identifier used by the matching completion command.
@@ -214,6 +219,8 @@ public struct BlockStorageCompletionStatus: RawRepresentable, Sendable, Hashable
 
 /// A malformed block-storage runtime event.
 public enum BlockStorageRuntimeError: Error, Sendable, Equatable {
+  /// The runtime payload has an invalid size or contains invalid field values.
   case invalidPayload
+  /// The runtime payload contains a request kind that is not defined by the runtime schema.
   case invalidRequestKind(UInt32)
 }

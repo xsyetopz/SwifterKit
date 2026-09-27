@@ -17,6 +17,7 @@ public struct RuntimeProtocolVersion: Sendable, Hashable, Comparable, RawReprese
   /// Creates a protocol version from its encoded number.
   public init(rawValue: UInt16) { self.rawValue = rawValue }
 
+  /// Orders protocol versions by their encoded protocol numbers.
   public static func < (lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
 }
 
