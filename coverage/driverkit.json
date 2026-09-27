@@ -10810,14 +10810,15 @@
 
           ],
           "name" : "setState",
-          "note" : "single-channel shorthand for setChannelState, which the runtime calls with the channel Swift names",
+          "note" : "single-channel shorthand for setChannelState; setReportState names the channel and reaches the same state change",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setState(uint64_t)",
-          "status" : "excluded"
+          "status" : "swift-api",
+          "swiftSymbol" : "setReportState"
         },
         {
           "access" : "public",
@@ -10828,7 +10829,7 @@
 
           ],
           "name" : "setState",
-          "note" : "deprecated in the SDK",
+          "note" : "deprecated in the SDK; setState(newState), covered by setReportState, replaces it",
           "sdks" : [
             "24.4",
             "25.5",
@@ -10846,14 +10847,15 @@
 
           ],
           "name" : "setStateByIndices",
-          "note" : "index form of setChannelState; Swift names channels and states by ID",
+          "note" : "index form of setChannelState; setReportState makes the same state change by channel and state ID",
           "sdks" : [
             "24.4",
             "25.5",
             "27.0"
           ],
           "signature" : "IOReturn setStateByIndices(int, int)",
-          "status" : "excluded"
+          "status" : "swift-api",
+          "swiftSymbol" : "setReportState"
         },
         {
           "access" : "public",
@@ -10864,7 +10866,7 @@
 
           ],
           "name" : "setStateByIndices",
-          "note" : "deprecated in the SDK",
+          "note" : "deprecated in the SDK; setStateByIndices(channel, state), covered by setReportState, replaces it",
           "sdks" : [
             "24.4",
             "25.5",
@@ -10956,7 +10958,7 @@
 
           ],
           "name" : "getStateLastChannelUpdateTime",
-          "note" : "deprecated in the SDK",
+          "note" : "deprecated in the SDK; the header says clients cannot interlock with auto-updates, so there is no sensible way to use it",
           "sdks" : [
             "24.4",
             "25.5",
