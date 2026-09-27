@@ -2,6 +2,8 @@
 
 Describe short register sequences that the generated extension runs natively, next to the hardware, as bounded data rather than code.
 
+Fast-path programs can use DMA rings and host-shared data queues while keeping the control plane in Swift. These paths have not been run on physical hardware.
+
 ## Overview
 
 Some device work cannot wait for a round trip to the Swift driver: acknowledging an interrupt, ringing a doorbell after a start sequence, or polling a ready bit before teardown. ``DriverConfiguration/fastPath`` declares that work as a ``FastPathConfiguration``, a list of ``FastPathProgram`` values built from a closed set of ``FastPathOp`` operations.

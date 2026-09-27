@@ -4,7 +4,7 @@ Choose a ``RuntimeCapabilities`` value and the corresponding configuration metad
 
 ## Deployment requirements
 
-The Swift package supports macOS 10.15 and later. ``DriverExtensionGenerationOptions/deploymentTarget`` controls the generated extension separately and defaults to DriverKit 19.0.
+The Swift package requires Swift 6.1 (Xcode 16.3) and supports macOS 10.15 and later. IOKit transport is available only on Apple platforms; configuration and generation also build on Linux. ``DriverExtensionGenerationOptions/deploymentTarget`` controls the generated extension separately and defaults to DriverKit 19.0.
 
 | Capability | Minimum DriverKit target | Earliest host release |
 | --- | ---: | --- |

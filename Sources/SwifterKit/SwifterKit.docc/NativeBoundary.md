@@ -1,5 +1,7 @@
 # The native DriverKit boundary
 
+SwifterKit 0.2.0 requires Swift 6.1 (Xcode 16.3 minimum). IOKit transport is available only on Apple platforms, and no 0.2.0 paths have run on physical hardware.
+
 SwifterKit separates Swift driver behavior from the native extension required by the DriverKit ABI. ``DriverExtensionGenerator`` copies and configures that internal extension from ``DriverConfiguration``; driver authors do not provide C++ or IIG source to the generator.
 
 ## Configuration becomes extension metadata

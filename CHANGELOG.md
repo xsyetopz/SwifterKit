@@ -4,298 +4,7 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
-### Changed
-
-- **Breaking:** `DriverMemoryError` gains `invalidSegmentCount`,
-  `invalidSegment`, `inUse`, and `notOwner`, so exhaustive switches over it
-  must handle the new cases.
-- **Breaking:** `FastPathOp` gains `ringLoad`, `ringStore`, and `ringAdvance`;
-  `FastPathOperand` gains `ringDeviceAddress` and `ringIndex`; `FastPathError`
-  gains `tooManyRings`, `invalidRing`, `duplicateRing`, `ringBytesExceeded`,
-  `ringsWithoutPCIDevice`, `unknownRing`, and `ringFieldOutOfBounds`; and
-  `FastPathRuntimeError` gains `unknownRing`. Exhaustive switches over them
-  must handle the new cases.
-- A client-memory type of kind 3 maps a fast-path ring instead of answering
-  `kIOReturnUnsupported`.
-- **Breaking:** `FastPathOp` gains `enqueue`; `FastPathError` gains
-  `tooManyDataQueues`, `invalidDataQueue`, `duplicateDataQueue`,
-  `dataQueueBytesExceeded`, `unknownDataQueue`, and `invalidEnqueue`; and
-  `FastPathRuntimeError` gains `unknownDataQueue`. Exhaustive switches over
-  them must handle the new cases.
-- A client-memory type of kind 4 maps a fast-path data queue's host ring
-  instead of answering `kIOReturnUnsupported`.
-- **Breaking:** `FastPathTrigger` gains `dataAvailable`; `FastPathError` gains
-  `unknownDataAvailableQueue` and `duplicateDataAvailableTrigger`; and
-  `FastPathDataQueueError` gains `notProducer`. Exhaustive switches over them
-  must handle the new cases. `argumentsWithoutCommandTrigger` no longer
-  applies to `dataAvailable` programs.
-- **Breaking:** `DriverConnection` requires `mapMemory(type:readOnly:)`, which
-  maps the memory the user client shares for a `CopyClientMemoryForType` type
-  into the host and returns a `DriverSharedMemory`; custom connections must
-  implement it.
-- **Breaking:** `DriverMemoryError` gains `invalidChainLength`, so exhaustive
-  switches over it must handle the new case.
-- Memory handles stay within 24 bits: they count up to 0xFFFFFF, wrap to 1,
-  and skip handles still in use, so every handle fits the client-memory
-  identifier field. A runtime answer outside that range is refused with
-  `DriverMemoryError.invalidPayload`.
-- **Breaking:** `DriverExtensionGenerationError` gains
-  `invalidFastPathConfiguration(_:)`, which carries the `FastPathError` that
-  refused a fast-path configuration.
-- `SwifterKitCoverage check` requires a `fast-path` member to name a
-  `swiftSymbol` found in the Swift sources and to be referenced by the native
-  runtime, and rejects notes on covered members that say "deferred",
-  "planned", "not yet", "hard", "today", or "TODO".
-- **Breaking:** `SCSIControllerRuntimeError` gains `invalidPropertyUpdate` and
-  `invalidDataRange`.
-- **Breaking:** `SCSIControllerEvent` gains the `targetCreated` case, which
-  carries a `SCSITargetCreationResult`, so exhaustive switches over it must
-  handle the new case.
-- Video generation requires DriverKit 25.5 instead of 27.0. The DriverKit 25.5
-  SDK in Xcode 26.6 ships VideoDriverKit with the same headers and exported
-  symbols as the DriverKit 27.0 SDK, and generated video extensions build
-  against it; the DriverKit 24.4 SDK has no VideoDriverKit.
-- **Breaking:** `VideoRuntimeError` gains `invalidObjectTarget`, `invalidName`,
-  `invalidPropertySelectors`, and `invalidSampleRates`.
-- **Breaking:** `AudioRuntimeError` gains `invalidObjectTarget`, `invalidName`,
-  `invalidPropertySelectors`, and `invalidSampleRates`.
-- Stopping the audio runtime removes the device's controls and custom
-  properties before the device leaves the driver.
-- **Breaking:** transmit events carry a 72-byte packet metadata block before
-  the frame, `EthernetTransmitRequest` gains `metadata`, `EthernetEvent` gains
-  `interfaceCommand`, and `EthernetRuntimeError` gains `invalidBatch` and
-  `invalidPacketMetadata`. `packetBufferSize` may be at most 65,420 bytes so a
-  frame and its metadata fit in one event.
-- **Breaking:** `EthernetEvent` gains the `hardwareAssistsChanged`, `polling`,
-  `packetTap`, and `nicProxyConfiguration` cases, and `EthernetRuntimeError`
-  gains `invalidLinkStatus`, `invalidLinkQuality`, `invalidBandwidths`, and
-  `invalidPollingParameters`, so exhaustive switches over them must handle the
-  new cases.
-- The networking runtime registers its queues through
-  `registerEthernetInterface(queues, numQueues, txPool, rxPool)`, which reads
-  the address from `getHardwareAddress`, and checks each packet pool's packet
-  and buffer counts after creating it.
-- `SwifterKitRuntimeServiceWatches.cpp` and the USB protocol header use the
-  shared `kSwifterKitMaximumEventPayloadLength` instead of their own copies of
-  the event payload limit.
-- **Breaking:** `USBEvent` gains the `deviceRequest` and `bundledIO` cases, and
-  `USBRuntimeError` gains `invalidBundleRing`, `invalidBundledTransfer`, and
-  `invalidEndpointPolicy`, so exhaustive switches over them must handle the
-  new cases.
-- **Breaking:** every generated service overrides `IOService::SetPowerState`
-  and, while a host is connected, delivers each power change as a
-  `ServicePowerStateRequest` from `DriverEvent.servicePowerState()`. DriverKit
-  changes power only after the change is acknowledged, so handle the event and
-  call `completePowerState(requestID:)` once the device is safe. A driver that
-  ignores it delays each sleep and wake by ten seconds, after which the
-  extension acknowledges the change itself; it also does so when the host
-  disconnects, when the service stops, and at once when no host is connected.
-  Completing a request the extension already acknowledged fails with
-  `kIOReturnNotFound`, which ends `runEvents()` if the handler rethrows it.
-- **Breaking:** event delivery is push-based. The extension notifies the host
-  through an asynchronous external method when events are queued, and the host
-  drains the queue until it is empty. `DriverHost.runEvents()` replaces
-  `runEvents(idlePollNanoseconds:)`, `runEvents(idlePollInterval:)`, and
-  `processNextEvent()`, which are removed. `DriverRuntimeConnection.events()`
-  returns the events as a `DriverEventSequence`, and
-  `DriverRuntimeConnection.nextEvent()` is no longer public.
-- **Breaking:** `DriverConnection` requires `notifications(selector:)`, which
-  registers an asynchronous external method and returns its completions as an
-  `AsyncStream`. `DriverSession.notifications(selector:)` forwards to it.
-- When the registered host closes its connection or exits, the extension empties
-  its event queues and answers the requests that host can no longer complete:
-  block-storage requests complete with `kIOReturnAborted`, SCSI parallel tasks
-  complete with a delivery failure, and Ethernet transmits return to their pool.
-
-- **Breaking:** every generated extension now rejects a runtime user-client
-  connection unless the host process has the
-  `com.apple.developer.driverkit.userclient-access` entitlement listing the
-  extension's bundle identifier. Before this, only audio extensions checked it.
-  Video extensions, which carry `allow-any-userclient-access`, accepted any
-  process. Add the entitlement to every host application.
-- **Breaking:** `pciRead` and `pciWrite` take `options: PCIAccessOptions`
-  instead of a raw `UInt32`, and reject unknown option bits and any option for
-  configuration space. `PCIRuntimeError` gains `invalidAccessOptions`,
-  `invalidOptions`, and `emptyPropertyUpdate`.
-- **Breaking:** PCI aperture accesses past the end of a BAR, or to a memory
-  index that is not BAR0 through BAR5, such as the expansion ROM, now fail with
-  `kIOReturnBadArgument` before reaching DriverKit.
-
-### Fixed
-
-- `scsiCreateTarget` called `UserCreateTargetForID` on the user client's
-  queue. DriverKit starts the new target inside that call and waits for its
-  INQUIRY, which Swift can only poll and complete through the same, blocked,
-  queue, so the create stalled until INQUIRY timed out. The extension now runs
-  the create on its own queue, and `scsiCreateTarget` returns once the
-  properties are validated and the create is queued. The create's `IOReturn`,
-  which the queued create had discarded so a failure never reached Swift, now
-  arrives as a required `SCSIControllerEvent.targetCreated` event with the
-  target identifier and status.
-- The timer and watch limits, `SwifterKitServiceWatchKind`, the IOReporting
-  limits, `SwifterKitReporterKind`, `SwifterKitReporterOperation`,
-  `SwifterKitPropertyTag`, and the registry-property depth and name limits were
-  written by hand in both the Swift sources and the native Dispatch, Reporting,
-  and Service protocol headers. They are now declared once in the Swift runtime
-  schema and emitted into the generated `SwifterKitRuntimeSchema.h`, which
-  `RuntimeSchemaTests` checks for drift and for native redeclarations. The SCSI
-  management kinds and property limits, the block-storage request kinds, the
-  serial event and USB serial packet kinds, and the MIDI event, target, key, and
-  value kinds with the MIDI driver class, listed-object, name, and property
-  limits, which the SCSI, BlockStorage, Serial, USBSerial, and MIDI runtime
-  sources and their Swift decoders each spelled out, come from the same schema.
-  So do the SCSI parallel-task feature-request and CDB-size bounds, the SCSI
-  peripheral data limit, and the USB interface, transfer, isochronous-frame, and
-  bundled-I/O limits with the supported `bcdUSB` releases and the configuration
-  and pipe-descriptor selectors, and the HID page, cookie, collection, touch,
-  pending-report, and event-value limits, the LED usage page, the element write
-  kind, and the host-report, get-report, delivery, event-driver category,
-  stylus, touch, digitizer-collection, and game-controller bits. The Ethernet
-  event kinds, packet flags and their transmit, receive, completion, checksum,
-  and LRO masks, the batch, poll-interval, and packet-queue bounds, the
-  packet-tap directions, and the event-header and transmit-metadata sizes, from
-  which the largest `packetBufferSize` follows, come from it as well, and the
-  Ethernet registration passes the schema's packet-queue count. The audio
-  object-target, event, object-event, control, control-value, member, owner,
-  and element-name kinds, the device, stream, control, box, and clock-device
-  property selectors, the box and clock state bits, and the table,
-  pending-request, sample-rate, name, custom-property, selector-item,
-  channel-label, stream, control, format, frame, ring-buffer, and transfer
-  bounds come from it too, and so do the matching video kinds, selectors, state
-  bits, and bounds, with the video buffer-property selectors, queue-notification
-  kinds, stream directions, buffer planes, and the buffer, queue-entry, data,
-  and control capacity limits.
-- The queued `UserCreateTargetForID` discarded the result of enqueueing its
-  required `SCSIControllerEvent.targetCreated` event, so a registered host that
-  had let the required queue fill lost the event. The create's queue now
-  retries with a backoff of up to 64 ms while a host is registered. When that
-  host detaches, the extension empties its queues and stops retrying, and the
-  next host finds the target through `scsiTargetPresent`.
-- The video runtime attached and detached streams, set safety offsets, and set
-  clock latencies directly. `IOUserVideoDriver.iig` allows changes that affect
-  IO or the device's structure only in `PerformDeviceConfigurationChange`.
-  These now go through `RequestDeviceConfigurationChange`, so the calls return
-  once the change is requested. VideoDriverKit has no zero-timestamp period
-  setter, so there is no such change to move.
-- The audio runtime attached and detached streams, set safety offsets, and set
-  clock latencies and the zero-timestamp period directly. `IOUserAudioDriver.iig`
-  allows changes that affect IO or the device's structure only in
-  `PerformDeviceConfigurationChange`, and `IOUserAudioClockDevice.iig` says the
-  zero-timestamp period "should only be done during
-  PerformDeviceConfigurationChange()". These now go through
-  `RequestDeviceConfigurationChange`, so the calls return once the change is
-  requested.
-- A failed video buffer-capacity change left the buffers set so far on the new
-  descriptors while the runtime kept the old ones; the change now restores
-  every buffer it touched. A failed buffer detach no longer leaves the stream
-  with no buffers: the runtime builds both buffer lists before removing any and
-  re-adds the previous list when the re-add fails.
-- A failed video queue-length change left the stream with no queues; the
-  runtime now recreates the queues at their previous length.
-- The video runtime sets each control's owning device with
-  `_SetOwningDeviceID` before `AddControl`. The VideoDriverKit headers do not
-  say that `AddControl` sets it, so `videoControlInfo` could have read an unset
-  owner.
-- The SCSI controller runtime's `UserProcessBundledParallelTasks` returned
-  without answering its completion. It now hands every slot back through
-  `BundledParallelTaskCompletion`; the runtime still declines the shared
-  buffers, so the framework does not call it.
-- The MIDI runtime wrote its device, entity, source, and destination pointers
-  in `StartMIDI` and `StopMIDI` on the service queue while `midiSend`,
-  `StartIO`, and `StopIO` read them from other queues without
-  synchronization. A `midiLock` now guards them; readers retain the object
-  they use, and destination I/O blocks never take the lock. A `StartMIDI` that
-  fails after adding the device to the driver now removes it again.
-
-- A clock device's `HandleChangeSampleRate`, in both AudioDriverKit and
-  VideoDriverKit, reported success after queuing the Swift request, and without
-  a host after only requesting a configuration change, although the headers
-  require the rate to be updated on success. The clock now sets the requested
-  rate before it reports success and uses the framework default without a host.
-  Accepting the request reports `clockDeviceSampleRateChanged`; rejecting it,
-  a timeout, or a detach restores the previous rate through a device
-  configuration change unless the rate changed again.
-
-- `StartVideo` stored the video device without `videoLock`, which
-  `VideoCommand` holds while it reads the device; the device is now published
-  under the lock.
-- Stopping the video runtime removed the device from the driver while its
-  controls and custom properties were still attached; they are now removed
-  first.
-- `coverage/driverkit.json` listed `IOUserVideoDriver::AddCustomProperty` as
-  generated although the runtime never called it; `videoSetCustomPropertyOwner`
-  now calls it and its removal counterpart.
-- An audio box's `HandleChangeAcquireBox` returned success before
-  `SetIsAcquired` ran, although `IOUserAudioBox` requires the acquired state
-  to be updated when the callback reports success. The box now takes the
-  requested state before it queues the request, rejecting the request with
-  `audioCompleteRequest` restores the previous state, and a request for the
-  state the box already has succeeds without an event.
-- `HIDSubmitInputReport` called into the service without checking that the
-  user client still had one, so a report sent after the service detached
-  dereferenced a null pointer. It now returns `kIOReturnBadArgument`, as
-  `HIDGetRuntimeStatistics` does.
-- A transmit Swift completed with a nonzero status was freed back to the pool
-  instead of returning to the stack. It now carries the status through
-  `setCompletionStatus` and returns through the transmit completion queue, and
-  every packet returns to the pool it came from (`getPacketBufferPool`).
-- `xcodebuild analyze` no longer reports leaks of the timer source and action
-  in `SwifterKitRuntimeTimers.cpp`. `SwifterKitReleaseSource` consumes the
-  references it is given, and its parameters now say so with `os_consumed`, so
-  the analyzer follows the ownership that `TimerCommand` hands it on failure.
-- `EthernetEvent.wakeOnMagicPacket` was decoded but never sent. The extension
-  now delivers it when the stack changes `kIOUserNetworkHWAssistWOMP` through
-  `setHardwareAssists(assists, mask)`, and advertises that assist whenever
-  `supportsWakeOnMagicPacket` is set.
-- The extension accepted an MTU of 0 from the networking stack. It now rejects
-  an MTU below `EthernetDeviceConfiguration.minimumTransferUnit` (68 by
-  default).
-- `pciReset(type:options:)` with `.terminate` now documents that the call
-  returns the reset's result: DriverKit starts termination without waiting for
-  it. The extension holds the PCI device across the reset, since termination
-  can stop the service concurrently. Before this, the documentation said the
-  response might never arrive.
-- A SCSI parallel task that the extension cannot take, because every task slot
-  is in use or the task is malformed, now completes with a delivery failure
-  and reports `Request_In_Process`. Before this, the extension returned an
-  error without setting the task's response or completing it.
-- A block-storage request that the extension cannot take, because the request
-  table is full or its arguments are invalid, now completes through `Complete`
-  or `CompleteIO` with the failure status. Before this, the extension returned
-  the error without completing the request. A request whose identifier matches
-  an outstanding one is still refused with `kIOReturnExclusiveAccess` and no
-  completion, because completing it would answer the outstanding request.
-- An Ethernet extension now acknowledges each power change through the
-  superclass even when the Swift notification cannot be queued. Before this, a
-  full required-event queue skipped the superclass and stalled the transition.
-- Block-storage unmap requests, host `setReport` reports, and received MIDI
-  words are now checked against the event-queue payload limit, 65,508 bytes,
-  before they are queued. Before this, the checks allowed payloads up to 24
-  bytes larger, which the event queue then rejected.
-- A serial extension whose start fails after its queues are connected now
-  disconnects them before the service stops.
-- A generated `IOUserHIDDevice` or `IOUserUSBHostHIDDevice` that accepts
-  output or feature reports from the host now calls `CompleteReport` exactly
-  once, with success and the report length, as soon as `setReport` queues the
-  report to Swift. Before this, `setReport` returned success without ever
-  completing the request. An error return still leaves completion to the
-  caller.
-- Required events (block-storage requests, SCSI tasks, Ethernet transmits and
-  controls, and audio and video changes that wait for Swift) now have a
-  512-event queue separate from the 64-event lossy queue. Lossy events cannot
-  use required capacity, and polling returns required events first.
-- When the required queue rejects an event, block-storage requests complete
-  with the enqueue error and SCSI parallel tasks complete with a delivery
-  failure. Before this, block-storage requests and SCSI tasks were returned as
-  errors without a completion, and task-management responses were left unset.
-  The extension counts dropped lossy events.
-- USB pipe completions that the full required queue rejected are also retried
-  when a poll takes a required event, so a host that only receives events gets
-  them. Before this, only a USB command from Swift retried them.
-- When a different connection registers for events, the extension answers the
-  requests the previous connection took (block storage, SCSI, Ethernet
-  transmits) as it does when a host disconnects. Before this, they stayed
-  outstanding until the service stopped.
+## 0.2.0
 
 ### Added
 
@@ -635,6 +344,109 @@ SwifterKit records user-visible changes in this file.
 
 ### Changed
 
+- **Breaking:** `DriverMemoryError` gains `invalidSegmentCount`,
+  `invalidSegment`, `inUse`, `notOwner`, and `invalidChainLength`, so
+  exhaustive switches over it must handle the new cases.
+- **Breaking:** `FastPathOp` gains `ringLoad`, `ringStore`, `ringAdvance`,
+  and `enqueue`; `FastPathOperand` gains `ringDeviceAddress` and `ringIndex`;
+  `FastPathTrigger` gains `dataAvailable`; `FastPathError` gains
+  `tooManyRings`, `invalidRing`, `duplicateRing`, `ringBytesExceeded`,
+  `ringsWithoutPCIDevice`, `unknownRing`, `ringFieldOutOfBounds`,
+  `tooManyDataQueues`, `invalidDataQueue`, `duplicateDataQueue`,
+  `dataQueueBytesExceeded`, `unknownDataQueue`, `invalidEnqueue`,
+  `unknownDataAvailableQueue`, and `duplicateDataAvailableTrigger`;
+  `FastPathRuntimeError` gains `unknownRing` and `unknownDataQueue`; and
+  `FastPathDataQueueError` gains `notProducer`. Exhaustive switches must handle
+  the new cases. `argumentsWithoutCommandTrigger` no longer applies to
+  `dataAvailable` programs.
+- Client-memory types of kind 3 and kind 4 map fast-path rings and data queues'
+  host rings instead of answering `kIOReturnUnsupported`.
+- Memory handles stay within 24 bits: they count up to 0xFFFFFF, wrap to 1,
+  and skip handles still in use, so every handle fits the client-memory
+  identifier field. A runtime answer outside that range is refused with
+  `DriverMemoryError.invalidPayload`.
+- **Breaking:** `DriverExtensionGenerationError` gains
+  `invalidFastPathConfiguration(_:)`, which carries the `FastPathError` that
+  refused a fast-path configuration.
+- `SwifterKitCoverage check` requires a `fast-path` member to name a
+  `swiftSymbol` found in the Swift sources and to be referenced by the native
+  runtime, and rejects notes on covered members that say "deferred",
+  "planned", "not yet", "hard", "today", or "TODO".
+- **Breaking:** `SCSIControllerRuntimeError` gains `invalidPropertyUpdate` and
+  `invalidDataRange`.
+- **Breaking:** `SCSIControllerEvent` gains the `targetCreated` case, which
+  carries a `SCSITargetCreationResult`, so exhaustive switches over it must
+  handle the new case.
+- Video generation requires DriverKit 25.5 instead of 27.0. The DriverKit 25.5
+  SDK in Xcode 26.6 ships VideoDriverKit with the same headers and exported
+  symbols as the DriverKit 27.0 SDK, and generated video extensions build
+  against it; the DriverKit 24.4 SDK has no VideoDriverKit.
+- **Breaking:** `VideoRuntimeError` gains `invalidObjectTarget`, `invalidName`,
+  `invalidPropertySelectors`, and `invalidSampleRates`.
+- **Breaking:** `AudioRuntimeError` gains `invalidObjectTarget`, `invalidName`,
+  `invalidPropertySelectors`, and `invalidSampleRates`.
+- Stopping the audio runtime removes the device's controls and custom
+  properties before the device leaves the driver.
+- **Breaking:** transmit events carry a 72-byte packet metadata block before
+  the frame; `EthernetTransmitRequest` gains `metadata`; `EthernetEvent` gains
+  `interfaceCommand`, `hardwareAssistsChanged`, `polling`, `packetTap`, and
+  `nicProxyConfiguration`; and `EthernetRuntimeError` gains `invalidBatch`,
+  `invalidPacketMetadata`, `invalidLinkStatus`, `invalidLinkQuality`,
+  `invalidBandwidths`, and `invalidPollingParameters`. Exhaustive switches must
+  handle the new cases. `packetBufferSize` may be at most 65,420 bytes so a
+  frame and its metadata fit in one event.
+- The networking runtime registers its queues through
+  `registerEthernetInterface(queues, numQueues, txPool, rxPool)`, which reads
+  the address from `getHardwareAddress`, and checks each packet pool's packet
+  and buffer counts after creating it.
+- `SwifterKitRuntimeServiceWatches.cpp` and the USB protocol header use the
+  shared `kSwifterKitMaximumEventPayloadLength` instead of their own copies of
+  the event payload limit.
+- **Breaking:** `USBEvent` gains the `deviceRequest` and `bundledIO` cases, and
+  `USBRuntimeError` gains `invalidBundleRing`, `invalidBundledTransfer`, and
+  `invalidEndpointPolicy`, so exhaustive switches over them must handle the
+  new cases.
+- **Breaking:** every generated service overrides `IOService::SetPowerState`
+  and, while a host is connected, delivers each power change as a
+  `ServicePowerStateRequest` from `DriverEvent.servicePowerState()`. DriverKit
+  changes power only after the change is acknowledged, so handle the event and
+  call `completePowerState(requestID:)` once the device is safe. A driver that
+  ignores it delays each sleep and wake by ten seconds, after which the
+  extension acknowledges the change itself; it also does so when the host
+  disconnects, when the service stops, and at once when no host is connected.
+  Completing a request the extension already acknowledged fails with
+  `kIOReturnNotFound`, which ends `runEvents()` if the handler rethrows it.
+- **Breaking:** event delivery is push-based. The extension notifies the host
+  through an asynchronous external method when events are queued, and the host
+  drains the queue until it is empty. `DriverHost.runEvents()` iterates the
+  sequence of queued events.
+- When the registered host closes its connection or exits, the extension empties
+  its event queues and answers the requests that host can no longer complete:
+  block-storage requests complete with `kIOReturnAborted`, SCSI parallel tasks
+  complete with a delivery failure, and Ethernet transmits return to their pool.
+
+- **Breaking:** `DriverConnection` requires `mapMemory(type:readOnly:)`, which
+  maps memory shared by the user client for a `CopyClientMemoryForType` type
+  into the host and returns `DriverSharedMemory`, and
+  `notifications(selector:)`, which registers an asynchronous external method
+  whose completions arrive as an `AsyncStream`; custom connections must
+  implement both. `DriverSession.mapMemory(type:readOnly:)` and
+  `DriverSession.notifications(selector:)` forward these APIs.
+- **Breaking:** every generated extension now rejects a runtime user-client
+  connection unless the host process has the
+  `com.apple.developer.driverkit.userclient-access` entitlement listing the
+  extension's bundle identifier. Before this, only audio extensions checked it.
+  Video extensions, which carry `allow-any-userclient-access`, accepted any
+  process. Add the entitlement to every host application.
+- **Breaking:** `pciRead` and `pciWrite` take `options: PCIAccessOptions`
+  instead of a raw `UInt32`, and reject unknown option bits and any option for
+  configuration space. `PCIRuntimeError` gains `invalidAccessOptions`,
+  `invalidOptions`, and `emptyPropertyUpdate`.
+- **Breaking:** PCI aperture accesses past the end of a BAR, or to a memory
+  index that is not BAR0 through BAR5, such as the expansion ROM, now fail with
+  `kIOReturnBadArgument` before reaching DriverKit.
+
+
 - The runtime protocol is now version 2. The handshake offers a version range,
   the extension selects the highest common version, and both sides use it for
   the rest of the connection; `DriverRuntimeConnection.protocolVersion` reports
@@ -642,8 +454,6 @@ SwifterKit records user-visible changes in this file.
   extensions do not negotiate. `RuntimeProtocolVersion` is now `Comparable`,
   adds `version2`, `minimumSupported`, and `supported`, and no longer declares
   `version1`.
-- **Breaking:** `RuntimeMessageFlags.finalFragment` is removed. The runtime
-  never sent fragmented messages.
 - Runtime messages larger than `RuntimeMessage.maximumSize` (64 KiB, header
   included) now throw `RuntimeProtocolError.payloadTooLarge` before the IOKit
   call instead of failing in the extension.
@@ -659,9 +469,196 @@ SwifterKit records user-visible changes in this file.
 
 ### Fixed
 
+- `scsiCreateTarget` called `UserCreateTargetForID` on the user client's
+  queue. DriverKit starts the new target inside that call and waits for its
+  INQUIRY, which Swift can only poll and complete through the same, blocked,
+  queue, so the create stalled until INQUIRY timed out. The extension now runs
+  the create on its own queue, and `scsiCreateTarget` returns once the
+  properties are validated and the create is queued. The create's `IOReturn`,
+  which the queued create had discarded so a failure never reached Swift, now
+  arrives as a required `SCSIControllerEvent.targetCreated` event with the
+  target identifier and status.
+- The timer and watch limits, `SwifterKitServiceWatchKind`, the IOReporting
+  limits, `SwifterKitReporterKind`, `SwifterKitReporterOperation`,
+  `SwifterKitPropertyTag`, and the registry-property depth and name limits were
+  written by hand in both the Swift sources and the native Dispatch, Reporting,
+  and Service protocol headers. They are now declared once in the Swift runtime
+  schema and emitted into the generated `SwifterKitRuntimeSchema.h`, which
+  `RuntimeSchemaTests` checks for drift and for native redeclarations. The SCSI
+  management kinds and property limits, the block-storage request kinds, the
+  serial event and USB serial packet kinds, and the MIDI event, target, key, and
+  value kinds with the MIDI driver class, listed-object, name, and property
+  limits, which the SCSI, BlockStorage, Serial, USBSerial, and MIDI runtime
+  sources and their Swift decoders each spelled out, come from the same schema.
+  So do the SCSI parallel-task feature-request and CDB-size bounds, the SCSI
+  peripheral data limit, and the USB interface, transfer, isochronous-frame, and
+  bundled-I/O limits with the supported `bcdUSB` releases and the configuration
+  and pipe-descriptor selectors, and the HID page, cookie, collection, touch,
+  pending-report, and event-value limits, the LED usage page, the element write
+  kind, and the host-report, get-report, delivery, event-driver category,
+  stylus, touch, digitizer-collection, and game-controller bits. The Ethernet
+  event kinds, packet flags and their transmit, receive, completion, checksum,
+  and LRO masks, the batch, poll-interval, and packet-queue bounds, the
+  packet-tap directions, and the event-header and transmit-metadata sizes, from
+  which the largest `packetBufferSize` follows, come from it as well, and the
+  Ethernet registration passes the schema's packet-queue count. The audio
+  object-target, event, object-event, control, control-value, member, owner,
+  and element-name kinds, the device, stream, control, box, and clock-device
+  property selectors, the box and clock state bits, and the table,
+  pending-request, sample-rate, name, custom-property, selector-item,
+  channel-label, stream, control, format, frame, ring-buffer, and transfer
+  bounds come from it too, and so do the matching video kinds, selectors, state
+  bits, and bounds, with the video buffer-property selectors, queue-notification
+  kinds, stream directions, buffer planes, and the buffer, queue-entry, data,
+  and control capacity limits.
+- The queued `UserCreateTargetForID` discarded the result of enqueueing its
+  required `SCSIControllerEvent.targetCreated` event, so a registered host that
+  had let the required queue fill lost the event. The create's queue now
+  retries with a backoff of up to 64 ms while a host is registered. When that
+  host detaches, the extension empties its queues and stops retrying, and the
+  next host finds the target through `scsiTargetPresent`.
+- The video runtime attached and detached streams, set safety offsets, and set
+  clock latencies directly. `IOUserVideoDriver.iig` allows changes that affect
+  IO or the device's structure only in `PerformDeviceConfigurationChange`.
+  These now go through `RequestDeviceConfigurationChange`, so the calls return
+  once the change is requested. VideoDriverKit has no zero-timestamp period
+  setter, so there is no such change to move.
+- The audio runtime attached and detached streams, set safety offsets, and set
+  clock latencies and the zero-timestamp period directly. `IOUserAudioDriver.iig`
+  allows changes that affect IO or the device's structure only in
+  `PerformDeviceConfigurationChange`, and `IOUserAudioClockDevice.iig` says the
+  zero-timestamp period "should only be done during
+  PerformDeviceConfigurationChange()". These now go through
+  `RequestDeviceConfigurationChange`, so the calls return once the change is
+  requested.
+- A failed video buffer-capacity change left the buffers set so far on the new
+  descriptors while the runtime kept the old ones; the change now restores
+  every buffer it touched. A failed buffer detach no longer leaves the stream
+  with no buffers: the runtime builds both buffer lists before removing any and
+  re-adds the previous list when the re-add fails.
+- A failed video queue-length change left the stream with no queues; the
+  runtime now recreates the queues at their previous length.
+- The video runtime sets each control's owning device with
+  `_SetOwningDeviceID` before `AddControl`. The VideoDriverKit headers do not
+  say that `AddControl` sets it, so `videoControlInfo` could have read an unset
+  owner.
+- The SCSI controller runtime's `UserProcessBundledParallelTasks` returned
+  without answering its completion. It now hands every slot back through
+  `BundledParallelTaskCompletion`; the runtime still declines the shared
+  buffers, so the framework does not call it.
+- The MIDI runtime wrote its device, entity, source, and destination pointers
+  in `StartMIDI` and `StopMIDI` on the service queue while `midiSend`,
+  `StartIO`, and `StopIO` read them from other queues without
+  synchronization. A `midiLock` now guards them; readers retain the object
+  they use, and destination I/O blocks never take the lock. A `StartMIDI` that
+  fails after adding the device to the driver now removes it again.
+
+- A clock device's `HandleChangeSampleRate`, in both AudioDriverKit and
+  VideoDriverKit, reported success after queuing the Swift request, and without
+  a host after only requesting a configuration change, although the headers
+  require the rate to be updated on success. The clock now sets the requested
+  rate before it reports success and uses the framework default without a host.
+  Accepting the request reports `clockDeviceSampleRateChanged`; rejecting it,
+  a timeout, or a detach restores the previous rate through a device
+  configuration change unless the rate changed again.
+
+- `StartVideo` stored the video device without `videoLock`, which
+  `VideoCommand` holds while it reads the device; the device is now published
+  under the lock.
+- Stopping the video runtime removed the device from the driver while its
+  controls and custom properties were still attached; they are now removed
+  first.
+- `coverage/driverkit.json` listed `IOUserVideoDriver::AddCustomProperty` as
+  generated although the runtime never called it; `videoSetCustomPropertyOwner`
+  now calls it and its removal counterpart.
+- An audio box's `HandleChangeAcquireBox` returned success before
+  `SetIsAcquired` ran, although `IOUserAudioBox` requires the acquired state
+  to be updated when the callback reports success. The box now takes the
+  requested state before it queues the request, rejecting the request with
+  `audioCompleteRequest` restores the previous state, and a request for the
+  state the box already has succeeds without an event.
+- `HIDSubmitInputReport` called into the service without checking that the
+  user client still had one, so a report sent after the service detached
+  dereferenced a null pointer. It now returns `kIOReturnBadArgument`, as
+  `HIDGetRuntimeStatistics` does.
+- A transmit Swift completed with a nonzero status was freed back to the pool
+  instead of returning to the stack. It now carries the status through
+  `setCompletionStatus` and returns through the transmit completion queue, and
+  every packet returns to the pool it came from (`getPacketBufferPool`).
+- `xcodebuild analyze` no longer reports leaks of the timer source and action
+  in `SwifterKitRuntimeTimers.cpp`. `SwifterKitReleaseSource` consumes the
+  references it is given, and its parameters now say so with `os_consumed`, so
+  the analyzer follows the ownership that `TimerCommand` hands it on failure.
+- `EthernetEvent.wakeOnMagicPacket` was decoded but never sent. The extension
+  now delivers it when the stack changes `kIOUserNetworkHWAssistWOMP` through
+  `setHardwareAssists(assists, mask)`, and advertises that assist whenever
+  `supportsWakeOnMagicPacket` is set.
+- The extension accepted an MTU of 0 from the networking stack. It now rejects
+  an MTU below `EthernetDeviceConfiguration.minimumTransferUnit` (68 by
+  default).
+- `pciReset(type:options:)` with `.terminate` now documents that the call
+  returns the reset's result: DriverKit starts termination without waiting for
+  it. The extension holds the PCI device across the reset, since termination
+  can stop the service concurrently. Before this, the documentation said the
+  response might never arrive.
+- A SCSI parallel task that the extension cannot take, because every task slot
+  is in use or the task is malformed, now completes with a delivery failure
+  and reports `Request_In_Process`. Before this, the extension returned an
+  error without setting the task's response or completing it.
+- A block-storage request that the extension cannot take, because the request
+  table is full or its arguments are invalid, now completes through `Complete`
+  or `CompleteIO` with the failure status. Before this, the extension returned
+  the error without completing the request. A request whose identifier matches
+  an outstanding one is still refused with `kIOReturnExclusiveAccess` and no
+  completion, because completing it would answer the outstanding request.
+- An Ethernet extension now acknowledges each power change through the
+  superclass even when the Swift notification cannot be queued. Before this, a
+  full required-event queue skipped the superclass and stalled the transition.
+- Block-storage unmap requests, host `setReport` reports, and received MIDI
+  words are now checked against the event-queue payload limit, 65,508 bytes,
+  before they are queued. Before this, the checks allowed payloads up to 24
+  bytes larger, which the event queue then rejected.
+- A serial extension whose start fails after its queues are connected now
+  disconnects them before the service stops.
+- A generated `IOUserHIDDevice` or `IOUserUSBHostHIDDevice` that accepts
+  output or feature reports from the host now calls `CompleteReport` exactly
+  once, with success and the report length, as soon as `setReport` queues the
+  report to Swift. Before this, `setReport` returned success without ever
+  completing the request. An error return still leaves completion to the
+  caller.
+- Required events (block-storage requests, SCSI tasks, Ethernet transmits and
+  controls, and audio and video changes that wait for Swift) now have a
+  512-event queue separate from the 64-event lossy queue. Lossy events cannot
+  use required capacity, and polling returns required events first.
+- When the required queue rejects an event, block-storage requests complete
+  with the enqueue error and SCSI parallel tasks complete with a delivery
+  failure. Before this, block-storage requests and SCSI tasks were returned as
+  errors without a completion, and task-management responses were left unset.
+  The extension counts dropped lossy events.
+- USB pipe completions that the full required queue rejected are also retried
+  when a poll takes a required event, so a host that only receives events gets
+  them. Before this, only a USB command from Swift retried them.
+- When a different connection registers for events, the extension answers the
+  requests the previous connection took (block storage, SCSI, Ethernet
+  transmits) as it does when a host disconnects. Before this, they stayed
+  outstanding until the service stopped.
+
+
 - Registry numbers 0 and 1 no longer decode as Booleans. Only CoreFoundation
   Boolean values become `DriverProperty.boolean`, and registry integers decode
   as `DriverProperty.integer`.
+
+### Removed
+
+- **Breaking:** `runEvents(idlePollNanoseconds:)`,
+  `runEvents(idlePollInterval:)`, and `processNextEvent()` are removed;
+  `DriverRuntimeConnection.nextEvent()` is no longer public. Use push-based
+  `DriverHost.runEvents()` or `DriverRuntimeConnection.events()`, which
+  returns the events as a `DriverEventSequence`.
+- **Breaking:** `RuntimeMessageFlags.finalFragment` and
+  `RuntimeProtocolVersion.version1` are removed; the runtime never sent
+  fragmented messages, and version 1 extensions do not negotiate the protocol.
+
 
 ## 0.1.3
 

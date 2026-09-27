@@ -2,6 +2,8 @@
 
 Define a ``SwiftDriver`` type, generate its extension project, then run the driver in the host process that connects to the extension. The extension project contains the DriverKit-facing implementation; the driver type contains application-specific behavior.
 
+Use Swift 6.1 or later (Xcode 16.3 minimum). IOKit host transport APIs are available only on Apple platforms; package configuration and generation also build on Linux.
+
 ## Define a virtual HID driver
 
 The report descriptor and device identity are static configuration. The example sends one input report during startup and decodes HID output or feature reports when they arrive.

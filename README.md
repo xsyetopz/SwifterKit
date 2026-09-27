@@ -4,6 +4,9 @@ SwifterKit wraps DriverKit for Swift 6 driver authors. Driver configuration and
 behavior stay in Swift; SwifterKit owns the generated C++/IIG boundary required
 by the DriverKit ABI.
 
+See the [SwifterKit 0.2.0 release notes](docs/releases/0.2.0.md) for the breaking
+release summary and hardware validation status.
+
 Use SwifterKit when a driver needs:
 
 - a generated DriverKit extension project without application-owned C++, C,
@@ -261,6 +264,8 @@ the run when no SDK is installed. Unset `TOOLCHAINS` when it selects a
 swift.org toolchain, because the generated-project builds must use Xcode's
 compilers.
 
+### Hardware runtime coverage
+
 CI does not run on macOS 10.15 and cannot activate a signed extension or attach
 physical hardware. The following macOS 10.15 runtime paths remain
 compile-checked but unexecuted in CI:
@@ -272,6 +277,12 @@ compile-checked but unexecuted in CI:
 - generated extension activation, runtime negotiation, and device I/O on a
   macOS 10.15 host; and
 - signed entitlement, provisioning, and hardware behavior.
+
+SwifterKit 0.2.0 has not been run on physical hardware. This includes fast-path
+programs, DMA rings, host-shared data queues, wrapped or mapped host memory, and
+device I/O for every capability family: HID, USB and USB serial, PCI, serial,
+block storage, MIDI, Ethernet networking, audio, SCSI, video, interrupts,
+memory and DMA, service operations, timers and watches, and IOReporting.
 
 Unit tests model the extension's event notifications with mock connections.
 IOKit port selection depends on the running operating system and needs a macOS
