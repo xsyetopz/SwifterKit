@@ -92,6 +92,18 @@ A block-storage request or SCSI task that the extension cannot take (invalid arg
 
 ``DriverClient`` and ``DriverSession`` are separate from the generated runtime protocol. They enumerate IOKit services and invoke raw user-client external methods through ``DriverRequest`` and ``DriverResponse``. Use those APIs only when a capability-specific ``DriverContext`` method does not describe the operation you need.
 
+## DriverKit coverage manifest
+
+The repository file `coverage/driverkit.json` lists every class and member function that the DriverKit SDK `.iig` headers declare. Each entry records the SDK versions that declare the member and its `introduced` and `deprecated` DriverKit versions when the header gives them. Each entry also records a status:
+
+- `gap`: Swift cannot reach the member yet.
+- `generated`: the generated extension runtime calls or overrides the member.
+- `swift-api`: the typed Swift API named in `swiftSymbol` exposes the member.
+- `fast-path`: a fast-path program can declare the member. See <doc:FastPath>.
+- `excluded`: the member is out of scope, and `note` gives the reason.
+
+The `SwifterKitCoverage` package tool is separate from the `SwifterKit` library. Its `summary` command prints the counts per framework. Its `update` command records the surface of a new SDK. CI checks the manifest against the DriverKit SDK in each job. The check fails when the SDK declares a member that the manifest does not list, or when a non-`gap` entry has no supporting source or note.
+
 ## Related articles
 
 - <doc:GettingStarted>
