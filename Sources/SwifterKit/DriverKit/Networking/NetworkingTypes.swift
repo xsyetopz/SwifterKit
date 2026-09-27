@@ -175,16 +175,27 @@ public struct EthernetTransmitRequest: Sendable, Hashable {
 
 /// A hardware-programming or transmit request from NetworkingDriverKit.
 public enum EthernetEvent: Sendable, Hashable {
+  /// Reports whether the network interface is enabled.
   case interfaceEnabled(Bool)
+  /// Carries an outgoing frame and its request identifier for Swift completion.
   case transmit(EthernetTransmitRequest)
+  /// Reports whether promiscuous mode is enabled.
   case promiscuousMode(Bool)
+  /// Supplies the multicast destination addresses that the interface accepts.
   case multicastAddresses([EthernetAddress])
+  /// Reports whether the interface accepts all multicast traffic.
   case allMulticastMode(Bool)
+  /// Reports whether wake on magic packet is enabled.
   case wakeOnMagicPacket(Bool)
+  /// Supplies the maximum frame size in bytes for the interface.
   case maximumTransferUnit(UInt32)
+  /// Supplies the hardware assist bit mask requested by the network stack.
   case hardwareAssists(UInt32)
+  /// Supplies the media word selected for the interface.
   case selectedMedia(EthernetMedia)
+  /// Reports the power state value from NetworkingDriverKit.
   case powerState(UInt32)
+  /// Supplies the six-byte Ethernet address of the interface.
   case hardwareAddress(EthernetAddress)
   /// The stack changed the assists in `mask` to the values in `assists`.
   case hardwareAssistsChanged(assists: EthernetHardwareAssists, mask: EthernetHardwareAssists)
@@ -306,14 +317,24 @@ public enum EthernetEvent: Sendable, Hashable {
 
 /// A malformed or unsupported Ethernet runtime value.
 public enum EthernetRuntimeError: Error, Sendable, Equatable {
+  /// The command contains an empty Ethernet frame.
   case emptyFrame
+  /// The frame or runtime payload exceeds its size limit.
   case frameTooLarge
+  /// The runtime payload has an invalid size, value, or field combination.
   case invalidPayload
+  /// The event kind has no matching `RuntimeNetworkEventKind` value.
   case invalidEventKind(UInt32)
+  /// The link status contains unsupported status bits.
   case invalidLinkStatus
+  /// The link quality value is outside the NetworkingDriverKit range.
   case invalidLinkQuality
+  /// An effective bandwidth exceeds its maximum bandwidth.
   case invalidBandwidths
+  /// The packet polling rate or interval is outside its valid range.
   case invalidPollingParameters
+  /// A packet batch has an invalid count or completion identifier.
   case invalidBatch
+  /// Packet metadata contains values that the runtime cannot encode.
   case invalidPacketMetadata
 }

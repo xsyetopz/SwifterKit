@@ -35,7 +35,9 @@ public struct EthernetServiceClass: RawRepresentable, Sendable, Hashable {
 
 /// Transmit checksum offload requests (`IOUserNetworkPacketTxChecksumFlags`).
 public struct EthernetTransmitChecksumFlags: OptionSet, Sendable, Hashable {
+  /// NetworkingDriverKit transmit checksum flag bits.
   public let rawValue: UInt32
+  /// Creates transmit checksum flags from NetworkingDriverKit flag bits.
   public init(rawValue: UInt32) { self.rawValue = rawValue }
   /// Compute a partial checksum from ``EthernetTransmitMetadata/checksumStart``.
   public static let partial = Self(rawValue: 0x0001)
@@ -55,7 +57,9 @@ public struct EthernetTransmitChecksumFlags: OptionSet, Sendable, Hashable {
 
 /// Receive checksum results (`IOUserNetworkPacketRxChecksumFlags`).
 public struct EthernetReceiveChecksumFlags: OptionSet, Sendable, Hashable {
+  /// NetworkingDriverKit receive checksum result bits.
   public let rawValue: UInt32
+  /// Creates receive checksum flags from NetworkingDriverKit result bits.
   public init(rawValue: UInt32) { self.rawValue = rawValue }
   /// The hardware checked the IP header checksum.
   public static let ipChecked = Self(rawValue: 0x0100)
@@ -71,7 +75,9 @@ public struct EthernetReceiveChecksumFlags: OptionSet, Sendable, Hashable {
 
 /// TCP segmentation offload requests (`IOUserNetworkPacketTSOFlags`).
 public struct EthernetTSOFlags: OptionSet, Sendable, Hashable {
+  /// NetworkingDriverKit TCP segmentation offload flag bits.
   public let rawValue: UInt32
+  /// Creates segmentation offload flags from NetworkingDriverKit flag bits.
   public init(rawValue: UInt32) { self.rawValue = rawValue }
   /// Segment an IPv4 TCP packet.
   public static let ipv4 = Self(rawValue: 0x0010_0000)
@@ -81,7 +87,9 @@ public struct EthernetTSOFlags: OptionSet, Sendable, Hashable {
 
 /// Large receive offload results (`IOUserNetworkPacketLROFlags`).
 public struct EthernetLROFlags: OptionSet, Sendable, Hashable {
+  /// NetworkingDriverKit large receive offload result bits.
   public let rawValue: UInt8
+  /// Creates receive offload flags from NetworkingDriverKit result bits.
   public init(rawValue: UInt8) { self.rawValue = rawValue }
   /// The packet coalesces IPv4 segments.
   public static let ipv4 = Self(rawValue: 0x01)

@@ -241,16 +241,27 @@ public struct EthernetDataBandwidths: Sendable, Hashable {
 
 /// Hardware counters added to the interface statistics, then reset by the driver.
 public struct EthernetHardwareCounts: Sendable, Hashable {
+  /// Number of frames that the interface receives.
   public var packetsIn: UInt64 = 0
+  /// Number of bytes that the interface receives.
   public var bytesIn: UInt64 = 0
+  /// Number of multicast frames that the interface receives.
   public var multicastsIn: UInt64 = 0
+  /// Number of receive errors that the interface reports.
   public var errorsIn: UInt64 = 0
+  /// Number of frames that the interface transmits.
   public var packetsOut: UInt64 = 0
+  /// Number of bytes that the interface transmits.
   public var bytesOut: UInt64 = 0
+  /// Number of multicast frames that the interface transmits.
   public var multicastsOut: UInt64 = 0
+  /// Number of transmit errors that the interface reports.
   public var errorsOut: UInt64 = 0
+  /// Number of transmit collisions that the interface reports.
   public var collisions: UInt64 = 0
+  /// Number of frames that the interface drops.
   public var dropped: UInt64 = 0
+  /// Number of frames that have no supported protocol.
   public var noProtocol: UInt64 = 0
 
   /// Creates zeroed counters.
@@ -266,15 +277,25 @@ public struct EthernetHardwareCounts: Sendable, Hashable {
 
 /// NIC proxy capacities reported through `reportNicProxyLimits`.
 public struct EthernetNICProxyLimits: Sendable, Hashable {
+  /// Number of IPv4 addresses that the NIC proxy can handle.
   public var ipv4AddressCount: UInt8 = 0
+  /// Number of IPv6 addresses that the NIC proxy can handle.
   public var ipv6AddressCount: UInt8 = 0
+  /// Number of IPv4 TCP keep-alive sessions that the NIC proxy can handle.
   public var ipv4KeepAliveCount: UInt16 = 0
+  /// Number of IPv6 TCP keep-alive sessions that the NIC proxy can handle.
   public var ipv6KeepAliveCount: UInt16 = 0
+  /// Number of UDP wake ports that the NIC proxy can handle.
   public var wakeUDPPortCount: UInt16 = 0
+  /// Number of TCP wake ports that the NIC proxy can handle.
   public var wakeTCPPortCount: UInt16 = 0
+  /// Number of resource records that the NIC proxy can store.
   public var resourceRecordCount: UInt16 = 0
+  /// Maximum domain name length in bytes for mDNS proxy records.
   public var maximumMDNSDomainLength: UInt8 = 0
+  /// Number of Ethernet addresses that the NIC proxy can handle.
   public var ethernetAddressCount: UInt8 = 0
+  /// Size in bytes of the buffer for proxy resource records.
   public var resourceRecordBufferSize: UInt16 = 0
 
   /// Creates zeroed limits.
