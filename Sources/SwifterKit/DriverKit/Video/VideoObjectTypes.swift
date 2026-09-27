@@ -78,8 +78,11 @@ public struct VideoClockAlgorithm: RawRepresentable, Sendable, Hashable {
 
 /// The I/O transport state VideoDriverKit reports for a clock device.
 public enum VideoDeviceTransportState: UInt32, Sendable, Hashable {
+  /// The clock device does not transfer data.
   case stopped = 0
+  /// The clock device is ready for I/O but does not transfer data.
   case prewarmed = 1
+  /// The clock device transfers data.
   case running = 2
 }
 

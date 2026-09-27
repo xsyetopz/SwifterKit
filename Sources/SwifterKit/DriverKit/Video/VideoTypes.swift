@@ -231,15 +231,25 @@ public struct VideoBufferQueueEntry: Sendable, Hashable {
 
 /// A lifecycle request from VideoDriverKit.
 public enum VideoEvent: Sendable, Hashable {
+  /// Reports that device I/O started and carries the VideoDriverKit flags.
   case started(flags: UInt64)
+  /// Reports that device I/O stopped and carries the VideoDriverKit flags.
   case stopped(flags: UInt64)
+  /// Reports the new device sample rate in samples per second.
   case sampleRateChanged(Double)
+  /// Reports a control value change by identifier.
   case controlChanged(identifier: UInt32, value: VideoControlValue)
+  /// Reports a custom property change with its identifier, qualifier, and string value.
   case customPropertyChanged(identifier: UInt32, qualifier: String, value: String)
+  /// Reports that the indexed stream started and carries the VideoDriverKit flags.
   case streamStarted(index: UInt32, flags: UInt64)
+  /// Reports that the indexed stream stopped and carries the VideoDriverKit flags.
   case streamStopped(index: UInt32, flags: UInt64)
+  /// Reports the new format for the indexed stream.
   case streamFormatChanged(index: UInt32, format: VideoStreamFormat)
+  /// Reports whether the indexed stream is active.
   case streamActiveChanged(index: UInt32, isActive: Bool)
+  /// Reports that input data is available for the indexed stream.
   case streamInputAvailable(index: UInt32)
 
   init(runtimePayload: Data) throws {

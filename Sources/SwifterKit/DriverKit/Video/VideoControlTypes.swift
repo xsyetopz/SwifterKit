@@ -215,11 +215,17 @@ public struct VideoStereoPanControlConfiguration: Sendable, Hashable {
 
 /// A statically configured VideoDriverKit control.
 public enum VideoControlConfiguration: Sendable, Hashable {
+  /// Holds the initial value and metadata for a boolean control.
   case boolean(VideoBooleanControlConfiguration)
+  /// Holds the initial value and metadata for a stream-direction control.
   case direction(VideoDirectionControlConfiguration)
+  /// Holds the decibel range and metadata for a level control.
   case level(VideoLevelControlConfiguration)
+  /// Holds the available values and metadata for a selector control.
   case selector(VideoSelectorControlConfiguration)
+  /// Holds the integer range and metadata for a slider control.
   case slider(VideoSliderControlConfiguration)
+  /// Holds the channel elements and metadata for a stereo pan control.
   case stereoPan(VideoStereoPanControlConfiguration)
 
   var metadata: VideoControlMetadata {
@@ -269,22 +275,36 @@ public struct VideoCustomPropertyConfiguration: Sendable, Hashable {
 
 /// The representation requested when reading an VideoDriverKit control.
 public enum VideoControlValueKind: UInt32, Sendable, Hashable {
+  /// Selects a Boolean control value in the runtime payload.
   case boolean = 1
+  /// Selects a decibel `Float` control value.
   case decibels = 2
+  /// Selects a scalar `Float` control value.
   case scalar = 3
+  /// Selects an array of selector item identifiers.
   case selector = 4
+  /// Selects an unsigned integer slider value.
   case slider = 5
+  /// Selects a `Float` stereo pan value.
   case stereoPan = 6
+  /// Selects a Boolean stream-direction value.
   case direction = 7
 }
 
 /// A value read from or written to an VideoDriverKit control.
 public enum VideoControlValue: Sendable, Hashable {
+  /// Carries the current or requested Boolean control value.
   case boolean(Bool)
+  /// Carries the current or requested stream-direction value.
   case direction(Bool)
+  /// Carries the current or requested level in decibels.
   case decibels(Float)
+  /// Carries the current or requested scalar level.
   case scalar(Float)
+  /// Carries the selected item identifiers for a selector control.
   case selector([UInt32])
+  /// Carries the current or requested integer slider value.
   case slider(UInt32)
+  /// Carries the current or requested stereo pan value.
   case stereoPan(Float)
 }

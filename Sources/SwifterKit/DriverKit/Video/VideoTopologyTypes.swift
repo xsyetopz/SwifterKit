@@ -155,12 +155,19 @@ public struct VideoBoxState: Sendable, Hashable {
 
 /// A box property Swift can change.
 public enum VideoBoxProperty: Sendable, Hashable {
+  /// Sets the transport reported by the box.
   case transport(VideoTransport)
+  /// Sets whether the box contains audio.
   case hasAudio(Bool)
+  /// Sets whether the box contains MIDI.
   case hasMIDI(Bool)
+  /// Sets whether the box contains video.
   case hasVideo(Bool)
+  /// Sets whether the host can acquire the box.
   case isAcquirable(Bool)
+  /// Sets whether the host acquired the box.
   case isAcquired(Bool)
+  /// Sets whether the box protects its contents.
   case isProtected(Bool)
   /// A `kern_return_t` the host reports when acquisition fails.
   case acquisitionFailure(Int32)
@@ -256,13 +263,21 @@ public struct VideoClockDeviceState: Sendable, Hashable {
 
 /// A clock-device property Swift can change.
 public enum VideoClockDeviceProperty: Sendable, Hashable {
+  /// Sets the clock domain shared by synchronized devices.
   case clockDomain(UInt32)
+  /// Sets the timestamp smoothing algorithm.
   case clockAlgorithm(VideoClockAlgorithm)
+  /// Sets whether the clock reports stable timestamps.
   case clockIsStable(Bool)
+  /// Sets whether the clock device reports that it is alive.
   case isAlive(Bool)
+  /// Sets whether the host hides the clock device from device lists.
   case isHidden(Bool)
+  /// Sets the clock device input latency in frames.
   case inputLatency(UInt32)
+  /// Sets the clock device output latency in frames.
   case outputLatency(UInt32)
+  /// Sets the transport reported by the clock device.
   case transport(VideoTransport)
 
   var runtimeFields: (selector: UInt32, value: UInt64) {
