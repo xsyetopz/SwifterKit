@@ -11,56 +11,107 @@ public struct MIDIProperty: RawRepresentable, Sendable, Hashable {
     rawValue = code.withUTF8Buffer { $0.reduce(UInt32(0)) { $0 << 8 | UInt32($1) } }
   }
 
+  /// The name of the MIDI object.
   public static let name = Self("mnam")
+  /// The manufacturer of the MIDI object.
   public static let manufacturer = Self("mmak")
+  /// The model name of the MIDI object.
   public static let model = Self("mmod")
+  /// The unique numeric identifier of the MIDI object.
   public static let uniqueID = Self("muid")
+  /// The MIDI device ID of the entity.
   public static let deviceID = Self("mdid")
+  /// The number of MIDI channels that the entity receives.
   public static let receiveChannels = Self("rxch")
+  /// The number of MIDI channels that the entity transmits.
   public static let transmitChannels = Self("mtch")
+  /// The maximum System Exclusive transfer speed in bytes per second.
   public static let maxSysExSpeed = Self("mmsp")
+  /// The scheduling advance time in microseconds.
   public static let advanceScheduleTimeMuSec = Self("mast")
+  /// Indicates whether the device contains this entity.
   public static let isEmbeddedEntity = Self("embe")
+  /// Indicates whether the endpoint broadcasts messages to all destinations.
   public static let isBroadcast = Self("brca")
+  /// Identifies the single real-time entity associated with the endpoint.
   public static let singleRealtimeEntity = Self("srte")
+  /// The unique ID of the connected MIDI object.
   public static let connectionUniqueID = Self("cuid")
+  /// Indicates whether the MIDI object is offline.
   public static let offline = Self("moff")
+  /// Indicates whether the MIDI object is private.
   public static let `private` = Self("mprv")
+  /// The name of the driver that owns the MIDI object.
   public static let driverOwner = Self("drow")
+  /// The path to the factory patch names file.
   public static let factoryPatchNameFile = Self("fpnf")
+  /// The path to the user patch names file.
   public static let userPatchNameFile = Self("upnf")
+  /// The name configuration for the MIDI object.
   public static let nameConfiguration = Self("ncfg")
+  /// The dictionary of names for the MIDI object.
   public static let nameConfigurationDictionary = Self("ndct")
+  /// The image associated with the MIDI object.
   public static let image = Self("mimg")
+  /// The version number of the MIDI driver.
   public static let driverVersion = Self("dver")
+  /// Indicates whether the MIDI object supports General MIDI.
   public static let supportsGeneralMIDI = Self("sgmd")
+  /// Indicates whether the MIDI object supports MIDI Machine Control.
   public static let supportsMMC = Self("smmc")
+  /// Indicates whether the MIDI object can route MIDI data.
   public static let canRoute = Self("canr")
+  /// Indicates whether the MIDI object receives MIDI clock messages.
   public static let receivesClock = Self("rclk")
+  /// Indicates whether the MIDI object receives MIDI Time Code.
   public static let receivesMTC = Self("rmtc")
+  /// Indicates whether the MIDI object receives MIDI note messages.
   public static let receivesNotes = Self("rnts")
+  /// Indicates whether the MIDI object receives program changes.
   public static let receivesProgramChanges = Self("rprc")
+  /// Indicates whether the MIDI object receives Bank Select MSB messages.
   public static let receivesBankSelectMSB = Self("rbsm")
+  /// Indicates whether the MIDI object receives Bank Select LSB messages.
   public static let receivesBankSelectLSB = Self("rbsl")
+  /// Indicates whether the MIDI object transmits MIDI clock messages.
   public static let transmitsClock = Self("tclk")
+  /// Indicates whether the MIDI object transmits MIDI Time Code.
   public static let transmitsMTC = Self("tmtc")
+  /// Indicates whether the MIDI object transmits MIDI note messages.
   public static let transmitsNotes = Self("tnts")
+  /// Indicates whether the MIDI object transmits program changes.
   public static let transmitsProgramChanges = Self("tprc")
+  /// Indicates whether the MIDI object transmits Bank Select MSB messages.
   public static let transmitsBankSelectMSB = Self("tbsm")
+  /// Indicates whether the MIDI object transmits Bank Select LSB messages.
   public static let transmitsBankSelectLSB = Self("tbsl")
+  /// Indicates whether panning disrupts stereo output.
   public static let panDisruptsStereo = Self("mpds")
+  /// Indicates whether the MIDI object is a sampler.
   public static let isSampler = Self("samp")
+  /// Indicates whether the MIDI object is a drum machine.
   public static let isDrumMachine = Self("drmm")
+  /// Indicates whether the MIDI object is a mixer.
   public static let isMixer = Self("mmix")
+  /// Indicates whether the MIDI object is an effect unit.
   public static let isEffectUnit = Self("effx")
+  /// The maximum number of MIDI channels that the entity can receive.
   public static let maxReceiveChannels = Self("mxrc")
+  /// The maximum number of MIDI channels that the entity can transmit.
   public static let maxTransmitChannels = Self("mxtc")
+  /// The application URL for the driver device editor.
   public static let driverDeviceEditorApp = Self("ddea")
+  /// Indicates whether the MIDI object supports MIDI Show Control.
   public static let supportsShowControl = Self("sscr")
+  /// The name that identifies the MIDI object in user interfaces.
   public static let displayName = Self("dnam")
+  /// The MIDI protocol supported by the endpoint.
   public static let protocolID = Self("prot")
+  /// A bitmap of the active UMP groups on the endpoint.
   public static let umpActiveGroupBitmap = Self("uagb")
+  /// Indicates whether the endpoint can transmit UMP groupless messages.
   public static let umpCanTransmitGroupless = Self("uctg")
+  /// The unique ID of the endpoint associated with this object.
   public static let associatedEndpoint = Self("aept")
 }
 
