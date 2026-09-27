@@ -168,12 +168,19 @@ public struct AudioBoxState: Sendable, Hashable {
 
 /// A box property Swift can change.
 public enum AudioBoxProperty: Sendable, Hashable {
+  /// Sets the box transport through `SetTransportType`.
   case transport(AudioTransport)
+  /// Sets the box `HasAudio` state.
   case hasAudio(Bool)
+  /// Sets the box `HasMIDI` state.
   case hasMIDI(Bool)
+  /// Sets the box `HasVideo` state.
   case hasVideo(Bool)
+  /// Sets whether the host can acquire the box.
   case isAcquirable(Bool)
+  /// Sets whether the host has acquired the box.
   case isAcquired(Bool)
+  /// Sets the box `IsProtected` state.
   case isProtected(Bool)
   /// A `kern_return_t` the host reports when acquisition fails.
   case acquisitionFailure(Int32)
@@ -271,13 +278,21 @@ public struct AudioClockDeviceState: Sendable, Hashable {
 
 /// A clock-device property Swift can change.
 public enum AudioClockDeviceProperty: Sendable, Hashable {
+  /// Sets the clock domain returned by `GetClockDomain`.
   case clockDomain(UInt32)
+  /// Sets the timestamp smoothing algorithm returned by `GetClockAlgorithm`.
   case clockAlgorithm(AudioClockAlgorithm)
+  /// Sets the stability returned by `GetClockIsStable`.
   case clockIsStable(Bool)
+  /// Sets the device-alive state returned by `GetDeviceIsAlive`.
   case isAlive(Bool)
+  /// Sets the hidden state returned by `GetIsHidden`.
   case isHidden(Bool)
+  /// Sets input latency in sample frames.
   case inputLatency(UInt32)
+  /// Sets output latency in sample frames.
   case outputLatency(UInt32)
+  /// Sets the transport returned by `GetTransportType`.
   case transport(AudioTransport)
   /// Sample frames between zero-timestamp updates, 16 through 1,048,576.
   case zeroTimestampPeriod(UInt32)

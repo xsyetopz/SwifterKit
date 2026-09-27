@@ -21,7 +21,9 @@ public struct AudioTransport: RawRepresentable, Sendable, Hashable {
 
 /// The direction of an AudioDriverKit stream.
 public enum AudioStreamDirection: UInt32, Sendable, Hashable {
+  /// The stream carries audio frames from the host to the device.
   case output = 0
+  /// The stream carries audio frames from the device to the host.
   case input = 1
 }
 
@@ -216,8 +218,11 @@ public struct AudioDeviceConfiguration: Sendable, Hashable {
 public struct AudioIOState: Sendable, Hashable {
   /// An operation observed in the real-time I/O callback.
   public enum Operation: UInt32, Sendable, Hashable {
+    /// The host is about to read input frames from the device stream buffers.
     case beginRead = 0
+    /// The host finished writing output frames to the device stream buffers.
     case writeEnd = 1
+    /// No real-time I/O operation is available in the snapshot.
     case unavailable = 0xFFFF_FFFF
   }
 
@@ -248,10 +253,15 @@ public struct AudioIOState: Sendable, Hashable {
 
 /// A lifecycle, format, control, or custom-property request from AudioDriverKit.
 public enum AudioEvent: Sendable, Hashable {
+  /// Reports device start and carries the native start flags.
   case started(flags: UInt64)
+  /// Reports device stop and carries the native stop flags.
   case stopped(flags: UInt64)
+  /// Reports the new device sample rate in hertz.
   case sampleRateChanged(Double)
+  /// Reports a control change with its stable identifier and typed value.
   case controlChanged(identifier: UInt32, value: AudioControlValue)
+  /// Reports a custom-property change with its identifier, qualifier, and UTF-8 value.
   case customPropertyChanged(identifier: UInt32, qualifier: String, value: String)
 
   init(runtimePayload: Data) throws {
@@ -298,16 +308,28 @@ public enum AudioEvent: Sendable, Hashable {
 
 /// An invalid AudioDriverKit configuration, transfer, or runtime payload.
 public enum AudioRuntimeError: Error, Sendable, Equatable {
+  /// The command names a stream index outside the configured stream table.
   case invalidStreamIndex
+  /// The stream transfer has an empty or invalid frame range.
   case invalidTransferRange
+  /// The stream transfer exceeds the runtime byte limit.
   case transferTooLarge
+  /// The command or response payload has an invalid size, value, or encoding.
   case invalidPayload
+  /// The I/O snapshot contains an operation value the runtime does not define.
   case invalidOperation(UInt32)
+  /// The event payload contains an event kind the runtime does not define.
   case invalidEventKind(UInt32)
+  /// The control value has too many items or cannot be encoded for the runtime.
   case invalidControlValue
+  /// The custom-property qualifier or value exceeds its UTF-8 byte limit.
   case invalidCustomPropertyValue
+  /// The command target is not a valid audio object for that operation.
   case invalidObjectTarget
+  /// The object name is empty, invalid UTF-8, or exceeds its byte limit.
   case invalidName
+  /// The property-change request has invalid or too many selectors.
   case invalidPropertySelectors
+  /// The sample-rate list is empty, duplicated, out of range, or too large.
   case invalidSampleRates
 }

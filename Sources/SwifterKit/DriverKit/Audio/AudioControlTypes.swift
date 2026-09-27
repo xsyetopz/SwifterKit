@@ -200,10 +200,15 @@ public struct AudioStereoPanControlConfiguration: Sendable, Hashable {
 
 /// A statically configured AudioDriverKit control.
 public enum AudioControlConfiguration: Sendable, Hashable {
+  /// Configures an `IOUserAudioBooleanControl` with an initial Boolean value.
   case boolean(AudioBooleanControlConfiguration)
+  /// Configures an `IOUserAudioLevelControl` with decibel and scalar ranges.
   case level(AudioLevelControlConfiguration)
+  /// Configures an `IOUserAudioSelectorControl` with named values and initial selections.
   case selector(AudioSelectorControlConfiguration)
+  /// Configures an `IOUserAudioSliderControl` with an integer range.
   case slider(AudioSliderControlConfiguration)
+  /// Configures an `IOUserAudioStereoPanControl` with channel elements.
   case stereoPan(AudioStereoPanControlConfiguration)
 
   var metadata: AudioControlMetadata {
@@ -252,20 +257,32 @@ public struct AudioCustomPropertyConfiguration: Sendable, Hashable {
 
 /// The representation requested when reading an AudioDriverKit control.
 public enum AudioControlValueKind: UInt32, Sendable, Hashable {
+  /// Requests a Boolean control value using wire kind 1.
   case boolean = 1
+  /// Requests a decibel control value as one `Float` bit pattern, in decibels.
   case decibels = 2
+  /// Requests a scalar level control value as one `Float` bit pattern.
   case scalar = 3
+  /// Requests selected selector values as `UInt32` values.
   case selector = 4
+  /// Requests a slider control value as one `UInt32`.
   case slider = 5
+  /// Requests a stereo-pan value as one `Float` bit pattern.
   case stereoPan = 6
 }
 
 /// A value read from or written to an AudioDriverKit control.
 public enum AudioControlValue: Sendable, Hashable {
+  /// Carries the Boolean control state as zero or one on the runtime wire.
   case boolean(Bool)
+  /// Carries a level control value in decibels.
   case decibels(Float)
+  /// Carries a level control scalar as a `Float`.
   case scalar(Float)
+  /// Carries the selected `IOUserAudioSelectorValue` values.
   case selector([UInt32])
+  /// Carries the slider control value as a `UInt32`.
   case slider(UInt32)
+  /// Carries the stereo-pan control value as a `Float`.
   case stereoPan(Float)
 }

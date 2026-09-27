@@ -250,10 +250,15 @@ public enum AudioStreamProperty: Sendable, Hashable {
 public struct AudioControlInfo: Sendable, Hashable {
   /// The concrete control class the runtime created.
   public enum Kind: UInt32, Sendable, Hashable {
+    /// The runtime created an `IOUserAudioBooleanControl`.
     case boolean = 1
+    /// The runtime created an `IOUserAudioLevelControl`.
     case level = 2
+    /// The runtime created an `IOUserAudioSelectorControl`.
     case selector = 3
+    /// The runtime created an `IOUserAudioSliderControl`.
     case slider = 4
+    /// The runtime created an `IOUserAudioStereoPanControl`.
     case stereoPan = 5
   }
 

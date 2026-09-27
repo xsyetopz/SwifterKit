@@ -76,8 +76,11 @@ public struct AudioClockAlgorithm: RawRepresentable, Sendable, Hashable {
 
 /// The I/O transport state AudioDriverKit reports for a clock device.
 public enum AudioDeviceTransportState: UInt32, Sendable, Hashable {
+  /// AudioDriverKit reports stopped clock-device I/O.
   case stopped = 0
+  /// AudioDriverKit reports a clock device prepared for I/O.
   case prewarmed = 1
+  /// AudioDriverKit reports that the clock device I/O is running.
   case running = 2
 }
 
