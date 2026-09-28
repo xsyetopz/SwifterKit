@@ -132,9 +132,9 @@ public struct VideoDeviceConfiguration: Sendable, Hashable {
   public let name: String
   /// Physical transport.
   public let transport: VideoTransport
-  /// Clock rates offered to the host.
+  /// Sample rates offered to the host.
   public let sampleRates: [Double]
-  /// Initially selected clock rate.
+  /// Initially selected sample rate.
   public let initialSampleRate: Double
   /// Published input and output streams.
   public let streams: [VideoStreamConfiguration]
@@ -336,28 +336,28 @@ public enum VideoEvent: Sendable, Hashable {
 
 /// An invalid VideoDriverKit configuration, transfer, or runtime payload.
 public enum VideoRuntimeError: Error, Sendable, Equatable {
-  /// Stream index is outside the generated topology.
+  /// The command names a stream index outside the configured stream table.
   case invalidStreamIndex
-  /// Buffer index is outside the generated topology.
+  /// The command names a buffer index outside the configured buffer table.
   case invalidBufferIndex
-  /// Offset or length is invalid.
+  /// The stream transfer has an empty or invalid byte range.
   case invalidTransferRange
-  /// Transfer exceeds the wire limit.
+  /// The stream transfer exceeds the runtime byte limit.
   case transferTooLarge
-  /// Native response bytes are malformed.
+  /// The command or response payload has an invalid size, value, or encoding.
   case invalidPayload
-  /// The runtime event kind is unknown.
+  /// The event payload contains an event kind the runtime does not define.
   case invalidEventKind(UInt32)
-  /// A typed control value is malformed.
+  /// The control value has too many items or cannot be encoded for the runtime.
   case invalidControlValue
-  /// A custom-property qualifier or value is malformed.
+  /// The custom-property qualifier or value exceeds its UTF-8 byte limit.
   case invalidCustomPropertyValue
-  /// An object target is not valid for the command.
+  /// The command target is not a valid video object for that operation.
   case invalidObjectTarget
-  /// A name is empty, longer than 255 UTF-8 bytes, or contains NUL.
+  /// The object name is empty, longer than 255 UTF-8 bytes, or contains NUL.
   case invalidName
-  /// Property selectors are empty, more than 32, or contain zero.
+  /// The property-change request is empty, names more than 32 selectors, or contains zero.
   case invalidPropertySelectors
-  /// Clock rates are empty, duplicated, more than 16, or not finite and positive.
+  /// Sample rates are empty, duplicated, more than 16, or not finite and positive.
   case invalidSampleRates
 }

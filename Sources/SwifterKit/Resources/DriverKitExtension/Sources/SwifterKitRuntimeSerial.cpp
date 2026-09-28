@@ -74,7 +74,7 @@ namespace {
     }
 
     #if SWIFTERKIT_USB_SERIAL
-    // IOUserUSBSerial::Start publishes its own usbserial- terminal name; a configured name
+    // IOUserUSBSerial::Start publishes its own usbserial- terminal name. A configured name
     // replaces it before the service registers.
     kern_return_t PublishTerminalName(SwifterKitRuntimeService* service) {
         OSDictionary* names = OSDictionary::withCapacity(2);
@@ -96,9 +96,9 @@ namespace {
 
 // Data-path ownership: an IOUserSerial service moves terminal bytes through Swift with
 // serialEnqueueReceive and serialDequeueTransmit. An IOUserUSBSerial service leaves the queues
-// to its superclass, which opens the interface in ConnectQueues, submits bulk and interrupt I/O in
-// HwActivate, and closes the interface in DisconnectQueues; Swift sees copies of the packets
-// through handleRxPacket and handleInterruptPacket, and queue commands fail with
+// to its superclass. The superclass opens the interface in ConnectQueues, submits bulk and
+// interrupt I/O in HwActivate, and closes the interface in DisconnectQueues. Swift sees copies of
+// the packets through handleRxPacket and handleInterruptPacket, and queue commands fail with
 // kIOReturnUnsupported.
 
 kern_return_t SwifterKitRuntimeService::StartSerial() {
@@ -324,7 +324,7 @@ kern_return_t SwifterKitRuntimeService::SerialCommand(
     #if SWIFTERKIT_USB_SERIAL
 // IOUserUSBSerial copies its pipes and starts bulk and interrupt I/O in HwActivate, and aborts
 // them in HwDeactivate, so both dispatch to it. Swift is told after activation succeeds and
-// before deactivation starts; those notifications are lossy and never change the result.
+// before deactivation starts. Those notifications are lossy and never change the result.
 kern_return_t SwifterKitRuntimeService::HwActivate_Impl() {
     const kern_return_t result = HwActivate(SUPERDISPATCH);
     if (result == kIOReturnSuccess) {

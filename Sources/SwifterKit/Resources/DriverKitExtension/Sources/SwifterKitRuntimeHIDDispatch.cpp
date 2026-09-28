@@ -31,7 +31,7 @@ namespace {
         return true;
     }
 
-    // Returns an element the array still owns; OSArray::getObject does not retain.
+    // Returns an element the array still owns. OSArray::getObject does not retain.
     DRIVERKIT_RETURNS_NOT_RETAINED IOHIDElement* FindElement(
         const OSArray* elements,
         uint32_t cookie) {
@@ -314,8 +314,8 @@ kern_return_t SwifterKitRuntimeService::HIDDispatchCommand(
     return result;
 }
 
-// Materializes one transducer as an IOHIDDigitizerCollection over the named elements and
-// dispatches the collection's state as a stylus (stylus and puck) or touch (finger and hand).
+// Materializes one transducer as an IOHIDDigitizerCollection over the named elements. Dispatches
+// the collection's state as a stylus (stylus and puck) or touch (finger and hand).
 kern_return_t SwifterKitRuntimeService::DispatchHIDDigitizerCollection(
     const uint8_t* payload,
     uint32_t payloadLength) {

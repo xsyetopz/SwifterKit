@@ -100,7 +100,7 @@ struct HIDRuntimeContractTests {
     try withGeneratedExtension { output in
       let requests = try source("SwifterKitRuntimeHIDRequests.cpp", in: output)
       let getReport = try section(of: requests, from: "::getReport(", to: "::AbortHIDRequests(")
-      // The request is recorded before it is announced, and a failed announcement takes it back
+      // The request is recorded before it is announced. A failed announcement takes it back
       // without completing it, so the caller keeps ownership of an error return.
       let record = try #require(getReport.range(of: "slot = {")?.lowerBound)
       let enqueue = try #require(getReport.range(of: "EnqueueRequiredEvent(")?.lowerBound)

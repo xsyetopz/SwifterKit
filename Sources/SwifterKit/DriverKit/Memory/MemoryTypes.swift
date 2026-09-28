@@ -162,7 +162,7 @@ public enum DriverMemoryError: Error, Sendable, Equatable {
   case invalidSegmentCount
   /// A host segment is empty or its address plus length overflows.
   case invalidSegment
-  /// A subrange or chain still uses the entry, so it cannot be released yet; release the
+  /// A subrange or chain still uses the entry, so it cannot be released yet. Release the
   /// subrange or chain first.
   case inUse
   /// The handle names memory another runtime connection wrapped with

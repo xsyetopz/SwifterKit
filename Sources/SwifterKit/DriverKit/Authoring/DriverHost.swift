@@ -76,9 +76,13 @@ public actor DriverHost<Driver: SwiftDriver> {
 
   /// Delivers the extension's events to the driver until the host stops or the task is cancelled.
   ///
-  /// The host registers for event notifications, takes queued events until the queue is empty,
-  /// passes each one to ``SwiftDriver/handle(event:context:)``, and then waits for the extension
-  /// to report more events. It does not poll while the queue is empty.
+  /// The host:
+  /// - Registers for event notifications.
+  /// - Takes queued events until the queue is empty.
+  /// - Passes each one to ``SwiftDriver/handle(event:context:)``.
+  /// - Waits for the extension to report more events.
+  ///
+  /// It does not poll while the queue is empty.
   ///
   /// The method returns after ``stop()`` closes the connection and throws `CancellationError` when
   /// its task is cancelled. An error thrown by the driver's handler ends delivery and propagates.

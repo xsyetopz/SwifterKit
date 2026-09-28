@@ -66,11 +66,11 @@ public struct VideoClockDeviceConfiguration: Sendable, Hashable {
   public let name: String
   /// Physical transport reported for the device.
   public let transport: VideoTransport
-  /// Clock rates offered to the host.
+  /// Sample rates offered to the host.
   public let sampleRates: [Double]
-  /// Clock rate selected during device creation.
+  /// Sample rate selected during device creation.
   public let initialSampleRate: Double
-  /// Clock domain shared by devices that run from one clock; zero means none.
+  /// Clock domain shared by devices that run from one clock. Zero means none.
   public let clockDomain: UInt32
   /// The timestamp smoothing algorithm.
   public let clockAlgorithm: VideoClockAlgorithm
@@ -192,9 +192,9 @@ public enum VideoBoxProperty: Sendable, Hashable {
 public struct VideoClockDeviceState: Sendable, Hashable {
   /// The object identifier.
   public let objectID: UInt32
-  /// The current nominal clock rate.
+  /// The current nominal sample rate.
   public let sampleRate: Double
-  /// The clock rates offered to the host.
+  /// The sample rates offered to the host.
   public let availableSampleRates: [Double]
   /// The last `UpdateCurrentZeroTimestamp` sample time.
   public let zeroSampleTime: UInt64
@@ -225,7 +225,7 @@ public struct VideoClockDeviceState: Sendable, Hashable {
   /// Output latency in frames.
   public let outputLatency: UInt32
 
-  /// The most clock rates one state snapshot carries.
+  /// The most sample rates one state snapshot carries.
   static let maximumSampleRates = RuntimeVideoLimits.maximumSampleRates
 
   init(runtimePayload: Data) throws {

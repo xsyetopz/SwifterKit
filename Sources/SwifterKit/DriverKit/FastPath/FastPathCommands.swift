@@ -62,10 +62,11 @@ public struct FastPathEvent: Sendable, Hashable {
 
 /// Whether the extension runs its fast path, and the events it could not queue.
 public struct FastPathStatus: Sendable, Hashable {
-  /// `kIOReturnSuccess` (zero) while programs run. Otherwise why they do not:
-  /// `kIOReturnNoResources` when a declared BAR is missing or smaller than declared or the
-  /// tables failed the extension's checks, a failed start program's status, or
-  /// `kIOReturnNotReady` before start and after stop.
+  /// `kIOReturnSuccess` (zero) while programs run. Otherwise, one of these:
+  /// - `kIOReturnNoResources`, when a declared BAR is missing or smaller than declared, or the
+  ///   tables failed the extension's checks.
+  /// - A failed start program's status.
+  /// - `kIOReturnNotReady`, before start and after stop.
   public let status: Int32
   /// The `emit` events dropped because the extension's lossy event queue was full.
   public let droppedEvents: UInt64
@@ -113,7 +114,7 @@ extension DriverCommand {
   /// Creates a run of a command-triggered fast-path program with arguments in `v0` onward.
   ///
   /// The index and argument count are checked against ``FastPathLimits``, and against
-  /// `configuration` when it is given; the extension checks them again against its tables.
+  /// `configuration` when it is given. The extension checks them again against its tables.
   public static func runFastPathProgram(
     _ program: Int,
     arguments: [UInt64] = [],
@@ -159,8 +160,8 @@ extension DriverContext {
   ///
   /// The program runs under the extension's fast-path lock, so it never interleaves with an
   /// interrupt, start, or stop program. A program that times out or runs `fail` still returns a
-  /// result with that status; the call throws when Swift or the extension refuses the request or
-  /// the fast path does not run.
+  /// result with that status. The call throws when Swift or the extension refuses the request, or
+  /// when the fast path does not run.
   public func runFastPathProgram(
     _ program: Int,
     arguments: [UInt64] = []

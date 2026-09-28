@@ -131,7 +131,7 @@ public enum SerialEvent: Sendable, Hashable {
   case activate
   /// The terminal closed and hardware may be deactivated.
   case deactivate
-  /// Space is available in SerialDriverKit’s receive queue.
+  /// Space is available in SerialDriverKit's receive queue.
   case receiveSpaceAvailable
   /// SerialDriverKit has transmit bytes ready for the hardware.
   case transmitDataAvailable

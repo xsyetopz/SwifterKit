@@ -6,8 +6,8 @@ import Foundation
 
 /// Why a data queue host ring's bytes were refused.
 ///
-/// The extension and a buggy or malicious peer can write any bytes into a mapped ring, so the
-/// reader checks every field it uses before it touches a record.
+/// The extension and a buggy or malicious peer can write any bytes into a mapped ring. The reader
+/// checks every field it uses before it touches a record.
 public enum FastPathDataQueueError: Error, Sendable, Hashable {
   /// The header's geometry does not fit the mapping, is not a power of two, or differs from the
   /// queue's declaration.
@@ -21,7 +21,7 @@ public enum FastPathDataQueueError: Error, Sendable, Hashable {
   /// The entry is empty or larger than the queue's maximum entry size.
   case invalidEntry(byteCount: Int)
   /// The host wrote to a ring whose header does not name
-  /// ``FastPathDataQueueDirection/toExtension``; the extension produces that ring's entries.
+  /// ``FastPathDataQueueDirection/toExtension``. The extension produces that ring's entries.
   case notProducer
 }
 
@@ -58,7 +58,7 @@ struct FastPathDataQueueRing {
     maximumEntrySize = maximum
   }
 
-  /// Takes the oldest record and passes its payload to `body` in place; returns nil when the
+  /// Takes the oldest record and passes its payload to `body` in place. Returns nil when the
   /// ring is empty. The record is released only after `body` returns without throwing.
   func dequeue<Result>(
     _ bytes: UnsafeMutableRawBufferPointer,
@@ -155,9 +155,9 @@ struct FastPathDataQueueRing {
 
 /// A mapped ``FastPathDataQueue`` host ring from ``DriverContext/mapDataQueue(_:)``.
 ///
-/// Reads check the header's geometry and indices on every call and throw
-/// ``FastPathDataQueueError`` for bytes that do not describe a valid ring, so a corrupt or
-/// malicious producer index cannot move an access outside the mapping. Use one reader per queue:
+/// Reads check the header's geometry and indices on every call. They throw
+/// ``FastPathDataQueueError`` for bytes that do not describe a valid ring. A corrupt or malicious
+/// producer index therefore cannot move an access outside the mapping. Use one reader per queue:
 /// the ring has a single consumer.
 public final class DriverDataQueue: Sendable {
   /// The mapped ring, header and records.
@@ -165,14 +165,14 @@ public final class DriverDataQueue: Sendable {
   /// The queue's declaration, when the context's configuration names it.
   public let queue: FastPathDataQueue?
 
-  /// Wraps a mapped ring; `queue`, when given, must match the header's geometry.
+  /// Wraps a mapped ring. `queue`, when given, must match the header's geometry.
   public init(memory: DriverSharedMemory, queue: FastPathDataQueue? = nil) {
     self.memory = memory
     self.queue = queue
   }
 
-  /// Takes the oldest entry and passes its payload to `body` without copying; returns nil when
-  /// the ring is empty. The buffer must not escape `body`; the entry is released when `body`
+  /// Takes the oldest entry and passes its payload to `body` without copying. Returns nil when
+  /// the ring is empty. The buffer must not escape `body`. The entry is released when `body`
   /// returns.
   public func dequeue<Result>(_ body: (UnsafeRawBufferPointer) throws -> Result) throws -> Result? {
     try memory.withUnsafeMutableBytes { bytes in
@@ -181,7 +181,7 @@ public final class DriverDataQueue: Sendable {
     }
   }
 
-  /// Takes the oldest entry as little-endian 64-bit words; returns nil when the ring is empty.
+  /// Takes the oldest entry as little-endian 64-bit words. Returns nil when the ring is empty.
   /// Trailing bytes that do not fill a word are dropped.
   public func dequeueValues() throws -> [UInt64]? {
     try dequeue { payload in
@@ -191,7 +191,7 @@ public final class DriverDataQueue: Sendable {
     }
   }
 
-  /// Appends one entry to a ``FastPathDataQueueDirection/toExtension`` ring; call
+  /// Appends one entry to a ``FastPathDataQueueDirection/toExtension`` ring. Call
   /// ``DriverContext/notifyDataQueue(_:)`` after one or more appends so the extension takes them.
   /// Throws ``FastPathDataQueueError/full`` when the extension has not taken enough entries yet,
   /// and refuses an empty entry or one above the maximum entry size. Use one writer per queue: the
@@ -209,7 +209,7 @@ public final class DriverDataQueue: Sendable {
     }
   }
 
-  /// Appends `values`, eight little-endian bytes each, as one entry; see ``enqueue(_:)``.
+  /// Appends `values`, eight little-endian bytes each, as one entry. See ``enqueue(_:)``.
   public func enqueueValues(_ values: [UInt64]) throws {
     let bytes = values.flatMap { withUnsafeBytes(of: $0.littleEndian, Array.init) }
     try bytes.withUnsafeBytes { try enqueue($0) }

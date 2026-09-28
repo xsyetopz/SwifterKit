@@ -4,9 +4,10 @@ import Foundation
 
 /// A runtime connection that models the extension's event queue and notification rule.
 ///
-/// It follows the native contract in `SwifterKitRuntimeEvents.cpp`: a poll that finds the queue
-/// empty arms the registration, and an enqueue that finds it armed disarms it and sends one
-/// notification. Registration arms, or notifies at once when events are already queued.
+/// It follows the native contract in `SwifterKitRuntimeEvents.cpp`:
+/// - A poll that finds the queue empty arms the registration.
+/// - An enqueue that finds it armed disarms it and sends one notification.
+/// - Registration arms, or notifies at once when events are already queued.
 actor EventSourceConnection: DriverConnection {
   let capabilities: RuntimeCapabilities
   private var queue: [DriverEvent] = []

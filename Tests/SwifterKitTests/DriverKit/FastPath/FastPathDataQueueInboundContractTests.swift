@@ -3,9 +3,11 @@ import Testing
 
 @testable import SwifterKit
 
-/// The extension's to-extension data queue wiring: bounds checks before any host-written byte is
-/// read, a doorbell answered once, DataServiced only after a coalesced dequeue, and resumption
-/// under the fast-path lock.
+/// The extension's to-extension data queue wiring:
+/// - Bounds checks, before any host-written byte is read.
+/// - A doorbell, answered once.
+/// - DataServiced, only after a coalesced dequeue.
+/// - Resumption, under the fast-path lock.
 @Suite
 struct FastPathDataQueueInboundContractTests {
   private static func checkedIn(_ name: String) throws -> String {

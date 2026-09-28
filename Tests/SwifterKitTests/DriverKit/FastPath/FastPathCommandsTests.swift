@@ -136,8 +136,10 @@ struct FastPathCommandsTests {
   }
 }
 
-/// Answers the handshake, then a run with the request's arguments followed by the program index
-/// in `v2` and `0xFFFF_FFFF` in `v7`, and a status query with a refused fast path.
+/// Answers three requests in order:
+/// - The handshake.
+/// - A run, with the request's arguments, the program index in `v2`, and `0xFFFF_FFFF` in `v7`.
+/// - A status query, with a refused fast path.
 private actor FastPathMockConnection: DriverConnection {
   var commands: [(opcode: UInt32, payload: Data)] = []
   var runStatus: UInt32 = 0

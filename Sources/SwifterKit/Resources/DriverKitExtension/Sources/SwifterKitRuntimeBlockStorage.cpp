@@ -78,9 +78,9 @@ namespace {
         return removed;
     }
 
-    // The IOUserBlockStorageDevice header defines no meaning for an error return from DoAsync*,
-    // so a request this runtime cannot take is answered through Complete or CompleteIO with the
-    // failure status, exactly once, and the call returns success.
+    // The IOUserBlockStorageDevice header defines no meaning for an error return from DoAsync*.
+    // A request this runtime cannot take is instead answered through Complete or CompleteIO
+    // with the failure status, exactly once, and the call returns success.
     kern_return_t RejectRequest(
         SwifterKitRuntimeService* service,
         uint32_t requestID,

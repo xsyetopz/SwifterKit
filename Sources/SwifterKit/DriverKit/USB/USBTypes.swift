@@ -218,12 +218,19 @@ public enum USBRuntimeError: Error, Sendable, Equatable {
   case transferTooLarge
   /// The native response has an invalid count or payload.
   case invalidResponse
-  /// A descriptor ring has no entries, too many, an empty or oversize buffer, or too many bytes.
+  /// A descriptor ring is invalid:
+  /// - No entries, or too many entries.
+  /// - An empty or oversize buffer.
+  /// - Too many bytes.
   case invalidBundleRing
-  /// A bundled submission has no transfers, more than `kIOUSBHostPipeBundlingMax`, or an index
-  /// outside any ring.
+  /// A bundled submission is invalid:
+  /// - No transfers.
+  /// - More than `kIOUSBHostPipeBundlingMax` transfers.
+  /// - An index outside any ring.
   case invalidBundledTransfer
-  /// Adjusted descriptors name another endpoint, a non-periodic endpoint, or an unsupported
-  /// `bcdUSB`.
+  /// Adjusted descriptors are invalid:
+  /// - They name another endpoint.
+  /// - They name a non-periodic endpoint.
+  /// - They specify an unsupported `bcdUSB`.
   case invalidEndpointPolicy
 }

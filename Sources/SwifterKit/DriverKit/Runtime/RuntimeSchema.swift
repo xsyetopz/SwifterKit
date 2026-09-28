@@ -2,7 +2,7 @@
 //
 // `RuntimeSchemaHeader` renders these declarations into the checked-in native header
 // `Resources/DriverKitExtension/Sources/SwifterKitRuntimeSchema.h`. `RuntimeSchemaTests` fails
-// when that header drifts; regenerate it with `SWIFTERKIT_UPDATE_SCHEMA=1 swift test --filter
+// when that header drifts. Regenerate it with `SWIFTERKIT_UPDATE_SCHEMA=1 swift test --filter
 // RuntimeSchemaTests`. Packed payload layouts stay hand-written in `SwifterKitRuntimeProtocol.h`,
 // which checks its fixed sizes against the sizes declared here.
 

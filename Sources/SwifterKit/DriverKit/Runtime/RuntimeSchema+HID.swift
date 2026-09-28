@@ -26,7 +26,7 @@ enum RuntimeHIDLimits {
   static let collectionChangeShift: UInt32 = 2
 }
 
-/// What a `hidSetElementValue` payload carries; see `SwifterKitHIDElementWrite`.
+/// What a `hidSetElementValue` payload carries. See `SwifterKitHIDElementWrite`.
 enum RuntimeHIDElementWriteKind: UInt32, CaseIterable {
   /// An integer value.
   case value = 0

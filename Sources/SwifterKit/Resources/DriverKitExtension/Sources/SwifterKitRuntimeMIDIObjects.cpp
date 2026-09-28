@@ -90,7 +90,7 @@ namespace {
         uint32_t end = 0;
     };
 
-    // The selector of a key ReadKey read without a name; name keys never reach this.
+    // The selector of a key ReadKey read without a name. Name keys never reach this.
     IOUserMIDIProperty Selector(const PropertyKey& key) {
         return static_cast<IOUserMIDIProperty>(key.selector);
     }

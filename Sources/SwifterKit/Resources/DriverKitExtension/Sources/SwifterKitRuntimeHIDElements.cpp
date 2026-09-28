@@ -15,8 +15,8 @@
 #endif
 
 // Swift's view of the provider interface: the element tree, element values and commits, and
-// interface reports. Element work runs under hidLock (see SwifterKitRuntimeHIDEvents.cpp);
-// interface report transfers call the kernel and take no lock.
+// interface reports. Element work runs under hidLock (see SwifterKitRuntimeHIDEvents.cpp).
+// Interface report transfers call the kernel and take no lock.
 #if SWIFTERKIT_HID_EVENT_SERVICE
 namespace {
     // SwifterKitHIDElementWriteKind comes from RuntimeSchema+HID.swift.
@@ -27,7 +27,7 @@ namespace {
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize
         - sizeof(SwifterKitRuntimeCommandHeader) - sizeof(SwifterKitHIDReportRequest);
 
-    // Returns an element the array still owns; OSArray::getObject does not retain.
+    // Returns an element the array still owns. OSArray::getObject does not retain.
     DRIVERKIT_RETURNS_NOT_RETAINED IOHIDElement* FindElement(
         const OSArray* elements,
         uint32_t cookie) {

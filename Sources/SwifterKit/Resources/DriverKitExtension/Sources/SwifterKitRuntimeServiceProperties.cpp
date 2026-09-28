@@ -7,7 +7,7 @@
 #include "SwifterKitRuntimeServiceProtocol.h"
 
 namespace {
-    // Reads the wire format front to back; every read checks the remaining length first.
+    // Reads the wire format front to back. Every read checks the remaining length first.
     struct PropertyReader {
         const uint8_t* bytes;
         uint32_t length;

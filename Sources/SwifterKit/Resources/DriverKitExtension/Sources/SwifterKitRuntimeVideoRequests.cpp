@@ -16,26 +16,27 @@
 
 // Video request contract, the same as the audio one:
 // - HandleChangeAcquireBox and a clock device's HandleChangeSampleRate run on the driver work
-//   queue and must return at once. Each records a pending request in a table of
+//   queue. Both must return at once. Each records a pending request in a table of
 //   kSwifterKitVideoPendingRequestCount entries, queues a required videoObject event, and
-//   returns success; a full table fails the callback with kIOReturnNoResources.
-// - A request ends exactly once, at the first of: Swift answers its ID through
-//   videoCompleteRequest; kVideoRequestTimeoutNanoseconds elapse (rejected with
-//   kIOReturnTimeout); the host detaches or the video runtime stops (rejected with
-//   kIOReturnAborted).
+//   returns success. A full table fails the callback with kIOReturnNoResources.
+// - A request ends exactly once, at the first of:
+//   - Swift answers its ID through videoCompleteRequest.
+//   - kVideoRequestTimeoutNanoseconds elapses, rejected with kIOReturnTimeout.
+//   - The host detaches, or the video runtime stops, rejected with kIOReturnAborted.
 // - HandleChangeAcquireBox sets the requested acquired state before it reports success.
-//   Accepting the request keeps that state; rejecting it restores the previous state and calls
+//   Accepting the request keeps that state. Rejecting it restores the previous state and calls
 //   SetAcquisitionFailure.
 // - A clock device's HandleChangeSampleRate likewise sets the requested rate before it reports
-//   success, because IOUserVideoClockDevice.iig requires the value to be updated on success.
-//   Accepting the request keeps that rate and reports it as a rate change; rejecting it restores
-//   the previous rate through a device configuration change, unless the rate changed again.
+//   success. IOUserVideoClockDevice.iig requires the value to be updated on success. Accepting
+//   the request keeps that rate and reports it as a rate change. Rejecting it restores the
+//   previous rate through a device configuration change, unless the rate changed again.
 // - Without a registered host or a timeout timer, the callbacks apply the framework default at
 //   once.
-// - Each request retains its box or clock device, so an answer needs no videoLock: answers run
-//   on the work queue (timeouts) and user-client threads, and holding videoLock across
-//   VideoDriverKit calls on the work queue could deadlock with VideoCommand. The table changes
-//   only under videoRequestLock, which is never held while calling VideoDriverKit.
+// - Each request retains its box or clock device, so an answer needs no videoLock. Answers run
+//   on the work queue for timeouts, and on user-client threads for host answers. Holding
+//   videoLock across VideoDriverKit calls on the work queue could deadlock with VideoCommand.
+//   The table changes only under videoRequestLock, which is never held while it calls
+//   VideoDriverKit.
 namespace {
     constexpr uint64_t kVideoRequestTimeoutNanoseconds = 10'000'000'000ULL;
     constexpr uint64_t kVideoRequestLeewayNanoseconds = 100'000'000ULL;

@@ -115,12 +115,12 @@ extension DriverContext {
     _ = try await execute(.reportEthernetDataBandwidths(bandwidths))
   }
 
-  /// Adds hardware counters to the interface statistics; reset them after this returns.
+  /// Adds hardware counters to the interface statistics. Reset them after this returns.
   public func addEthernetHardwareCounts(_ counts: EthernetHardwareCounts) async throws {
     _ = try await execute(.addEthernetHardwareCounts(counts))
   }
 
-  /// Reports NIC proxy capacities; requires ``EthernetFeatureFlags/nicProxy``.
+  /// Reports NIC proxy capacities. Requires ``EthernetFeatureFlags/nicProxy``.
   public func reportEthernetNICProxyLimits(_ limits: EthernetNICProxyLimits) async throws {
     _ = try await execute(.reportEthernetNICProxyLimits(limits))
   }

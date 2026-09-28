@@ -8,12 +8,12 @@
 
 // Event queue contract:
 // - Lossy events (notifications Swift may miss) and required events (requests
-//   Swift must answer) use separate queues with separate fixed capacities, so
-//   lossy traffic can never consume required capacity.
+//   Swift must answer) use separate queues with separate fixed capacities.
+//   Lossy traffic can never consume required capacity.
 // - CopyNextEvent returns every queued required event before any lossy event.
-//   Order is FIFO within each class; it is not preserved across classes.
-// - An event must fit in one poll response (runtime header, type, payload), so
-//   oversize events are rejected here rather than lost when Swift polls them.
+//   Order is FIFO within each class. It is not preserved across classes.
+// - An event must fit in one poll response (runtime header, type, payload).
+//   Oversize events are rejected here rather than lost when Swift polls them.
 // - A full queue rejects the event with kIOReturnNoSpace. A rejected or
 //   unallocatable lossy event increments lossyEventDrops. A rejected required
 //   event is answered by its call site with a defined failure status.
@@ -22,24 +22,27 @@
 //
 // Notification contract (no lost wakeup, no notification storm):
 // - A host registers once through kSwifterKitSelectorEventNotification. Its user
-//   client keeps the OSAction; the service keeps the user client in eventClient.
+//   client keeps the OSAction. The service keeps the user client in eventClient.
 // - eventNotificationArmed changes only under eventLock. A poll that finds both
 //   queues empty arms it. An enqueue that succeeds while it is armed clears it and,
 //   after dropping eventLock, sends exactly one AsyncCompletion. Registration arms
 //   it, or notifies at once when either queue already holds an event.
-// - So after the host's last empty poll, the first queued event sends one
-//   notification, and later events send none until the host drains to empty
+// - After the host's last empty poll, the first queued event sends one
+//   notification. Later events send none until the host drains to empty
 //   again. The host must register before its first drain.
 // - A second registration replaces the previous client and action. When the
 //   registered client stops (IOServiceClose or host exit), crashes, or the service
-//   stops, DetachEventClient releases it, empties both queues, and then answers
-//   every tracked request. Emptying first means a request
-//   queued concurrently is still answered; at worst its stale event reaches the
-//   next host, whose completion for it then fails.
+//   stops, DetachEventClient:
+//   - Releases it.
+//   - Empties both queues.
+//   - Answers every tracked request.
+//   Emptying first means a request queued concurrently is still answered. At
+//   worst its stale event reaches the next host, whose completion for it then
+//   fails.
 // - A registration from a different user client first detaches the previous
-//   client through DetachEventClient, so its tracked requests are answered as
+//   client through DetachEventClient. Its tracked requests are then answered as
 //   when a host departs. Requests queued meanwhile wait for the new client.
-// - Taking a required event frees required capacity, so CopyNextEvent then
+// - Taking a required event frees required capacity. CopyNextEvent then
 //   retries USB completions the full required queue rejected earlier, after
 //   dropping eventLock (DeliverUSBCompletions takes usbLock, then eventLock).
 // - Requests that arrive while no host is registered wait in the queues for the
@@ -160,13 +163,14 @@ void SwifterKitRuntimeService::DetachEventClient(IOService* client) {
 
     // Answer the tracked DriverKit requests the departed host can no longer
     // complete, through the paths the service uses when it stops. Family locks
-    // are taken after eventLock is released; NetworkTxPacketAvailable holds
-    // networkLock while it enqueues, so the reverse order could deadlock.
-    // A pending power change is acknowledged, and the host's timers and watches are
-    // cancelled, pending HID get-report requests are aborted, and pending audio and video
-    // box-acquisition and clock sample-rate requests are rejected. Serial, MIDI, interrupt, SCSI
-    // peripheral, and other audio and video events leave no DriverKit request outstanding, so
-    // those families answer nothing.
+    // are taken after eventLock is released. NetworkTxPacketAvailable holds
+    // networkLock while it enqueues, so the reverse order could deadlock. By family:
+    // - A pending power change is acknowledged.
+    // - The host's timers and watches are cancelled.
+    // - Pending HID get-report requests are aborted.
+    // - Pending audio and video box-acquisition and clock sample-rate requests are rejected.
+    // Serial, MIDI, interrupt, SCSI peripheral, and other audio and video events leave no
+    // DriverKit request outstanding, so those families answer nothing.
     (void)AnswerPowerState(0);
 #if SWIFTERKIT_ENABLE_AUDIO
     RejectAudioRequests(kIOReturnAborted);

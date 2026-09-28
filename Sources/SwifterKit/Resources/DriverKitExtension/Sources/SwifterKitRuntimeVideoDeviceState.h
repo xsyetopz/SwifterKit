@@ -35,7 +35,7 @@ struct SwifterKitRuntimeVideoDevice_IVars {
     IOMemoryMap* controlMaps[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
     uint64_t pendingSampleRateBits = 0;
     // Live buffer sizing, identity, and attachment, which Swift can change after Configure.
-    // bufferLock guards these, the maps, the descriptors, and the pending change; no
+    // bufferLock guards these, the maps, the descriptors, and the pending change. No
     // VideoDriverKit call runs under it.
     IOLock* bufferLock = nullptr;
     uint32_t dataCapacity[kSwifterKitVideoMaximumStreams] = {};
@@ -44,7 +44,7 @@ struct SwifterKitRuntimeVideoDevice_IVars {
     bool bufferDetached[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
     bool streamDetached[kSwifterKitVideoMaximumStreams] = {};
     bool controlDetached[kSwifterKitVideoMaximumControls] = {};
-    // A stream or buffer change waiting for PerformDeviceConfigurationChange; kind zero is none.
+    // A stream or buffer change waiting for PerformDeviceConfigurationChange. Kind zero is none.
     uint32_t pendingChangeKind = 0;
     uint32_t pendingChangeStream = 0;
     uint32_t pendingChangeBuffer = 0;

@@ -1,7 +1,7 @@
 import Foundation
 
 // The audio and video runtimes encode typed control values and string custom properties with
-// one layout; each family supplies its own limits, opcodes, and errors.
+// one layout. Each family supplies its own limits, opcodes, and errors.
 
 extension Data {
   /// Encodes a typed control value: identifier, kind, word count, a reserved zero, then the words.

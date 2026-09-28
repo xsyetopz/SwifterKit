@@ -73,7 +73,7 @@ public enum HIDElementCommitDirection: UInt32, Sendable, Hashable {
 
 /// One element of the provider interface's element tree, as `IOHIDElement` reports it.
 ///
-/// Values are the raw `uint32_t` values `IOHIDElement` returns; signed logical and physical
+/// Values are the raw `uint32_t` values `IOHIDElement` returns. Signed logical and physical
 /// limits keep their two's-complement bit patterns.
 public struct HIDElement: Sendable, Hashable {
   /// The element's cookie, unique within the interface.
@@ -82,7 +82,7 @@ public struct HIDElement: Sendable, Hashable {
   public let parentCookie: UInt32?
   /// The element type.
   public let type: HIDElementType
-  /// The collection type; meaningful when ``type`` is ``HIDElementType/collection``.
+  /// The collection type. Meaningful when ``type`` is ``HIDElementType/collection``.
   public let collectionType: HIDElementCollectionType
   /// The usage page.
   public let usagePage: UInt32

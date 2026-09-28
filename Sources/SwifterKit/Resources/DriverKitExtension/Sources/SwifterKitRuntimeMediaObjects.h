@@ -2,11 +2,11 @@
 #define SwifterKitRuntimeMediaObjects_h
 
 // Box, clock-device, and object-command plumbing shared by the audio and video runtimes.
-// AudioDriverKit and VideoDriverKit declare parallel object classes, so the templates here take a
-// family struct that names that family's classes, schema values, and the service ivars fields it
+// AudioDriverKit and VideoDriverKit declare parallel object classes. The templates here take a
+// family struct. It names that family's classes, schema values, and the service ivars fields it
 // owns as member pointers (see SwifterKitRuntimeAudioObjects.cpp and
-// SwifterKitRuntimeVideoObjects.cpp). Like SwifterKitRuntimeMediaControls.h, this header includes
-// neither framework.
+// SwifterKitRuntimeVideoObjects.cpp).
+// Like SwifterKitRuntimeMediaControls.h, this header includes neither framework.
 
 #include <DriverKit/IOLib.h>
 #include <DriverKit/OSData.h>
@@ -227,7 +227,7 @@ kern_return_t SwifterKitObjectInfoResponse(
         data->release();
         return result;
     }
-    // Lengths are known only after appending; patch them into the copied header.
+    // Lengths are known only after appending. Patch them into the copied header.
     auto* bytes = static_cast<uint8_t*>(const_cast<void*>(data->getBytesNoCopy()));
     memcpy(bytes, &header, sizeof(header));
     *response = data;
@@ -235,7 +235,7 @@ kern_return_t SwifterKitObjectInfoResponse(
 }
 
 // Handles SetObjectName (`setName`) or PropertiesChanged. `resolve` returns the target object, or
-// null when it does not exist; a driver target names the driver itself.
+// null when it does not exist. A driver target names the driver itself.
 template<typename Family, typename Resolve>
 kern_return_t SwifterKitChangeObject(
     typename Family::Driver* driver,
@@ -369,12 +369,12 @@ kern_return_t SwifterKitClockStateResponse(
     return SwifterKitBytesResponse(bytes, sizeof(state) + count * sizeof(double), response);
 }
 
-// A box owner slot's value when no box owns the device or clock device; otherwise it is the owning
-// box's index plus one.
+// A box owner slot's value when no box owns the device or clock device. Otherwise it is the
+// owning box's index plus one.
 inline constexpr uint8_t kSwifterKitMediaNoOwner = 0;
 
 // Adds the device or a clock device to `box`, or removes it, and records which box owns it. A
-// member belongs to at most one box; `boxIndex` is the box's schema index.
+// member belongs to at most one box. `boxIndex` is the box's schema index.
 template<typename Family, typename State>
 kern_return_t SwifterKitSetBoxOwnership(
     State* state,
@@ -427,7 +427,7 @@ kern_return_t
     const bool flag = value == 1;
     switch (selector) {
         case Family::kBoxPropertyTransport:
-            // Transport types are open uint32_t FourCCs; the SDK enumerates only common values.
+            // Transport types are open uint32_t FourCCs. The SDK enumerates only common values.
             // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
             return box->SetTransportType(static_cast<typename Family::TransportType>(value));
         case Family::kBoxPropertyHasAudio:
@@ -465,7 +465,7 @@ kern_return_t SwifterKitBoxStateResponse(typename Family::RuntimeBox* box, OSDat
     return SwifterKitBytesResponse(&boxState, sizeof(boxState), response);
 }
 
-// Replaces a clock device's available rates; `isValid` bounds each rate.
+// Replaces a clock device's available rates. `isValid` bounds each rate.
 template<typename Family, typename IsValid>
 kern_return_t SwifterKitSetClockSampleRates(
     typename Family::RuntimeClockDevice* clock,
@@ -597,7 +597,7 @@ kern_return_t SwifterKitStartBoxes(Service* service, State* state) {
     return result;
 }
 
-// Takes every box and clock device out of the driver; boxes first release the members they own.
+// Takes every box and clock device out of the driver. Boxes first release the members they own.
 template<typename Family, typename Service, typename State>
 void SwifterKitStopBoxesAndClockDevices(Service* service, State* state) {
     IOLockLock(state->*Family::kLock);

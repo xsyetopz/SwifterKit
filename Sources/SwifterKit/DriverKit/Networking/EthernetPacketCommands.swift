@@ -6,7 +6,7 @@ extension DriverCommand {
 
   /// Injects hardware-received frames, each with its packet metadata, in one batch.
   ///
-  /// The extension takes an empty packet for every frame before it copies any, so a batch the
+  /// The extension takes an empty packet for every frame before it copies any. A batch the
   /// receive submission queue cannot supply delivers nothing and fails with
   /// `kIOReturnNoResources`.
   public static func ethernetReceive(frames: [EthernetReceivedFrame]) throws -> Self {
@@ -32,7 +32,7 @@ extension DriverCommand {
   public static func ethernetReceive(frame: Data, metadata: EthernetReceiveMetadata) throws -> Self
   { try ethernetReceive(frames: [EthernetReceivedFrame(frame: frame, metadata: metadata)]) }
 
-  /// Completes several transmits at once; each packet records its status, timestamp, and trace
+  /// Completes several transmits at once. Each packet records its status, timestamp, and trace
   /// event before the batch returns through the transmit completion queue.
   public static func completeEthernetTransmits(
     _ completions: [EthernetTransmitCompletion]

@@ -224,7 +224,7 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
   init(runtimePayload payload: Data) throws {
     var offset = 0
     do { self = try Self.decode(Data(payload), at: &offset, depth: 1) } catch {
-      // Truncated reads surface as RuntimeProtocolError; report them as malformed MIDI data.
+      // A truncated read throws RuntimeProtocolError. Report it as malformed MIDI data.
       throw MIDIRuntimeError.invalidPayload
     }
     guard offset == payload.count else { throw MIDIRuntimeError.invalidPayload }
@@ -253,7 +253,7 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
       guard [8, 16, 32, 64].contains(bits), reserved == 0, bits == 64 || raw >> bits == 0 else {
         throw MIDIRuntimeError.invalidPayload
       }
-      // OSNumber stores the low `bits` bits; sign-extend them.
+      // OSNumber stores the low `bits` bits. Sign-extend them.
       let shift = UInt64(64 - bits)
       return .number(Int64(bitPattern: raw << shift) >> shift, bits: bits)
     case .data?: return .data(Data(data[start..<end]))

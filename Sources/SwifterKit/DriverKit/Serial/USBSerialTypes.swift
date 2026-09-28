@@ -2,12 +2,15 @@ import Foundation
 
 /// A serial port on a USB interface, generated as an `IOUserUSBSerial` service.
 ///
-/// USBSerialDriverKit owns the data path: it opens the matched `IOUSBHostInterface`, moves bytes
-/// between the terminal queues and the interface's bulk pipes, and polls its interrupt pipe. Swift
-/// programs the hardware in response to ``SerialEvent`` requests, typically with
-/// ``DriverContext/usbControlTransfer(_:data:timeout:)``, reports modem-input changes with
-/// ``DriverContext/serialSetModemStatus(_:)``, and can observe every received and interrupt packet
-/// through ``DriverEvent/usbSerial()``.
+/// USBSerialDriverKit owns the data path:
+/// - It opens the matched `IOUSBHostInterface`.
+/// - It moves bytes between the terminal queues and the interface's bulk pipes.
+/// - It polls its interrupt pipe.
+///
+/// Swift programs the hardware in response to ``SerialEvent`` requests, typically with
+/// ``DriverContext/usbControlTransfer(_:data:timeout:)``. Swift also reports modem-input changes
+/// with ``DriverContext/serialSetModemStatus(_:)`` and can observe every received and interrupt
+/// packet through ``DriverEvent/usbSerial()``.
 ///
 /// Because the superclass fills and drains the terminal queues,
 /// ``DriverContext/serialEnqueueReceive(_:)`` and

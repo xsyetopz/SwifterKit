@@ -69,7 +69,7 @@ namespace {
     // PollAction and EventAction fix these callbacks' parameter types, so `target` stays mutable.
     // NOLINTBEGIN(misc-const-correctness)
 
-    // Each poll tick drains transmit work; the poller runs on the network queue.
+    // Each poll tick drains transmit work. The poller runs on the network queue.
     IOReturn NetworkPoll(OSObject* target, IOUserNetworkPacketPoller*, void*) {
         auto* service = OSDynamicCast(SwifterKitRuntimeService, target);
         if (service != nullptr)
@@ -119,7 +119,7 @@ kern_return_t SwifterKitRuntimeService::StartNetwork() {
     }
     if (result == kIOReturnSuccess)
         result = CreateActionNetworkTxPacketAvailable(0, &ivars->networkTxAction);
-    // A transmit service class needs the DriverKit 24 Create; earlier systems use the plain one.
+    // A transmit service class needs the DriverKit 24 Create. Earlier systems use the plain one.
     bool classified = false;
     if (result == kIOReturnSuccess
         && kSwifterKitEthernetTxServiceClass != kIOUserNetworkPacketServiceClassNone) {
@@ -401,7 +401,7 @@ kern_return_t SwifterKitRuntimeService::setHardwareAssists(uint32_t assists) {
 uint32_t SwifterKitRuntimeService::getHardwareAssists() {
     return kAdvertisedHardwareAssists;
 }
-// The stack changes the assists in mask; Swift sees only those bits. A wake-on-magic-packet
+// The stack changes the assists in mask. Swift sees only those bits. A wake-on-magic-packet
 // change is also delivered as its own event.
 kern_return_t SwifterKitRuntimeService::setHardwareAssists(uint32_t assists, uint32_t mask) {
     if ((mask & ~kAdvertisedHardwareAssists) != 0)
@@ -466,7 +466,7 @@ int SwifterKitRuntimeService::bpfTap(uint32_t dataLinkType, uint32_t mode) {
     (void)NetworkControlEvent(kSwifterKitNetworkEventPacketTap, tapMode);
     return 0;
 }
-// The handoff is one nicproxy_info_t whose len covers its record buffer; one event carries it.
+// The handoff is one nicproxy_info_t whose len covers its record buffer. One event carries it.
 void SwifterKitRuntimeService::hwConfigNicProxyData(nicproxy_info_t* handoff) {
     if (handoff == nullptr || handoff->len < sizeof(nicproxy_info_t)
         || handoff->len

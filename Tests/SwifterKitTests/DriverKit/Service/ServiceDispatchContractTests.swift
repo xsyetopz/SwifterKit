@@ -105,8 +105,8 @@ struct ServiceDispatchContractTests {
 
       let sources = try source("SwifterKitRuntimeDispatchSources.h", in: output)
       #expect(sources.contains("SwifterKitEnableSource(IODispatchSource* source)"))
-      // TimerCommand hands its creation references to this helper on failure; without
-      // os_consumed the static analyzer reports them as leaked.
+      // TimerCommand hands its creation references to this helper on failure. Without
+      // os_consumed, the static analyzer reports them as leaked.
       #expect(sources.contains("IODispatchSource* __attribute__((os_consumed)) source,"))
       #expect(sources.contains("OSAction* __attribute__((os_consumed)) action) {"))
       #expect(sources.contains("return words[1] == 0 ? words[0] : 0;"))

@@ -2,12 +2,15 @@
 #define SwifterKitRuntimeMediaMembers_h
 
 // Device member-command and service device-command plumbing shared by the audio and video
-// runtimes. The member templates take a per-file family struct that names that family's control
-// classes, wire structs, and schema tables (see SwifterKitRuntimeAudioMembers.cpp and
-// SwifterKitRuntimeVideoMembers.cpp); the service templates take one that names the family's
-// opcodes and event headers (see SwifterKitRuntimeAudio.cpp and SwifterKitRuntimeVideo.cpp). Like
-// SwifterKitRuntimeMediaControls.h, this header includes neither framework. Callers validate each
-// request's reserved fields and hold the family lock; these templates call only the device.
+// runtimes.
+// The member templates take a per-file family struct that names that family's control classes,
+// wire structs, and schema tables (see SwifterKitRuntimeAudioMembers.cpp and
+// SwifterKitRuntimeVideoMembers.cpp).
+// The service templates take one that names the family's opcodes and event headers (see
+// SwifterKitRuntimeAudio.cpp and SwifterKitRuntimeVideo.cpp).
+// Like SwifterKitRuntimeMediaControls.h, this header includes neither framework.
+// Callers validate each request's reserved fields and hold the family lock. These templates call
+// only the device.
 
 #include <DriverKit/IOLib.h>
 #include <DriverKit/OSData.h>
@@ -202,7 +205,7 @@ kern_return_t SwifterKitRemoveSelectorItems(
     return selector->RemoveControlValueDescriptions(removed, count);
 }
 
-// Replies with the custom property's info; `owner(index)` gives the wire owner.
+// Replies with the custom property's info. `owner(index)` gives the wire owner.
 template<typename Family, typename IVars, typename Owner>
 kern_return_t SwifterKitCopyCustomPropertyInfo(
     IVars* ivars,
@@ -308,7 +311,7 @@ kern_return_t SwifterKitEnqueueCustomPropertyEvent(
 }
 
 // The device commands both families share: timestamps, sample-rate requests, control values, and
-// custom properties. The caller holds the family lock; any other opcode is unsupported.
+// custom properties. The caller holds the family lock. Any other opcode is unsupported.
 template<typename Family, typename Device>
 kern_return_t SwifterKitDeviceCommand(
     Device* device,

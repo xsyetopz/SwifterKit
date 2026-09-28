@@ -17,9 +17,10 @@ public enum DriverExtensionGenerationError: Error, Sendable, Equatable {
   case invalidUSBConfiguration
   /// PCI metadata is absent, malformed, or conflicts with another physical transport.
   case invalidPCIConfiguration
-  /// Serial metadata is absent, malformed, or conflicts with HID subclassing, both serial and USB
-  /// serial metadata are set, or USB serial metadata lacks the USB capability or an
-  /// `IOUSBHostInterface` provider.
+  /// One of these is true:
+  /// - Serial metadata is absent, malformed, or conflicts with HID subclassing.
+  /// - Both serial and USB serial metadata are set.
+  /// - USB serial metadata lacks the USB capability or an `IOUSBHostInterface` provider.
   case invalidSerialConfiguration
   /// Block-storage metadata is absent, malformed, or conflicts with another superclass.
   case invalidBlockStorageConfiguration
@@ -38,8 +39,11 @@ public enum DriverExtensionGenerationError: Error, Sendable, Equatable {
   case invalidInterruptConfiguration
   /// Native memory-pool limits are absent or invalid.
   case invalidMemoryConfiguration
-  /// Reporters are absent or exceed ``ReportingLimits``, a name is empty, too long, or contains
-  /// NUL, channel IDs are zero or repeat, or a state or histogram layout is invalid.
+  /// One of these is true:
+  /// - Reporters are absent or exceed ``ReportingLimits``.
+  /// - A name is empty, too long, or contains NUL.
+  /// - Channel IDs are zero or repeat.
+  /// - A state or histogram layout is invalid.
   case invalidReportingConfiguration
   /// Fast-path programs break a rule of ``FastPathConfiguration/validate(for:)``.
   case invalidFastPathConfiguration(FastPathError)

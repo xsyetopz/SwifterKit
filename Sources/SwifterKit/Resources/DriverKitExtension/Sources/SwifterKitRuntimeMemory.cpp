@@ -24,12 +24,15 @@ static_assert(
     static_cast<uint32_t>(SwifterKitMemoryStatus::NotOwner)
     == static_cast<uint32_t>(kIOReturnNotPermitted));
 
-// Ownership: wrapped host memory belongs to the user client that wrapped it, and a subrange or
-// chain with an owned source belongs to that client too, so every dependent of an owned entry
-// has its owner. Commands and host mappings from any other client answer kIOReturnNotPermitted.
-// The owner's Stop, or ClientCrashed, releases its entries leaves first; entries without an
-// owner stay until MemoryRelease or StopMemory. `owner` is compared, never dereferenced or
-// retained: the client's Stop clears it before the client can be freed.
+// Ownership:
+// - Wrapped host memory belongs to the user client that wrapped it.
+// - A subrange or chain with an owned source belongs to that client too, so every dependent of
+//   an owned entry has its owner.
+// - Commands and host mappings from any other client answer kIOReturnNotPermitted.
+// - The owner's Stop, or ClientCrashed, releases its entries, leaves first. Entries without an
+//   owner stay until MemoryRelease or StopMemory.
+// - `owner` is compared, never dereferenced or retained, because the client's Stop clears it
+//   before the client can be freed.
 
 namespace {
     constexpr uint32_t kMaximumMemoryEntries = 64;
@@ -80,7 +83,7 @@ namespace {
         return entry->composed;
     }
 
-    // The live entry that owns `memory`; each entry's descriptor is its own object. The fields
+    // The live entry that owns `memory`. Each entry's descriptor is its own object. The fields
     // are compared directly because an entry owns one or the other.
     SwifterKitMemoryEntry* FindMemoryByDescriptor(
         SwifterKitRuntimeService_IVars* state,
@@ -126,9 +129,9 @@ namespace {
         *entry = {};
     }
 
-    // Releases the entries `matches` selects, leaves first: every pass releases the selected
+    // Releases the entries `matches` selects, leaves first. Every pass releases the selected
     // entries nothing composes, which frees their sources for the next pass. Composition names
-    // only existing entries, so a selected entry always has a leaf below it; the final sweep
+    // only existing entries, so a selected entry always has a leaf below it. The final sweep
     // releases whatever selected entries remain regardless of dependents.
     template<typename Matches>
     void ReleaseLeavesFirst(SwifterKitRuntimeService_IVars* state, Matches matches) {
@@ -198,9 +201,12 @@ namespace {
     }
 
     // Finishes a subrange, chain, or wrap whose creation returned `result` into
-    // `entry->composed`: retains the sources and counts the entry as their dependent, maps the
-    // result into the extension when DriverKit can, records `owner`, and answers with the new
-    // handle. Any failure leaves the entry free and the sources' counts as they were.
+    // `entry->composed`:
+    // - Retains the sources and counts the entry as their dependent.
+    // - Maps the result into the extension when DriverKit can.
+    // - Records `owner`.
+    // - Answers with the new handle.
+    // Any failure leaves the entry free and the sources' counts as they were.
     kern_return_t FinishComposedEntry(
         SwifterKitRuntimeService_IVars* state,
         const IOService* owner,
@@ -232,7 +238,7 @@ namespace {
             ReleaseMemoryEntry(state, entry);
             return result;
         }
-        // Read and write need an extension mapping; DMA and host mapping do not, so an entry
+        // Read and write need an extension mapping. DMA and host mapping do not, so an entry
         // DriverKit cannot map here stays usable for them.
         if (entry->composed->CreateMapping(0, 0, 0, length, 0, &entry->map) != kIOReturnSuccess
             || entry->map == nullptr || entry->map->GetAddress() == 0) {
@@ -371,9 +377,9 @@ namespace {
 // Opcode MemoryWrapClient: a new entry for 1...32 segments of the calling host's own memory,
 // described with CreateMemoryDescriptorFromClient while `client`'s ExternalMethod runs. The entry
 // takes a buffer slot but none of the byte budget, which counts only buffers the extension
-// allocates; its length is fixed. The descriptor references the host's pages, so the host must
-// keep them allocated until it releases the entry, which answers kIOReturnBusy while a subrange
-// or chain still uses it. `client` owns the entry: see Ownership above.
+// allocates. Its length is fixed. The descriptor references the host's pages, so the host must
+// keep them allocated until it releases the entry. Releasing the entry answers kIOReturnBusy
+// while a subrange or chain still uses it. `client` owns the entry: see Ownership above.
 kern_return_t SwifterKitRuntimeService::WrapClientMemory(
     IOUserClient* client,
     const uint8_t* payload,
@@ -454,7 +460,7 @@ kern_return_t SwifterKitRuntimeService::CopyMemoryForClient(
     if (IsForeign(entry, client)) {
         return kIOReturnNotPermitted;
     }
-    // DriverKit consumes this reference; the entry keeps its own.
+    // DriverKit consumes this reference. The entry keeps its own.
     IOMemoryDescriptor* descriptor = EntryMemory(entry);
     descriptor->retain();
     *memory = descriptor;
@@ -490,10 +496,10 @@ void SwifterKitRuntimeService::StopMemory() {
 
 // Releases the entries `client` owns, compositions before their sources, completing any DMA
 // prepared on them. The runtime user client calls this from Stop, on the queue its
-// ExternalMethod runs on, before it drops the service: no command from that client runs
-// concurrently and none reaches the service afterward, so no wrap can follow the release.
-// ClientCrashed calls it earlier from the service's queue; memoryLock serializes the two, and a
-// second call, or one after StopMemory, finds nothing to release. memoryLock is taken on its
+// ExternalMethod runs on, before it drops the service. No command from that client runs
+// concurrently, and none reaches the service afterward, so no wrap can follow the release.
+// ClientCrashed calls it earlier from the service's queue. memoryLock serializes the two calls.
+// A second call, or one after StopMemory, finds nothing to release. memoryLock is taken on its
 // own, never inside eventLock, so detaching events after this cannot invert the lock order.
 void SwifterKitRuntimeService::ReleaseClientMemory(IOService* client) {
     if (client == nullptr || ivars == nullptr || ivars->memoryLock == nullptr) {

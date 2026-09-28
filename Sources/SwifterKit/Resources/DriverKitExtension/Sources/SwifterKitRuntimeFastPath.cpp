@@ -16,36 +16,43 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 // Fast-path contract:
-// - StartFastPath runs after the provider is open and before interrupt sources are enabled. It
-//   re-validates every generated table, then checks each declared BAR with GetBARInfo. When a
-//   table is invalid or a BAR is missing or smaller than declared, the whole fast path is
-//   refused with kIOReturnNoResources: no program runs, commands answer that status, and
-//   interrupt events are delivered as without a fast path. Nothing runs partially.
-// - Start programs then run in table order; one that ends with a nonzero status refuses the fast
-//   path with that status and the later ones do not run.
+// - StartFastPath runs after the provider is open and before interrupt sources are enabled.
+//   It re-validates every generated table, then checks each declared BAR with GetBARInfo.
+//   When a table is invalid, or a BAR is missing or smaller than declared, the fast path is
+//   refused with kIOReturnNoResources:
+//   - No program runs.
+//   - Commands answer with that status.
+//   - Interrupt events are delivered as without a fast path.
+//   Nothing runs partially.
+// - Start programs run in table order. One that ends with a nonzero status refuses the fast
+//   path with that status. The later programs do not run.
 // - fastPathLock serializes every run, so a program's read-modify-write sequences never
 //   interleave with another program's. It is held for one program: at most its 10 ms delay and
 //   poll budget plus its register accesses and emits. A caller waits at most that long per
 //   program ahead of it.
-// - Interrupt programs run in InterruptOccurred before the interrupt event, which is then
+// - Interrupt programs run in InterruptOccurred before the interrupt event. The event is then
 //   delivered according to the trigger's delivery. Command programs answer their command
 //   exactly once, with the program's status and slots. Stop programs run first in Stop, before
-//   any teardown; after them no program runs again.
-// - Rings are allocated after the tables and BARs check out and before start programs run, so
-//   a start program can hand the device a ring's address. Each is one IOBufferMemoryDescriptor
-//   of a 64-byte header and its entries, mapped into the extension and prepared for DMA with an
-//   IODMACommand on the PCI device; a ring the DMA preparation cannot describe as one segment
-//   refuses the fast path, and every ring allocated so far is released. The header holds the
-//   producer and consumer indices, the entry size, and the entry count (the offsets are
-//   kSwifterKitFastPathRing*Offset); indices are stored with release and loaded with acquire
-//   ordering because the host maps the same buffer through CopyFastPathRingMemory. Rings stay
-//   allocated while the device may hold their addresses: until StopFastPath, after the stop
-//   programs, completes their DMA and releases them.
-// - Host-shared data queues are created after the rings and released before them; see
+//   any teardown. After them, no program runs again.
+// - Rings are allocated after the tables and BARs check out and before start programs run.
+//   This lets a start program hand the device a ring's address. Each ring is one
+//   IOBufferMemoryDescriptor of a 64-byte header and its entries. It is mapped into the
+//   extension and prepared for DMA with an IODMACommand on the PCI device. A ring the DMA
+//   preparation cannot describe as one segment refuses the fast path, and every ring allocated
+//   so far is released. The header holds:
+//   - the producer index
+//   - the consumer index
+//   - the entry size
+//   - the entry count (offsets kSwifterKitFastPathRing*Offset).
+//   Indices are stored with release ordering and loaded with acquire ordering, because the host
+//   maps the same buffer through CopyFastPathRingMemory. Rings stay allocated while the device
+//   may hold their addresses. StopFastPath completes their DMA and releases them after the stop
+//   programs run.
+// - Host-shared data queues are created after the rings and released before them. See
 //   SwifterKitRuntimeFastPathDataQueues.cpp. A run that enqueued entries signals their staging
 //   sources once, before it releases fastPathLock. Data-available programs run on the runtime
 //   queue under the same lock, one staged entry per acquisition.
-// - emit queues a fast-path event through the lossy EnqueueEvent path; an event the full queue
+// - emit queues a fast-path event through the lossy EnqueueEvent path. An event the full queue
 //   rejects increments fastPathEventDrops, which Swift reads with FastPathStatus.
 
 static_assert(
@@ -84,7 +91,7 @@ namespace {
     };
     // Rings start on a page so the host maps them from their first byte.
     constexpr uint64_t kRingAlignment = 4096;
-    // PrepareForDMA fills a caller array of up to 32 segments; a ring must need only one.
+    // PrepareForDMA fills a caller array of up to 32 segments. A ring must need only one.
     constexpr uint32_t kSegmentCapacity = 32;
     constexpr uint32_t kMicrosecondsPerMillisecond = 1000;
     constexpr uint32_t kMaximumInterruptSources = 32;
@@ -155,7 +162,7 @@ namespace {
     #endif
         }
 
-        // A whole millisecond sleeps; shorter waits spin in IODelay.
+        // A whole millisecond sleeps. Shorter waits spin in IODelay.
         static void Delay(uint32_t microseconds) {
             if (microseconds % kMicrosecondsPerMillisecond == 0) {
                 IOSleep(microseconds / kMicrosecondsPerMillisecond);
@@ -352,9 +359,9 @@ namespace {
         return result == kIOReturnSuccess ? PrepareRings(state, kTables) : result;
     }
 
-    // Runs one program; the caller holds fastPathLock. Returns the fast path's refusal or stop
-    // status when it cannot run; otherwise kIOReturnSuccess with the program's own status in
-    // `outcome`.
+    // Runs one program. The caller holds fastPathLock. Returns the fast path's refusal or stop
+    // status when it cannot run. Otherwise returns kIOReturnSuccess with the program's own
+    // status in `outcome`.
     kern_return_t ExecuteHoldingLock(
         SwifterKitRuntimeService* service,
         SwifterKitRuntimeService_IVars* state,
@@ -364,7 +371,7 @@ namespace {
         SwifterKitFastPathOutcome* outcome) {
         *outcome = {};
         kern_return_t result = state->fastPathRunning ? kIOReturnSuccess : kIOReturnNotReady;
-        // A PCI reset can move BARs; resolve them again before the next access.
+        // A PCI reset can move BARs. Resolve them again before the next access.
         if (result == kIOReturnSuccess && state->fastPathBARsStale) {
             result = PrepareBARs(state);
             if (result != kIOReturnSuccess) {
@@ -523,7 +530,7 @@ kern_return_t SwifterKitRuntimeService::CopyFastPathRingMemory(
     } else if (!ivars->fastPathRunning || ivars->fastPathRings[ring].buffer == nullptr) {
         result = kIOReturnNotReady;
     } else {
-        // DriverKit consumes this reference; the ring keeps its own until StopFastPath.
+        // DriverKit consumes this reference. The ring keeps its own until StopFastPath.
         ivars->fastPathRings[ring].buffer->retain();
         *memory = ivars->fastPathRings[ring].buffer;
     }
@@ -540,7 +547,7 @@ void SwifterKitRuntimeService::InvalidateFastPathBARs() {
     IOLockUnlock(ivars->fastPathLock);
 }
 
-// The caller holds fastPathLock and passes a staged entry's first words; the program receives
+// The caller holds fastPathLock and passes a staged entry's first words. The program receives
 // as many as it declares arguments.
 bool SwifterKitRuntimeService::RunFastPathDataAvailable(uint32_t queue, const uint64_t* words) {
     const uint32_t program = SwifterKitFastPathTriggeredProgram(

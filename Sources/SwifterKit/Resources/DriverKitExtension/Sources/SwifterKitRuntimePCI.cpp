@@ -39,8 +39,9 @@ namespace {
         return (header->options & ~kAccessOptionMask) == 0;
     }
 
-    // Loads BAR0...BAR5 once. A 64-bit BAR's upper half and unimplemented BARs fail GetBARInfo
-    // and are skipped; the expansion ROM reports no size, so it is never an accepted aperture.
+    // Loads BAR0...BAR5 once. A 64-bit BAR's upper half and unimplemented BARs fail
+    // GetBARInfo and are skipped. The expansion ROM reports no size, so it is never
+    // an accepted aperture.
     void LoadApertures(SwifterKitRuntimeService_IVars* state) {
         if (state->pciAperturesLoaded) {
             return;
@@ -323,7 +324,7 @@ kern_return_t SwifterKitRuntimeService::PCIFindCapability(
     return MakeUInt64Response(offset, response);
 }
 
-// The Swift host sends these SDK values as raw integers; see PCIControlTypes.swift.
+// The Swift host sends these SDK values as raw integers. See PCIControlTypes.swift.
 static_assert(kIOPCIAccessLatencyTolerantHint == 0x1);
 static_assert(kIOPCIDeviceResetTypeHotReset == 0x01 && kIOPCIDeviceResetTypeWarmReset == 0x02);
 static_assert(kIOPCIDeviceResetTypeWarmResetDisable == 0x04);
@@ -449,7 +450,7 @@ kern_return_t SwifterKitRuntimeService::PCIControl(
                 || (header.options & ~kResetOptionMask) != 0) {
                 return kIOReturnBadArgument;
             }
-            // Reset can change BAR assignments; reload them before the next aperture access.
+            // Reset can change BAR assignments. Reload them before the next aperture access.
             ivars->pciAperturesLoaded = false;
     #if SWIFTERKIT_ENABLE_FAST_PATH
             InvalidateFastPathBARs();

@@ -88,7 +88,7 @@ struct VideoMemberRuntimeContractTests {
         from: "::ApplyBufferCapacity(",
         to: "::ApplyBufferList("
       )
-      // VideoDriverKit calls happen before the lock; the lock only swaps the maps.
+      // VideoDriverKit calls happen before the lock. The lock only swaps the maps.
       let set = try #require(capacity.range(of: "SetDataMemoryDescriptor(")?.lowerBound)
       let lock = try #require(capacity.range(of: "IOLockLock(ivars->bufferLock);")?.lowerBound)
       #expect(set < lock)
@@ -124,7 +124,7 @@ struct VideoMemberRuntimeContractTests {
         to: "::ApplyBufferList("
       )
       // A failure restores every buffer touched so far, including the half-set one, before the
-      // new descriptors are released, and the ivars are swapped only on success.
+      // new descriptors are released. The ivars are swapped only on success.
       let failure = try #require(
         capacity.range(of: "if (result != kIOReturnSuccess) {")?.lowerBound
       )

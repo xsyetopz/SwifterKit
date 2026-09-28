@@ -10,15 +10,15 @@
 
 // Registry property values are tagged, little-endian, and nested at most
 // kSwifterKitPropertyMaximumDepth levels deep:
-//   Boolean:    tag, uint8_t 0 or 1
-//   Number:     tag, uint8_t bit count (8, 16, 32, or 64), uint64_t value
-//   String:     tag, uint32_t byte count, UTF-8 bytes without NUL
-//   Data:       tag, uint32_t byte count, bytes
-//   Array:      tag, uint32_t count, values
-//   Dictionary: tag, uint32_t count, then per entry uint32_t key byte count, key, value
+// - Boolean: tag, uint8_t 0 or 1
+// - Number: tag, uint8_t bit count (8, 16, 32, or 64), uint64_t value
+// - String: tag, uint32_t byte count, UTF-8 bytes without NUL
+// - Data: tag, uint32_t byte count, bytes
+// - Array: tag, uint32_t count, values
+// - Dictionary: tag, uint32_t count, then per entry uint32_t key byte count, key, value
 // Keys are unique, nonempty, and NUL-free. A payload holds exactly one value. The tags,
-// the depth, and kSwifterKitPropertyNameMaximumLength (IOPropertyName and IORegistryPlaneName
-// hold 128 bytes including the terminating NUL) come from RuntimeSchema+Service.swift.
+// the depth, and kSwifterKitPropertyNameMaximumLength come from RuntimeSchema+Service.swift.
+// IOPropertyName and IORegistryPlaneName hold 128 bytes including the terminating NUL.
 
 struct __attribute__((packed)) SwifterKitServiceSearchHeader {
     uint32_t options;

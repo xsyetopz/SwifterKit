@@ -32,7 +32,7 @@ namespace {
     }
 
     // Parses the entries after a SwifterKitSCSIPropertyHeader. With `keys`, the entries are key
-    // names only; otherwise they are key and OSString value pairs for `dictionary`. Keys may not
+    // names only. Otherwise they are key and OSString value pairs for `dictionary`. Keys may not
     // repeat, and no key or value may contain a NUL byte.
     kern_return_t ParseProperties(
         const uint8_t* payload,
@@ -181,14 +181,14 @@ kern_return_t SwifterKitRuntimeService::SCSIControlCommand(
             // UserCreateTargetForID starts the target, and the kernel then waits for INQUIRY
             // through UserProcessParallelTask. Swift polls that task and completes it through
             // this user client, whose queue would stay blocked in the create until INQUIRY
-            // timed out. The create runs on scsiTargetQueue; the command returns once it is
+            // timed out. The create runs on scsiTargetQueue. The command returns once it is
             // queued, after the properties are validated, so this request is answered then.
             // The create's own result follows as a required SCSITargetCreated event. With no
             // host registered it waits for the next host. While a host is registered and the
             // required queue is full, the block retries with a growing IOSleep backoff on
-            // scsiTargetQueue, which runs nothing else that the wait could hold up. If that host
-            // detaches meanwhile, DetachEventClient empties the queues and the retry stops; the
-            // next host finds the created target through scsiTargetPresent.
+            // scsiTargetQueue. That queue runs nothing else that the wait could hold up. If that
+            // host detaches meanwhile, DetachEventClient empties the queues and the retry stops.
+            // The next host finds the created target through scsiTargetPresent.
             result = ParseProperties(payload, payloadLength, true, &target, &properties, nullptr);
             if (result == kIOReturnSuccess && ivars->scsiTargetQueue == nullptr) {
                 result = kIOReturnNotReady;

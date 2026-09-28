@@ -3,8 +3,8 @@ import Testing
 
 @testable import SwifterKit
 
-/// When wrapped host pages may be freed: only after the extension confirms the wrapping handle is
-/// released, never while a subrange or chain still uses it.
+/// Wrapped host pages may be freed only after the extension confirms the wrapping handle is
+/// released. A subrange or chain that still uses the handle keeps the pages from being freed.
 @Suite
 struct HostMemoryLifetimeTests {
   @Test
@@ -77,8 +77,8 @@ struct HostMemoryLifetimeTests {
     #expect(dropped != nil)
     await runtime.close()
     // The extension releases the entries only when DriverKit later stops the user client, which
-    // the host cannot observe, so the wrap stays outstanding and a dropped allocation's deinit
-    // keeps its pages.
+    // the host cannot observe. The wrap stays outstanding, so a dropped allocation's deinit keeps
+    // its pages.
     #expect(dropped == nil)
     #expect(kept.isWrapped)
   }
@@ -99,9 +99,10 @@ struct HostMemoryLifetimeTests {
   }
 }
 
-/// A runtime connection that models the extension's memory entries: wraps and compositions get
-/// fresh handles, a composition counts as a dependent of each source it names, and a release
-/// answers once: kIOReturnBusy while the entry has dependents, success otherwise.
+/// A runtime connection that models the extension's memory entries:
+/// - Wraps and compositions get fresh handles.
+/// - A composition counts as a dependent of each source it names.
+/// - A release answers once: kIOReturnBusy while the entry has dependents, success otherwise.
 private actor HostMemoryConnection: DriverConnection {
   private var nextHandle: UInt64 = 1
   /// Each live handle's sources, one per occurrence.

@@ -1,12 +1,13 @@
 #ifndef SwifterKitRuntimeMediaRequests_h
 #define SwifterKitRuntimeMediaRequests_h
 
-// The host-request table shared by the audio and video runtimes: box acquisitions and clock
-// sample-rate changes that Swift must answer exactly once (see the contract in
-// SwifterKitRuntimeAudioRequests.cpp). The templates take a family struct that names the runtime
-// box and clock-device classes, schema values, and the service ivars fields of the family's
-// request table as member pointers. Like SwifterKitRuntimeMediaControls.h, this header includes
-// neither framework.
+// The host-request table shared by the audio and video runtimes covers box acquisitions and clock
+// sample-rate changes. Swift must answer each exactly once (see the contract in
+// SwifterKitRuntimeAudioRequests.cpp).
+// The templates take a family struct that names the runtime box and clock-device classes and
+// schema values. The struct also names the service ivars fields of the family's request table, as
+// member pointers.
+// Like SwifterKitRuntimeMediaControls.h, this header includes neither framework.
 
 #include <DriverKit/IODispatchQueue.h>
 #include <DriverKit/IOLib.h>
@@ -45,7 +46,7 @@ bool SwifterKitTakeRequest(
     return found;
 }
 
-// Creates the timeout timer; `createAction` creates the family's timer action.
+// Creates the timeout timer. `createAction` creates the family's timer action.
 template<typename Family, typename State, typename CreateAction>
 kern_return_t
     SwifterKitStartRequests(State* state, IODispatchQueue* queue, CreateAction createAction) {
@@ -144,7 +145,7 @@ kern_return_t SwifterKitApplyRequest(
     auto* box = SwifterKitDynamicCast<typename Family::RuntimeBox>(object);
     auto* clock = SwifterKitDynamicCast<typename Family::RuntimeClockDevice>(object);
     if (kind == Family::kBoxRequest && box != nullptr) {
-        // HandleChangeAcquireBox already applied the requested state; a rejection restores it.
+        // HandleChangeAcquireBox already applied the requested state. A rejection restores it.
         const kern_return_t result = box->SetIsAcquired(accept ? value != 0 : value == 0);
         const kern_return_t failed = box->SetAcquisitionFailure(
             accept         ? kIOReturnSuccess

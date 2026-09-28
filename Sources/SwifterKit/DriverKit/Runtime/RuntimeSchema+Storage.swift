@@ -5,7 +5,7 @@
 // `SwifterKitRuntimeBlockStorage.cpp`, `SwifterKitRuntimeSerial.cpp`, and
 // `SwifterKitRuntimeUSBSerial.cpp` read, so neither side spells a value twice.
 
-/// The task-management call a `scsiManagement` event forwards; see
+/// The task-management call a `scsiManagement` event forwards. See
 /// `SwifterKitSCSIManagementEvent`.
 enum RuntimeSCSIManagementKind: UInt32, CaseIterable {
   case initializeTarget = 1
@@ -21,9 +21,9 @@ enum RuntimeSCSIManagementKind: UInt32, CaseIterable {
 enum RuntimeSCSILimits {
   /// The most properties one set or remove command carries.
   static let maximumPropertyCount = 32
-  /// The longest property key, in UTF-8 bytes; the wire carries it in a `u16`.
+  /// The longest property key, in UTF-8 bytes. The wire carries it in a `u16`.
   static let propertyKeyMaximumLength = 127
-  /// The longest property value, in UTF-8 bytes; the wire carries it in a `u16`.
+  /// The longest property value, in UTF-8 bytes. The wire carries it in a `u16`.
   static let propertyValueMaximumLength = 1_024
   /// The most parallel-feature requests or results one task carries,
   /// `kSCSIParallelFeature_TotalFeatureCount`.

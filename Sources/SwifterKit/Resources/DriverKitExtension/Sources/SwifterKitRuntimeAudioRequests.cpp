@@ -16,26 +16,27 @@
 
 // Audio request contract:
 // - HandleChangeAcquireBox and a clock device's HandleChangeSampleRate run on the driver work
-//   queue and must return at once. Each records a pending request in a table of
+//   queue. Both must return at once. Each records a pending request in a table of
 //   kSwifterKitAudioPendingRequestCount entries, queues a required audioObject event, and
-//   returns success; a full table fails the callback with kIOReturnNoResources.
-// - A request ends exactly once, at the first of: Swift answers its ID through
-//   audioCompleteRequest; kAudioRequestTimeoutNanoseconds elapse (rejected with
-//   kIOReturnTimeout); the host detaches or the audio runtime stops (rejected with
-//   kIOReturnAborted).
+//   returns success. A full table fails the callback with kIOReturnNoResources.
+// - A request ends exactly once, at the first of:
+//   - Swift answers its ID through audioCompleteRequest.
+//   - kAudioRequestTimeoutNanoseconds elapses, rejected with kIOReturnTimeout.
+//   - The host detaches, or the audio runtime stops, rejected with kIOReturnAborted.
 // - HandleChangeAcquireBox sets the requested acquired state before it reports success, as
-//   IOUserAudioBox requires. Accepting the request keeps that state; rejecting it restores the
+//   IOUserAudioBox requires. Accepting the request keeps that state. Rejecting it restores the
 //   previous state and calls SetAcquisitionFailure.
 // - A clock device's HandleChangeSampleRate likewise sets the requested rate before it reports
-//   success, because IOUserAudioClockDevice.iig requires the value to be updated on success.
-//   Accepting the request keeps that rate and reports it as a rate change; rejecting it restores
-//   the previous rate through a device configuration change, unless the rate changed again.
+//   success. IOUserAudioClockDevice.iig requires the value to be updated on success. Accepting
+//   the request keeps that rate and reports it as a rate change. Rejecting it restores the
+//   previous rate through a device configuration change, unless the rate changed again.
 // - Without a registered host or a timeout timer, the callbacks apply the framework default at
 //   once.
-// - Each request retains its box or clock device, so an answer needs no audioLock: answers run
-//   on the work queue (timeouts) and user-client threads, and holding audioLock across
-//   AudioDriverKit calls on the work queue could deadlock with AudioCommand. The table changes
-//   only under audioRequestLock, which is never held while calling AudioDriverKit.
+// - Each request retains its box or clock device, so an answer needs no audioLock. Answers run
+//   on the work queue for timeouts, and on user-client threads for host answers. Holding
+//   audioLock across AudioDriverKit calls on the work queue could deadlock with AudioCommand.
+//   The table changes only under audioRequestLock, which is never held while it calls
+//   AudioDriverKit.
 namespace {
     constexpr uint64_t kAudioRequestTimeoutNanoseconds = 10'000'000'000ULL;
     constexpr uint64_t kAudioRequestLeewayNanoseconds = 100'000'000ULL;

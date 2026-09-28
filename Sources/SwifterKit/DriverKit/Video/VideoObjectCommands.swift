@@ -156,7 +156,7 @@ extension DriverCommand {
     )
   }
 
-  /// Replaces a clock device's available clock rates.
+  /// Replaces a clock device's available sample rates.
   public static func videoSetClockSampleRates(
     _ index: UInt32,
     _ sampleRates: [Double]
@@ -210,12 +210,18 @@ extension DriverCommand {
   /// Answers a required ``VideoObjectEvent`` request.
   ///
   /// The box takes the requested acquired state before its callback reports success, as
-  /// `IOUserVideoBox` requires. Accepting a box request keeps that state; rejecting it restores
-  /// the previous state and calls `SetAcquisitionFailure` with `failure`, or `kIOReturnError`
-  /// when `failure` is zero. A clock device likewise takes the requested sample rate before its
-  /// callback reports success. Accepting a clock-rate request keeps that rate and reports
-  /// `clockDeviceSampleRateChanged`; rejecting it restores the previous rate through a device
-  /// configuration change, unless the rate changed again.
+  /// `IOUserVideoBox` requires:
+  ///
+  /// - Accept: the box keeps that state.
+  /// - Reject: the box restores the previous state and calls `SetAcquisitionFailure` with
+  ///   `failure`, or `kIOReturnError` when `failure` is zero.
+  ///
+  /// A clock device likewise takes the requested sample rate before its callback reports
+  /// success:
+  ///
+  /// - Accept: the clock device keeps that rate and reports `clockDeviceSampleRateChanged`.
+  /// - Reject: the clock device restores the previous rate through a device configuration
+  ///   change, unless the rate changed again.
   public static func videoCompleteRequest(
     requestID: UInt32,
     accept: Bool,
@@ -238,7 +244,7 @@ extension DriverCommand {
   /// Sends `BufferQueueChange` or `OutputBufferNotification` for a device stream, or the
   /// stream's own `SendBufferQueueChange`.
   ///
-  /// The driver passes the device and stream object IDs; VideoDriverKit documents no
+  /// The driver passes the device and stream object IDs. VideoDriverKit documents no
   /// constraints on `changeAction`, so the runtime forwards it unchanged. The stream's own
   /// notification takes no change action, so it must be zero.
   public static func videoNotifyBufferQueue(
@@ -402,7 +408,7 @@ extension DriverContext {
     _ property: VideoClockDeviceProperty
   ) async throws { _ = try await execute(.videoSetClockDeviceProperty(index, property)) }
 
-  /// Replaces a clock device's available clock rates.
+  /// Replaces a clock device's available sample rates.
   public func videoSetClockSampleRates(_ index: UInt32, _ sampleRates: [Double]) async throws {
     _ = try await execute(.videoSetClockSampleRates(index, sampleRates))
   }

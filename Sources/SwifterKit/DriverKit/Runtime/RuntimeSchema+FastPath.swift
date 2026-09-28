@@ -1,8 +1,8 @@
 // Fast-path wire constants: limits, opcodes, operand and trigger codes, and table-row layouts.
 //
 // `RuntimeSchemaHeader` renders these into `SwifterKitRuntimeFastPathSchema.h`. The generator
-// emits the fast-path tables in `SwifterKitRuntimeConfiguration.h` with these row layouts, and
-// the native interpreter reads the same constants, so neither side spells a value twice.
+// emits the fast-path tables in `SwifterKitRuntimeConfiguration.h` with these row layouts. The
+// native interpreter reads the same constants, so neither side spells a value twice.
 
 /// Bounds the generator enforces on fast-path programs and the extension re-checks at start.
 enum RuntimeFastPathLimits {
@@ -28,9 +28,9 @@ enum RuntimeFastPathLimits {
   static let shiftLimit = 64
   /// The most rings in one configuration.
   static let maximumRings = 8
-  /// The entry sizes of a ring in bytes; a size must also be a power of two.
+  /// The entry sizes of a ring in bytes. A size must also be a power of two.
   static let ringEntrySizes = 8...4096
-  /// The entry counts of a ring; a count must also be a power of two.
+  /// The entry counts of a ring. A count must also be a power of two.
   static let ringEntryCounts = 2...65_536
   /// The most bytes every ring occupies together, headers included.
   static let maximumRingBytes = 4 * 1024 * 1024
@@ -46,9 +46,9 @@ enum RuntimeFastPathLimits {
   static let ringEntryCountOffset = 12
   /// The most host-shared data queues in one configuration.
   static let maximumDataQueues = 8
-  /// The entry bytes of a data queue's host ring; a capacity must also be a power of two.
+  /// The entry bytes of a data queue's host ring. A capacity must also be a power of two.
   static let dataQueueCapacities = 4096...1_048_576
-  /// The payload bytes one data queue entry holds at most; a size must also be a multiple of 8.
+  /// The payload bytes one data queue entry holds at most. A size must also be a multiple of 8.
   static let dataQueueEntrySizes = 8...64
   /// The most bytes every data queue host ring occupies together, headers included.
   static let maximumDataQueueBytes = 4 * 1024 * 1024
@@ -116,9 +116,9 @@ enum RuntimeFastPathOpcode: UInt32, CaseIterable {
 
 /// Which way a host-shared data queue moves entries.
 enum RuntimeFastPathDataQueueDirection: UInt32, CaseIterable {
-  /// Fast-path `enqueue` operations produce; the host consumes.
+  /// Fast-path `enqueue` operations produce. The host consumes.
   case toHost = 0
-  /// The host produces; the extension consumes.
+  /// The host produces. The extension consumes.
   case toExtension = 1
 }
 
@@ -128,10 +128,10 @@ enum RuntimeFastPathOperandKind: UInt32, CaseIterable {
   case constant = 0
   /// `immediate1` is a slot index whose value is used.
   case value = 1
-  /// `immediate1` is a ring index `| RuntimeFastPathRingAddressHalf << 8`; the value is that
+  /// `immediate1` is a ring index `| RuntimeFastPathRingAddressHalf << 8`. The value is that
   /// half of the device address of the ring's entry 0.
   case ringDeviceAddress = 2
-  /// `immediate1` is a ring index `| RuntimeFastPathRingIndex << 8`; the value is that index.
+  /// `immediate1` is a ring index `| RuntimeFastPathRingIndex << 8`. The value is that index.
   case ringIndex = 3
 }
 
@@ -179,8 +179,8 @@ enum RuntimeFastPathTriggerKind: UInt32, CaseIterable {
   case dataAvailable = 5
 }
 
-/// Whether an interrupt trigger still delivers the normal interrupt event after its program;
-/// non-interrupt triggers use zero.
+/// Whether an interrupt trigger still delivers the normal interrupt event after its program.
+/// Non-interrupt triggers use zero.
 enum RuntimeFastPathInterruptDelivery: UInt32, CaseIterable {
   case always = 1
   case never = 2
@@ -229,7 +229,7 @@ struct RuntimeFastPathRow {
       ("uint32_t", "delayBudgetMicroseconds"),
     ]
   )
-  /// One operation; ``RuntimeFastPathOpcode`` documents the fields each opcode reads.
+  /// One operation. ``RuntimeFastPathOpcode`` documents the fields each opcode reads.
   static let operation = Self(
     name: "SwifterKitFastPathOperation",
     fields: [
@@ -270,9 +270,10 @@ struct RuntimeFastPathRow {
     ]
   )
 
-  /// A `fastPathDataQueue` event, queued once per batch the extension publishes into a to-host
-  /// ring, or takes from a to-extension ring after its full staging queue freed space: the queue
-  /// identifier, the entries published or taken, and the queue's total dropped entries.
+  /// A `fastPathDataQueue` event. The extension queues it once per batch published into a
+  /// to-host ring. It also queues one when it takes entries from a to-extension ring whose
+  /// staging queue was full and then freed space. Fields: the queue identifier, the entries
+  /// published or taken, and the queue's total dropped entries.
   static let dataQueueEvent = Self(
     name: "SwifterKitFastPathDataQueueEvent",
     fields: [("uint32_t", "id"), ("uint32_t", "published"), ("uint64_t", "droppedEntries")]
@@ -284,9 +285,11 @@ struct RuntimeFastPathRow {
     fields: [("uint32_t", "id"), ("uint32_t", "reserved")]
   )
 
-  /// A `fastPathDataQueueNotify` reply: ``RuntimeFastPathStatus/success`` or
-  /// ``RuntimeFastPathStatus/corrupt``, the entries taken from the host ring, the entries still
-  /// waiting in it because the staging queue is full, and the queue's total corrupt-ring refusals.
+  /// A `fastPathDataQueueNotify` reply:
+  /// - ``RuntimeFastPathStatus/success`` or ``RuntimeFastPathStatus/corrupt``.
+  /// - The entries taken from the host ring.
+  /// - The entries still waiting in it because the staging queue is full.
+  /// - The queue's total corrupt-ring refusals.
   static let dataQueueNotifyReply = Self(
     name: "SwifterKitFastPathDataQueueNotifyReply",
     fields: [

@@ -3,9 +3,11 @@ import Testing
 
 @testable import SwifterKit
 
-/// Runs the native interpreter on the host: the generator emits these programs' tables, the host
-/// `clang++` compiles `SwifterKitRuntimeFastPathInterpreter.h` with a fake register file and the
-/// address and undefined-behavior sanitizers, and the test checks every transcript line.
+/// Runs the native interpreter on the host:
+/// - The generator emits these programs' tables.
+/// - The host `clang++` compiles `SwifterKitRuntimeFastPathInterpreter.h` with a fake register
+///   file and the address and undefined-behavior sanitizers.
+/// - The test checks every transcript line.
 @Suite
 struct FastPathInterpreterTests {
   private static func bar0(_ offset: UInt64, _ width: FastPathRegister.Width) -> FastPathRegister {
@@ -15,7 +17,7 @@ struct FastPathInterpreterTests {
     FastPathRegister(bar: 2, offset: offset, width: width)
   }
 
-  /// One program per behavior; the harness addresses them by index.
+  /// One program per behavior. The harness addresses them by index.
   static let programs = FastPathConfiguration(
     programs: [
       FastPathProgram(
@@ -153,12 +155,12 @@ struct FastPathInterpreterTests {
     "emit-clear status=0 emitted=1 slots=5,100,0,0,0,0,0,0 log=R0+8/4=100 E:5",
     "fail status=E00002BC emitted=0 slots=0,0,0,0,0,0,0,0 log=W0+40/4=7",
     "emit-all status=0 emitted=1 slots=1,2,3,4,0,0,0,0 log=E:1:2:3:4:0:0:0:0",
-    // Entry 5 wraps to entry 1 (byte 0x18); the host-written producer 0x10 masks to 0, and two
+    // Entry 5 wraps to entry 1 (byte 0x18). The host-written producer 0x10 masks to 0, and two
     // advances by 3 wrap to 2.
     "ring status=0 emitted=0 slots=5,AABBCCDD,AABBCCDD,2,1,23456000,0,0 log=S0+18/4=AABBCCDD"
       + " L0+18/4=AABBCCDD I0.0/4=10 P0.0/4=3 I0.0/4=3 P0.0/4=2 I0.0/4=2 A0+0/8=123456000"
       + " A0+0/8=123456000",
-    // Each enqueue hands the data queue its slots in order; the program's status is unaffected.
+    // Each enqueue hands the data queue its slots in order. The program's status is unaffected.
     "enqueue status=0 emitted=0 slots=12345,1122334455667788,0,0,0,0,0,0"
       + " log=Q0:1122334455667788:12345 Q0:12345",
   ]
@@ -221,7 +223,7 @@ struct FastPathInterpreterTests {
         "\(name): \(line ?? "")"
       )
     }
-    // A BAR declared smaller than a register it names still loads; the program is rejected.
+    // A BAR declared smaller than a register it names still loads. The program is rejected.
     #expect(lines["reject-bar-smaller"]?.contains("loaded=1") == true)
     #expect(lines["config-valid"] == "config-valid valid=1")
     for name in Self.invalidConfigurations {

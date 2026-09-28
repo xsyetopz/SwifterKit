@@ -98,7 +98,7 @@ public enum VideoElementNameKind: UInt32, Sendable, Hashable {
 
 /// The object that holds a configured custom property.
 public enum VideoCustomPropertyOwner: UInt32, Sendable, Hashable {
-  /// Removed from its owner; configuration and values are kept.
+  /// Removed from its owner. Configuration and values are kept.
   case detached = 0
   /// Added to the `IOUserVideoDevice`, where the runtime places it at start.
   case device = 1
@@ -112,13 +112,13 @@ public enum VideoBufferQueueNotification: UInt32, Sendable, Hashable {
   case bufferQueueChange = 1
   /// `IOUserVideoDriver::OutputBufferNotification`.
   case outputBufferNotification = 2
-  /// The stream's own `IOUserVideoStream::SendBufferQueueChange`; `changeAction` must be zero.
+  /// The stream's own `IOUserVideoStream::SendBufferQueueChange`. `changeAction` must be zero.
   case streamBufferQueueChange = 3
 }
 
 /// Identity metadata read from a VideoDriverKit object.
 public struct VideoObjectInfo: Sendable, Hashable {
-  /// The object's `IOUserVideoObjectID`; zero for the driver.
+  /// The object's `IOUserVideoObjectID`. Zero for the driver.
   public let objectID: UInt32
   /// The concrete class identifier.
   public let classID: VideoClassID
@@ -159,7 +159,7 @@ public struct VideoObjectInfo: Sendable, Hashable {
 ///
 /// `boxAcquisitionRequested` and `clockDeviceSampleRateRequested` are required events. Answer
 /// each with ``DriverContext/videoCompleteRequest(requestID:accept:failure:)`` within ten
-/// seconds; after that the extension rejects the request.
+/// seconds. After that, the extension rejects the request.
 public enum VideoObjectEvent: Sendable, Hashable {
   /// `IOUserVideoDriver::StartDevice` started I/O on the object.
   case deviceStarted(objectID: UInt32, flags: UInt64)

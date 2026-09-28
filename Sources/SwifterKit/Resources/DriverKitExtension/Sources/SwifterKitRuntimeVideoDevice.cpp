@@ -314,7 +314,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::DequeueInput(uint32_t streamIndex, O
     const kern_return_t result = ivars->streams[streamIndex]->dequeueInputEntry(&entry);
     if (result != kIOReturnSuccess)
         return result;
-    // The host names buffers by IOStreamBufferID; Swift names them by index.
+    // The host names buffers by IOStreamBufferID. Swift names them by index.
     const auto& config = kSwifterKitVideoStreams[streamIndex];
     uint32_t bufferIndex = config.bufferCount;
     IOLockLock(ivars->bufferLock);

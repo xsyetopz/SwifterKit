@@ -163,7 +163,7 @@ public struct AudioStreamState: Sendable, Hashable {
   public let latency: UInt32
   /// `GetStreamIsActive`.
   public let isActive: Bool
-  /// Whether the stream is currently added to the device.
+  /// Whether the stream is attached to the device.
   public let isAttached: Bool
   /// Byte length of the descriptor `GetIOMemoryDescriptor` returns.
   public let memoryLength: UInt64
@@ -228,7 +228,7 @@ public enum AudioStreamProperty: Sendable, Hashable {
   /// format. The runtime requests a device configuration change and calls
   /// `SetIOMemoryDescriptor` when the host performs it, discarding the old contents. The
   /// extension accepts from the device's ``AudioDeviceConfiguration/zeroTimestampPeriod`` up
-  /// to 1,048,576 frames and 16 MiB; a second change before the first is performed fails with
+  /// to 1,048,576 frames and 16 MiB. A second change before the first is performed fails with
   /// `kIOReturnBusy`.
   case ringBufferFrameCapacity(UInt32)
 
@@ -272,7 +272,7 @@ public struct AudioControlInfo: Sendable, Hashable {
   public let element: UInt32
   /// `GetIsSettable`.
   public let isSettable: Bool
-  /// Whether the control is currently added to the device.
+  /// Whether the control is attached to the device.
   public let isAttached: Bool
   /// `IOUserAudioSliderControl::GetRange`, for slider controls.
   public let sliderRange: ClosedRange<UInt32>?
@@ -363,11 +363,11 @@ public struct AudioCustomPropertyDataType: RawRepresentable, Sendable, Hashable 
 
 /// The object a stream, control, or custom property is added to.
 public enum AudioMemberOwner: UInt32, Sendable, Hashable {
-  /// Removed from its owner; configuration and values are kept.
+  /// Removed from its owner. Configuration and values are kept.
   case detached = 0
   /// Added to the `IOUserAudioDevice`.
   case device = 1
-  /// Added to the `IOUserAudioDriver`; only custom properties accept this owner.
+  /// Added to the `IOUserAudioDriver`. Only custom properties accept this owner.
   case driver = 2
 }
 

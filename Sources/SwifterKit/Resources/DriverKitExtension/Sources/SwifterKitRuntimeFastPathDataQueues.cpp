@@ -20,50 +20,58 @@
 
 // Host-shared data queue contract:
 // - IODataQueueDispatchSource::CopyMemory is private, so the host cannot map a dispatch source's
-//   queue. Each queue is instead a host ring, one IOBufferMemoryDescriptor of a
-//   kSwifterKitFastPathDataQueueHeaderSize-byte header and capacityBytes of fixed-stride records
-//   that CopyFastPathDataQueueMemory hands to the host, plus an IODataQueueDispatchSource that
-//   stages to-host entries between the fast path and the runtime queue. The header's geometry
-//   is written once at start; the kSwifterKitFastPathDataQueue*Offset constants place every
-//   field.
+//   queue. Each queue is instead a host ring.
+// - The host ring's IOBufferMemoryDescriptor holds a kSwifterKitFastPathDataQueueHeaderSize-byte
+//   header and capacityBytes of fixed-stride records that CopyFastPathDataQueueMemory hands to
+//   the host.
+// - An IODataQueueDispatchSource stages to-host entries between the fast path and the runtime
+//   queue.
+// - The header's geometry is written once at start. The kSwifterKitFastPathDataQueue*Offset
+//   constants place every field.
 // - StartFastPathDataQueues runs under fastPathLock after the rings are prepared and before any
 //   start program. It creates every host ring and a staging source sized with
-//   GetDataQueueEntryHeaderSize for one more entry than the host ring holds; a source whose
+//   GetDataQueueEntryHeaderSize for one more entry than the host ring holds. A source whose
 //   CanEnqueueData(maximumEntrySize, entryCount) check fails refuses the fast path, as does any
 //   allocation failure, and everything created so far is released. A to-extension source also
 //   gets the DataServiced handler before it is enabled.
 // - An `enqueue` runs under fastPathLock on whatever queue ran the program (the interrupt queue
 //   for interrupt programs). It checks CanEnqueueData, then stages the entry with
-//   EnqueueWithCoalesce; an entry that does not fit is dropped and counted, because fast-path
+//   EnqueueWithCoalesce. An entry that does not fit is dropped and counted, because fast-path
 //   emits are lossy and never fail a program. The DataAvailable notification EnqueueWithCoalesce
 //   defers is sent once per run with SendDataAvailable, so a program that enqueues many entries
 //   wakes the runtime queue once.
 // - FastPathDataAvailable runs on the runtime queue. Under fastPathLock, and only while the fast
 //   path runs, it drains every staging source completely (IsDataAvailable and Dequeue) into its
 //   host ring. An entry that finds the host ring full, or a consumer index the host corrupted,
-//   is dropped and counted; draining never stops early, because DataAvailable fires again only
+//   is dropped and counted. Draining never stops early, because DataAvailable fires again only
 //   after the source becomes non-empty. Each record is written before the producer index, which
-//   is stored with release ordering; the host's consumer index is loaded with acquire ordering.
-//   One fastPathDataQueue event per drained queue that published entries tells the host; the
+//   is stored with release ordering. The host's consumer index is loaded with acquire ordering.
+//   One fastPathDataQueue event per drained queue that published entries tells the host. The
 //   event queue is lossy, so the host reads until the ring is empty rather than counting events.
 // - A to-extension queue runs the other way. The host writes records into its host ring and
-//   sends a fastPathDataQueueNotify command. NotifyFastPathDataQueue, under fastPathLock, moves
-//   records into the staging source with Enqueue after SwifterKitFastPathTakeHostRecords has
-//   bounds-checked the ring (see SwifterKitRuntimeFastPathDataQueueTransfer.h), advances the
-//   consumer count with release ordering after each, and answers the command exactly once with
-//   what it moved, what still waits, and the queue's refusal count. A corrupt ring is answered
-//   with SwifterKitFastPathStatus::Corrupt and counted; nothing past the corrupt record is read.
-//   The hold is one bounded copy of at most entryCount records of at most 64 bytes each.
+//   sends a fastPathDataQueueNotify command. NotifyFastPathDataQueue runs under fastPathLock.
+// - It moves records into the staging source with Enqueue, after
+//   SwifterKitFastPathTakeHostRecords bounds-checks the ring (see
+//   SwifterKitRuntimeFastPathDataQueueTransfer.h).
+// - It advances the consumer count with release ordering after each move.
+// - It answers the command exactly once with what it moved, what still waits, and the queue's
+//   refusal count.
+// - A corrupt ring is answered with SwifterKitFastPathStatus::Corrupt and counted. Nothing past
+//   the corrupt record is read. The hold is one bounded copy of at most entryCount records of at
+//   most 64 bytes each.
 // - Enqueue sends DataAvailable itself. The handler, after draining the to-host sources,
-//   consumes each to-extension source one entry per fastPathLock acquisition: Peek copies the
-//   entry's first words, the queue's data-available program runs on them, and only then
-//   DequeueWithCoalesce removes the entry. An entry no program ran for is dropped and counted.
-//   The hold is one program's budget, as for every other run; the lock is released between
-//   entries, and fastPathRunning and the source are re-read after each acquisition.
+//   consumes each to-extension source one entry per fastPathLock acquisition.
+// - Peek copies the entry's first words, the queue's data-available program runs on them, and
+//   only then does DequeueWithCoalesce remove the entry.
+// - An entry no program ran for is dropped and counted. The hold is one program's budget, as for
+//   every other run.
+// - The lock is released between entries. fastPathRunning and the source are re-read after each
+//   acquisition.
 // - Enqueue that finds the staging source full leaves the record in the host ring and marks the
-//   queue blocked. The source then arms DataServiced; when DequeueWithCoalesce reports it, the
-//   consumer calls SendDataServiced, and FastPathDataServiced, under fastPathLock, moves the
-//   waiting records and queues one fastPathDataQueue event that tells the host space freed.
+//   queue blocked. The source then arms DataServiced.
+// - When DequeueWithCoalesce reports it, the consumer calls SendDataServiced.
+// - FastPathDataServiced, under fastPathLock, moves the waiting records and queues one
+//   fastPathDataQueue event that tells the host space freed.
 // - StopFastPathDataQueues runs under fastPathLock after fastPathRunning is cleared: it cancels
 //   every source and releases the host rings. A host mapping keeps its ring's memory alive.
 
@@ -136,8 +144,8 @@ namespace {
         StoreDrops(*queue);
     }
 
-    // Appends one record to a to-host ring. Returns false when the ring is full or the host's
-    // consumer index is more than the record count behind; nothing is written then.
+    // Appends one record to a to-host ring. Returns false when the ring is full, or the host's
+    // consumer index is more than the record count behind. Nothing is written then.
     bool Publish(
         const SwifterKitFastPathDataQueue& row,
         const SwifterKitFastPathDataQueueState& queue,
@@ -277,7 +285,7 @@ namespace {
         return batch.published;
     }
 
-    // Moves a to-extension queue's waiting host records into its staging source; the caller
+    // Moves a to-extension queue's waiting host records into its staging source. The caller
     // holds fastPathLock.
     SwifterKitFastPathTransfer Take(
         const SwifterKitFastPathDataQueue& row,
@@ -493,7 +501,7 @@ kern_return_t SwifterKitRuntimeService::CopyFastPathDataQueueMemory(
     } else if (!ivars->fastPathRunning || ivars->fastPathDataQueues[index].buffer == nullptr) {
         result = kIOReturnNotReady;
     } else {
-        // DriverKit consumes this reference; the queue keeps its own until StopFastPath.
+        // DriverKit consumes this reference. The queue keeps its own until StopFastPath.
         ivars->fastPathDataQueues[index].buffer->retain();
         *memory = ivars->fastPathDataQueues[index].buffer;
     }

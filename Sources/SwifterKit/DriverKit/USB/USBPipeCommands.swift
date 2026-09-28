@@ -10,7 +10,7 @@ extension DriverCommand {
 
   /// Creates a command that enqueues an asynchronous bulk or interrupt IN transfer.
   ///
-  /// The response carries a request identifier; the data arrives in a ``USBPipeIOCompletion``
+  /// The response carries a request identifier. The data arrives in a ``USBPipeIOCompletion``
   /// event. `timeout` must be zero for interrupt endpoints.
   public static func usbEnqueueRead(
     endpoint: UInt8,
@@ -27,7 +27,7 @@ extension DriverCommand {
 
   /// Creates a command that enqueues an asynchronous bulk or interrupt OUT transfer.
   ///
-  /// The response carries a request identifier; the result arrives in a
+  /// The response carries a request identifier. The result arrives in a
   /// ``USBPipeIOCompletion`` event. `timeout` must be zero for interrupt endpoints.
   public static func usbEnqueueWrite(
     endpoint: UInt8,
@@ -46,8 +46,8 @@ extension DriverCommand {
   ///
   /// `frameLengths` gives each frame's requested byte count. A `firstFrame` of zero starts on
   /// the next available frame on XHCI controllers. The completion event carries every frame's
-  /// result and the whole data buffer, so the frames, their data, and a 16-byte header must fit
-  /// in one runtime message.
+  /// result and the whole data buffer. The frames, their data, and a 16-byte header must fit in
+  /// one runtime message.
   public static func usbEnqueueIsochronousRead(
     endpoint: UInt8,
     frameLengths: [UInt32],

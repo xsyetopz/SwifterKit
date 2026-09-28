@@ -19,12 +19,13 @@
 // - MemberCommand runs under videoLock, like every other device command, and validates each
 //   payload length, reserved field, index, and selector before calling VideoDriverKit.
 // - IOUserVideoBuffer.iig allows SetDataMemoryDescriptor and SetControlMemoryDescriptor only
-//   during PerformDeviceConfigurationChange, so buffer capacities, queue sizes, buffer IDs, and
-//   the stream buffer list change there too: RequestMemberChange records one pending change and
-//   requests a configuration change, a second request while one is pending fails with
-//   kIOReturnBusy, and ApplyMemberChange consumes it. IO is stopped while it runs.
+//   during PerformDeviceConfigurationChange. Buffer capacities, queue sizes, buffer IDs, and the
+//   stream buffer list change only there too.
+// - RequestMemberChange records one pending change and requests a configuration change.
+// - A second request while one is pending fails with kIOReturnBusy.
+// - ApplyMemberChange consumes the pending change. IO is stopped while it runs.
 // - bufferLock guards the maps, descriptors, capacities, buffer IDs, and the pending change.
-//   Buffer reads, writes, and queue entries take it briefly; no VideoDriverKit call runs under it.
+//   Buffer reads, writes, and queue entries take it briefly. No VideoDriverKit call runs under it.
 // - Swift names buffers by index. The runtime translates indexes to the current IOStreamBufferID
 //   when it enqueues and back when it dequeues.
 namespace {
@@ -476,7 +477,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ApplyBufferCapacity(uint32_t stream,
     }
     if (result != kIOReturnSuccess) {
         // Roll every buffer set so far, including a half-set one, back to the descriptors the
-        // ivars still hold; only this configuration change replaces them.
+        // ivars still hold. Only this configuration change replaces them.
         for (uint32_t buffer = 0; buffer < touched; ++buffer) {
             IOUserVideoBuffer* target = ivars->buffers[stream][buffer];
             if (target == nullptr)
@@ -488,7 +489,7 @@ kern_return_t SwifterKitRuntimeVideoDevice::ApplyBufferCapacity(uint32_t stream,
         }
     }
     if (result == kIOReturnSuccess) {
-        // Swap under the lock; the previous objects are released after it.
+        // Swap under the lock. The previous objects are released after it.
         IOLockLock(ivars->bufferLock);
         for (uint32_t buffer = 0; buffer < bufferCount; ++buffer) {
             auto* oldData = ivars->dataDescriptors[stream][buffer];
@@ -525,8 +526,8 @@ kern_return_t
     if (attach) {
         result = target->addBuffer(ivars->buffers[stream][buffer]);
     } else {
-        // IOUserVideoStream removes buffers only all at once; the others are added back. Both
-        // lists are built before anything is removed, and a failed re-add restores the
+        // IOUserVideoStream removes buffers only all at once. The others are added back.
+        // Both lists are built before anything is removed. A failed re-add restores the
         // previous list.
         const uint32_t bufferCount = kSwifterKitVideoStreams[stream].bufferCount;
         OSArray* remaining = OSArray::withCapacity(bufferCount);

@@ -352,7 +352,7 @@ kern_return_t SwifterKitRuntimeAudioDevice::ApplyRingBufferChange() {
         OSSafeReleaseNULL(descriptor);
         return result;
     }
-    // Only the swap is locked; no AudioDriverKit call runs under ringLock.
+    // Only the swap is locked. No AudioDriverKit call runs under ringLock.
     IOLockLock(ivars->ringLock);
     const IOMemoryMap* oldMap = ivars->maps[index];
     const IOBufferMemoryDescriptor* oldDescriptor = ivars->descriptors[index];

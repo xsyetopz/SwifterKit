@@ -21,16 +21,16 @@
 //   IOServiceNotificationDispatchSource for a matching dictionary that names IOProviderClass. A
 //   system-state watch owns an IOServiceStateNotificationDispatchSource on the system state
 //   notification service for 1...kSwifterKitMaximumWatchedStateItems item names.
-// - Each action's reference holds the watch ID, never the slot index, so a notification that
+// - Each action's reference holds the watch ID, never the slot index. A notification that
 //   races a cancel is dropped instead of being reported against a reused slot.
 // - A dext sees another service only as an IOService proxy that DeliverNotifications retains
-//   for the block, so a service event carries the notification kind, registry entry ID, and
+//   for the block. A service event carries the notification kind, registry entry ID, and
 //   registry name. A state event carries the item name and a copy of its dictionary, read after
-//   StateNotificationBegin re-arms the source; a value too large for one event is left out.
-// - Events are lossy; each carries the watch's sequence number, counted from 1, so Swift can
+//   StateNotificationBegin re-arms the source. A value too large for one event is left out.
+// - Events are lossy. Each carries the watch's sequence number, counted from 1, so Swift can
 //   detect drops. Payloads are validated here again after Swift validates them.
 // - Watches belong to the connected host: DetachEventClient and Stop cancel every watch.
-// - Slots change only under dispatchLock; sources are created, enabled, and cancelled after it
+// - Slots change only under dispatchLock. Sources are created, enabled, and cancelled after it
 //   is dropped.
 
 namespace {

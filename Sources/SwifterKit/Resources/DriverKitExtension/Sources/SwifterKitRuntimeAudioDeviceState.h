@@ -23,9 +23,9 @@ constexpr uint64_t kSwifterKitAudioRingBufferChangeAction = 0x53574B52494E4742UL
 // structure. IOUserAudioDriver.iig: "For changes to an IOUserAudioDevice's or
 // IOUserAudioClockDevice's state that will affect IO or its structure, the client should trigger a
 // request to the host using RequestDeviceConfigurationChange() ... It is only at this point that
-// the device can make the state change." The change travels in the request's change info; its
+// the device can make the state change." The change travels in the request's change info. Its
 // selector reuses the wire value of the member kind, device property, or clock property it
-// applies, which do not collide.
+// applies. These values do not collide.
 constexpr uint64_t kSwifterKitAudioMemberChangeAction = 0x53574B4D454D4252ULL;
 constexpr uint32_t kSwifterKitAudioChangeStreamAttachment = kSwifterKitAudioMemberStream;
 constexpr uint32_t kSwifterKitAudioChangeInputSafetyOffset =
@@ -65,7 +65,7 @@ struct SwifterKitRuntimeAudioDevice_IVars {
     IOMemoryMap* maps[kSwifterKitAudioMaximumStreams] = {};
     IOUserAudioControl* controls[kSwifterKitAudioMaximumControls] = {};
     IOUserAudioCustomProperty* customProperties[kSwifterKitAudioMaximumCustomProperties] = {};
-    // Zero means attached to the device, as configured; see SwifterKitRuntimeAudioMembers.cpp.
+    // Zero means attached to the device, as configured. See SwifterKitRuntimeAudioMembers.cpp.
     bool streamDetached[kSwifterKitAudioMaximumStreams] = {};
     bool controlDetached[kSwifterKitAudioMaximumControls] = {};
     uint8_t propertyPlacement[kSwifterKitAudioMaximumCustomProperties] = {};

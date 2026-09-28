@@ -11,7 +11,7 @@ public struct FastPathConfiguration: Sendable, Hashable {
   public let programs: [FastPathProgram]
   /// The minimum size in bytes of each BAR the programs access, keyed by BAR index.
   ///
-  /// Every register must lie inside its declared BAR; the extension refuses to start the fast
+  /// Every register must lie inside its declared BAR. The extension refuses to start the fast
   /// path when the device's BAR is smaller.
   public let barSizes: [UInt8: UInt64]
   /// The descriptor rings the extension allocates for DMA when the fast path starts.
@@ -58,17 +58,17 @@ public enum FastPathLimits {
   public static let maximumEmittedSlots = RuntimeFastPathLimits.slotCount
   /// The most rings in one configuration.
   public static let maximumRings = RuntimeFastPathLimits.maximumRings
-  /// The allowed entry sizes of a ring, in bytes; each is a power of two.
+  /// The allowed entry sizes of a ring, in bytes. Each is a power of two.
   public static let ringEntrySizes = RuntimeFastPathLimits.ringEntrySizes
-  /// The allowed entry counts of a ring; each is a power of two.
+  /// The allowed entry counts of a ring. Each is a power of two.
   public static let ringEntryCounts = RuntimeFastPathLimits.ringEntryCounts
   /// The most bytes every ring of a configuration occupies together, headers included.
   public static let maximumRingBytes = RuntimeFastPathLimits.maximumRingBytes
   /// The most data queues in one configuration.
   public static let maximumDataQueues = RuntimeFastPathLimits.maximumDataQueues
-  /// The allowed host ring capacities of a data queue, in bytes; each is a power of two.
+  /// The allowed host ring capacities of a data queue, in bytes. Each is a power of two.
   public static let dataQueueCapacities = RuntimeFastPathLimits.dataQueueCapacities
-  /// The allowed maximum entry sizes of a data queue, in bytes; each is a multiple of 8.
+  /// The allowed maximum entry sizes of a data queue, in bytes. Each is a multiple of 8.
   public static let dataQueueEntrySizes = RuntimeFastPathLimits.dataQueueEntrySizes
   /// The most bytes every data queue host ring occupies together, headers included.
   public static let maximumDataQueueBytes = RuntimeFastPathLimits.maximumDataQueueBytes
@@ -143,9 +143,11 @@ public enum FastPathError: Error, Sendable, Hashable {
   case ringFieldOutOfBounds(program: Int, operation: Int)
   /// The configuration has more than ``FastPathLimits/maximumDataQueues`` data queues.
   case tooManyDataQueues(count: Int)
-  /// A data queue's identifier is above `0xFF_FFFF`, its capacity is not a power of two in
-  /// ``FastPathLimits/dataQueueCapacities``, its maximum entry size is not a multiple of 8 in
-  /// ``FastPathLimits/dataQueueEntrySizes``, or its capacity holds fewer than two records.
+  /// A data queue fails one of these checks:
+  /// - Its identifier is above `0xFF_FFFF`.
+  /// - Its capacity is not a power of two in ``FastPathLimits/dataQueueCapacities``.
+  /// - Its maximum entry size is not a multiple of 8 in ``FastPathLimits/dataQueueEntrySizes``.
+  /// - Its capacity holds fewer than two records.
   case invalidDataQueue(queue: UInt32)
   /// Two data queues share an identifier.
   case duplicateDataQueue(queue: UInt32)

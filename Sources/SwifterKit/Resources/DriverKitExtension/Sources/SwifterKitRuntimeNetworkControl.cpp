@@ -12,21 +12,21 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 // Queue and batch contract:
-// - A receive batch takes every empty packet it needs before it copies a frame, so a batch the
-//   Rx submission queue cannot supply delivers nothing. Frames the Rx completion queue refuses
+// - A receive batch takes every empty packet it needs before it copies a frame. A batch the Rx
+//   submission queue cannot supply delivers nothing. Frames the Rx completion queue refuses
 //   return to their pool and the batch reports kIOReturnNoSpace.
-// - A completion batch names distinct pending transmits; any unknown or repeated ID fails the
+// - A completion batch names distinct pending transmits. Any unknown or repeated ID fails the
 //   whole batch before a packet changes. Each packet records its status, timestamp, and trace
-//   event, then the batch returns through the Tx completion queue at once.
+//   event. Then the batch returns through the Tx completion queue at once.
 // - Queue enables, purges, and services run under networkLock, except the service, which drains
 //   the Tx submission queue through DrainNetworkTransmits and takes the lock itself.
 //
 // Interface-command contract:
 // - processInterfaceCommand runs on the default queue. With a host connected, it queues a
-//   required interfaceCommand event and polls every millisecond, without the lock, for Swift's
-//   answer, which arrives through the user client on its own queue.
-// - It returns once, at the first of: Swift's status; kInterfaceCommandTimeoutNanoseconds; the
-//   host detaching; or the network stopping. A late or repeated answer fails with
+//   required interfaceCommand event. It polls every millisecond, without the lock, for Swift's
+//   answer. The answer arrives through the user client on its own queue.
+// - It returns once, at the first of: Swift's status, kInterfaceCommandTimeoutNanoseconds, the
+//   host detaching, or the network stopping. A late or repeated answer fails with
 //   kIOReturnNotFound. With no host connected it returns kIOReturnUnsupported at once.
 
 namespace {
@@ -66,7 +66,7 @@ kern_return_t SwifterKitRuntimeService::NetworkPacketCommand(
             .enabled = 2};
         if (payloadLength == sizeof(request))
             memcpy(&request, payload, sizeof(request));
-        // The check misses setEnable() through an element; its suggested const fails to build.
+        // The check misses setEnable() through an element. Its suggested const fails to build.
         // NOLINTNEXTLINE(misc-const-correctness)
         IOUserNetworkPacketQueue* queues[kSwifterKitNetworkQueueCount] = {
             ivars->networkTxSubmission,
@@ -199,7 +199,7 @@ kern_return_t SwifterKitRuntimeService::NetworkCompleteTransmits(
     if (ivars->networkStopping || ivars->networkTxCompletion == nullptr)
         result = kIOReturnNotReady;
     // Every ID must name a distinct pending transmit before any packet leaves its slot.
-    // The check misses the `*slots[index] = {}` write below; its suggested const fails to build.
+    // The check misses the `*slots[index] = {}` write below. Its suggested const fails to build.
     // NOLINTNEXTLINE(misc-const-correctness)
     SwifterKitNetworkPendingTransmit* slots[kSwifterKitNetworkMaximumBatch] = {};
     for (uint32_t index = 0; result == kIOReturnSuccess && index < batch.count; ++index) {

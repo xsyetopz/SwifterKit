@@ -74,7 +74,7 @@ public struct AudioClockDeviceConfiguration: Sendable, Hashable {
   public let sampleRates: [Double]
   /// Sample rate selected during device creation.
   public let initialSampleRate: Double
-  /// Clock domain shared by devices that run from one clock; zero means none.
+  /// Clock domain shared by devices that run from one clock. Zero means none.
   public let clockDomain: UInt32
   /// The timestamp smoothing algorithm.
   public let clockAlgorithm: AudioClockAlgorithm
@@ -296,7 +296,7 @@ public enum AudioClockDeviceProperty: Sendable, Hashable {
   case transport(AudioTransport)
   /// Sample frames between zero-timestamp updates, 16 through 1,048,576.
   case zeroTimestampPeriod(UInt32)
-  /// `SetWantsControlsRestored`; the extension answers `kIOReturnUnsupported` when built with
+  /// `SetWantsControlsRestored`. The extension answers `kIOReturnUnsupported` when built with
   /// an SDK older than DriverKit 25.5 or run on an older system.
   case wantsControlsRestored(Bool)
 

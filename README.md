@@ -278,7 +278,7 @@ compile-checked but unexecuted in CI:
   macOS 10.15 host; and
 - signed entitlement, provisioning, and hardware behavior.
 
-SwifterKit 0.2.0 has not been run on physical hardware. This includes fast-path
+SwifterKit 0.2.1 has not been run on physical hardware. This includes fast-path
 programs, DMA rings, host-shared data queues, wrapped or mapped host memory, and
 device I/O for every capability family: HID, USB and USB serial, PCI, serial,
 block storage, MIDI, Ethernet networking, audio, SCSI, video, interrupts,

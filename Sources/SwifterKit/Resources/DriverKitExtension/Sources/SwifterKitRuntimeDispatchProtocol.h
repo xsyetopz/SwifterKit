@@ -8,11 +8,11 @@
 // Payload layouts for timers and service watches (opcodes 0x0E00-0x0E12) and their lossy
 // events. ServiceTimerCommands.swift and ServiceWatchCommands.swift encode the same layouts.
 
-// Timers: at most kSwifterKitMaximumTimers at once. Durations are nanoseconds; a delay or
-// leeway is at most kSwifterKitTimerMaximumNanoseconds, and a repeating interval lies in
+// Timers: at most kSwifterKitMaximumTimers at once. Durations are nanoseconds. A delay or
+// leeway is at most kSwifterKitTimerMaximumNanoseconds. A repeating interval lies in
 // kSwifterKitTimerMinimumIntervalNanoseconds...kSwifterKitTimerMaximumNanoseconds.
 // Watches: at most kSwifterKitMaximumServiceWatches service-matching and system-state watches
-// together; a state watch names 1...kSwifterKitMaximumWatchedStateItems items.
+// together. A state watch names 1...kSwifterKitMaximumWatchedStateItems items.
 // SwifterKitServiceWatchKind matches kIOServiceNotificationTypeTerminated and
 // kIOServiceNotificationTypeMatched. The limits and kinds come from RuntimeSchema+Service.swift.
 
@@ -47,8 +47,8 @@ struct __attribute__((packed)) SwifterKitServiceWatchEvent {
     uint32_t reserved;
 };
 
-// kSwifterKitEventWatchSystemState, followed by nameLength bytes of the item name and then the
-// item's dictionary in the property encoding, or nothing when the item has no value.
+// kSwifterKitEventWatchSystemState. The payload holds nameLength bytes of the item name, then
+// the item's dictionary in the property encoding, or nothing when the item has no value.
 struct __attribute__((packed)) SwifterKitSystemStateEvent {
     uint32_t watchID;
     uint32_t nameLength;

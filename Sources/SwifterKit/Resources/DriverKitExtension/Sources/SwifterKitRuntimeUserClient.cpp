@@ -201,7 +201,7 @@ auto SwifterKitRuntimeUserClient::ExternalMethod(
 }
 
 // IOConnectMapMemory64 reaches only a client Start admitted, so only an entitled host maps
-// runtime memory. The service resolves the type; after Stop detaches it nothing maps. Like
+// runtime memory. The service resolves the type. After Stop detaches it, nothing maps. Like
 // ExternalMethod and Stop, this runs on the client's default queue.
 auto SwifterKitRuntimeUserClient::CopyClientMemoryForType_Impl(
     uint64_t type,

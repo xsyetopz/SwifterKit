@@ -14,14 +14,16 @@
 // IOReporting contract:
 // - The generator validates the reporter tables in SwifterKitRuntimeConfiguration.h against the
 //   limits in SwifterKitRuntimeReportingProtocol.h. StartReporting creates every reporter when
-//   the service starts, adds its channels and state IDs, and publishes one legend through
-//   SetLegend, so IOReport clients see the channels whether or not a host is connected.
+//   the service starts. It adds its channels and state IDs and publishes one legend through
+//   SetLegend. IOReport clients therefore see the channels whether or not a host is connected.
 // - ConfigureReport and UpdateReport hand the system's requests to configureAllReports and
-//   updateAllReports; with no reporters they defer to IOService.
+//   updateAllReports. With no reporters they defer to IOService.
 // - Swift updates and reads values by reporter index and channel ID. Each request is validated
-//   here again: the reporter kind must match the operation, the channel and state must belong
-//   to the reporter, and unused values must be zero.
-// - Reporters live until the service stops; they are not tied to a host connection. The
+//   here again:
+//   - The reporter kind must match the operation.
+//   - The channel and state must belong to the reporter.
+//   - Unused values must be zero.
+// - Reporters live until the service stops. They are not tied to a host connection. The
 //   reporter array changes only under dispatchLock, and callers use a retained reference.
 
 namespace {
@@ -32,7 +34,7 @@ namespace {
     static_assert(kSwifterKitReporterCount <= kSwifterKitMaximumReporters);
 
     // Returns entry index of the run that starts at start, or nullptr outside the table. The
-    // generator writes consistent runs; the check keeps a malformed table from reading past it.
+    // generator writes consistent runs. The check keeps a malformed table from reading past it.
     template<typename Entry, uint32_t Count>
     const Entry* RunEntry(const Entry (&table)[Count], uint32_t start, uint32_t index) {
         return start < Count && index < Count - start ? &table[start + index] : nullptr;

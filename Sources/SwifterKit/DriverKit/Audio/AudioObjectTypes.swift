@@ -96,9 +96,9 @@ public enum AudioElementNameKind: UInt32, Sendable, Hashable {
 
 /// Identity metadata read from an AudioDriverKit object.
 public struct AudioObjectInfo: Sendable, Hashable {
-  /// The object's `IOUserAudioObjectID`; zero for the driver, which has none.
+  /// The object's `IOUserAudioObjectID`. Zero for the driver, which has none.
   public let objectID: UInt32
-  /// The owning object's identifier; zero for the driver.
+  /// The owning object's identifier. Zero for the driver.
   public let ownerObjectID: UInt32
   /// The concrete class identifier.
   public let classID: AudioClassID
@@ -139,7 +139,7 @@ public struct AudioObjectInfo: Sendable, Hashable {
 ///
 /// `boxAcquisitionRequested` and `clockDeviceSampleRateRequested` are required events. Answer
 /// each with ``DriverContext/audioCompleteRequest(requestID:accept:failure:)`` within ten
-/// seconds; after that the extension rejects the request.
+/// seconds. After that, the extension rejects the request.
 public enum AudioObjectEvent: Sendable, Hashable {
   /// `IOUserAudioDriver::StartDevice` started I/O on the object.
   case deviceStarted(objectID: UInt32, flags: UInt64)

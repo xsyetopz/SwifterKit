@@ -8,9 +8,9 @@
 // The fixed fast-path interpreter. It depends on no framework, so the package's host test
 // compiles it with the host compiler and runs it against a fake register file.
 //
-// The generator validates every table in Swift; the interpreter validates them again ("validate
-// on both sides"). SwifterKitFastPathExecute checks every row of a program before the first row
-// runs, so a malformed row is rejected with no register access at all, never partway through.
+// The generator validates every table in Swift. The interpreter validates them again
+// (validate on both sides). SwifterKitFastPathExecute checks every row of a program before the
+// first row runs. A malformed row is rejected with no register access, never partway through.
 // Every loop is bounded: a program has at most kSwifterKitFastPathMaximumOperations rows, skips
 // only move forward, and a poll makes at most kSwifterKitFastPathMaximumPollIterations reads.
 //
@@ -25,14 +25,18 @@
 //   void SetRingIndex(uint32_t ring, uint32_t index, uint32_t value);
 //   uint64_t RingDeviceAddress(uint32_t ring);
 //   void Enqueue(uint32_t queue, const uint64_t* values, uint32_t count);
-// `bar` is a BAR index below kSwifterKitFastPathBARCount, `width` is 1, 2, 4, or 8 bytes, and the
-// access lies inside the BAR's declared minimum size. `ring` is an index into the ring table,
-// `offset` is a byte offset from entry 0 aligned to `width` with the access inside the ring's
-// entries, `index` is a SwifterKitFastPathRingIndex value, and a stored index is below the entry
-// count. RingIndex may return any value; the interpreter masks it. RingDeviceAddress is the
-// device address of entry 0. `queue` is an index into the data queue table naming a to-host
-// queue, and count * 8 bytes fit its maximum entry size; Enqueue is lossy and never fails the
-// program.
+//
+// Argument rules:
+//   - `bar` is a BAR index below kSwifterKitFastPathBARCount.
+//   - `width` is 1, 2, 4, or 8 bytes, and the access lies inside the BAR's declared minimum size.
+//   - `ring` is an index into the ring table.
+//   - `offset` is a byte offset from entry 0, aligned to `width`, with the access inside the
+//     ring's entries.
+//   - `index` is a SwifterKitFastPathRingIndex value, and a stored index is below the entry count.
+//   - RingIndex may return any value. The interpreter masks it.
+//   - RingDeviceAddress is the device address of entry 0.
+//   - `queue` is an index into the data queue table naming a to-host queue, and count * 8 bytes
+//     fit its maximum entry size. Enqueue is lossy and never fails the program.
 
 static_assert((kSwifterKitFastPathSlotCount & (kSwifterKitFastPathSlotCount - 1)) == 0);
 
@@ -52,13 +56,16 @@ struct SwifterKitFastPathTables {
     uint32_t dataQueueCount;
 };
 
-// The declared minimum size of each BAR; zero means the BAR is not declared.
+// The declared minimum size of each BAR. Zero means the BAR is not declared.
 struct SwifterKitFastPathBARSizes {
     uint64_t sizes[kSwifterKitFastPathBARCount];
 };
 
-// How one run ended: a SwifterKitFastPathStatus value or a fail row's status, whether the
-// program passed re-validation and ran, whether an emit row ran, and the slots when it ended.
+// How one run ended:
+//   - status: a SwifterKitFastPathStatus value, or a fail row's status.
+//   - executed: whether the program passed re-validation and ran.
+//   - emitted: whether an emit row ran.
+//   - slots: the slots when the run ended.
 struct SwifterKitFastPathOutcome {
     uint32_t status;
     bool executed;
@@ -103,10 +110,12 @@ inline constexpr bool SwifterKitFastPathIsPowerOfTwo(uint64_t value) {
     return value != 0 && (value & (value - 1)) == 0;
 }
 
-// Checks the ring table: at most kSwifterKitFastPathMaximumRings rows, unique identifiers inside
-// the client-memory identifier field, power-of-two entry sizes and counts within the schema
-// bounds, a kIOMemoryDirection value, and every ring together within
-// kSwifterKitFastPathMaximumRingBytes.
+// Checks the ring table:
+//   - At most kSwifterKitFastPathMaximumRings rows.
+//   - Unique identifiers inside the client-memory identifier field.
+//   - Power-of-two entry sizes and counts within the schema bounds.
+//   - A kIOMemoryDirection value.
+//   - Every ring together within kSwifterKitFastPathMaximumRingBytes.
 inline bool SwifterKitFastPathIsValidRings(const SwifterKitFastPathTables& tables) {
     if (tables.ringCount > kSwifterKitFastPathMaximumRings) {
         return false;
@@ -152,11 +161,13 @@ inline constexpr uint32_t SwifterKitFastPathDataQueueEntryCount(
     return queue.capacityBytes / SwifterKitFastPathDataQueueStride(queue);
 }
 
-// Checks the data queue table: at most kSwifterKitFastPathMaximumDataQueues rows, unique
-// identifiers inside the client-memory identifier field, power-of-two capacities and
-// multiple-of-8 maximum entry sizes within the schema bounds, at least two records, a
-// SwifterKitFastPathDataQueueDirection value, and every host ring together within
-// kSwifterKitFastPathMaximumDataQueueBytes.
+// Checks the data queue table:
+//   - At most kSwifterKitFastPathMaximumDataQueues rows.
+//   - Unique identifiers inside the client-memory identifier field.
+//   - Power-of-two capacities and multiple-of-8 maximum entry sizes within the schema bounds.
+//   - At least two records.
+//   - A SwifterKitFastPathDataQueueDirection value.
+//   - Every host ring together within kSwifterKitFastPathMaximumDataQueueBytes.
 inline bool SwifterKitFastPathIsValidDataQueues(const SwifterKitFastPathTables& tables) {
     if (tables.dataQueueCount > kSwifterKitFastPathMaximumDataQueues) {
         return false;
@@ -243,7 +254,8 @@ namespace swifterkit_fast_path {
     }
 
     // A ring entry field packed as `ring | widthBytes << 8` in `a`, at the field offset in
-    // `immediate0`, with the entry slot in `b`: aligned to its width and inside one entry.
+    // `immediate0`, with the entry slot in `b`. The field is aligned to its width and inside one
+    // entry.
     inline bool IsValidRingField(
         const SwifterKitFastPathOperation& row,
         const SwifterKitFastPathTables& tables) {
@@ -289,8 +301,6 @@ namespace swifterkit_fast_path {
                && (row.immediate2 & ~row.immediate1) == 0;
     }
 
-    // An emit row names `b` slots, one per byte of `immediate1` from the lowest; higher bytes
-    // are zero.
     // An emit or enqueue slot list: `b` slots named one per byte of `immediate1`, the rest zero.
     inline bool IsValidSlotList(const SwifterKitFastPathOperation& row) {
         if (row.c != 0 || row.b == 0 || row.b > kSwifterKitFastPathSlotCount || row.immediate0 != 0
@@ -417,7 +427,7 @@ namespace swifterkit_fast_path {
         return entry * ring.entrySize + row.immediate0;
     }
 
-    // Wrapping arithmetic; a slot shift distance uses its low six bits.
+    // Wrapping arithmetic. A slot shift distance uses its low six bits.
     inline uint64_t Compute(uint32_t operation, uint64_t value, uint64_t operand) {
         const uint64_t distance = operand & (kSwifterKitFastPathShiftLimit - 1);
         switch (static_cast<SwifterKitFastPathComputeOperation>(operation)) {
@@ -440,9 +450,11 @@ namespace swifterkit_fast_path {
     }
 }  // namespace swifterkit_fast_path
 
-// Checks a program row and every operation row it names: the run lies inside the operation
-// table, the counts are within the schema limits, each row is valid, and the waiting time is
-// within the budget and matches the program row.
+// Checks a program row and every operation row it names:
+//   - The run lies inside the operation table.
+//   - The counts are within the schema limits.
+//   - Each row is valid.
+//   - The waiting time is within the budget and matches the program row.
 inline bool SwifterKitFastPathIsValidProgram(
     const SwifterKitFastPathTables& tables,
     uint32_t program,
@@ -474,10 +486,14 @@ inline bool SwifterKitFastPathIsValidProgram(
            && budget == row.delayBudgetMicroseconds;
 }
 
-// Checks the whole configuration at start: the BAR table, one trigger per program naming that
-// program, known trigger kinds, an interrupt delivery only on interrupt triggers, interrupt
-// sources the extension configures and to-extension data queues each triggering at most once,
-// arguments only on command and data-available programs, and every program.
+// Checks the whole configuration at start:
+//   - The BAR table.
+//   - One trigger per program, naming that program, with a known trigger kind.
+//   - An interrupt delivery only on interrupt triggers.
+//   - Interrupt sources the extension configures, and to-extension data queues, each triggering
+//     at most once.
+//   - Arguments only on command and data-available programs.
+//   - Every program.
 inline bool SwifterKitFastPathIsValidConfiguration(
     const SwifterKitFastPathTables& tables,
     const uint32_t* interruptSources,
@@ -558,8 +574,8 @@ inline uint32_t SwifterKitFastPathInterruptProgram(
 }
 
 // Whether the normal interrupt event still reaches Swift. `ran` is false when no program ran,
-// because none is configured or the fast path is refused or stopped; the event is then
-// delivered as it is without a fast path.
+// because none is configured or the fast path is refused or stopped. The event is then
+// delivered as it is, without a fast path.
 inline bool SwifterKitFastPathDeliversInterrupt(uint32_t delivery, bool ran, bool emitted) {
     if (!ran) {
         return true;
@@ -588,8 +604,8 @@ inline bool SwifterKitFastPathIsCommand(
 }
 
 // Runs one program with `argumentCount` arguments in v0 onward. Every row is re-validated before
-// the first one runs; a malformed program or an argument count that differs from the program's
-// declaration ends with Rejected and no access.
+// the first one runs. A malformed program, or an argument count that differs from the program's
+// declaration, ends with Rejected and no access.
 template<typename Access>
 SwifterKitFastPathOutcome SwifterKitFastPathExecute(
     const SwifterKitFastPathTables& tables,

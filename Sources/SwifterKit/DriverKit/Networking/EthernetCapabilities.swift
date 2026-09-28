@@ -57,7 +57,7 @@ public struct EthernetFeatureFlags: OptionSet, Sendable, Hashable {
   public static let softwareTimestamp = Self(rawValue: 0x0200_0000)
   /// Wake on magic packet.
   public static let wakeOnMagicPacket = Self(rawValue: 0x0400_0000)
-  /// NIC proxy offload; the family then sends ``EthernetEvent/nicProxyConfiguration(_:)``.
+  /// NIC proxy offload. The family then sends ``EthernetEvent/nicProxyConfiguration(_:)``.
   public static let nicProxy = Self(rawValue: 0x0800_0000)
 
   /// Every flag NetworkingDriverKit defines.
@@ -112,7 +112,7 @@ public struct EthernetPacketPoolFlags: OptionSet, Sendable, Hashable {
   /// Maps the pool into device I/O space.
   public static let mapToDevice = Self(rawValue: 0x2000_0000)
 
-  /// Every flag a SwifterKit pool may add; the runtime always maps pools into the extension.
+  /// Every flag a SwifterKit pool may add. The runtime always maps pools into the extension.
   public static let all: Self = [
     .singleMemorySegment, .ioDirectionIn, .ioDirectionOut, .virtualDevice, .mapToDevice,
   ]
@@ -124,7 +124,7 @@ public struct EthernetPacketPoolOptions: Sendable, Hashable {
   public let bufferCount: UInt32?
   /// Bytes in each backing memory segment, or 0 for the family default.
   public let memorySegmentSize: UInt32
-  /// Extra pool flags; the runtime always adds `PoolFlagMapToDext`.
+  /// Extra pool flags. The runtime always adds `PoolFlagMapToDext`.
   public let flags: EthernetPacketPoolFlags
   /// Widest DMA address the device can generate, from 32 through 64 bits.
   public let maximumAddressBits: UInt8
@@ -145,7 +145,7 @@ public struct EthernetPacketPoolOptions: Sendable, Hashable {
 
 /// Hybrid-polling parameters for the runtime's `IOUserNetworkPacketPoller`.
 ///
-/// While polling runs, the poller drains transmit work on each tick and the runtime delivers
+/// While polling runs, the poller drains transmit work on each tick. The runtime delivers
 /// ``EthernetEvent/polling(_:)`` so Swift can mask device interrupts and harvest received frames.
 public struct EthernetPacketPolling: Sendable, Hashable {
   /// Interface data rate in bits per second.
@@ -223,7 +223,7 @@ public struct EthernetDataBandwidths: Sendable, Hashable {
   /// Transmit rate the link currently achieves.
   public let effectiveOutput: UInt64
 
-  /// Creates bandwidths; an effective rate may not exceed its maximum.
+  /// Creates bandwidths. An effective rate may not exceed its maximum.
   public init(
     maximumInput: UInt64,
     maximumOutput: UInt64,

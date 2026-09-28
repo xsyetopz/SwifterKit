@@ -310,7 +310,7 @@ public enum AudioEvent: Sendable, Hashable {
 public enum AudioRuntimeError: Error, Sendable, Equatable {
   /// The command names a stream index outside the configured stream table.
   case invalidStreamIndex
-  /// The stream transfer has an empty or invalid frame range.
+  /// The stream transfer has an empty or invalid byte range.
   case invalidTransferRange
   /// The stream transfer exceeds the runtime byte limit.
   case transferTooLarge
@@ -326,10 +326,10 @@ public enum AudioRuntimeError: Error, Sendable, Equatable {
   case invalidCustomPropertyValue
   /// The command target is not a valid audio object for that operation.
   case invalidObjectTarget
-  /// The object name is empty, invalid UTF-8, or exceeds its byte limit.
+  /// The object name is empty, longer than 255 UTF-8 bytes, or contains NUL.
   case invalidName
-  /// The property-change request has invalid or too many selectors.
+  /// The property-change request is empty, names more than 32 selectors, or contains zero.
   case invalidPropertySelectors
-  /// The sample-rate list is empty, duplicated, out of range, or too large.
+  /// Sample rates are empty, duplicated, more than 16, or outside 8,000-768,000 Hz.
   case invalidSampleRates
 }

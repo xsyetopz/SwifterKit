@@ -7,7 +7,7 @@ import Foundation
 struct IIGSource: Equatable {
   /// Declaration text without comments or directives.
   let lines: [String]
-  /// The conditions enclosing each line, outermost first; include guards are omitted.
+  /// The conditions enclosing each line, outermost first. Include guards are omitted.
   let conditions: [[String]]
 
   init(_ text: String) {

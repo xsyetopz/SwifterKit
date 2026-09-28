@@ -4,6 +4,26 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+## 0.2.1
+
+### Changed
+
+- Rewrote the DocC articles in short, active sentences with lists and
+  subsections. Toolchain and platform versions now appear once, under
+  Capabilities > Deployment requirements, and the other articles link there.
+- Rewrote the Swift, C++, and IIG source comments and test comments to the same
+  style. No code, public API, runtime payload, or ABI declaration changed.
+
+### Fixed
+
+- `AudioRuntimeError.invalidTransferRange` documentation describes a byte
+  range, not a frame range.
+- Video documentation says sample rate where it said clock rate.
+- The Capabilities article says the generator, not the generated extension,
+  checks capability combinations before it writes the extension.
+- Removed a stale duplicate comment above `IsValidSlotList` in the fast-path
+  interpreter.
+
 ## 0.2.0
 
 ### Added

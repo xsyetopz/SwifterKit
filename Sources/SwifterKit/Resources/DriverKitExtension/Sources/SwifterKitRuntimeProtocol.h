@@ -530,7 +530,7 @@ struct __attribute__((packed)) SwifterKitSCSIPropertyEntry {
     uint16_t valueLength;
 };
 
-// Precedes the bytes of SCSIWriteTaskData; SCSIReadTaskData carries only the header.
+// Precedes the bytes of SCSIWriteTaskData. SCSIReadTaskData carries only the header.
 struct __attribute__((packed)) SwifterKitSCSITaskDataHeader {
     uint32_t requestID;
     uint32_t length;

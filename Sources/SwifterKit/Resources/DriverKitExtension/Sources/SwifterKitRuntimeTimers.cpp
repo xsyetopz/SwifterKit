@@ -15,12 +15,12 @@
 
 // Timer contract:
 // - Swift runs at most kSwifterKitMaximumTimers timers. Each owns an IOTimerDispatchSource on the
-//   default queue and an OSAction whose reference holds the timer ID, never the slot index, so a
+//   default queue and an OSAction whose reference holds the timer ID, never the slot index. A
 //   firing that races a cancel is dropped instead of being reported against a reused slot.
 // - Each firing queues a lossy kSwifterKitEventTimer event carrying the timer's firing count, so
 //   Swift can tell how many firings it missed. A one-shot timer frees its slot when it fires. A
 //   repeating timer re-arms at its previous deadline plus its interval, skipping whole periods
-//   that already passed, so a stalled queue never causes a burst of firings.
+//   that already passed. A stalled queue never causes a burst of firings.
 // - Durations are validated here again after Swift validates them.
 // - Timers belong to the connected host: DetachEventClient and Stop cancel every timer.
 // - Slots change only under dispatchLock. Sources are armed, cancelled, and released after it is

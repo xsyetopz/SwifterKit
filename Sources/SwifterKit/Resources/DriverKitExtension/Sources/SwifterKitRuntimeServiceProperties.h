@@ -11,7 +11,8 @@
 kern_return_t SwifterKitDecodeProperty(const uint8_t* bytes, uint32_t length, OSObject** value);
 
 // Appends the tagged encoding of value to data. The result never grows past maximumLength
-// bytes; a larger value returns kIOReturnNoSpace, and other object classes kIOReturnUnsupported.
+// bytes. A larger value returns kIOReturnNoSpace. Other object classes return
+// kIOReturnUnsupported.
 kern_return_t SwifterKitEncodeProperty(const OSObject* value, OSData* data, uint32_t maximumLength);
 
 // Creates an OSString from length bytes that need no NUL terminator. The two-argument

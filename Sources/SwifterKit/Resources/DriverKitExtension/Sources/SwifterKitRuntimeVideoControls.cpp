@@ -86,8 +86,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::ConfigureControls() {
             SwifterKitMakeConfiguredControl<VideoControlFamily>(ivars->service, config, &control);
         result = SwifterKitNameControl(result, control, config.name);
         // IOUserVideoControl.iig documents _SetOwningDeviceID only as "Sets the control's owning
-        // device" and says nothing about AddControl setting it, so the owner is set explicitly
-        // before the control becomes visible.
+        // device". It says nothing about AddControl setting the owner. ConfigureControls sets
+        // the owner explicitly before the control becomes visible.
         if (result == kIOReturnSuccess)
             control->_SetOwningDeviceID(GetObjectID());
         if (result == kIOReturnSuccess)

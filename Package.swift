@@ -4,7 +4,7 @@ import Foundation
 import PackageDescription
 
 // Xcode's Swift Testing framework lives outside the default search paths of swift.org
-// toolchains; point macOS test builds at the selected Xcode.
+// toolchains. macOS test builds use the selected Xcode.
 let developerDirectory =
   ProcessInfo.processInfo.environment["DEVELOPER_DIR"]
   ?? "/Applications/Xcode.app/Contents/Developer"
@@ -26,8 +26,8 @@ let package = Package(
       name: "SwifterKitCoverageTests",
       dependencies: ["SwifterKitCoverage"],
       swiftSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))],
-      // Both test targets link into one test bundle, so only SwifterKitTests adds the
-      // testing runtime rpath; a second copy makes the linker warn about a duplicate.
+      // Both test targets link into one test bundle. Only SwifterKitTests adds the testing
+      // runtime rpath, because a second copy makes the linker warn about a duplicate.
       linkerSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))]
     ),
     .testTarget(

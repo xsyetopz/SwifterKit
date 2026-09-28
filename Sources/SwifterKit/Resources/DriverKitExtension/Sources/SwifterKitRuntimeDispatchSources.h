@@ -14,9 +14,9 @@ inline kern_return_t SwifterKitEnableSource(IODispatchSource* source) {
 }
 
 // Cancels and releases a source and its action. A handler already running keeps its own
-// references; later firings are dropped because the slot no longer holds their identifier.
-// The helper consumes the caller's references; os_consumed tells the static analyzer so, which
-// otherwise reports every caller's reference as leaked.
+// references. Later firings are dropped because the slot no longer holds their identifier.
+// SwifterKitReleaseSource consumes the caller's references. os_consumed tells the static
+// analyzer so. Without it, the analyzer reports every caller's reference as leaked.
 inline void SwifterKitReleaseSource(
     IODispatchSource* __attribute__((os_consumed)) source,
     OSAction* __attribute__((os_consumed)) action) {
@@ -43,7 +43,7 @@ inline uint32_t SwifterKitActionIdentifier(OSAction* action) {
     return identifier;
 }
 
-// Reads a SwifterKitDispatchIdentifier payload; returns 0 when it is malformed.
+// Reads a SwifterKitDispatchIdentifier payload. Returns 0 when the payload is malformed.
 inline uint32_t SwifterKitReadIdentifier(const uint8_t* payload, uint32_t payloadLength) {
     uint32_t words[2] = {};
     if (payload == nullptr || payloadLength != sizeof(words)) {

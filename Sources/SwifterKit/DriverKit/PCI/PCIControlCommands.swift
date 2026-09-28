@@ -132,7 +132,7 @@ extension DriverContext {
   ///
   /// The limit applies to later reset-initiated link training. With `retrain`, the link retrains
   /// immediately, which interrupts traffic, and the call returns after training completes.
-  /// Success does not mean the link reached `speed`; call ``pciLinkSpeed()`` to read the result.
+  /// Success does not mean the link reached `speed`. Call ``pciLinkSpeed()`` to read the result.
   public func pciSetLinkSpeed(_ speed: PCILinkSpeed, retrain: Bool = false) async throws {
     _ = try await execute(.pciSetLinkSpeed(speed, retrain: retrain))
   }
@@ -140,7 +140,7 @@ extension DriverContext {
   /// Enables the given ASPM levels on the device and its upstream bridge, or disables ASPM.
   ///
   /// DriverKit enables only levels both link partners support. Enabling ASPM also enables the
-  /// L1 substates both partners support; an empty set disables ASPM and L1 substates. ASPM adds
+  /// L1 substates both partners support. An empty set disables ASPM and L1 substates. ASPM adds
   /// exit latency to device accesses.
   public func pciSetASPMState(_ state: PCIASPMState) async throws {
     _ = try await execute(try .pciSetASPMState(state))

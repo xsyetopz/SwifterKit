@@ -4,7 +4,7 @@
 // `SwifterKitRuntimeMIDI.cpp`, `SwifterKitRuntimeMIDIObjects.cpp`, and
 // `SwifterKitRuntimeMIDIProperties.cpp` read, so neither side spells a value twice.
 
-/// What a `midi` event reports; see `SwifterKitMIDIEventHeader`.
+/// What a `midi` event reports. See `SwifterKitMIDIEventHeader`.
 enum RuntimeMIDIEventKind: UInt32, CaseIterable {
   case startIO = 1
   case stopIO = 2

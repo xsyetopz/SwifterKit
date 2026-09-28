@@ -3,9 +3,11 @@ import Testing
 
 @testable import SwifterKit
 
-/// The generated extension's client-memory wiring: the user client forwards each mapping once,
-/// the service validates the type and identifier, subranges and chains retain their sources and
-/// keep them from being released, and memory- and networking-enabled extensions build.
+/// The generated extension's client-memory wiring:
+/// - The user client forwards each mapping once.
+/// - The service validates the type and identifier.
+/// - Subranges and chains retain their sources and keep them from being released.
+/// - Memory- and networking-enabled extensions build.
 @Suite
 struct ClientMemoryRuntimeContractTests {
   private static func checkedIn(_ name: String) throws -> String {
@@ -149,7 +151,7 @@ struct ClientMemoryRuntimeContractTests {
       "if (matches(entry)) {",
       "ReleaseMemoryEntry(state, &entry);"
     )
-    // Detaching events takes no memory lock under eventLock; the user client's Stop releases
+    // Detaching events takes no memory lock under eventLock. The user client's Stop releases
     // the host's wrapped memory first, as ClientMemoryOwnershipContractTests checks.
     let events = try Self.checkedIn("SwifterKitRuntimeEvents.cpp")
     let detach = try section(

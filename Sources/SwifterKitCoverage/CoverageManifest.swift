@@ -10,7 +10,7 @@ enum CoverageStatus: String, Codable, CaseIterable, Comparable {
   case swiftAPI = "swift-api"
   /// Declarable through the native fast path.
   case fastPath = "fast-path"
-  /// Deliberately out of scope; `note` gives the reason.
+  /// Deliberately out of scope. `note` gives the reason.
   case excluded
 
   static func < (lhs: Self, rhs: Self) -> Bool {

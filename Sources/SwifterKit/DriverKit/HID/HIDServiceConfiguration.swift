@@ -102,11 +102,11 @@ public struct HIDEventServiceConfiguration: Sendable, Hashable {
 
   /// The generated superclass.
   public let serviceClass: HIDEventServiceClass
-  /// `DeviceUsagePairs` matching; empty matches on vendor and product only.
+  /// `DeviceUsagePairs` matching. Empty matches on vendor and product only.
   public let usagePairs: [HIDUsagePair]
   /// The `VendorID` to match, if any.
   public let vendorID: UInt32?
-  /// The `ProductID` to match, if any; requires ``vendorID``.
+  /// The `ProductID` to match, if any. Requires ``vendorID``.
   public let productID: UInt32?
   /// Report data forwarded to Swift.
   public let delivery: HIDEventDelivery

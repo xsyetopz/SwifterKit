@@ -20,12 +20,13 @@
 
 // Asynchronous control requests and endpoint-policy changes.
 //
-// usbAsyncDeviceRequest follows the AsyncIO contract in SwifterKitRuntimeUSBPipes.cpp: the request
-// takes a pending-transfer slot and returns a nonzero identifier, and its completion is a required
-// usbDeviceRequest event correlated by that identifier, which can reach Swift before the
-// submission's response. A slot keeps its buffer and action until the event is queued, so a full
-// required queue delays delivery rather than losing it. Stop aborts outstanding requests through
-// AbortDeviceRequests; each still completes, with kIOReturnAborted.
+// usbAsyncDeviceRequest follows the AsyncIO contract in SwifterKitRuntimeUSBPipes.cpp:
+// - The request takes a pending-transfer slot and returns a nonzero identifier.
+// - Its completion is a required usbDeviceRequest event correlated by that identifier.
+// - The event can reach Swift before the submission's response.
+// A slot keeps its buffer and action until the event is queued, so a full required queue delays
+// delivery rather than losing it. Stop aborts outstanding requests through AbortDeviceRequests.
+// Each still completes, with kIOReturnAborted.
 //
 // usbPipeAdjust changes the bandwidth policy of a periodic endpoint. The endpoint address and
 // transfer type must match the pipe's original descriptor.

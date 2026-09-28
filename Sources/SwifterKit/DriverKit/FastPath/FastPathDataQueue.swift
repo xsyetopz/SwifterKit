@@ -4,19 +4,25 @@ import Foundation
 /// runtime command per entry.
 ///
 /// The extension allocates the host ring when the fast path starts, and Swift maps it with
-/// ``DriverContext/mapDataQueue(_:)``. For a ``FastPathDataQueueDirection/toHost`` queue, fast-path
-/// programs produce entries with ``FastPathOp/enqueue(_:slots:)``: the extension stages them in an
-/// `IODataQueueDispatchSource` from the interrupt or command that ran the program, publishes them
-/// into the host ring on its runtime queue, and queues one ``FastPathDataQueueEvent`` per
-/// published batch. Entries are lossy: one that finds the staging queue or the host ring full is
-/// dropped and counted in ``DriverDataQueue/droppedEntries()``. For a
-/// ``FastPathDataQueueDirection/toExtension`` queue, the host appends with
-/// ``DriverDataQueue/enqueue(_:)`` and calls ``DriverContext/notifyDataQueue(_:)``; the extension
+/// ``DriverContext/mapDataQueue(_:)``.
+///
+/// For a ``FastPathDataQueueDirection/toHost`` queue, fast-path programs produce entries with
+/// ``FastPathOp/enqueue(_:slots:)``. The extension then:
+/// - Stages them in an `IODataQueueDispatchSource`, from the interrupt or command that ran the
+///   program.
+/// - Publishes them into the host ring on its runtime queue.
+/// - Queues one ``FastPathDataQueueEvent`` per published batch.
+///
+/// Entries are lossy: one that finds the staging queue or the host ring full is dropped and
+/// counted in ``DriverDataQueue/droppedEntries()``.
+///
+/// For a ``FastPathDataQueueDirection/toExtension`` queue, the host appends with
+/// ``DriverDataQueue/enqueue(_:)`` and calls ``DriverContext/notifyDataQueue(_:)``. The extension
 /// moves the entries into its staging queue and runs the queue's
 /// ``FastPathTrigger/dataAvailable(_:)`` program once per entry. Those entries are never dropped
 /// for lack of space: they wait in the host ring until the extension has room.
 public struct FastPathDataQueue: Sendable, Hashable {
-  /// The queue's identifier, unique in its configuration and at most `0xFF_FFFF`; operations and
+  /// The queue's identifier, unique in its configuration and at most `0xFF_FFFF`. Operations and
   /// ``DriverContext/mapDataQueue(_:)`` name the queue by it.
   public let id: UInt32
   /// The bytes of the host ring's records, a power of two from 4096 through 1 MiB.
@@ -59,24 +65,30 @@ public struct FastPathDataQueue: Sendable, Hashable {
 
 /// Which side of a ``FastPathDataQueue`` produces entries.
 public enum FastPathDataQueueDirection: Sendable, Hashable, CaseIterable {
-  /// Fast-path programs produce entries with ``FastPathOp/enqueue(_:slots:)``; the host reads
+  /// Fast-path programs produce entries with ``FastPathOp/enqueue(_:slots:)``. The host reads
   /// them.
   case toHost
-  /// The host produces entries with ``DriverDataQueue/enqueue(_:)``; the queue's
+  /// The host produces entries with ``DriverDataQueue/enqueue(_:)``. The queue's
   /// ``FastPathTrigger/dataAvailable(_:)`` program consumes them.
   case toExtension
 }
 
 /// The byte layout of a data queue host ring, shared by the extension and ``DriverDataQueue``.
 ///
-/// The header holds little-endian fields; the rest of it is zero. Records follow the header at
-/// ``FastPathDataQueue/recordStride`` intervals. The producer and consumer fields are free-running
-/// `UInt32` record counts: record `n` lives at slot `n & (entryCount - 1)`, the ring is empty when
-/// they are equal, and the producer is never more than `entryCount` ahead. A record starts with its
-/// payload byte count as a `UInt32` and four zero bytes, followed by the payload. The producer
-/// writes a record before it stores its count with release ordering, and the consumer loads the
-/// producer count with acquire ordering before it reads records, and stores its own count after it
-/// is done with them.
+/// The header holds little-endian fields. The rest of it is zero. Records follow the header at
+/// ``FastPathDataQueue/recordStride`` intervals.
+///
+/// The producer and consumer fields are free-running `UInt32` record counts:
+/// - Record `n` lives at slot `n & (entryCount - 1)`.
+/// - The ring is empty when the two counts are equal.
+/// - The producer is never more than `entryCount` ahead.
+///
+/// A record starts with its payload byte count as a `UInt32` and four zero bytes, followed by the
+/// payload.
+///
+/// The producer writes a record, then stores its count with release ordering. The consumer loads
+/// the producer count with acquire ordering before it reads records, then stores its own count
+/// when it is done with them.
 public enum FastPathDataQueueLayout {
   /// The header bytes before record 0.
   public static let headerSize = RuntimeFastPathLimits.dataQueueHeaderSize
@@ -133,7 +145,7 @@ public struct FastPathDataQueueEvent: Sendable, Hashable {
 /// How the extension answered ``DriverContext/notifyDataQueue(_:)``.
 public struct FastPathDataQueueNotification: Sendable, Hashable {
   /// `kIOReturnSuccess` (zero), or `kIOReturnIOError` when the host ring's indices or a record's
-  /// size broke the ring's layout; the extension then took nothing more from the ring.
+  /// size broke the ring's layout. The extension then took nothing more from the ring.
   public let status: Int32
   /// The entries the extension took from the host ring.
   public let movedEntries: UInt32
@@ -203,11 +215,12 @@ extension DriverContext {
   /// Tells the extension that ``DriverDataQueue/enqueue(_:)`` appended entries to a
   /// ``FastPathDataQueueDirection/toExtension`` queue, and returns how many it took.
   ///
-  /// The extension checks every index and record size in the host ring before it reads a record,
-  /// and moves entries into its staging queue, whose ``FastPathTrigger/dataAvailable(_:)``
-  /// program runs once per entry. The command is answered once, after the move. Entries that do
-  /// not fit wait in the host ring; the extension takes them when its staging queue frees space
-  /// and queues a ``FastPathDataQueueEvent`` then.
+  /// The extension checks every index and record size in the host ring before it reads a record.
+  /// It moves entries into its staging queue, whose ``FastPathTrigger/dataAvailable(_:)`` program
+  /// runs once per entry. The command is answered once, after the move.
+  ///
+  /// Entries that do not fit wait in the host ring. The extension takes them when its staging
+  /// queue frees space, then queues a ``FastPathDataQueueEvent``.
   public func notifyDataQueue(_ id: UInt32) async throws -> FastPathDataQueueNotification {
     let command = try DriverCommand.notifyDataQueue(id, in: fastPath)
     return try FastPathDataQueueNotification(runtimePayload: await execute(command))
@@ -217,7 +230,7 @@ extension DriverContext {
 extension DriverEvent {
   /// Decodes a data queue batch notification.
   ///
-  /// The notification travels on the lossy event queue, so it is a hint: read the host ring with
+  /// The notification travels on the lossy event queue, so it is a hint. Read the host ring with
   /// ``DriverDataQueue/dequeue(_:)`` until it is empty rather than counting on one event per
   /// batch. Returns nil when the event belongs to another family.
   public func fastPathDataQueue() throws -> FastPathDataQueueEvent? {

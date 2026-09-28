@@ -28,8 +28,8 @@ public struct HIDStylusState: OptionSet, Sendable, Hashable {
 
 /// One stylus transducer for `dispatchDigitizerStylusEvent`.
 ///
-/// Positions, pressures, tilt, and twist are `IOFixed` values; `x` and `y` are normalized to
-/// `0...1` of the surface.
+/// Positions, pressures, tilt, and twist are `IOFixed` values.
+/// `x` and `y` are normalized to `0...1` of the surface.
 public struct HIDStylus: Sendable, Hashable {
   /// The transducer identifier.
   public var identifier: UInt32
@@ -130,13 +130,13 @@ public struct HIDTouch: Sendable, Hashable {
 
 /// The transducer kind of a ``HIDDigitizerCollection``, from `IOHIDDigitizerCollectionType`.
 public enum HIDDigitizerCollectionType: UInt32, Sendable, Hashable {
-  /// A stylus; dispatched as a stylus event.
+  /// A stylus. ``HIDDigitizerCollection`` dispatches it as a stylus event.
   case stylus = 0
-  /// A puck; dispatched as a stylus event.
+  /// A puck. ``HIDDigitizerCollection`` dispatches it as a stylus event.
   case puck = 1
-  /// A finger; dispatched as a touch event.
+  /// A finger. ``HIDDigitizerCollection`` dispatches it as a touch event.
   case finger = 2
-  /// A hand; dispatched as a touch event.
+  /// A hand. ``HIDDigitizerCollection`` dispatches it as a touch event.
   case hand = 3
 }
 
@@ -159,9 +159,12 @@ public struct HIDDigitizerChanges: OptionSet, Sendable, Hashable {
 /// One digitizer transducer and the interface elements that describe it.
 ///
 /// The runtime builds an `IOHIDDigitizerCollection` over ``elementCookies`` under the collection
-/// element ``parentCookie``, sets its touch, range, and position, and dispatches the collection's
-/// state as a stylus event (stylus, puck) or a touch event (finger, hand), with `z` as the tip
-/// pressure of a stylus.
+/// element ``parentCookie``. It sets the collection's touch, range, and position, then dispatches
+/// its state:
+/// - A stylus event for ``HIDDigitizerCollectionType/stylus`` and
+///   ``HIDDigitizerCollectionType/puck``, with `z` as the stylus tip pressure.
+/// - A touch event for ``HIDDigitizerCollectionType/finger`` and
+///   ``HIDDigitizerCollectionType/hand``.
 public struct HIDDigitizerCollection: Sendable, Hashable {
   /// The transducer kind.
   public var type: HIDDigitizerCollectionType

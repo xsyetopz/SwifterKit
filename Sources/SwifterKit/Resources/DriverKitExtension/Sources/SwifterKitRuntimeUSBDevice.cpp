@@ -64,7 +64,7 @@ namespace {
     }
 
     // CurrentMicroframe and ReferenceMicroframe first appear in the DriverKit 25 SDKs. Testing
-    // for them keeps older SDKs compiling; there the runtime reports them unsupported.
+    // for them keeps older SDKs compiling. There the runtime reports them unsupported.
     template<typename Provider>
     concept HasMicroframes = requires(Provider* value, uint64_t* number) {
         value->CurrentMicroframe(number, number);

@@ -3,9 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-/// How Swift reports the extension refusing memory another connection wrapped: every command
-/// that names a handle throws ``DriverMemoryError/notOwner``, a release still throws
-/// ``DriverMemoryError/inUse`` for its own status, and a wrap's own refusal is not relabeled.
+/// How Swift reports the extension refusing memory another connection wrapped:
+/// - Every command that names a handle throws ``DriverMemoryError/notOwner``.
+/// - A release still throws ``DriverMemoryError/inUse`` for its own status.
+/// - A wrap's own refusal is not relabeled.
 @Suite
 struct WrappedMemoryOwnershipTests {
   private static let foreign = DriverMemoryHandle(rawValue: 7)

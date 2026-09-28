@@ -9,10 +9,10 @@
     #include "SwifterKitRuntimeServiceState.h"
 
 // IOUserUSBSerial packet hooks. The superclass calls handleRxPacket for each completed bulk IN
-// transfer before copying the packet into the receive queue, and handleInterruptPacket for each
-// completed interrupt IN transfer before resubmitting it. The runtime passes every packet through
-// unchanged and, when configured, copies it to Swift as lossy usbSerialPacket events. A packet
-// larger than one event is split into consecutive events in order.
+// transfer, before copying the packet into the receive queue. It calls handleInterruptPacket
+// for each completed interrupt IN transfer, before resubmitting it. The runtime passes every
+// packet through unchanged and, when configured, copies it to Swift as lossy usbSerialPacket
+// events. A packet larger than one event is split into consecutive events in order.
 
 namespace {
     // SwifterKitUSBSerialPacketKind comes from RuntimeSchema+Storage.swift.

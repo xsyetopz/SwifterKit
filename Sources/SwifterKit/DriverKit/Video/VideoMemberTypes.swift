@@ -170,7 +170,7 @@ public struct VideoStreamState: Sendable, Hashable {
   public let startingChannel: UInt32
   /// Whether the stream is active and can perform I/O.
   public let isActive: Bool
-  /// Whether the stream is attached to the device; see ``VideoMember``.
+  /// Whether the stream is attached to the device.
   public let isAttached: Bool
   /// Current byte capacity of each buffer's data memory.
   public let dataBufferCapacity: UInt32
@@ -237,11 +237,13 @@ public struct VideoStreamState: Sendable, Hashable {
 
 /// One settable property of a configured stream.
 ///
-/// `bufferCapacity` and `queueEntryCount` change the stream's structure, so the runtime requests
-/// a device configuration change and applies them in `PerformDeviceConfigurationChange`, where
-/// IO is stopped. `bufferCapacity` replaces every buffer's memory through
-/// `SetDataMemoryDescriptor` and `SetControlMemoryDescriptor` and discards its contents;
-/// `queueEntryCount` recreates the shared queues through `destroyQueues` and `createQueues`.
+/// `bufferCapacity` and `queueEntryCount` change the stream's structure. The runtime requests a
+/// device configuration change and applies them in `PerformDeviceConfigurationChange`, where I/O
+/// is stopped:
+///
+/// - `bufferCapacity` replaces every buffer's memory through `SetDataMemoryDescriptor` and
+///   `SetControlMemoryDescriptor`, and discards its contents.
+/// - `queueEntryCount` recreates the shared queues through `destroyQueues` and `createQueues`.
 public enum VideoStreamProperty: Sendable, Hashable {
   /// Sets whether the stream is active and can perform I/O.
   case isActive(Bool)
@@ -320,7 +322,7 @@ public enum VideoBufferProperty: Sendable, Hashable {
   /// A new `IOStreamBufferID`, unique in the stream and below `0xFFFFFFFF`. Queue entries keep
   /// naming the buffer by index.
   case bufferID(UInt32)
-  /// Adds the buffer to the stream's buffer list through `addBuffer`, or removes it; the
+  /// Adds the buffer to the stream's buffer list through `addBuffer`, or removes it. The
   /// runtime calls `removeAllBuffers` and adds the others back through `addBuffers`.
   case isAttached(Bool)
 
@@ -361,7 +363,7 @@ public struct VideoControlInfo: Sendable, Hashable {
   public let element: UInt32
   /// Whether the control accepts property changes.
   public let isSettable: Bool
-  /// Whether the control is attached to the device; see ``VideoMember``.
+  /// Whether the control is attached to the device.
   public let isAttached: Bool
   /// `GetOwningDeviceID`.
   public let owningDeviceID: UInt32
@@ -487,9 +489,9 @@ public struct VideoCustomPropertyInfo: Sendable, Hashable {
 ///
 /// Custom properties move through ``DriverContext/videoSetCustomPropertyOwner(_:owner:)``.
 public enum VideoMember: Sendable, Hashable {
-  /// A stream by index; the runtime calls `AddStream` or `RemoveStream`.
+  /// A stream by index. The runtime calls `AddStream` or `RemoveStream`.
   case stream(UInt32)
-  /// A control by identifier; the runtime calls `AddControl` or `RemoveControl`.
+  /// A control by identifier. The runtime calls `AddControl` or `RemoveControl`.
   case control(UInt32)
 
   var runtimeFields: (kind: UInt32, identifier: UInt32) {

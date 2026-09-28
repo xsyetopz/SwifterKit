@@ -72,7 +72,7 @@ public enum MIDIPropertyType: UInt32, Sendable, Hashable {
 
 /// Identity metadata read from a MIDIDriverKit object or the driver.
 public struct MIDIObjectInfo: Sendable, Hashable {
-  /// The object's `IOUserMIDIObjectID`; the driver is always `1`.
+  /// The object's `IOUserMIDIObjectID`. The driver is always `1`.
   public let objectID: UInt32
   /// The owning object's ID, or zero for the driver.
   public let ownerObjectID: UInt32

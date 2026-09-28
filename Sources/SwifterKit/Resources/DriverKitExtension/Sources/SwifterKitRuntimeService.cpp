@@ -142,7 +142,7 @@ auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t 
         return result;
     }
 
-    // Reporters publish their legend first; if a later step fails, free() releases them.
+    // Reporters publish their legend first. If a later step fails, free() releases them.
     result = StartReporting();
     if (result != kIOReturnSuccess) {
         StopReporting();
@@ -221,8 +221,8 @@ auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t 
     #endif
 
     #if SWIFTERKIT_ENABLE_FAST_PATH
-    // Checks the declared BARs and runs the start programs before interrupts are enabled; a
-    // refused fast path leaves the service running without it.
+    // Checks the declared BARs and runs the start programs before interrupts are enabled.
+    // A refused fast path leaves the service running without it.
     StartFastPath();
     #endif
 

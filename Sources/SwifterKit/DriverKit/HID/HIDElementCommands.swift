@@ -1,7 +1,7 @@
 import Foundation
 
-/// Limits shared by the HID command encoders; the native runtime enforces the same bounds, which
-/// ``RuntimeHIDLimits`` declares for both sides.
+/// Limits shared by the HID command encoders. The native runtime enforces the same bounds,
+/// which ``RuntimeHIDLimits`` declares for both sides.
 @usableFromInline
 enum HIDLimits {
   /// The most element descriptors one page carries.
@@ -92,7 +92,7 @@ extension DriverCommand {
     )
   }
 
-  /// Sets one element's integer value; commit it to reach the device.
+  /// Sets one element's integer value. Commit it to reach the device.
   public static func setHIDElementValue(_ value: UInt32, cookie: UInt32) throws -> Self {
     Self(
       opcode: .hidSetElementValue,
@@ -104,7 +104,7 @@ extension DriverCommand {
     )
   }
 
-  /// Sets one element's data value; commit it to reach the device.
+  /// Sets one element's data value. Commit it to reach the device.
   public static func setHIDElementData(_ bytes: [UInt8], cookie: UInt32) throws -> Self {
     guard !bytes.isEmpty, bytes.count <= HIDLimits.maximumPayload - 16 else {
       throw HIDRuntimeError.invalidReportLength
@@ -273,12 +273,12 @@ extension DriverContext {
     )
   }
 
-  /// Sets one element's integer value; commit it to reach the device.
+  /// Sets one element's integer value. Commit it to reach the device.
   public func setHIDElementValue(_ value: UInt32, cookie: UInt32) async throws {
     _ = try await execute(.setHIDElementValue(value, cookie: cookie))
   }
 
-  /// Sets one element's data value; commit it to reach the device.
+  /// Sets one element's data value. Commit it to reach the device.
   public func setHIDElementData(_ bytes: [UInt8], cookie: UInt32) async throws {
     _ = try await execute(.setHIDElementData(bytes, cookie: cookie))
   }

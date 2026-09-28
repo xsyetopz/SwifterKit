@@ -9,7 +9,8 @@
     #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
 
-    // The DriverKit 24.4 SDK does not declare the packet VLAN accessors; 25.5 and later do.
+    // The DriverKit 24.4 SDK does not declare the packet VLAN accessors. DriverKit 25.5 and later
+    // do.
     #if defined(__DRIVERKIT_25_5) && __DRIVERKIT_VERSION_MAX_ALLOWED >= __DRIVERKIT_25_5
         #define SWIFTERKIT_NETWORK_HAS_VLAN 1
     #else
@@ -18,10 +19,11 @@
 
 // Packet metadata contract:
 // - A transmit event carries SwifterKitNetworkTransmitMetadata, read from the packet, before the
-//   frame. Members the running DriverKit lacks (getDataOff before 23, getVlanTag before 24, or
-//   an SDK without the VLAN accessors) fall back to the older member or report nothing.
+//   frame. Members the running DriverKit lacks fall back to the older member or report nothing.
+//   This applies to getDataOff before 23, getVlanTag before 24, or an SDK without the VLAN
+//   accessors.
 // - A received frame carries SwifterKitNetworkReceivePacket. Every field is validated here after
-//   Swift validates it, and the packet's per-frame state (offset, length, link header, checksum,
+//   Swift validates it. The packet's per-frame state (offset, length, link header, checksum,
 //   multicast, timestamp) is always written, because the pool recycles packets.
 // - A packet returns to the pool it came from, which getPacketBufferPool reports.
 

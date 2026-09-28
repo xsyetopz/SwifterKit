@@ -32,7 +32,7 @@ public struct HIDReport: Sendable, Hashable {
   public let timestamp: UInt64
   /// The report direction and semantics.
   public let type: HIDReportType
-  /// HIDDriverKit option bits; the low byte may contain the report identifier.
+  /// HIDDriverKit option bits. The low byte may contain the report identifier.
   public let options: UInt32
   /// The complete report bytes expected by the report descriptor.
   public let bytes: [UInt8]

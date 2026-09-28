@@ -51,8 +51,11 @@
 
     #include "SwifterKitRuntimeFastPathInterpreter.h"
 
-// One fast-path ring: its buffer, the extension's mapping of it, the DMA preparation that pins
-// it, the mapped address, and the device address of entry 0. See SwifterKitRuntimeFastPath.cpp.
+// One fast-path ring:
+//   - Its buffer and the extension's mapping of it.
+//   - The DMA preparation that pins it.
+//   - The mapped address and the device address of entry 0.
+// See SwifterKitRuntimeFastPath.cpp.
 struct SwifterKitFastPathRingState {
     IOBufferMemoryDescriptor* buffer = nullptr;
     IOMemoryMap* map = nullptr;
@@ -61,12 +64,15 @@ struct SwifterKitFastPathRingState {
     uint64_t deviceAddress = 0;
 };
 
-// One host-shared data queue: the host ring's buffer and the extension's mapping of it, the
-// IODataQueueDispatchSource that stages entries between the fast path and the runtime queue,
-// the entries dropped so far, and whether the current run owes the source a DataAvailable
-// notification. A to-extension queue also counts the host rings it refused as corrupt and
-// whether host records wait for its full staging source. See
-// SwifterKitRuntimeFastPathDataQueues.cpp.
+// One host-shared data queue:
+//   - The host ring's buffer and the extension's mapping of it.
+//   - The IODataQueueDispatchSource that stages entries between the fast path and the runtime
+//     queue.
+//   - The entries dropped so far, and whether the current run owes the source a DataAvailable
+//     notification.
+//   - For a to-extension queue: the host rings it refused as corrupt, and whether host records
+//     wait for its full staging source.
+// See SwifterKitRuntimeFastPathDataQueues.cpp.
 struct SwifterKitFastPathDataQueueState {
     IOBufferMemoryDescriptor* buffer = nullptr;
     IOMemoryMap* map = nullptr;
@@ -99,7 +105,7 @@ class IOReporter;
 class IOService;
 class SwifterKitRuntimeUserClient;
 
-// A timer Swift started; see SwifterKitRuntimeTimers.cpp. A zero timerID marks a free slot.
+// A timer Swift started. See SwifterKitRuntimeTimers.cpp. A zero timerID marks a free slot.
 struct SwifterKitTimerSlot {
     uint32_t timerID = 0;
     uint64_t interval = 0;
@@ -110,7 +116,7 @@ struct SwifterKitTimerSlot {
     OSAction* action = nullptr;
 };
 
-// A service-matching or system-state watch; see SwifterKitRuntimeServiceWatches.cpp. A zero
+// A service-matching or system-state watch. See SwifterKitRuntimeServiceWatches.cpp. A zero
 // watchID marks a free slot. stateService and items are set only for system-state watches.
 struct SwifterKitServiceWatch {
     uint32_t watchID = 0;
@@ -126,7 +132,7 @@ class SwifterKitRuntimeAudioDevice;
 class SwifterKitRuntimeAudioBox;
 class SwifterKitRuntimeAudioClockDevice;
 
-// A box-acquisition or clock sample-rate change waiting for Swift; request ID zero is free.
+// A box-acquisition or clock sample-rate change waiting for Swift. Request ID zero is free.
 // The request holds a reference on its box or clock device until it ends.
 struct SwifterKitAudioPendingRequest {
     OSObject* object;
@@ -144,7 +150,7 @@ class SwifterKitRuntimeVideoDevice;
 class SwifterKitRuntimeVideoBox;
 class SwifterKitRuntimeVideoClockDevice;
 
-// A box-acquisition or clock sample-rate change waiting for Swift; request ID zero is free.
+// A box-acquisition or clock sample-rate change waiting for Swift. Request ID zero is free.
 // The request holds a reference on its box or clock device until it ends.
 struct SwifterKitVideoPendingRequest {
     OSObject* object;
@@ -200,7 +206,7 @@ struct SwifterKitSCSIPendingTask {
     uint64_t requestedTransferCount = 0;
     uint32_t featureRequestCount = 0;
     OSAction* completion = nullptr;
-    // Set only with kSwifterKitSCSIProvidesTaskDataBuffers; owned by the slot and released when
+    // Set only with kSwifterKitSCSIProvidesTaskDataBuffers. Owned by the slot and released when
     // the task completes. Read and written under scsiLock.
     IOBufferMemoryDescriptor* dataBuffer = nullptr;
     IOMemoryMap* dataMap = nullptr;
@@ -209,7 +215,7 @@ struct SwifterKitSCSIPendingTask {
 
 #if SWIFTERKIT_ENABLE_USB
 // One outstanding AsyncIO or IsochIO request. The slot owns the pipe, buffers, and action from
-// submission until its completion event is queued; see SwifterKitRuntimeUSBPipes.cpp.
+// submission until its completion event is queued. See SwifterKitRuntimeUSBPipes.cpp.
 struct SwifterKitUSBPendingTransfer {
     uint32_t requestID = 0;
     // The endpoint address, or bmRequestType for an asynchronous control request.
@@ -232,7 +238,7 @@ struct SwifterKitUSBPendingTransfer {
     IOMemoryMap* frameMap = nullptr;
 };
 
-// One descriptor-ring entry of a bundled-I/O pipe; see SwifterKitRuntimeUSBBundled.cpp.
+// One descriptor-ring entry of a bundled-I/O pipe. See SwifterKitRuntimeUSBBundled.cpp.
 enum class SwifterKitUSBBundleEntryState : uint8_t {
     Idle,
     InFlight,
@@ -268,13 +274,14 @@ struct SwifterKitMemoryEntry {
     uint64_t length = 0;
     uint32_t direction = 0;
     uint32_t alignment = 0;
-    // An allocated buffer owns `descriptor`; a subrange or chain owns `composed` instead and
-    // retains its source descriptors in `sources`. `dependents` counts the subranges and chains
-    // whose `sources` name this entry, once per occurrence; releasing an entry with dependents
-    // answers kIOReturnBusy, and StopMemory releases dependents before their sources.
-    // `owner` is the user client that wrapped the host memory this entry describes, directly or
-    // through a source, and null for memory the extension allocated; only the owner may use the
-    // entry, and its Stop releases the entry.
+    // - An allocated buffer owns `descriptor`. A subrange or chain owns `composed` instead and
+    //   retains its source descriptors in `sources`.
+    // - `dependents` counts the subranges and chains whose `sources` name this entry, once per
+    //   occurrence. Releasing an entry with dependents answers kIOReturnBusy, and StopMemory
+    //   releases dependents before their sources.
+    // - `owner` is the user client that wrapped the host memory this entry describes, directly
+    //   or through a source, and null for memory the extension allocated. Only the owner may use
+    //   the entry, and its Stop releases the entry.
     IOBufferMemoryDescriptor* descriptor = nullptr;
     IOMemoryDescriptor* composed = nullptr;
     OSArray* sources = nullptr;
@@ -286,7 +293,7 @@ struct SwifterKitMemoryEntry {
 #endif
 
 #if SWIFTERKIT_ENABLE_HID
-// A host get-report request Swift answers; see SwifterKitRuntimeHIDRequests.cpp. A zero
+// A host get-report request Swift answers. See SwifterKitRuntimeHIDRequests.cpp. A zero
 // requestID marks a free slot.
 struct SwifterKitHIDPendingReport {
     uint32_t requestID = 0;
@@ -296,7 +303,7 @@ struct SwifterKitHIDPendingReport {
 };
 #endif
 
-// Lossy events are notifications Swift may miss; required events carry
+// Lossy events are notifications Swift may miss. Required events carry
 // DriverKit work that Swift must answer. See SwifterKitRuntimeEvents.cpp.
 static constexpr uint32_t kSwifterKitMaximumQueuedLossyEvents = 64;
 static constexpr uint32_t kSwifterKitMaximumQueuedRequiredEvents = 512;
@@ -307,7 +314,7 @@ struct SwifterKitRuntimeService_IVars {
     OSArray* requiredEvents = nullptr;
     uint64_t lossyEventDrops = 0;
     // The registered host's user client (retained) and whether an enqueue must
-    // notify it. Both change only under eventLock; see SwifterKitRuntimeEvents.cpp.
+    // notify it. Both change only under eventLock. See SwifterKitRuntimeEvents.cpp.
     SwifterKitRuntimeUserClient* eventClient = nullptr;
     bool eventNotificationArmed = false;
     // The unacknowledged SetPowerState request, guarded by eventLock, and its timeout timer,
@@ -326,7 +333,7 @@ struct SwifterKitRuntimeService_IVars {
     uint32_t nextWatchID = 1;
     SwifterKitTimerSlot timers[kSwifterKitMaximumTimers] = {};
     SwifterKitServiceWatch watches[kSwifterKitMaximumServiceWatches] = {};
-    // The configured reporters, created in StartReporting and released in StopReporting; the
+    // The configured reporters, created in StartReporting and released in StopReporting. The
     // array holds the same reporters for configureAllReports. Both change under dispatchLock.
     OSArray* reporterSet = nullptr;
     IOReporter* reporters[kSwifterKitMaximumReporters] = {};
@@ -345,7 +352,7 @@ struct SwifterKitRuntimeService_IVars {
 #endif
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     IOLock* scsiLock = nullptr;
-    // Runs UserCreateTargetForID away from the user client's queue; see SCSIControlCommand.
+    // Runs UserCreateTargetForID away from the user client's queue. See SCSIControlCommand.
     IODispatchQueue* scsiTargetQueue = nullptr;
     uint32_t nextSCSIRequestID = 1;
     uint32_t nextSCSITaskMapID = 1;
@@ -355,7 +362,7 @@ struct SwifterKitRuntimeService_IVars {
     IOLock* audioLock = nullptr;
     SwifterKitRuntimeAudioDevice* audioDevice = nullptr;
     // Boxes and clock devices by configuration index, and the box (index + 1) that owns the
-    // device or each clock device; zero means unowned. All guarded by audioLock.
+    // device or each clock device. Zero means unowned. All guarded by audioLock.
     SwifterKitRuntimeAudioBox* audioBoxes[kSwifterKitAudioObjectTableCount] = {};
     SwifterKitRuntimeAudioClockDevice* audioClockDevices[kSwifterKitAudioObjectTableCount] = {};
     uint8_t audioDeviceOwner = 0;
@@ -372,7 +379,7 @@ struct SwifterKitRuntimeService_IVars {
     IOLock* videoLock = nullptr;
     SwifterKitRuntimeVideoDevice* videoDevice = nullptr;
     // Boxes and clock devices by configuration index, and the box (index + 1) that owns the
-    // device or each clock device; zero means unowned. All guarded by videoLock.
+    // device or each clock device. Zero means unowned. All guarded by videoLock.
     SwifterKitRuntimeVideoBox* videoBoxes[kSwifterKitVideoObjectTableCount] = {};
     SwifterKitRuntimeVideoClockDevice* videoClockDevices[kSwifterKitVideoObjectTableCount] = {};
     uint8_t videoDeviceOwner = 0;
@@ -402,7 +409,7 @@ struct SwifterKitRuntimeService_IVars {
     bool networkStopping = false;
     uint8_t networkAddress[6] = {};
     SwifterKitNetworkPendingTransmit networkTransmits[64] = {};
-    // The one private interface command waiting for Swift; changes only under networkLock.
+    // The one private interface command waiting for Swift. Changes only under networkLock.
     uint32_t networkCommandID = 0;
     uint32_t nextNetworkCommandID = 1;
     int32_t networkCommandStatus = 0;
@@ -470,10 +477,10 @@ struct SwifterKitRuntimeService_IVars {
     OSAction* interruptActions[32] = {};
 #endif
 #if SWIFTERKIT_ENABLE_FAST_PATH
-    // Serializes fast-path runs and guards the fields below; see SwifterKitRuntimeFastPath.cpp.
+    // Serializes fast-path runs and guards the fields below. See SwifterKitRuntimeFastPath.cpp.
     // It is held for one program at a time: at most the 10 ms delay budget plus its accesses.
     IOLock* fastPathLock = nullptr;
-    // Programs run only between a successful StartFastPath and StopFastPath; otherwise
+    // Programs run only between a successful StartFastPath and StopFastPath. Otherwise
     // fastPathRefusal says why (zero before start).
     bool fastPathRunning = false;
     bool fastPathBARsStale = false;
@@ -489,9 +496,9 @@ struct SwifterKitRuntimeService_IVars {
 #endif
 };
 
-// Each tracked request table fills before the required queue does, so tracked
-// requests alone cannot exhaust it; that takes a stalled Swift host plus
-// untracked required notifications such as control changes.
+// Each tracked request table fills before the required queue does. Tracked
+// requests alone cannot exhaust it. Exhausting it takes a stalled Swift host
+// plus untracked required notifications such as control changes.
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
 static_assert(
     kSwifterKitMaximumQueuedRequiredEvents

@@ -3,11 +3,11 @@ import Foundation
 extension DriverContext {
   /// Maps a runtime buffer, subrange, or chain into this process without copying.
   ///
-  /// The mapping reads and writes the same memory the extension and device use; see
+  /// The mapping reads and writes the same memory the extension and device use. See
   /// ``DriverSharedMemory`` for bounds, byte order, and unmapping. It keeps the memory alive
   /// after ``releaseMemory(_:)`` until it is unmapped, and ends when the runtime connection
   /// closes. Mapping a handle again while its mapping is live returns the same instance. The
-  /// extension refuses memory another connection wrapped; `IOConnectMapMemory64` reports every
+  /// extension refuses memory another connection wrapped. `IOConnectMapMemory64` reports every
   /// refused mapping as `kIOReturnBadArgument`.
   public func mapMemory(_ handle: DriverMemoryHandle) async throws -> DriverSharedMemory {
     guard handle.rawValue != 0,
@@ -43,7 +43,7 @@ extension DriverContext {
   /// ``FastPathDataQueueLayout`` describes the bytes, and the returned reader checks them on
   /// every access. The extension answers `kIOReturnNotReady` while its fast path is not running.
   /// When the context has a ``fastPath`` configuration, a queue it does not declare is refused
-  /// before any request, and the ring's geometry must match the declaration.
+  /// before any request. The ring's geometry must then match the declaration.
   public func mapDataQueue(_ id: UInt32) async throws -> DriverDataQueue {
     let queue = fastPath?.dataQueues.first { $0.id == id }
     guard fastPath == nil || queue != nil,
@@ -59,8 +59,10 @@ extension DriverContext {
 extension DriverCommand {
   /// Creates a request that wraps host memory as a runtime memory entry without copying it.
   ///
-  /// The segments are checked here and again in the extension: 1 to 32 of them, each nonzero
-  /// and not wrapping past the end of the address space, with a total length that fits 64 bits.
+  /// The segments are checked here and again in the extension:
+  /// - 1 to 32 of them.
+  /// - Each nonzero and not wrapping past the end of the address space.
+  /// - A total length that fits 64 bits.
   public static func wrapClientMemory(
     _ segments: [DriverClientMemorySegment],
     direction: DriverMemoryDirection
@@ -96,27 +98,28 @@ extension DriverContext {
   /// Wraps memory this process owns as a runtime memory entry, without copying it.
   ///
   /// The extension describes the segments with `IOUserClient::CreateMemoryDescriptorFromClient`
-  /// while it handles this request, so the handle names this process's own pages: the device
-  /// reads or writes them after ``prepareMemoryForDMA(_:offset:length:maximumAddressBits:)``, and
+  /// while it handles this request. The handle then names this process's own pages: the device
+  /// reads or writes them after ``prepareMemoryForDMA(_:offset:length:maximumAddressBits:)``.
   /// ``readMemory(_:offset:length:)``, ``writeMemory(_:offset:bytes:)``,
   /// ``memorySubrange(_:offset:length:direction:)``, and ``memoryChain(_:direction:)`` work as for
   /// an allocated buffer. The entry takes one of ``MemoryPoolConfiguration/maximumBuffers`` slots
-  /// but none of the pool's byte budget, and its length cannot change.
+  /// but none of the pool's byte budget. Its length cannot change.
   ///
   /// The memory must stay allocated, and must not be unmapped or reused, until
-  /// ``releaseMemory(_:)`` succeeds for this handle, which it refuses with
+  /// ``releaseMemory(_:)`` succeeds for this handle. `releaseMemory(_:)` refuses with
   /// ``DriverMemoryError/inUse`` while a subrange or chain built from it exists. A
   /// ``mapMemory(_:)`` mapping of the handle outlives its release, so unmap it first.
   ///
-  /// The entry belongs to this runtime connection: a command from any other connection that
-  /// names it, or a subrange or chain built from it, throws ``DriverMemoryError/notOwner``, the
-  /// extension refuses such a connection's ``mapMemory(_:)`` of it, and such a subrange or chain
+  /// The entry belongs to this runtime connection. A command from any other connection that
+  /// names it, or a subrange or chain built from it, throws ``DriverMemoryError/notOwner``. The
+  /// extension refuses such a connection's ``mapMemory(_:)`` of it. Such a subrange or chain
   /// belongs to this connection too.
+  ///
   /// When the connection closes or the process exits, the extension releases these entries,
   /// compositions first, and completes any DMA prepared on them. It does so when DriverKit stops
-  /// the connection's user client, after the close returns, and this process cannot observe
-  /// that, so memory wrapped on a connection that closed with the handle unreleased must still
-  /// never be freed or reused; ``DriverHostMemory/wrap(in:direction:)`` keeps it allocated.
+  /// the connection's user client, after the close returns, and this process cannot observe that.
+  /// Memory wrapped on a connection that closed with the handle unreleased must still never be
+  /// freed or reused. ``DriverHostMemory/wrap(in:direction:)`` keeps it allocated.
   public func wrapClientMemory(
     _ segments: [DriverClientMemorySegment],
     direction: DriverMemoryDirection

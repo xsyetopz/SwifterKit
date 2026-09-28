@@ -23,15 +23,15 @@
 //   kSwifterKitUSBMaximumBundleRingEntries buffers of one length, set with SetMemoryDescriptor
 //   from index 0. At most kSwifterKitUSBMaximumBundleRings rings exist at once, one per endpoint.
 // - usbPipeEnqueueBundled submits 1...kIOUSBHostPipeBundlingMax consecutive entries, wrapping at
-//   the end of the ring. Every entry must be idle; the response is the number of transfers the
+//   the end of the ring. Every entry must be idle. The response is the number of transfers the
 //   pipe accepted, and entries it did not accept become idle again.
 // - Each entry completes with its own required usbPipeBundledIO event carrying its ring index,
 //   status, byte count, and, for IN, its bytes. The kernel's completion bundle boundaries are not
-//   preserved. An entry stays unavailable until its event is queued; a full required queue delays
+//   preserved. An entry stays unavailable until its event is queued. A full required queue delays
 //   delivery, which is retried with the other USB completions.
 // - usbPipeReleaseBundleRing releases an idle ring's buffers. USBDriverKit owns the ring itself
 //   until the pipe is destroyed, so a pipe accepts CreateMemoryDescriptorRing only as USBDriverKit
-//   allows. Stop aborts in-flight entries; they still complete.
+//   allows. Stop aborts in-flight entries. They still complete.
 
 namespace {
     struct BundleReference {

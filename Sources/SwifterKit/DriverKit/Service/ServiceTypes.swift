@@ -22,10 +22,13 @@ public struct ServicePowerCapability: RawRepresentable, Sendable, Hashable {
 ///
 /// Make the device safe for ``capability``, then call
 /// ``DriverContext/completePowerState(requestID:)``. DriverKit changes power only after the
-/// change is acknowledged. The extension acknowledges on the driver's behalf when the driver
-/// does not answer within ten seconds, when the host disconnects or stops delivering events
-/// because ``SwiftDriver/handle(event:context:)`` threw, or when a newer change arrives. A change
-/// that arrives while no host is connected is acknowledged at once and never delivered.
+/// change is acknowledged. The extension acknowledges on the driver's behalf when:
+/// - The driver does not answer within ten seconds.
+/// - The host disconnects, or stops delivering events because
+///   ``SwiftDriver/handle(event:context:)`` threw.
+/// - A newer change arrives.
+///
+/// A change that arrives while no host is connected is acknowledged at once and never delivered.
 public struct ServicePowerStateRequest: Sendable, Hashable {
   /// The identifier to pass to ``DriverContext/completePowerState(requestID:)``.
   public let requestID: UInt32
@@ -104,7 +107,7 @@ public struct ServicePropertySearchOptions: OptionSet, Sendable, Hashable {
 public enum ServiceRuntimeError: Error, Sendable, Equatable {
   /// A registry or item name is empty, longer than 127 UTF-8 bytes, or contains NUL.
   case invalidName(String)
-  /// The value is `.real`, or a string contains NUL; DriverKit registries cannot hold it.
+  /// The value is `.real`, or a string contains NUL. DriverKit registries cannot hold it.
   case unsupportedProperty
   /// Values nest deeper than eight levels.
   case propertyTooDeep

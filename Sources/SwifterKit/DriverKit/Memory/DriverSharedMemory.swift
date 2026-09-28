@@ -14,16 +14,18 @@ import Foundation
 ///
 /// The mapping ends exactly once: at the first ``unmap()``, when the connection that created it
 /// closes, or when the last reference goes away. Accesses after that throw
-/// ``DriverSharedMemoryError/unmapped``. Accesses and the unmap are serialized, so an unmap
-/// requested from another task waits for a running access, and one requested inside an access
-/// closure takes effect when the outermost access returns.
+/// ``DriverSharedMemoryError/unmapped``.
 ///
-/// The extension and the device may change the bytes at any time; coordinate through the
+/// Accesses and the unmap are serialized. An unmap requested from another task waits for a
+/// running access. One requested inside an access closure takes effect when the outermost access
+/// returns.
+///
+/// The extension and the device may change the bytes at any time. Coordinate through the
 /// protocol that owns the memory, such as a DMA completion or runtime command.
 public final class DriverSharedMemory: @unchecked Sendable {
   /// The mapped byte count.
   public let length: Int
-  /// Whether the extension shares the memory read-only; stores then throw
+  /// Whether the extension shares the memory read-only. Stores then throw
   /// ``DriverSharedMemoryError/readOnly``.
   public let isReadOnly: Bool
 
@@ -34,7 +36,7 @@ public final class DriverSharedMemory: @unchecked Sendable {
   private var accessDepth = 0
   private var unmapRequested = false
 
-  /// Wraps an established mapping; `unmap` runs exactly once to remove it.
+  /// Wraps an established mapping. `unmap` runs exactly once to remove it.
   ///
   /// ``DriverConnection`` implementations create instances from
   /// ``DriverConnection/mapMemory(type:readOnly:)``.
@@ -60,7 +62,7 @@ public final class DriverSharedMemory: @unchecked Sendable {
     return isMappedState && !unmapRequested
   }
 
-  /// Removes the mapping; later calls do nothing.
+  /// Removes the mapping. Later calls do nothing.
   public func unmap() {
     lock.lock()
     defer { lock.unlock() }
@@ -108,7 +110,7 @@ public final class DriverSharedMemory: @unchecked Sendable {
     }
   }
 
-  /// Calls `body` with the whole mapping; the buffer must not escape the closure.
+  /// Calls `body` with the whole mapping. The buffer must not escape the closure.
   public func withUnsafeBytes<Result>(
     _ body: (UnsafeRawBufferPointer) throws -> Result
   ) throws -> Result {
@@ -117,7 +119,7 @@ public final class DriverSharedMemory: @unchecked Sendable {
     }
   }
 
-  /// Calls `body` with the whole writable mapping; the buffer must not escape the closure.
+  /// Calls `body` with the whole writable mapping. The buffer must not escape the closure.
   public func withUnsafeMutableBytes<Result>(
     _ body: (UnsafeMutableRawBufferPointer) throws -> Result
   ) throws -> Result {

@@ -262,11 +262,13 @@ extension DriverContext {
   /// Creates one memory entry that concatenates the valid data of `handles` in order, for a
   /// single DMA preparation or host mapping.
   ///
-  /// The chain retains every source descriptor, keeps each source from being released until the
-  /// chain is, and follows the same length and limit rules as
-  /// ``memorySubrange(_:offset:length:direction:)``. Reading or writing a chain through the
-  /// runtime requires DriverKit to map it into the extension; when it cannot, those commands
-  /// fail with `kIOReturnUnsupported` while DMA and host mapping still work.
+  /// The chain retains every source descriptor. A source cannot be released until the chain is
+  /// released. The chain follows the length and limit rules of
+  /// ``memorySubrange(_:offset:length:direction:)``.
+  ///
+  /// Runtime reads and writes of a chain require DriverKit to map the chain into the extension.
+  /// When DriverKit cannot, those commands fail with `kIOReturnUnsupported`. DMA and host mapping
+  /// still work.
   public func memoryChain(
     _ handles: [DriverMemoryHandle],
     direction: DriverMemoryDirection
@@ -279,7 +281,7 @@ extension DriverContext {
   /// Releases a native buffer and any prepared DMA mapping.
   ///
   /// Throws ``DriverMemoryError/inUse`` and releases nothing while a subrange or chain built
-  /// from `handle` exists; release those first.
+  /// from `handle` exists. Release those first.
   public func releaseMemory(_ handle: DriverMemoryHandle) async throws {
     _ = try await executeMemory(.releaseMemory(handle), mapping: [.inUse, .notOwner])
   }

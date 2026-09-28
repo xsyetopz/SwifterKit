@@ -38,7 +38,7 @@ enum RuntimeReporterKind: UInt32, CaseIterable {
   case histogram = 3
 }
 
-/// The update a `reporterUpdate` command applies; see `SwifterKitReporterUpdate`.
+/// The update a `reporterUpdate` command applies. See `SwifterKitReporterUpdate`.
 enum RuntimeReporterOperation: UInt32, CaseIterable {
   case setValue = 1
   case incrementValue = 2
@@ -61,7 +61,7 @@ enum RuntimePropertyTag: UInt8, CaseIterable {
 
 /// Bounds of the registry-property encoding.
 enum RuntimePropertyLimits {
-  /// The deepest nesting either side accepts; a top-level value is at depth 1.
+  /// The deepest nesting either side accepts. A top-level value is at depth 1.
   static let maximumDepth = 8
   /// The longest registry name: `IOPropertyName` and `IORegistryPlaneName` hold 128 bytes
   /// including the terminating NUL.

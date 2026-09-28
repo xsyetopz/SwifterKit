@@ -5,7 +5,7 @@
   actor IOKitDriverConnection: DriverConnection {
     private var connection: io_connect_t
     private let serviceID: UInt64
-    /// Created by the first registration; releasing it tears the port down.
+    /// Created by the first registration. Releasing it tears the port down.
     private var notificationPort: IOKitNotificationPort?
     /// Live mappings by memory type, unmapped before the connection closes.
     private var mappings: [UInt32: WeakSharedMemory] = [:]
@@ -17,7 +17,7 @@
       self.serviceID = serviceID
     }
 
-    // Mappings end while the connection is still open; the service closes next, so the extension
+    // Mappings end while the connection is still open. The service closes next, so the extension
     // sends nothing more, and the stored notification port is destroyed after this body runs.
     deinit {
       for mapping in mappings.values { mapping.memory?.unmap() }

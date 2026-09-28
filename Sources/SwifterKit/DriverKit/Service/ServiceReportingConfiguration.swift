@@ -2,7 +2,7 @@ import Foundation
 
 /// IOReporting channels the generated service publishes for the system's IOReport clients.
 ///
-/// The extension creates the reporters when the service starts and publishes their legend with
+/// The extension creates the reporters when the service starts. It publishes their legend with
 /// `IOService::SetLegend`, so the channels exist whether or not a host is connected. The Swift
 /// driver updates values through calls such as
 /// ``DriverContext/setReportValue(_:reporter:channel:)``, naming a reporter by its index in
@@ -38,7 +38,7 @@ public struct ReporterConfiguration: Sendable, Hashable {
   public let group: String
   /// The legend subgroup, `IOReportSubGroupName`, if any.
   public let subgroup: String?
-  /// The reporter's channels; a histogram has exactly one.
+  /// The reporter's channels. A histogram has exactly one.
   public let channels: [ReportChannel]
   /// The categories clients filter by.
   public let categories: ReportCategories
@@ -48,7 +48,7 @@ public struct ReporterConfiguration: Sendable, Hashable {
   /// Creates a reporter configuration.
   ///
   /// Without a `unit`, a state reporter uses ``ReportUnit/hardwareTicks``, the time base
-  /// ``DriverContext/setReportState(_:reporter:channel:)`` accounts residency in; other reporters
+  /// ``DriverContext/setReportState(_:reporter:channel:)`` accounts residency in. Other reporters
   /// use ``ReportUnit/none``.
   public init(
     kind: Kind,
@@ -69,7 +69,7 @@ public struct ReporterConfiguration: Sendable, Hashable {
 
 /// A reporter channel: a nonzero identifier unique within the service, and a name.
 public struct ReportChannel: Sendable, Hashable {
-  /// The channel identifier; `IOREPORT_MAKEID` packs up to eight ASCII bytes into one.
+  /// The channel identifier. `IOREPORT_MAKEID` packs up to eight ASCII bytes into one.
   public let id: UInt64
   /// The channel name clients display.
   public let name: String
@@ -83,7 +83,7 @@ public struct ReportChannel: Sendable, Hashable {
 
 /// A histogram segment, `IOHistogramSegmentConfig`.
 ///
-/// Bucket `n` of a linear segment ends at `baseBucketWidth * (n + 1)`; bucket `n` of an
+/// Bucket `n` of a linear segment ends at `baseBucketWidth * (n + 1)`. Bucket `n` of an
 /// exponential segment ends at `baseBucketWidth` raised to `n + 1`.
 public struct HistogramSegment: Sendable, Hashable {
   /// How bucket bounds grow.

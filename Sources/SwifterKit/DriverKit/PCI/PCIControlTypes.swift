@@ -164,16 +164,16 @@ public struct PCIASPMState: OptionSet, Sendable, Hashable {
 /// Boolean `IOPCIDevice` registry properties that `IOPCIDevice::SetProperties` accepts.
 ///
 /// A `nil` field leaves that property unchanged. SwifterKit exposes only the settable keys whose
-/// SDK description makes the value a Boolean; numeric or undocumented keys such as
+/// SDK description makes the value a Boolean. Numeric or undocumented keys such as
 /// `IOPCIRetrainLinkMask`, `wait-for-link-up`, `IOPCIDeviceCrashResetType`, and
 /// `IOPCIKernelMemoryAccess` are not accepted.
 public struct PCIDeviceProperties: Sendable, Hashable {
-  /// `IOPMPCIConfigSpaceVolatile`; `false` stops configuration-space save and restore on power
+  /// `IOPMPCIConfigSpaceVolatile`. `false` stops configuration-space save and restore on power
   /// state transitions.
   public var configSpaceVolatile: Bool?
-  /// `IOPMPCISleepLinkDisable`; `true` disables the PCI Express link on sleep.
+  /// `IOPMPCISleepLinkDisable`. `true` disables the PCI Express link on sleep.
   public var sleepLinkDisable: Bool?
-  /// `IOPMPCISleepReset`; `true` issues a secondary bus reset on sleep.
+  /// `IOPMPCISleepReset`. `true` issues a secondary bus reset on sleep.
   public var sleepReset: Bool?
 
   /// Creates a property update.

@@ -4,7 +4,7 @@ extension FastPathConfiguration {
   /// Checks every program against ``FastPathLimits`` and the driver's interrupt sources and PCI
   /// device.
   ///
-  /// The generator calls this before emitting the tables; nothing is truncated or clamped.
+  /// The generator calls this before emitting the tables. Nothing is truncated or clamped.
   public func validate(for configuration: DriverConfiguration) throws(FastPathError) {
     try validate(
       interruptSources: configuration.interruptSources.map(\.index),

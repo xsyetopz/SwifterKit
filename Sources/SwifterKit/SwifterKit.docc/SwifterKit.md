@@ -1,22 +1,33 @@
 # ``SwifterKit``
 
-Author DriverKit extensions in Swift. ``SwiftDriver`` supplies lifecycle behavior, ``DriverConfiguration`` describes the extension, and ``DriverContext`` issues typed operations after the internal runtime connects.
-
-SwifterKit 0.2.0 requires Swift 6.1 (Xcode 16.3) or later.
+Write DriverKit extensions in Swift.
 
 ## Overview
 
-A driver declares the capabilities and static device metadata required by its generated extension. At runtime, the extension forwards lifecycle and device events to Swift, and the driver responds through capability-specific methods on ``DriverContext``.
+A driver has three parts:
 
-The package includes APIs for HID, USB, PCI, serial, block storage, MIDI, Ethernet, audio, SCSI, video, interrupts, and managed native memory. A generated extension only exposes the capabilities included in its ``DriverConfiguration``.
+- ``DriverConfiguration`` describes the extension: bundle identifier, provider matching,
+  ``RuntimeCapabilities``, and static device metadata.
+- ``DriverExtensionGenerator`` writes the native DriverKit extension project from that
+  configuration. Driver authors write no C++, C, Objective-C, or IIG.
+- A ``SwiftDriver`` type runs in the host process. ``DriverHost`` delivers lifecycle and device
+  events to it, and the driver acts through typed methods on ``DriverContext``.
+
+SwifterKit covers HID, USB, PCI, serial, block storage, MIDI, Ethernet, audio, SCSI, video,
+interrupts, and managed native memory. A generated extension exposes only the capabilities in
+its ``DriverConfiguration``.
+
+SwifterKit 0.2.1 requires Swift 6.1 (Xcode 16.3) or later and macOS 10.15 or later. The IOKit
+transport builds only on Apple platforms. Configuration and generation also build on Linux. No
+0.2.1 path has run on physical hardware.
 
 ## Topics
 
 ### Essentials
 
 - <doc:GettingStarted>
-- <doc:NativeBoundary>
 - <doc:Capabilities>
+- <doc:NativeBoundary>
 - <doc:FastPath>
 
 ### Driver authoring

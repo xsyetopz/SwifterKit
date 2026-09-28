@@ -195,9 +195,9 @@ public struct EthernetReceiveMetadata: Sendable, Hashable {
   public var checksumFlags: EthernetReceiveChecksumFlags
   /// Data checksum when ``checksumFlags`` contains ``EthernetReceiveChecksumFlags/dataValid``.
   public var checksumValue: UInt16
-  /// Coalesced segments (`setLROInfo`); empty when the frame is not coalesced.
+  /// Coalesced segments (`setLROInfo`). Empty when the frame is not coalesced.
   public var lroFlags: EthernetLROFlags
-  /// Number of coalesced segments; nonzero exactly when ``lroFlags`` is not empty.
+  /// Number of coalesced segments. Nonzero exactly when ``lroFlags`` is not empty.
   public var lroSegmentCount: UInt8
   /// Receive timestamp (`setTimestamp`), or nil to clear it (`clearTimestamp`).
   public var timestamp: UInt64?
@@ -281,7 +281,7 @@ public struct EthernetReceivedFrame: Sendable, Hashable {
 public struct EthernetTransmitCompletion: Sendable, Hashable {
   /// Identifier from ``EthernetTransmitRequest/requestID``.
   public let requestID: UInt32
-  /// `IOReturn` status (`setCompletionStatus`); zero for success.
+  /// `IOReturn` status (`setCompletionStatus`). Zero for success.
   public let status: Int32
   /// Transmit timestamp (`setTimestamp`), typically when the stack requested one.
   public let timestamp: UInt64?

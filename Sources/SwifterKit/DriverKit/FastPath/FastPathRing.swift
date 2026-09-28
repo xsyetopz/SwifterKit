@@ -10,7 +10,7 @@ import Foundation
 /// ``FastPathOperand/ringDeviceAddress(_:_:)``. Swift maps the same buffer with
 /// ``DriverContext/mapRing(_:)``.
 public struct FastPathRing: Sendable, Hashable {
-  /// The ring's identifier, unique in its configuration and at most `0xFF_FFFF`; operations and
+  /// The ring's identifier, unique in its configuration and at most `0xFF_FFFF`. Operations and
   /// ``DriverContext/mapRing(_:)`` name the ring by it.
   public let id: UInt32
   /// The bytes of one entry, a power of two from 8 through 4096.
@@ -37,11 +37,11 @@ public struct FastPathRing: Sendable, Hashable {
 /// The byte layout of a ring buffer, shared by the extension and a ``DriverSharedMemory`` from
 /// ``DriverContext/mapRing(_:)``.
 ///
-/// All fields are little-endian `UInt32` values in the header; the rest of the header is zero.
-/// Indices are always below the entry count: the extension masks them by `entryCount - 1`, and a
+/// All fields are little-endian `UInt32` values in the header. The rest of the header is zero.
+/// Indices are always below the entry count. The extension masks them by `entryCount - 1`, and a
 /// host that writes an index must do the same. The extension stores an index with release
-/// ordering after the entries it covers, so a host that reads the index and then the entries
-/// sees them written.
+/// ordering after the entries it covers. A host that reads the index and then the entries sees
+/// the written entries.
 public enum FastPathRingLayout {
   /// The header bytes before entry 0.
   public static let headerSize = RuntimeFastPathLimits.ringHeaderSize

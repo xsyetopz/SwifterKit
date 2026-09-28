@@ -11,16 +11,21 @@
 #include "SwifterKitRuntimeServiceState.h"
 
 // Power-state contract:
-// - DriverKit calls SetPowerState on the default queue before it changes the power state. The
-//   extension queues a required servicePowerState event for Swift and acknowledges the change by
-//   passing the call to super exactly once, at the first of: Swift completes the request ID;
-//   kPowerStateTimeoutNanoseconds elapse; the host detaches or crashes; the service stops; or a
-//   newer SetPowerState supersedes it.
+// - DriverKit calls SetPowerState on the default queue before it changes the power state.
+// - The extension queues a required servicePowerState event for Swift.
+// - The extension acknowledges the change by passing the call to super exactly once, at the
+//   first of these events:
+// - Swift completes the request ID.
+// - kPowerStateTimeoutNanoseconds elapses.
+// - The host detaches or crashes.
+// - The service stops.
+// - A newer SetPowerState supersedes it.
 // - It acknowledges at once when no host is registered, the service has stopped, the timeout
 //   cannot be armed, or the event cannot be queued.
 // - DriverKit's acknowledgement carries no status, so every path acknowledges the same way.
-// - The pending request changes only under eventLock; the acknowledgement is sent after dropping
-//   it. The timer, its action, and SetPowerState all run on the default queue, as does Stop.
+// - The pending request changes only under eventLock. The acknowledgement is sent after
+//   dropping it.
+// - The timer, its action, and SetPowerState all run on the default queue, as does Stop.
 
 namespace {
     // Below DriverKit's own acknowledgement deadline, so the system never times the change out.
@@ -64,7 +69,7 @@ kern_return_t SwifterKitRuntimeService::SetPowerState_Impl(uint32_t powerFlags) 
         if (result == kIOReturnSuccess) {
             result = ivars->powerTimer->SetHandler(ivars->powerTimerAction);
         }
-        // A dispatch source may start disabled; the timeout must be able to fire.
+        // A dispatch source may start disabled. The timeout must be able to fire.
         if (result == kIOReturnSuccess) {
             result = ivars->powerTimer->SetEnableWithCompletion(true, nullptr);
         }

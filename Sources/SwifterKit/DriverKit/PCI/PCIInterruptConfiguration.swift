@@ -51,7 +51,7 @@ public struct PCIInterruptConfiguration: Sendable, Hashable {
   public let type: PCIInterruptType
   /// The minimum number of vectors for allocation to succeed.
   public let requiredVectorCount: UInt32
-  /// The number of vectors to request; DriverKit may allocate fewer, but not fewer than required.
+  /// The number of vectors to request. DriverKit may allocate fewer, but not fewer than required.
   public let requestedVectorCount: UInt32
 
   /// Creates an interrupt allocation request.

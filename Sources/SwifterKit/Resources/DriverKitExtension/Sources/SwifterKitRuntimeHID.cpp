@@ -178,7 +178,7 @@ bool SwifterKitRuntimeService::handleStart(IOService* provider) {
 
 OSDictionary* SwifterKitRuntimeService::newDeviceDescription() {
     #if SWIFTERKIT_HID_USB_DEVICE
-    // The superclass reads the interface's descriptors; configured properties override them.
+    // The superclass reads the interface's descriptors. Configured properties override them.
     OSDictionary* description = super::newDeviceDescription();
     if (description == nullptr || kSwifterKitHIDDevicePropertiesLength == 0) {
         return description;

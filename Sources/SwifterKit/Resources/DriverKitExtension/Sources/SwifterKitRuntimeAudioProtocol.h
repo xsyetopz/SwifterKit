@@ -10,7 +10,7 @@
 // audioObject event 0x0A01. Every multi-byte field is little-endian, as in
 // SwifterKitRuntimeProtocol.h, and every reserved field must be zero.
 
-// kind is a kSwifterKitAudioTarget value; index selects a box or clock device, or holds an
+// kind is a kSwifterKitAudioTarget value. Index selects a box or clock device, or holds an
 // object ID.
 struct __attribute__((packed)) SwifterKitAudioObjectTarget {
     uint32_t kind;
@@ -28,8 +28,8 @@ struct __attribute__((packed)) SwifterKitAudioObjectInfoHeader {
     uint32_t reserved;
 };
 
-// Heads SetObjectName, PropertiesChanged, and SetClockSampleRates; count is the byte length of
-// the name or the number of selectors or sample rates that follow.
+// Heads SetObjectName, PropertiesChanged, and SetClockSampleRates. Count is the byte length of
+// the name, or the number of selectors or sample rates that follow.
 struct __attribute__((packed)) SwifterKitAudioListHeader {
     SwifterKitAudioObjectTarget target;
     uint32_t count;
@@ -98,7 +98,7 @@ struct __attribute__((packed)) SwifterKitAudioRequestAnswer {
 };
 
 // kind is a kSwifterKitAudioObjectEvent value. BoxRequest and ClockRequest are required events
-// with a nonzero request ID; the others carry request ID zero.
+// with a nonzero request ID. The others carry request ID zero.
 struct __attribute__((packed)) SwifterKitAudioObjectEvent {
     uint32_t kind;
     uint32_t index;
@@ -109,7 +109,7 @@ struct __attribute__((packed)) SwifterKitAudioObjectEvent {
 
 // Device, stream, control, and custom-property opcodes 0x0A20-0x0A29.
 // SetDeviceProperty selectors are kSwifterKitAudioDeviceProperty values. The can-be-default and
-// wants-stream-formats-restored values are 0 or 1; preferred stereo channels carry the left
+// wants-stream-formats-restored values are 0 or 1. Preferred stereo channels carry the left
 // channel in the low word.
 struct __attribute__((packed)) SwifterKitAudioMemberValue {
     uint32_t selector;
@@ -210,7 +210,7 @@ struct __attribute__((packed)) SwifterKitAudioCustomPropertyInfo {
     uint32_t reserved;
 };
 
-// kind is a kSwifterKitAudioMember value; a stream's identifier is its index.
+// kind is a kSwifterKitAudioMember value. A stream's identifier is its index.
 struct __attribute__((packed)) SwifterKitAudioMemberAttachment {
     uint32_t kind;
     uint32_t identifier;

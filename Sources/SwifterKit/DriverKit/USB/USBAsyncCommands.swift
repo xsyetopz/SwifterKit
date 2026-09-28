@@ -18,7 +18,7 @@ extension DriverCommand {
 
   /// Creates a command that enqueues an asynchronous request on the default control endpoint.
   ///
-  /// The response carries a request identifier; the result arrives in a
+  /// The response carries a request identifier. The result arrives in a
   /// ``USBDeviceRequestCompletion`` event. `data` is the OUT data stage and must be empty for an
   /// IN request.
   public static func usbEnqueueControlTransfer(
@@ -66,7 +66,7 @@ extension DriverCommand {
   /// Creates a command that submits consecutive IN transfers from a pipe's descriptor ring.
   ///
   /// Transfer `n` reads up to `lengths[n]` bytes into ring entry `(firstIndex + n) % entryCount`.
-  /// The response is the number of transfers the pipe accepted; each accepted transfer completes
+  /// The response is the number of transfers the pipe accepted. Each accepted transfer completes
   /// with a ``USBBundledIOCompletion`` event.
   public static func usbEnqueueBundledReads(
     endpoint: UInt8,
@@ -83,7 +83,7 @@ extension DriverCommand {
   /// Creates a command that submits consecutive OUT transfers through a pipe's descriptor ring.
   ///
   /// Transfer `n` writes `transfers[n]` from ring entry `(firstIndex + n) % entryCount`. The
-  /// response is the number of transfers the pipe accepted; each accepted transfer completes with
+  /// response is the number of transfers the pipe accepted. Each accepted transfer completes with
   /// a ``USBBundledIOCompletion`` event.
   public static func usbEnqueueBundledWrites(
     endpoint: UInt8,

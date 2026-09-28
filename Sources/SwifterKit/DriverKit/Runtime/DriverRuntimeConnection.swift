@@ -68,9 +68,9 @@ public actor DriverRuntimeConnection {
 
   /// Wraps `memory` and holds it until a release of the returned handle succeeds.
   ///
-  /// Closing the connection drops the hold without ending the wrap: the extension releases the
-  /// entry only when DriverKit later stops the user client, which the host cannot observe, so
-  /// the allocation keeps its pages.
+  /// Closing the connection drops the hold without ending the wrap. The extension releases the
+  /// entry only when DriverKit later stops the user client. The host cannot observe that event,
+  /// so the allocation keeps its pages.
   func wrapHostMemory(
     _ memory: DriverHostMemory,
     direction: DriverMemoryDirection
@@ -79,8 +79,8 @@ public actor DriverRuntimeConnection {
       runtimePayload: await execute(.wrapClientMemory([memory.segment], direction: direction))
     )
     memory.beginWrap()
-    // Only this connection can release its wrap, so a handle it still holds returns only after
-    // the service stopped and restarted its memory pool; the earlier allocation then keeps its
+    // Only this connection can release its wrap. A handle it still holds returns only after the
+    // service stopped and restarted its memory pool. The earlier allocation then keeps its
     // pages for good, which is safe.
     wrappedHostMemory[handle.rawValue] = memory
     return handle
@@ -90,7 +90,7 @@ public actor DriverRuntimeConnection {
   ///
   /// Registration happens before this method returns, so no event queued afterward goes
   /// unnoticed. See ``DriverEventSequence`` for how the sequence drains, waits, and ends.
-  /// Calling this method again replaces the registration; the earlier sequence ends once its
+  /// Calling this method again replaces the registration. The earlier sequence ends once its
   /// queue is empty.
   public func events() async throws -> DriverEventSequence {
     guard let session else { throw DriverRuntimeError.closed }
@@ -176,7 +176,7 @@ public actor DriverRuntimeConnection {
   ) async throws -> RuntimeMessage {
     guard let session else { throw DriverRuntimeError.closed }
 
-    // The handshake header carries the newest offered version; later messages use the selected one.
+    // The handshake header carries the newest offered version. Later messages use the selected one.
     let request = RuntimeMessage(
       version: protocolVersion,
       kind: kind,

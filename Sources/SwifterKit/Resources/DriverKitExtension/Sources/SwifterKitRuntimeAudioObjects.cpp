@@ -23,7 +23,7 @@ namespace {
         return opcode == static_cast<uint32_t>(expected);
     }
 
-    // Resolves a device, box, clock-device, or object-ID target; the driver is not an object.
+    // Resolves a device, box, clock-device, or object-ID target. The driver is not an object.
     IOUserAudioObject* ResolveObject(
         SwifterKitRuntimeService* service,
         const SwifterKitRuntimeService_IVars* state,

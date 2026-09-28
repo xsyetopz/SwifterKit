@@ -15,7 +15,7 @@ public protocol DriverConnection: Sendable {
   /// Registers for asynchronous completions of one external method.
   ///
   /// The connection invokes `selector` asynchronously once. The returned stream yields each time
-  /// the user client signals that completion, and buffers at most one pending signal, so signals
+  /// the user client signals that completion. It buffers at most one pending signal, so signals
   /// sent while nobody awaits the stream coalesce into one element. A later registration finishes
   /// the stream an earlier registration returned. ``close()`` finishes every stream.
   func notifications(selector: UInt32) async throws -> AsyncStream<Void>

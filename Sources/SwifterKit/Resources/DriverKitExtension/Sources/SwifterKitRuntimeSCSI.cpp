@@ -263,8 +263,8 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
         || completion == nullptr) {
         return kIOReturnBadArgument;
     }
-    // The header defines no meaning for an error return, so every task that can be answered is
-    // answered through its completion, exactly once: a task this runtime cannot take completes
+    // The header defines no meaning for an error return. Every task that can be answered is
+    // answered through its completion, exactly once. A task this runtime cannot take completes
     // with a delivery failure and reports Request_In_Process, as an enqueue failure does.
     *response = kSCSIServiceResponse_Request_In_Process;
     if (request.version != kScsiUserParallelTaskCurrentVersion1
@@ -275,7 +275,7 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
         return kIOReturnSuccess;
     }
     // The header allows UserGetDataBuffer only inside UserProcessParallelTask, so the buffer is
-    // fetched here; a task whose buffer is unavailable is answered instead of forwarded.
+    // fetched here. A task whose buffer is unavailable is answered instead of forwarded.
     IOBufferMemoryDescriptor* dataBuffer = nullptr;
     IOMemoryMap* dataMap = nullptr;
     if (kSwifterKitSCSIProvidesTaskDataBuffers && request.fRequestedTransferCount != 0
@@ -313,7 +313,7 @@ kern_return_t SwifterKitRuntimeService::UserProcessParallelTask_Impl(
         }
     }
     if (pending == nullptr) {
-        // Every task slot is taken; the completion was not retained or stored.
+        // Every task slot is taken. The completion was not retained or stored.
         IOLockUnlock(ivars->scsiLock);
         OSSafeReleaseNULL(dataMap);
         OSSafeReleaseNULL(dataBuffer);

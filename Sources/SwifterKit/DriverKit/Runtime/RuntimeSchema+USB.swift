@@ -25,7 +25,7 @@ enum RuntimeUSBLimits {
 }
 
 /// Which configuration descriptor a `usbCopyConfigurationDescriptor` request names, its first
-/// byte; see `SwifterKitUSBConfigurationRequest`.
+/// byte. See `SwifterKitUSBConfigurationRequest`.
 enum RuntimeUSBConfigurationSelector: UInt8, CaseIterable {
   /// The active configuration.
   case current = 0

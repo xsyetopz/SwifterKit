@@ -1,11 +1,12 @@
 #ifndef SwifterKitRuntimeMediaControls_h
 #define SwifterKitRuntimeMediaControls_h
 
-// Control and custom-property plumbing shared by the audio and video runtimes. AudioDriverKit and
-// VideoDriverKit declare parallel control classes, so the templates here take a family struct that
-// names that family's classes and schema tables (see SwifterKitRuntimeAudioControls.cpp and
-// SwifterKitRuntimeVideoControls.cpp). This header includes neither framework: the audio runtime
-// builds against SDKs without VideoDriverKit, and the video runtime builds without audio.
+// Control and custom-property plumbing shared by the audio and video runtimes.
+// AudioDriverKit and VideoDriverKit declare parallel control classes. The templates here take a
+// family struct that names that family's classes and schema tables (see
+// SwifterKitRuntimeAudioControls.cpp and SwifterKitRuntimeVideoControls.cpp).
+// This header includes neither framework: the audio runtime builds against SDKs without
+// VideoDriverKit, and the video runtime builds without audio.
 
 #include <DriverKit/IOLib.h>
 #include <DriverKit/OSData.h>
@@ -45,7 +46,7 @@ struct SwifterKitMediaCallbackState {
     uint32_t identifier;
 };
 
-// Allocates a subclass's ivars and retains `service`; on failure ivars stays null.
+// Allocates a subclass's ivars and retains `service`. On failure, ivars stays null.
 template<typename IVars>
 bool SwifterKitAttachCallbackState(
     IVars*& ivars,
@@ -161,7 +162,7 @@ kern_return_t SwifterKitDescribeSelector(Selector* selector, const Configuration
 }
 
 // Creates the configured control. A family with a direction control (VideoDriverKit) declares
-// DirectionControl and its kinds; other families reject that kind as unknown.
+// DirectionControl and its kinds. Other families reject that kind as unknown.
 template<typename Family, typename Configuration>
 kern_return_t SwifterKitMakeConfiguredControl(
     SwifterKitRuntimeService* service,
@@ -294,7 +295,7 @@ kern_return_t SwifterKitAddConfiguredCustomProperties(
     return result;
 }
 
-// Casts `control` when its configuration has `kind`; null otherwise.
+// Casts `control` when its configuration has `kind`. Returns null otherwise.
 template<typename Typed, typename Control, typename Configuration>
 Typed* SwifterKitControlOfKind(Control* control, const Configuration& config, uint32_t kind) {
     auto* typed = SwifterKitDynamicCast<Typed>(control);

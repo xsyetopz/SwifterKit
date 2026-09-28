@@ -26,7 +26,7 @@ struct AudioObjectRuntimeContractTests {
         at: output.appendingPathComponent("SwifterKitRuntime.entitlements")
       )
       #expect(entitlements["com.apple.developer.driverkit.family.audio"] as? Bool == true)
-      // Audio keeps this entitlement; see DriverExtensionGenerator.swift.
+      // Audio keeps this entitlement. See DriverExtensionGenerator.swift.
       #expect(
         entitlements["com.apple.developer.driverkit.allow-any-userclient-access"] as? Bool == true
       )

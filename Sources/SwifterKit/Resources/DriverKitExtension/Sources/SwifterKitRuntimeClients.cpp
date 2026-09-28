@@ -49,9 +49,9 @@ auto SwifterKitRuntimeService::NewUserClient_Impl(uint32_t type, IOUserClient** 
     return kIOReturnSuccess;
 }
 
-// Host exit and IOServiceClose reach the runtime client as Stop, which releases its wrapped
-// memory and detaches it. This covers a client that DriverKit reports as crashed instead; the
-// client's later Stop finds nothing left to release.
+// Host exit and IOServiceClose reach the runtime client as Stop. Stop releases the client's
+// wrapped memory and detaches it. DriverKit calls this method instead when it reports the
+// client as crashed. The client's later Stop then finds nothing left to release.
 auto SwifterKitRuntimeService::ClientCrashed_Impl(IOService* client, uint64_t options)
     -> kern_return_t {
 #if SWIFTERKIT_ENABLE_MEMORY
@@ -61,12 +61,14 @@ auto SwifterKitRuntimeService::ClientCrashed_Impl(IOService* client, uint64_t op
     return ClientCrashed(client, options, SUPERDISPATCH);
 }
 
-// Resolves an IOConnectMapMemory64 memory type for the runtime user client, which only an
-// entitled host can open. The type's kind selects the source and its identifier the object;
-// kinds the extension was generated without, identifiers that name nothing, and any bit above
-// the 32-bit type are refused with kIOReturnBadArgument. A ring or data queue answers
-// kIOReturnNotReady while the fast path is not running, and memory another client wrapped
-// answers kIOReturnNotPermitted to `client`.
+// Resolves an IOConnectMapMemory64 memory type for the runtime user client. Only an entitled
+// host can open this client. The type's kind selects the source, and its identifier selects
+// the object. This method refuses with kIOReturnBadArgument when:
+// - The extension was generated without the kind.
+// - The identifier names nothing.
+// - Any bit above the 32-bit type is set.
+// A ring or data queue answers kIOReturnNotReady while the fast path is not running. Memory
+// that another client wrapped answers kIOReturnNotPermitted to `client`.
 auto SwifterKitRuntimeService::CopyClientMemory(
     [[maybe_unused]] IOService* client,
     uint64_t type,

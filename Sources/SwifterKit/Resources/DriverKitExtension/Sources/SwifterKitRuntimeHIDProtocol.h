@@ -6,7 +6,7 @@
 #include "SwifterKitRuntimeSchema.h"
 
 // Packed HID payloads for the 0x031x-0x033x opcodes and events. The Swift encoders in
-// Sources/SwifterKit/DriverKit/HID mirror these layouts; every reserved field must be zero.
+// Sources/SwifterKit/DriverKit/HID mirror these layouts. Every reserved field must be zero.
 // The limits, the element write kind, and the report, delivery, category, and dispatch-state
 // bits come from RuntimeSchema+HID.swift.
 
@@ -76,7 +76,7 @@ struct __attribute__((packed)) SwifterKitHIDElementValue {
     uint64_t timestamp;
 };
 
-// Payload of hidSetElementValue; a data value is followed by length bytes.
+// Payload of hidSetElementValue. A data value is followed by length bytes.
 struct __attribute__((packed)) SwifterKitHIDElementWrite {
     uint32_t cookie;
     uint32_t kind;
@@ -102,7 +102,7 @@ struct __attribute__((packed)) SwifterKitHIDUsageQuery {
     uint32_t reserved;
 };
 
-// Payload of the interface and device report commands; set and process carry length bytes.
+// Payload of the interface and device report commands. Set and process carry length bytes.
 struct __attribute__((packed)) SwifterKitHIDReportRequest {
     uint64_t timestamp;
     uint32_t reportType;
@@ -123,7 +123,7 @@ struct __attribute__((packed)) SwifterKitHIDKeyboardEvent {
     uint32_t reserved;
 };
 
-// Pointer and scroll dispatches share one layout; a pointer carries buttons in z's slot.
+// Pointer and scroll dispatches share one layout. A pointer carries buttons in z's slot.
 struct __attribute__((packed)) SwifterKitHIDPointerEvent {
     uint64_t timestamp;
     int32_t x;

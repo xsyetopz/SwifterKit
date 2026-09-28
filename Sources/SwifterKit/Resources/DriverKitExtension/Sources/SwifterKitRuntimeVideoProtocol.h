@@ -10,7 +10,7 @@
 // multi-byte field is little-endian, as in SwifterKitRuntimeProtocol.h, and every reserved field
 // must be zero.
 
-// kind is a kSwifterKitVideoTarget value; index selects a box or clock device, or holds an
+// kind is a kSwifterKitVideoTarget value. Index selects a box or clock device, or holds an
 // object ID.
 struct __attribute__((packed)) SwifterKitVideoObjectTarget {
     uint32_t kind;
@@ -29,8 +29,8 @@ struct __attribute__((packed)) SwifterKitVideoObjectInfoHeader {
     uint32_t reserved1;
 };
 
-// Heads SetObjectName, PropertiesChanged, and SetClockSampleRates; count is the byte length of
-// the name or the number of selectors or sample rates that follow.
+// Heads SetObjectName, PropertiesChanged, and SetClockSampleRates. Count is the byte length of
+// the name, or the number of selectors or sample rates that follow.
 struct __attribute__((packed)) SwifterKitVideoListHeader {
     SwifterKitVideoObjectTarget target;
     uint32_t count;
@@ -114,11 +114,13 @@ struct __attribute__((packed)) SwifterKitVideoPropertyOwner {
     uint64_t reserved;
 };
 
-// Kinds: 1 device started, 2 device stopped, 3 clock started, 4 clock stopped, 5 clock rate
-// changed, 6 box acquisition request, 7 clock sample-rate request, 8 clock stream format
-// changed (value is the stream object ID), 9 device stream format changed (index zero, value is
-// the stream object ID). Kinds 6 and 7 are required events with a nonzero
-// request ID; the others carry request ID zero.
+// Kinds:
+// - 1 device started, 2 device stopped, 3 clock started, 4 clock stopped, 5 clock rate changed.
+// - 6 box acquisition request, 7 clock sample-rate request.
+// - 8 clock stream format changed (value is the stream object ID).
+// - 9 device stream format changed (index zero, value is the stream object ID).
+//
+// Kinds 6 and 7 are required events with a nonzero request ID. The others carry request ID zero.
 struct __attribute__((packed)) SwifterKitVideoObjectEvent {
     uint32_t kind;
     uint32_t index;
@@ -128,8 +130,11 @@ struct __attribute__((packed)) SwifterKitVideoObjectEvent {
 };
 
 // Device, stream, buffer, control, and custom-property opcodes 0x0C20-0x0C2D.
-// SetDeviceProperty selectors: 1-3 can-be-default input, output, system output (0 or 1); 4-5
-// input and output safety offsets; 6 preferred stereo channels (left in the low word).
+//
+// SetDeviceProperty selectors:
+// - 1-3 can-be-default input, output, system output (0 or 1).
+// - 4-5 input and output safety offsets.
+// - 6 preferred stereo channels (left in the low word).
 struct __attribute__((packed)) SwifterKitVideoMemberValue {
     uint32_t selector;
     uint32_t reserved;
@@ -157,18 +162,22 @@ struct __attribute__((packed)) SwifterKitVideoChannelLayoutHeader {
     uint32_t count;
 };
 
-// GetStreamState, GetControlInfo, and GetCustomPropertyInfo carry a zero argument; GetBufferInfo
-// carries the buffer index and GetStreamMemoryObjectID the memory type.
+// GetStreamState, GetControlInfo, and GetCustomPropertyInfo carry a zero argument. GetBufferInfo
+// carries the buffer index, and GetStreamMemoryObjectID the memory type.
 struct __attribute__((packed)) SwifterKitVideoMemberRequest {
     uint32_t identifier;
     uint32_t argument;
 };
 
-// SetStreamProperty (identifier is the stream index) and SetControlProperty. Stream selectors:
-// 1 active, 2 starting channel, 3 terminal type, 4 current format index, 5 buffer capacities
-// (data bytes in the low word, control bytes in the high word), 6 queue entry count. Selectors 5
-// and 6 wait for PerformDeviceConfigurationChange. Control selectors: 1 slider range, 2 panning
-// channels, each with the first value in the low word.
+// SetStreamProperty (identifier is the stream index) and SetControlProperty.
+//
+// Stream selectors:
+// - 1 active, 2 starting channel, 3 terminal type, 4 current format index.
+// - 5 buffer capacities (data bytes in the low word, control bytes in the high word).
+// - 6 queue entry count. Selectors 5 and 6 wait for PerformDeviceConfigurationChange.
+//
+// Control selectors: 1 slider range, 2 panning channels, each with the first value in the low
+// word.
 struct __attribute__((packed)) SwifterKitVideoMemberProperty {
     uint32_t identifier;
     uint32_t selector;

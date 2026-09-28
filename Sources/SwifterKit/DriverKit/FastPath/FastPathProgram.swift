@@ -77,10 +77,10 @@ public enum FastPathComputeOperation: Sendable, Hashable, CaseIterable {
   case or
   /// Bitwise exclusive OR.
   case xor
-  /// Logical shift left; a constant distance must be below 64, a slot distance uses its low six
+  /// Logical shift left. A constant distance must be below 64. A slot distance uses its low six
   /// bits.
   case shiftLeft
-  /// Logical shift right; a constant distance must be below 64, a slot distance uses its low six
+  /// Logical shift right. A constant distance must be below 64. A slot distance uses its low six
   /// bits.
   case shiftRight
   /// Wrapping addition.
@@ -119,7 +119,7 @@ public struct FastPathCondition: Sendable, Hashable {
 public enum FastPathOp: Sendable, Hashable {
   /// Reads a register into a slot, zero-extended.
   case read(FastPathRegister, into: FastPathSlot)
-  /// Writes an operand to a register; a constant must fit the register width.
+  /// Writes an operand to a register. A constant must fit the register width.
   case write(FastPathRegister, FastPathOperand)
   /// Reads a register, clears the `clear` bits, sets the `set` bits, and writes it back. Both
   /// masks must fit the register width.
@@ -127,7 +127,7 @@ public enum FastPathOp: Sendable, Hashable {
   /// Replaces a slot with the result of applying an operation to it and an operand.
   case compute(FastPathSlot, FastPathComputeOperation, FastPathOperand)
   /// Reads a register until `value & mask == equals`, at most `maxIterations` times with
-  /// `intervalMicroseconds` between reads; when it never matches, the program ends with
+  /// `intervalMicroseconds` between reads. When it never matches, the program ends with
   /// `kIOReturnTimeout`.
   case poll(
     FastPathRegister,
@@ -156,7 +156,7 @@ public enum FastPathOp: Sendable, Hashable {
     into: FastPathSlot
   )
   /// Writes an operand to `width` bytes at `fieldOffset` of the ring entry whose index is in
-  /// `entry`, masked by the entry count; a constant must fit the width.
+  /// `entry`, masked by the entry count. A constant must fit the width.
   case ringStore(
     UInt32,
     entry: FastPathSlot,
@@ -168,7 +168,7 @@ public enum FastPathOp: Sendable, Hashable {
   case ringAdvance(UInt32, FastPathRingIndex, by: FastPathOperand)
   /// Appends the slots' values, 8 little-endian bytes each in order, as one entry of the
   /// ``FastPathDataQueueDirection/toHost`` data queue with this identifier. An entry that finds
-  /// the queue full is dropped and counted; the program continues either way.
+  /// the queue full is dropped and counted. The program continues either way.
   case enqueue(UInt32, slots: [FastPathSlot])
 }
 
@@ -178,7 +178,7 @@ public enum FastPathTrigger: Sendable, Hashable {
   public enum Delivery: Sendable, Hashable, CaseIterable {
     /// The event is always delivered.
     case always
-    /// The program handles the interrupt; the event is not delivered.
+    /// The program handles the interrupt. The event is not delivered.
     case never
     /// The event is delivered when the program ran an `emit`.
     case whenProgramEmits
@@ -193,9 +193,9 @@ public enum FastPathTrigger: Sendable, Hashable {
   /// When Swift runs the program.
   case command
   /// Once for each entry of the ``FastPathDataQueueDirection/toExtension`` data queue with this
-  /// identifier, on the extension's runtime queue, with the entry's first
-  /// ``FastPathProgram/argumentCount`` little-endian 64-bit words in `v0` onward; words the entry
-  /// does not hold are zero. A queue has at most one such program.
+  /// identifier, on the extension's runtime queue. The entry's first
+  /// ``FastPathProgram/argumentCount`` little-endian 64-bit words fill `v0` onward, zero for words
+  /// it does not hold. A queue has at most one such program.
   case dataAvailable(UInt32)
 }
 

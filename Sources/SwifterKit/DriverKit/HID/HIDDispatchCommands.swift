@@ -151,8 +151,8 @@ extension DriverCommand {
   }
 
   /// Dispatches an extended game controller through
-  /// `dispatchExtendedGameControllerEventWithOptionalButtons`, which needs DriverKit 23.0 on the
-  /// running system; older systems answer `kIOReturnUnsupported`.
+  /// `dispatchExtendedGameControllerEventWithOptionalButtons`. This needs DriverKit 23.0.
+  /// Older systems answer `kIOReturnUnsupported`.
   public static func dispatchHIDExtendedGameControllerEvent(
     _ state: HIDGameControllerState,
     buttons: HIDGameControllerOptionalButtons,
@@ -170,7 +170,7 @@ extension DriverCommand {
     dispatch(.hidSetLED, HIDLimits.words([RuntimeHIDLimits.ledUsagePage, usage, on ? 1 : 0, 0]))
   }
 
-  /// Sets an LED through `SetLEDState`; the change is also delivered as
+  /// Sets an LED through `SetLEDState`. The runtime also delivers the change as
   /// ``DriverEvent/hidLEDState()``.
   public static func setHIDLEDState(usagePage: UInt32, usage: UInt32, on: Bool) -> Self {
     dispatch(.hidSetLEDState, HIDLimits.words([usagePage, usage, on ? 1 : 0, 0]))
@@ -186,7 +186,7 @@ extension DriverCommand {
     )
   }
 
-  /// Chooses which parsed `IOUserHIDEventDriver` categories dispatch events; categories the
+  /// Chooses which parsed `IOUserHIDEventDriver` categories dispatch events. Categories the
   /// configuration did not parse stay silent.
   public static func setHIDEventDriverCategories(
     _ categories: HIDEventDriverCategories

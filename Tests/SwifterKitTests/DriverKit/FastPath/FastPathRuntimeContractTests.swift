@@ -98,7 +98,7 @@ struct FastPathRuntimeContractTests {
         from: "kern_return_t RunCommand(",
         to: "}  // namespace"
       )
-      // Every refusal returns before the program runs; a program that ran answers one reply
+      // Every refusal returns before the program runs. A program that ran answers one reply
       // carrying its own status, even a timeout or fail status.
       try expectOrder(
         in: command,
@@ -125,7 +125,7 @@ struct FastPathRuntimeContractTests {
         from: "kern_return_t ExecuteHoldingLock(",
         to: "kern_return_t RunPrograms("
       )
-      // The lock-held body runs the program; RunProgram wraps it in the lock.
+      // The lock-held body runs the program. RunProgram wraps it in the lock.
       try expectOrder(
         in: run,
         "state->fastPathRunning",

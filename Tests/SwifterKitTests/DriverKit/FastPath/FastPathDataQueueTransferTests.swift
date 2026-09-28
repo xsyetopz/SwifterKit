@@ -4,11 +4,12 @@ import Testing
 @testable import SwifterKit
 
 /// Runs `SwifterKitRuntimeFastPathDataQueueTransfer.h` on the host against a fake staging queue:
-/// the extension's doorbell move out of a to-extension host ring, its corrupt-ring refusals, and
-/// the data-available consumer that runs the interpreter on each entry.
+/// - The extension's doorbell move out of a to-extension host ring.
+/// - Its corrupt-ring refusals.
+/// - The data-available consumer that runs the interpreter on each entry.
 @Suite
 struct FastPathDataQueueTransferTests {
-  /// Queue 4 holds 64 records of 64 bytes (32-byte entries); program 0 consumes it.
+  /// Queue 4 holds 64 records of 64 bytes (32-byte entries). Program 0 consumes it.
   static let configuration = FastPathConfiguration(
     programs: [
       FastPathProgram(
@@ -27,9 +28,9 @@ struct FastPathDataQueueTransferTests {
   )
 
   static let expected = [
-    // Two records fit the staging queue; the third waits and arms DataServiced.
+    // Two records fit the staging queue. The third waits and arms DataServiced.
     "take moved=2 waiting=1 blocked=1 corrupt=0 consumer=2 log=E8,E24,full",
-    // Each entry runs the program on its first words, then is dequeued; the first dequeue after
+    // Each entry runs the program on its first words, then is dequeued. The first dequeue after
     // the failed enqueue reports DataServiced, which is sent only after it.
     "consume ran=1 status=0 slots=5,0,0,5,0,0,0,0 queued=5:0 log=K,D,S",
     "consume ran=1 status=0 slots=1,2,3,3,0,0,0,0 queued=3:3 log=K,D",
@@ -174,7 +175,7 @@ private let fastPathDataQueueTransferHarness = #"""
           void SendDataServiced() { log.Add("S"); }
       };
 
-      // The program's register and ring accesses never run; enqueue records what it queued.
+      // The program's register and ring accesses never run. Enqueue records what it queued.
       struct Access {
           uint64_t queued[2] = {};
           uint64_t Read(uint32_t, uint64_t, uint32_t) { abort(); }

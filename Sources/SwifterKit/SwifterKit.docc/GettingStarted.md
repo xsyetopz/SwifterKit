@@ -1,12 +1,12 @@
 # Getting started with a Swift driver
 
-Define a ``SwiftDriver`` type, generate its extension project, then run the driver in the host process that connects to the extension. The extension project contains the DriverKit-facing implementation; the driver type contains application-specific behavior.
+Define a ``SwiftDriver`` type, generate its extension project, then run the driver in the host process that connects to the extension. The extension project holds the DriverKit-facing implementation. The driver type holds application-specific behavior.
 
-Use Swift 6.1 or later (Xcode 16.3 minimum). IOKit host transport APIs are available only on Apple platforms; package configuration and generation also build on Linux.
+Toolchain and platform requirements are in <doc:Capabilities#Deployment-requirements>.
 
 ## Define a virtual HID driver
 
-The report descriptor and device identity are static configuration. The example sends one input report during startup and decodes HID output or feature reports when they arrive.
+The report descriptor and device identity are static configuration. The example sends one input report during startup. It decodes HID output or feature reports when they arrive.
 
 ```swift
 import Foundation
@@ -46,9 +46,9 @@ struct ExampleHIDDriver: SwiftDriver {
 }
 ```
 
-``SwiftDriver/start(context:)`` and ``SwiftDriver/handle(event:context:)`` run after the runtime has negotiated the capabilities declared by the generated extension. ``DriverContext`` throws ``DriverContextError/unsupportedCapability(_:)`` when a requested operation is not available.
+``SwiftDriver/start(context:)`` and ``SwiftDriver/handle(event:context:)`` run after the runtime negotiates the capabilities that the generated extension declares. ``DriverContext`` throws ``DriverContextError/unsupportedCapability(_:)`` when a requested operation is not available.
 
-The HID configuration accepts output and feature reports by default. If the report descriptor supports output reports but no feature reports, pass `acceptedHostReportTypes: .output` to ``HIDDeviceConfiguration/init(reportDescriptor:transport:vendorID:productID:versionNumber:countryCode:locationID:manufacturer:product:serialNumber:primaryUsagePage:primaryUsage:acceptedHostReportTypes:answeredReportTypes:)``. Disallowed report types are rejected by the extension and do not become ``DriverEvent`` values.
+The HID configuration accepts output and feature reports by default. A report descriptor can support output reports but no feature reports. In that case, pass `acceptedHostReportTypes: .output` to ``HIDDeviceConfiguration/init(reportDescriptor:transport:vendorID:productID:versionNumber:countryCode:locationID:manufacturer:product:serialNumber:primaryUsagePage:primaryUsage:acceptedHostReportTypes:answeredReportTypes:)``. The extension rejects disallowed report types, and they do not become ``DriverEvent`` values.
 
 ## Generate the extension project
 
@@ -62,11 +62,11 @@ try DriverExtensionGenerator.generate(
 )
 ```
 
-The generator validates capability metadata before writing files. For example, `.hid` requires ``HIDDeviceConfiguration``; a configuration object without matching metadata is rejected.
+The generator validates capability metadata before it writes files. For example, `.hid` requires ``HIDDeviceConfiguration``. The generator rejects a configuration object without matching metadata.
 
 ## Host the driver
 
-Use ``DriverHost`` with a connected runtime to deliver startup, events, and shutdown to a ``SwiftDriver`` implementation. The host serializes lifecycle state and exposes its state through ``DriverHost/state``.
+Use ``DriverHost`` with a connected runtime to deliver startup, events, and shutdown to a ``SwiftDriver`` implementation. The host serializes lifecycle state and exposes it through ``DriverHost/state``.
 
 ```swift
 let host = DriverHost(driver: ExampleHIDDriver())
@@ -77,11 +77,11 @@ await host.stop()
 try await delivery.value
 ```
 
-``DriverHost/runEvents()`` passes each event to ``SwiftDriver/handle(event:context:)``. The extension notifies the host when events are queued, so the host does not poll while the queue is empty. The method returns after ``DriverHost/stop()`` and throws `CancellationError` when its task is cancelled. To run your own loop instead, iterate ``DriverRuntimeConnection/events()``.
+``DriverHost/runEvents()`` passes each event to ``SwiftDriver/handle(event:context:)``. The extension notifies the host when events are queued, so the host does not poll while the queue is empty. The method returns after ``DriverHost/stop()``. It throws `CancellationError` when its task is cancelled. To run your own loop instead, iterate ``DriverRuntimeConnection/events()``.
 
-The host application must have the `com.apple.developer.driverkit.userclient-access` entitlement, and its array must contain the extension's bundle identifier. The generated extension rejects a runtime connection from any process without it. See <doc:NativeBoundary#Host-access>.
+The host application must have the `com.apple.developer.driverkit.userclient-access` entitlement. The entitlement's array must contain the extension's bundle identifier. The generated extension rejects a runtime connection from any process without it. See <doc:NativeBoundary#Host-access>.
 
-For direct access to another DriverKit service rather than a generated SwifterKit extension, use ``DriverClient`` to enumerate services and open a ``DriverSession``. ``DriverSession/call(_:)`` sends a raw ``DriverRequest`` through that service's user client.
+To access another DriverKit service directly, instead of a generated SwifterKit extension, use ``DriverClient`` to enumerate services and open a ``DriverSession``. ``DriverSession/call(_:)`` sends a raw ``DriverRequest`` through that service's user client.
 
 ## Next steps
 

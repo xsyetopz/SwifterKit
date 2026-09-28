@@ -153,8 +153,8 @@ extension DriverCommand {
 
   /// Adds a configured stream, control, or custom property to its owner, or removes it.
   ///
-  /// Streams and controls attach only to the device; custom properties attach to the device
-  /// or the driver. A member must be detached before it moves to another owner.
+  /// Streams and controls attach only to the device. Custom properties attach to the device
+  /// or the driver. Detach a member before it moves to another owner.
   public static func audioSetMemberAttachment(
     _ member: AudioMember,
     owner: AudioMemberOwner

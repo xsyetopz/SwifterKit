@@ -4,19 +4,23 @@ import Foundation
 // bytes are shared memory whose ordering the caller owns, as for `DriverSharedMemory`.
 /// Page-aligned memory this process allocates for ``DriverContext/wrapClientMemory(_:direction:)``.
 ///
-/// The allocation is zeroed. ``wrap(in:direction:)`` wraps it, and the runtime connection holds
-/// this object until ``DriverContext/releaseMemory(_:)`` succeeds for the returned handle, which
-/// the extension refuses with ``DriverMemoryError/inUse`` while a subrange or chain built from
-/// it exists. The pages are freed when the last reference goes away with no wrap outstanding,
-/// so unmap any ``DriverSharedMemory`` from ``DriverContext/mapMemory(_:)`` of the handle, or of
-/// a subrange or chain built from it, before releasing it: that mapping outlives the release.
-/// A wrap whose handle was never released, including one outstanding when its connection
-/// closed, keeps the pages allocated for the life of the process. The extension releases the
-/// entry when DriverKit stops the connection's user client, but that stop runs after the close
-/// returns and the host has no way to observe it, so freeing the pages at close could hand
-/// memory the extension or device still describes back to the allocator. Accesses through
-/// ``withUnsafeMutableBytes(_:)`` race with the device like any shared DMA memory, so order them
-/// with the device's own protocol.
+/// The allocation is zeroed. ``wrap(in:direction:)`` wraps it. The runtime connection holds this
+/// object until ``DriverContext/releaseMemory(_:)`` succeeds for the returned handle. The
+/// extension refuses that release with ``DriverMemoryError/inUse`` while a subrange or chain
+/// built from it exists.
+///
+/// The pages are freed when the last reference goes away with no wrap outstanding. Unmap any
+/// ``DriverSharedMemory`` from ``DriverContext/mapMemory(_:)`` of the handle, or of a subrange or
+/// chain built from it, before releasing it: that mapping outlives the release.
+///
+/// A wrap whose handle was never released, including one outstanding when its connection closed,
+/// keeps the pages allocated for the life of the process. The extension releases the entry when
+/// DriverKit stops the connection's user client. That stop runs after the close returns, and the
+/// host has no way to observe it. Freeing the pages at close could therefore hand memory the
+/// extension or device still describes back to the allocator.
+///
+/// Accesses through ``withUnsafeMutableBytes(_:)`` race with the device like any shared DMA
+/// memory, so order them with the device's own protocol.
 public final class DriverHostMemory: @unchecked Sendable {
   /// The allocation's first byte, on a page boundary.
   private let base: UnsafeMutableRawPointer
@@ -38,7 +42,7 @@ public final class DriverHostMemory: @unchecked Sendable {
   }
 
   deinit {
-    // An unreleased wrap may still be described by the extension; see the type's discussion.
+    // An unreleased wrap may still be described by the extension. See the type's discussion.
     if wraps == 0 { base.deallocate() }
   }
 

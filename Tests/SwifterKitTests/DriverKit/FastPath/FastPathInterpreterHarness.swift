@@ -1,12 +1,16 @@
 /// A C++ harness that runs `SwifterKitRuntimeFastPathInterpreter.h` against a fake register file.
 ///
 /// It includes `FastPathTables.h`, which the test writes from
-/// ``FastPathInterpreterTests/programs`` with the generator's own table emitter, and prints one
-/// transcript line per run: the status, whether an `emit` ran, the slots, and every register
-/// access, delay, and emitted value in order. Rejection lines report the status and the number of
-/// accesses, which must be zero because a malformed program never starts. Ring accesses log as
-/// `S`/`L` (store and load at a byte offset from entry 0), `I`/`P` (index read and set), and `A`
-/// (device address). A data queue `enqueue` logs as `Q` with the queue index and values.
+/// ``FastPathInterpreterTests/programs`` with the generator's own table emitter.
+///
+/// It prints one transcript line per run:
+/// - The status, whether an `emit` ran, the slots, and every register access, delay, and emitted
+///   value, in order.
+/// - Rejection lines report the status and the number of accesses, which must be zero because a
+///   malformed program never starts.
+/// - Ring accesses log as `S`/`L` (store and load at a byte offset from entry 0), `I`/`P` (index
+///   read and set), and `A` (device address).
+/// - A data queue `enqueue` logs as `Q` with the queue index and values.
 let fastPathInterpreterHarness = #"""
   #include <stdio.h>
   #include <stdlib.h>

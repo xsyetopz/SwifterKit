@@ -38,7 +38,7 @@ extension DriverCommand {
 
   /// Creates a provider-chain read through `IOService::CopyProviderProperties`.
   ///
-  /// With `keys`, only those properties are copied; `nil` copies every supportable property.
+  /// With `keys`, only those properties are copied. `nil` copies every supportable property.
   public static func providerProperties(keys: [String]? = nil) throws -> Self {
     guard let keys else { return service(.serviceCopyProviderProperties, responseSize: nil) }
     guard !keys.isEmpty else { throw ServiceRuntimeError.emptyRequest }
@@ -80,7 +80,7 @@ extension DriverCommand {
     payload: [String: DriverProperty]
   ) throws -> Self { try namedValue(.serviceSendCoreAnalyticsEvent, name: name, value: payload) }
 
-  /// A command that needs no capability; `responseSize` is its payload bound, or `nil` for one
+  /// A command that needs no capability. `responseSize` is its payload bound, or `nil` for one
   /// full message.
   static func service(
     _ opcode: RuntimeOpcode,
@@ -117,7 +117,7 @@ extension DriverCommand {
 extension DriverContext {
   /// Sets registry properties on the generated service.
   ///
-  /// `IOService`'s default implementation rejects the update; a family superclass may accept it.
+  /// `IOService`'s default implementation rejects the update. A family superclass may accept it.
   /// `.real` values and strings with NUL cannot be stored.
   public func setServiceProperties(_ properties: [String: DriverProperty]) async throws {
     _ = try await execute(try .setServiceProperties(properties))

@@ -8,7 +8,7 @@ import Foundation
 enum ServicePropertyCoding {
   typealias Tag = RuntimePropertyTag
 
-  /// The deepest nesting either side accepts; a top-level value is at depth 1.
+  /// The deepest nesting either side accepts. A top-level value is at depth 1.
   static let maximumDepth = RuntimePropertyLimits.maximumDepth
   /// The longest registry name, which DriverKit stores with a NUL in 128 bytes.
   static let maximumNameLength = RuntimePropertyLimits.nameMaximumLength

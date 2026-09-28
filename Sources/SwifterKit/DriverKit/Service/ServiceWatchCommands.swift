@@ -21,8 +21,8 @@ public enum ServiceWatchLimits {
 /// A service that started or stopped matching a ``ServiceWatch``, from
 /// `IOServiceNotificationDispatchSource`.
 ///
-/// A driver extension sees another service only for the duration of the notification, so the
-/// event carries its registry entry ID and name; look the service up from the host with
+/// A driver extension sees another service only for the duration of the notification. The
+/// event carries its registry entry ID and name. Look the service up from the host with
 /// ``DriverClient`` when more is needed.
 public struct ServiceMatchNotification: Sendable, Hashable {
   /// Whether the service matched or terminated.
@@ -37,7 +37,7 @@ public struct ServiceMatchNotification: Sendable, Hashable {
   public let watch: ServiceWatch
   /// Whether the service matched or terminated.
   public let kind: Kind
-  /// The watch's notification count, from 1; a gap means lossy events were dropped.
+  /// The watch's notification count, from 1. A gap means lossy events were dropped.
   public let sequence: UInt64
   /// The service's `IORegistryEntry` identifier.
   public let registryEntryID: UInt64
@@ -68,7 +68,7 @@ public struct ServiceMatchNotification: Sendable, Hashable {
 public struct SystemStateNotification: Sendable, Hashable {
   /// The watch that observed the item.
   public let watch: ServiceWatch
-  /// The watch's notification count, from 1; a gap means lossy events were dropped.
+  /// The watch's notification count, from 1. A gap means lossy events were dropped.
   public let sequence: UInt64
   /// The item's name.
   public let item: String
@@ -146,19 +146,19 @@ extension DriverCommand {
 }
 
 extension DriverContext {
-  /// Watches for services that match `criteria`; each match and termination arrives as an event
+  /// Watches for services that match `criteria`. Each match and termination arrives as an event
   /// that ``DriverEvent/serviceMatchNotification()`` decodes, starting with services that
   /// already match.
   ///
-  /// At most ``ServiceWatchLimits/maximumWatches`` watches run at once; more fail with
+  /// At most ``ServiceWatchLimits/maximumWatches`` watches run at once. More fail with
   /// `kIOReturnNoResources`. Watches end when the host disconnects.
   public func watchServices(matching criteria: DriverServiceMatch) async throws -> ServiceWatch {
     let reply = try await execute(try .watchServices(matching: criteria))
     return ServiceWatch(id: try Self.identifier(from: reply))
   }
 
-  /// Watches system state items such as those ``createSystemStateItem(named:value:)`` creates;
-  /// each change arrives as an event that ``DriverEvent/systemStateNotification()`` decodes.
+  /// Watches system state items such as those ``createSystemStateItem(named:value:)`` creates.
+  /// Each change arrives as an event that ``DriverEvent/systemStateNotification()`` decodes.
   public func watchSystemState(items: [String]) async throws -> ServiceWatch {
     let reply = try await execute(try .watchSystemState(items: items))
     return ServiceWatch(id: try Self.identifier(from: reply))

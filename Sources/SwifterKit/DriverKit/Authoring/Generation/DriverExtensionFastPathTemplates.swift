@@ -1,12 +1,12 @@
 extension DriverExtensionGenerator {
   /// Native fast-path tables in the row layouts of `RuntimeFastPathRow`.
   ///
-  /// Each program indexes a run of the shared operation table; each has one trigger row. Arrays
+  /// Each program indexes a run of the shared operation table and has one trigger row. Arrays
   /// hold at least one element so the tables stay valid C++ when they are empty.
   static func fastPathDeclarations(_ fastPath: FastPathConfiguration?) -> String {
     let programs = fastPath?.programs ?? []
     let rings = fastPath?.rings ?? []
-    // Validation keeps ring identifiers unique; the first one wins otherwise.
+    // Validation keeps ring identifiers unique. The first one wins otherwise.
     let ringIndices = Dictionary(rings.enumerated().map { ($1.id, UInt32($0)) }) { first, _ in first
     }
     let dataQueues = fastPath?.dataQueues ?? []

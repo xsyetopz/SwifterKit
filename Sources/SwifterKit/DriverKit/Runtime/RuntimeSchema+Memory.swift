@@ -8,7 +8,7 @@
 
 /// Bounds and payload sizes the memory commands share with the extension.
 enum RuntimeMemoryLimits {
-  /// The largest memory handle; handles fit the client-memory identifier field and wrap to 1.
+  /// The largest memory handle. Handles fit the client-memory identifier field and wrap to 1.
   static let maximumHandle = UInt64(RuntimeClientMemoryType.identifierMask)
   /// The most descriptors one chain concatenates, the `CreateWithMemoryDescriptors` array size.
   static let maximumChainLength = 32
@@ -40,13 +40,13 @@ enum RuntimeMemoryStatus: UInt32, CaseIterable {
 
 /// What a client-memory type maps, stored in its top bits.
 enum RuntimeClientMemoryKind: UInt32, CaseIterable {
-  /// A runtime memory-pool entry; the identifier is its ``DriverMemoryHandle``.
+  /// A runtime memory-pool entry. The identifier is its ``DriverMemoryHandle``.
   case memoryBuffer = 1
-  /// A networking packet pool; the identifier is an ``EthernetPacketPool`` value.
+  /// A networking packet pool. The identifier is an ``EthernetPacketPool`` value.
   case packetPool = 2
-  /// A fast-path ring; the identifier is its ``FastPathRing/id``.
+  /// A fast-path ring. The identifier is its ``FastPathRing/id``.
   case ring = 3
-  /// A fast-path data queue's host ring; the identifier is its ``FastPathDataQueue/id``.
+  /// A fast-path data queue's host ring. The identifier is its ``FastPathDataQueue/id``.
   case dataQueue = 4
 }
 
@@ -60,7 +60,7 @@ struct RuntimeClientMemoryType: Hashable, Sendable {
   /// The encoded memory type.
   let rawValue: UInt32
 
-  /// Encodes `identifier` under `kind`; nil when the identifier does not fit.
+  /// Encodes `identifier` under `kind`. Returns nil when the identifier does not fit.
   init?(kind: RuntimeClientMemoryKind, identifier: UInt64) {
     guard identifier <= UInt64(Self.identifierMask) else { return nil }
     rawValue = kind.rawValue << Self.kindShift | UInt32(identifier)

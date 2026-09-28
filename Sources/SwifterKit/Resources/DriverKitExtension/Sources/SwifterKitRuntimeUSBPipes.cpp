@@ -25,9 +25,9 @@
 // - The completion event is a required event and can reach Swift before the submission's
 //   response does, so Swift correlates completions by request identifier.
 // - A slot owns its pipe, buffers, and action until its completion event is queued. When the
-//   required queue rejects the event, the slot keeps the stored result and delivery is retried
-//   on every later USB command and completion, oldest completion first.
-// - Stop aborts outstanding requests asynchronously; each still completes with its status.
+//   required queue rejects the event, the slot keeps the stored result. Delivery is retried on
+//   every later USB command and completion, oldest completion first.
+// - Stop aborts outstanding requests asynchronously. Each still completes with its status.
 
 namespace {
     constexpr uint32_t kFrameSize = sizeof(SwifterKitUSBIsochFrame);

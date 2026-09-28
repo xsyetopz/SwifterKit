@@ -47,7 +47,7 @@ public enum ServiceTimerLimits {
 extension DriverCommand {
   /// Creates a timer through `IOTimerDispatchSource::Create` and `WakeAtTime`.
   ///
-  /// `delay` and `leeway` may be zero; `interval`, when present, lies within
+  /// `delay` and `leeway` may be zero. `interval`, when present, lies within
   /// ``ServiceTimerLimits/minimumIntervalNanoseconds`` and
   /// ``ServiceTimerLimits/maximumNanoseconds``.
   public static func startTimer(
@@ -88,7 +88,7 @@ extension DriverContext {
   /// again every `interval` nanoseconds until ``cancelTimer(_:)``.
   ///
   /// Each firing arrives as an event that ``DriverEvent/timerFiring()`` decodes. A one-shot timer
-  /// ends when it fires. At most ``ServiceTimerLimits/maximumTimers`` timers run at once; more
+  /// ends when it fires. At most ``ServiceTimerLimits/maximumTimers`` timers run at once. More
   /// fail with `kIOReturnNoResources`. Timers end when the host disconnects.
   public func startTimer(
     afterNanoseconds delay: UInt64,
@@ -103,7 +103,7 @@ extension DriverContext {
     return ServiceTimer(id: try Self.identifier(from: try await execute(command)))
   }
 
-  /// Cancels a timer; fails with `kIOReturnNotFound` once a one-shot timer has fired.
+  /// Cancels a timer. Fails with `kIOReturnNotFound` once a one-shot timer has fired.
   public func cancelTimer(_ timer: ServiceTimer) async throws {
     _ = try await execute(try .cancelTimer(timer))
   }

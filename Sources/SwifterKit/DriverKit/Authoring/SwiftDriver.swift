@@ -44,7 +44,7 @@ public struct DriverEvent: Sendable, Equatable {
 public struct DriverContext: Sendable {
   /// Capabilities negotiated with the internal extension.
   public let capabilities: RuntimeCapabilities
-  /// The fast-path programs the extension was generated with, when known;
+  /// The fast-path programs the extension was generated with, when known.
   /// ``runFastPathProgram(_:arguments:)`` checks each request against them before sending it.
   public let fastPath: FastPathConfiguration?
 

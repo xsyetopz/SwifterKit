@@ -16,7 +16,7 @@
 namespace {
     constexpr uint32_t kMaximumResponseLength =
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize;
-    // Absent from the DriverKit 24.4 headers; the values match the 25.5 and later SDKs.
+    // Absent from the DriverKit 24.4 headers. The values match the 25.5 and later SDKs.
     constexpr uint32_t kPMAssertionCPU = 0x1;
     constexpr uint32_t kPMAssertionForceFullWakeup = 0x800;
 

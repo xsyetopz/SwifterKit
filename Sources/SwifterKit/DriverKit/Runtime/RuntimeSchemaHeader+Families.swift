@@ -1,6 +1,6 @@
 /// Renders the per-family schema declarations, each under the native name the extension uses.
 extension RuntimeSchemaHeader {
-  /// The family sections, in header order; `render()` separates them with blank lines.
+  /// The family sections, in header order. `render()` separates them with blank lines.
   static func familySections() -> [[String]] {
     serviceSections() + storageSections() + midiSections() + usbSections() + hidSections()
       + networkSections() + audioSections() + videoSections()

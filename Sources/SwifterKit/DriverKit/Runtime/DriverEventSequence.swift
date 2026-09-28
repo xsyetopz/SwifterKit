@@ -1,9 +1,10 @@
 /// Events from the internal DriverKit runtime, delivered as the extension reports them.
 ///
 /// Create a sequence with ``DriverRuntimeConnection/events()``. Iteration takes queued events
-/// until the extension's queue is empty, then waits for the extension's notification that more
-/// events are pending; it never sleeps and polls. Notifications that arrive while events are being
-/// taken coalesce into one more pass over the queue, so an event queued at any point is delivered.
+/// until the extension's queue empties, then waits for the extension's notification that more
+/// events are pending. It never polls on a timer. Notifications that arrive while events are
+/// being taken coalesce into one more pass over the queue, so an event queued at any point is
+/// delivered.
 ///
 /// The sequence ends when the connection closes or a later ``DriverRuntimeConnection/events()``
 /// call replaces its registration. Iteration throws `CancellationError` when the iterating task is
@@ -42,7 +43,7 @@ public struct DriverEventSequence: AsyncSequence, Sendable {
         do { if let event = try await runtime.nextEvent() { return event } } catch let error
           where Self.isClosed(error)
         { return nil }
-        // The empty poll armed the extension; the next queued event sends a notification.
+        // The empty poll armed the extension. The next queued event sends a notification.
         guard await notifications.next() != nil else {
           try Task.checkCancellation()
           return nil

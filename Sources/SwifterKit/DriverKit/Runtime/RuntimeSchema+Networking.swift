@@ -42,7 +42,7 @@ enum RuntimeNetworkEventKind: UInt32, CaseIterable {
   case interfaceCommand = 16
 }
 
-/// Packet flag bits. Transmit metadata reports the transmit bits; a received packet sets the
+/// Packet flag bits. Transmit metadata reports the transmit bits. A received packet sets the
 /// receive bits, and a transmit completion the completion bits.
 enum RuntimeNetworkPacketFlag: UInt32, CaseIterable {
   case linkMulticast = 0x0001

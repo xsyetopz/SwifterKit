@@ -39,7 +39,7 @@ extension DriverCommand {
   /// Creates a state adjustment through `IOStateReporter::overrideChannelState`, or with
   /// `accumulate` through `incrementChannelState`.
   ///
-  /// `residency` and `lastTransition` are in the reporter's unit; the values may not exceed
+  /// `residency` and `lastTransition` are in the reporter's unit. The values may not exceed
   /// `Int64.max`.
   public static func adjustReportState(
     _ state: UInt64,
@@ -133,7 +133,7 @@ extension DriverCommand {
 }
 
 extension DriverContext {
-  /// Sets a simple reporter channel's value; `reporter` indexes
+  /// Sets a simple reporter channel's value. `reporter` indexes
   /// ``ReportingConfiguration/reporters``.
   public func setReportValue(_ value: Int64, reporter: Int, channel: UInt64) async throws {
     _ = try await execute(try .setReportValue(value, reporter: reporter, channel: channel))
@@ -147,7 +147,7 @@ extension DriverContext {
     )
   }
 
-  /// Moves a state reporter channel to `state`, one of the reporter's configured state IDs;
+  /// Moves a state reporter channel to `state`, one of the reporter's configured state IDs.
   /// DriverKit accounts residency in mach absolute time.
   public func setReportState(_ state: UInt64, reporter: Int, channel: UInt64) async throws {
     _ = try await execute(try .setReportState(state, reporter: reporter, channel: channel))

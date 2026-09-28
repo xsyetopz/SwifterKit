@@ -13,10 +13,10 @@
     #include "SwifterKitRuntimeServiceProperties.h"
 #endif
 
-// The IOUserHIDEventService and IOUserHIDEventDriver side of the runtime: the provider
+// The IOUserHIDEventService and IOUserHIDEventDriver side of the runtime. The provider
 // IOHIDInterface's reports and element values reach Swift as events, and the host's LED and
 // property changes are forwarded. hidLock serializes element access and dispatch between the
-// service queue and Swift's commands; see SwifterKitRuntimeHIDElements.cpp and
+// service queue and Swift's commands. See SwifterKitRuntimeHIDElements.cpp and
 // SwifterKitRuntimeHIDDispatch.cpp.
 #if SWIFTERKIT_HID_EVENT_SERVICE
 namespace {
@@ -148,8 +148,8 @@ kern_return_t SwifterKitRuntimeService::processReport_Impl(
     uint32_t reportLength,
     IOHIDReportType type,
     uint32_t reportID) {
-    // The superclass updates the interface's element values and then calls handleReport; the
-    // lock keeps Swift's element reads and dispatches out of that window.
+    // The superclass updates the interface's element values, then calls handleReport. The lock
+    // keeps Swift's element reads and dispatches out of that window.
     IORecursiveLockLock(ivars->hidLock);
     const kern_return_t result =
         processReport(timestamp, report, reportLength, type, reportID, SUPERDISPATCH);
