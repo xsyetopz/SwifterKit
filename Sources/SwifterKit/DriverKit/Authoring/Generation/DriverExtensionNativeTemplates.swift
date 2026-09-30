@@ -141,7 +141,7 @@ extension DriverExtensionGenerator {
 
   static func serviceInterface(_ configuration: DriverConfiguration) -> String {
     let hidMode = HIDRuntimeMode(configuration)
-    let hid = hidMode != .none
+    let hid = hidMode.isHIDService
     let usb = configuration.capabilities.contains(.usb)
     let pci = configuration.capabilities.contains(.pci)
     let serial = configuration.capabilities.contains(.serial)

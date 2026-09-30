@@ -1,0 +1,42 @@
+#ifndef SwifterKitRuntimeHIDDevice_h
+#define SwifterKitRuntimeHIDDevice_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#include "SwifterKitRuntimeProtocol.h"
+#if SWIFTERKIT_HID_DEVICE_FACTORY
+    #include <HIDDriverKit/IOUserHIDDevice.iig>
+
+// A virtual HID device a generated HID device factory creates at run time. Its provider is the
+// factory's SwifterKitRuntimeService. See SwifterKitRuntimeHIDDevice.cpp.
+class SwifterKitRuntimeHIDDevice : public IOUserHIDDevice {
+public:
+    virtual bool init() override;
+    virtual void free() override;
+    virtual kern_return_t Stop(IOService* provider) override;
+
+    kern_return_t SubmitInputReport(const SwifterKitHIDReportHeader* header, const uint8_t* bytes)
+        LOCALONLY;
+    kern_return_t CopyStatistics(SwifterKitHIDRuntimeStatistics* statistics) LOCALONLY;
+    kern_return_t CompleteGetReport(const uint8_t* payload, uint32_t payloadLength) LOCALONLY;
+    void AbortRequests() LOCALONLY;
+
+    virtual kern_return_t getReport(
+        IOMemoryDescriptor* report,
+        IOHIDReportType reportType,
+        IOOptionBits options,
+        uint32_t completionTimeout,
+        OSAction* action) LOCALONLY override;
+    virtual kern_return_t setReport(
+        IOMemoryDescriptor* report,
+        IOHIDReportType reportType,
+        IOOptionBits options,
+        uint32_t completionTimeout,
+        OSAction* action) LOCALONLY override;
+
+protected:
+    virtual bool handleStart(IOService* provider) LOCALONLY override;
+    virtual OSDictionary* newDeviceDescription() LOCALONLY override;
+    virtual OSData* newReportDescriptor() LOCALONLY override;
+};
+#endif
+#endif

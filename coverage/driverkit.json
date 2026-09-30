@@ -9714,7 +9714,7 @@
 
           ],
           "name" : "Create",
-          "note" : "referenced by the generated runtime",
+          "note" : "a HID device factory creates each HID device with Create(this, \"HIDDeviceProperties\", &service); NewUserClient creates the runtime user client with Create(this, \"UserClientProperties\", &client)",
           "sdks" : [
             "24.4",
             "25.5",
@@ -10151,7 +10151,7 @@
 
           ],
           "name" : "Terminate",
-          "note" : "the header describes Terminate for services made with Create(); the runtime calls it on the matched generated service, which the dext's own IOUserServer owns",
+          "note" : "the header describes Terminate for services made with Create(); the runtime calls it on the matched generated service, which the dext's own IOUserServer owns, and on each HID device a HID device factory created",
           "sdks" : [
             "24.4",
             "25.5",
@@ -14374,7 +14374,7 @@
           ],
           "introduced" : "19.0",
           "name" : "getReport",
-          "note" : "overridden: answered report types reach Swift as hidGetReportRequest events",
+          "note" : "overridden: answered report types reach Swift as hidGetReportRequest events, or as hidFactoryGetReportRequest events tagged with the device handle for HID device factory devices",
           "sdks" : [
             "24.4",
             "25.5",

@@ -12,13 +12,17 @@ enum HIDRuntimeMode: Equatable {
   case eventService
   /// `IOUserHIDEventDriver` on an `IOHIDInterface`.
   case eventDriver
+  /// An `IOService` root that creates `IOUserHIDDevice` children at run time.
+  case deviceFactory
 
   init(_ configuration: DriverConfiguration) {
     guard configuration.capabilities.contains(.hid) else {
       self = .none
       return
     }
-    if configuration.usbHIDDevice != nil {
+    if configuration.hidDeviceFactory != nil {
+      self = .deviceFactory
+    } else if configuration.usbHIDDevice != nil {
       self = .usbDevice
     } else if let service = configuration.hidEventService {
       if case .eventDriver = service.serviceClass {
@@ -33,6 +37,10 @@ enum HIDRuntimeMode: Equatable {
 
   var isEventService: Bool { self == .eventService || self == .eventDriver }
 
+  /// Whether the root service itself derives from an HIDDriverKit class and starts through
+  /// `handleStart` instead of `Start`.
+  var isHIDService: Bool { self != .none && self != .deviceFactory }
+
   var superclass: String? {
     switch self {
     case .none: nil
@@ -40,13 +48,14 @@ enum HIDRuntimeMode: Equatable {
     case .usbDevice: "IOUserUSBHostHIDDevice"
     case .eventService: "IOUserHIDEventService"
     case .eventDriver: "IOUserHIDEventDriver"
+    case .deviceFactory: nil
     }
   }
 
   /// The kernel class that hosts the generated service, from Apple's own HID personalities.
   var kernelClass: String? {
     switch self {
-    case .none: nil
+    case .none, .deviceFactory: nil
     case .device, .usbDevice: "AppleUserHIDDevice"
     case .eventService, .eventDriver: "AppleUserHIDEventService"
     }
@@ -61,7 +70,7 @@ extension DriverExtensionGenerator {
     let capabilities = configuration.capabilities
     let roles = [
       configuration.hidDevice != nil, configuration.hidEventService != nil,
-      configuration.usbHIDDevice != nil,
+      configuration.usbHIDDevice != nil, configuration.hidDeviceFactory != nil,
     ].filter { $0 }.count
     guard capabilities.contains(.hid) else {
       if roles > 0 { throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.hid) }
@@ -77,6 +86,16 @@ extension DriverExtensionGenerator {
         deploymentVersion >= .v21, capabilities.isDisjoint(with: [.usb, .pci, .interrupts])
       else { throw DriverExtensionGenerationError.invalidHIDConfiguration }
     }
+    if let factory = configuration.hidDeviceFactory {
+      // The root is a plain IOService, so families that need another superclass or a hardware
+      // provider cannot share it.
+      guard HIDDeviceFactoryConfiguration.deviceLimit.contains(factory.maximumDevices),
+        capabilities.isDisjoint(with: [
+          .usb, .pci, .interrupts, .serial, .networking, .audio, .midi, .blockStorage, .scsi,
+          .video,
+        ])
+      else { throw DriverExtensionGenerationError.invalidHIDConfiguration }
+    }
     if let device = configuration.usbHIDDevice {
       guard device.isValid, capabilities.contains(.usb),
         configuration.providerClass == USBDeviceConfiguration.interfaceProviderClass,
@@ -86,23 +105,29 @@ extension DriverExtensionGenerator {
   }
 
   private static func isValid(hid: HIDDeviceConfiguration) -> Bool {
-    let strings = [hid.transport, hid.manufacturer, hid.product, hid.serialNumber]
-    return !hid.reportDescriptor.isEmpty && hid.reportDescriptor.count <= 65_488
-      && hid.acceptedHostReportTypes.subtracting(.all).isEmpty
-      && hid.answeredReportTypes.subtracting(.all).isEmpty
-      && strings.allSatisfy { !$0.isEmpty && !$0.contains("\0") }
+    hid.hasValidFields && hid.reportDescriptor.count <= 65_488
   }
 
   /// Registry keys an event service's typed matching writes into the personality.
   static func hidReservedKeys(_ configuration: DriverConfiguration) -> Set<String> {
-    configuration.hidEventService == nil ? [] : ["DeviceUsagePairs", "VendorID", "ProductID"]
+    if configuration.hidDeviceFactory != nil { return [hidDevicePropertiesKey] }
+    return configuration.hidEventService == nil
+      ? [] : ["DeviceUsagePairs", "VendorID", "ProductID"]
   }
+
+  /// The personality key whose dictionary `IOService::Create` reads for each factory device.
+  static let hidDevicePropertiesKey = "HIDDeviceProperties"
 
   static func addHIDPersonality(
     _ configuration: DriverConfiguration,
     to personality: inout [String: Any]
   ) {
     let mode = HIDRuntimeMode(configuration)
+    if mode == .deviceFactory {
+      personality[hidDevicePropertiesKey] = [
+        "IOClass": "AppleUserHIDDevice", "IOUserClass": "SwifterKitRuntimeHIDDevice",
+      ]
+    }
     guard let kernelClass = mode.kernelClass else { return }
     personality["IOClass"] = kernelClass
     if mode != .device { personality["CFBundleIdentifierKernel"] = "com.apple.iokit.IOHIDFamily" }
@@ -137,6 +162,7 @@ extension DriverExtensionGenerator {
       hid?.acceptedHostReportTypes.rawValue ?? usb?.acceptedHostReportTypes.rawValue ?? 0
     let answered = hid?.answeredReportTypes.rawValue ?? usb?.answeredReportTypes.rawValue ?? 0
     return """
+      #define SWIFTERKIT_HID_DEVICE_FACTORY \(mode == .deviceFactory ? 1 : 0)
       #define SWIFTERKIT_HID_DEVICE \(mode == .device || mode == .usbDevice ? 1 : 0)
       #define SWIFTERKIT_HID_USB_DEVICE \(mode == .usbDevice ? 1 : 0)
       #define SWIFTERKIT_HID_EVENT_SERVICE \(mode.isEventService ? 1 : 0)
@@ -168,6 +194,8 @@ extension DriverExtensionGenerator {
       static constexpr uint32_t kSwifterKitHIDEventDelivery = \(service?.delivery.rawValue ?? 0);
       static constexpr uint32_t kSwifterKitHIDEventDriverCategories =
           \(service?.eventDriverCategories.rawValue ?? 0);
+      static constexpr uint32_t kSwifterKitHIDMaximumDevices =
+          \(configuration.hidDeviceFactory?.maximumDevices ?? 0);
       """
   }
 
@@ -178,6 +206,21 @@ extension DriverExtensionGenerator {
   static func hidServiceMethods(_ mode: HIDRuntimeMode) -> String {
     switch mode {
     case .none: return ""
+    case .deviceFactory:
+      return """
+        \(hidCommonMethods)
+            kern_return_t HIDFactoryCommand(
+                IOService* client,
+                uint32_t opcode,
+                const uint8_t* payload,
+                uint32_t payloadLength,
+                OSData** response) LOCALONLY;
+            kern_return_t HIDFactoryAttachDevice(
+                IOService* device,
+                uint32_t* handle,
+                OSData** configuration) LOCALONLY;
+            void HIDFactoryDeviceStopped(uint32_t handle) LOCALONLY;
+        """
     case .device, .usbDevice:
       let handleReport =
         mode == .usbDevice

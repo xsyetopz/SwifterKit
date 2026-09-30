@@ -3,7 +3,7 @@
 
 #include "SwifterKitRuntimeConfiguration.h"
 
-#if SWIFTERKIT_HID_DEVICE
+#if SWIFTERKIT_HID_DEVICE || SWIFTERKIT_HID_DEVICE_FACTORY
     #include <DriverKit/IOBufferMemoryDescriptor.h>
     #include <DriverKit/IOLib.h>
     #include <DriverKit/IOMemoryMap.h>
@@ -17,8 +17,8 @@
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
 
-// Helpers of the generated IOUserHIDDevice root (SwifterKitRuntimeHID.cpp and
-// SwifterKitRuntimeHIDRequests.cpp).
+// Helpers shared by the generated IOUserHIDDevice root (SwifterKitRuntimeHID.cpp) and the
+// devices a HID device factory creates (SwifterKitRuntimeHIDDevice.cpp).
 
 // Swift answers a get-report with a command header and a completion header before the bytes.
 static constexpr uint32_t kSwifterKitHIDMaximumAnsweredReport =
@@ -29,6 +29,16 @@ static constexpr uint32_t kSwifterKitHIDMaximumAnsweredReport =
 struct SwifterKitHIDText {
     const char* bytes;
     size_t length;
+};
+
+// A validated hidFactoryCreateDevice payload. The pointers point into the payload.
+struct SwifterKitHIDFactoryConfiguration {
+    SwifterKitHIDFactoryDevice device;
+    SwifterKitHIDText transport;
+    SwifterKitHIDText manufacturer;
+    SwifterKitHIDText product;
+    SwifterKitHIDText serialNumber;
+    const uint8_t* descriptor;
 };
 
 inline void SwifterKitHIDSetNumber(OSDictionary* dictionary, const char* key, uint32_t value) {
@@ -189,5 +199,67 @@ uint32_t SwifterKitHIDTakeRequests(
     return count;
 }
 
+    #if SWIFTERKIT_HID_DEVICE_FACTORY
+// Pending get-reports per created device. Every device's table fits the required-event queue
+// together with one terminated event per device. See SwifterKitRuntimeServiceState.h.
+static constexpr uint32_t kSwifterKitHIDFactoryMaximumPendingReports = 8;
+// Factory events and commands carry a SwifterKitHIDFactoryHandle before the static payload.
+static constexpr uint32_t kSwifterKitHIDFactoryMaximumAnsweredReport =
+    kSwifterKitHIDMaximumAnsweredReport - sizeof(SwifterKitHIDFactoryHandle);
+static constexpr uint32_t kSwifterKitHIDFactoryMaximumHostReport =
+    kSwifterKitMaximumEventPayloadLength - sizeof(SwifterKitHIDFactoryHandle)
+    - sizeof(SwifterKitHIDReportHeader);
+
+inline bool SwifterKitHIDTextIsValid(SwifterKitHIDText text) {
+    return text.length != 0 && memchr(text.bytes, 0, text.length) == nullptr;
+}
+
+// Validates a hidFactoryCreateDevice payload the way HIDDeviceConfiguration.hasValidFields does.
+inline bool SwifterKitHIDParseFactoryDevice(
+    const uint8_t* payload,
+    uint32_t length,
+    SwifterKitHIDFactoryConfiguration* configuration) {
+    if (payload == nullptr || configuration == nullptr
+        || length < sizeof(SwifterKitHIDFactoryDevice)) {
+        return false;
+    }
+    SwifterKitHIDFactoryDevice device = {};
+    memcpy(&device, payload, sizeof(device));
+    const uint64_t total = uint64_t {sizeof(device)} + device.transportLength
+                           + device.manufacturerLength + device.productLength
+                           + device.serialNumberLength + device.descriptorLength;
+    if (device.reserved[0] != 0 || device.reserved[1] != 0 || total != length
+        || device.descriptorLength == 0
+        || (device.acceptedHostReportTypes & ~kSwifterKitHIDHostReportTypesAll) != 0
+        || (device.answeredReportTypes
+            & ~(kSwifterKitHIDGetReportInput | kSwifterKitHIDGetReportOutput
+                | kSwifterKitHIDGetReportFeature))
+               != 0) {
+        return false;
+    }
+    const auto* cursor = reinterpret_cast<const char*>(payload + sizeof(device));
+    const SwifterKitHIDText texts[4] = {
+        {cursor, device.transportLength},
+        {cursor + device.transportLength, device.manufacturerLength},
+        {cursor + device.transportLength + device.manufacturerLength, device.productLength},
+        {cursor + device.transportLength + device.manufacturerLength + device.productLength,
+         device.serialNumberLength},
+    };
+    for (const SwifterKitHIDText& text : texts) {
+        if (!SwifterKitHIDTextIsValid(text)) {
+            return false;
+        }
+    }
+    *configuration = {
+        .device = device,
+        .transport = texts[0],
+        .manufacturer = texts[1],
+        .product = texts[2],
+        .serialNumber = texts[3],
+        .descriptor = reinterpret_cast<const uint8_t*>(texts[3].bytes + texts[3].length),
+    };
+    return true;
+}
+    #endif
 #endif
 #endif

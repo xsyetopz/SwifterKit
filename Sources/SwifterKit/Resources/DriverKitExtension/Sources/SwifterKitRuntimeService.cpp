@@ -135,7 +135,7 @@ void SwifterKitRuntimeService::free() {
     super::free();
 }
 
-#if !SWIFTERKIT_ENABLE_HID
+#if !SWIFTERKIT_ENABLE_HID || SWIFTERKIT_HID_DEVICE_FACTORY
 auto SwifterKitRuntimeService::Start_Impl(IOService* provider) -> kern_return_t {
     kern_return_t result = Start(provider, SUPERDISPATCH);
     if (result != kIOReturnSuccess) {

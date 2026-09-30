@@ -17,6 +17,8 @@ public struct DriverConfiguration: Sendable, Hashable {
   public let hidEventService: HIDEventServiceConfiguration?
   /// USB HID metadata when the runtime derives from `IOUserUSBHostHIDDevice`.
   public let usbHIDDevice: USBHIDDeviceConfiguration?
+  /// Factory limits when the runtime creates virtual HID devices at run time.
+  public let hidDeviceFactory: HIDDeviceFactoryConfiguration?
   /// USB hardware matching when the generated runtime provides USBDriverKit behavior.
   public let usbDevice: USBDeviceConfiguration?
   /// PCI matching when the generated runtime provides PCIDriverKit behavior.
@@ -57,6 +59,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     hidDevice: HIDDeviceConfiguration? = nil,
     hidEventService: HIDEventServiceConfiguration? = nil,
     usbHIDDevice: USBHIDDeviceConfiguration? = nil,
+    hidDeviceFactory: HIDDeviceFactoryConfiguration? = nil,
     usbDevice: USBDeviceConfiguration? = nil,
     pciDevice: PCIDeviceConfiguration? = nil,
     serialPort: SerialPortConfiguration? = nil,
@@ -80,6 +83,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     self.hidDevice = hidDevice
     self.hidEventService = hidEventService
     self.usbHIDDevice = usbHIDDevice
+    self.hidDeviceFactory = hidDeviceFactory
     self.usbDevice = usbDevice
     self.pciDevice = pciDevice
     self.serialPort = serialPort

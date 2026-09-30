@@ -33,6 +33,8 @@
 #endif
 
 #if SWIFTERKIT_ENABLE_HID
+    #include <DriverKit/OSData.h>
+
     #include "SwifterKitRuntimeHIDProtocol.h"
 #endif
 
@@ -303,6 +305,22 @@ struct SwifterKitHIDPendingReport {
 };
 #endif
 
+#if SWIFTERKIT_HID_DEVICE_FACTORY
+class SwifterKitRuntimeHIDDevice;
+
+// A device a HID device factory created or is creating. See SwifterKitRuntimeHIDFactory.cpp. A
+// zero handle marks a free slot.
+struct SwifterKitHIDFactorySlot {
+    uint32_t handle = 0;
+    // Whether the device claimed the slot in handleStart.
+    bool attached = false;
+    // The hidFactoryCreateDevice payload (retained) until the device claims it.
+    OSData* configuration = nullptr;
+    // The created device (retained), null until IOService::Create returns.
+    SwifterKitRuntimeHIDDevice* device = nullptr;
+};
+#endif
+
 // Lossy events are notifications Swift may miss. Required events carry
 // DriverKit work that Swift must answer. See SwifterKitRuntimeEvents.cpp.
 static constexpr uint32_t kSwifterKitMaximumQueuedLossyEvents = 64;
@@ -349,6 +367,14 @@ struct SwifterKitRuntimeService_IVars {
     uint32_t hidEventDriverHandling = 0;
     uint32_t nextHIDRequestID = 1;
     SwifterKitHIDPendingReport hidRequests[kSwifterKitHIDMaximumPendingReports] = {};
+    #if SWIFTERKIT_HID_DEVICE_FACTORY
+    // The factory's devices, the handle of the one IOService::Create is creating, and whether the
+    // service stopped. All change under hidLock.
+    SwifterKitHIDFactorySlot hidDevices[kSwifterKitHIDMaximumDevices] = {};
+    uint32_t nextHIDDeviceHandle = 1;
+    uint32_t hidCreatingHandle = 0;
+    bool hidDevicesStopped = false;
+    #endif
 #endif
 #if SWIFTERKIT_ENABLE_SCSI_CONTROLLER
     IOLock* scsiLock = nullptr;
