@@ -9,7 +9,7 @@ struct HIDRuntimeContractTests {
   @Test
   func nativeLimitsMatchSwiftLimits() throws {
     try withGeneratedExtension { output in
-      let schema = try source(RuntimeSchemaHeader.fileName, in: output)
+      let schema = try source(RuntimeSchemaHeader.hidFileName, in: output)
       #expect(
         schema.contains("kSwifterKitHIDMaximumElementPage = \(HIDLimits.maximumElementPage);")
       )
@@ -21,7 +21,7 @@ struct HIDRuntimeContractTests {
       )
       #expect(schema.contains("kSwifterKitHIDMaximumTouches = \(HIDLimits.maximumTouches);"))
       let limits = try source("SwifterKitRuntimeHIDProtocol.h", in: output)
-      #expect(limits.contains("#include \"SwifterKitRuntimeSchema.h\""))
+      #expect(limits.contains("#include \"SwifterKitRuntimeHIDSchema.h\""))
       #expect(
         limits.contains("sizeof(SwifterKitHIDElementDescriptor) == \(HIDElement.encodedSize)")
       )
@@ -70,7 +70,8 @@ struct HIDRuntimeContractTests {
         from: "case SwifterKitRuntimeOpcode::HIDCompleteGetReport:",
         to: "return DispatchHIDCommand(context);"
       )
-      let names = RuntimeOpcode.allCases.filter { $0.rawValue >= 0x0310 && $0.rawValue < 0x0400 }
+      // The factory's 0x034x opcodes route separately. See HIDDeviceFactoryRuntimeContractTests.
+      let names = RuntimeOpcode.allCases.filter { $0.rawValue >= 0x0310 && $0.rawValue < 0x0340 }
       #expect(names.count == 28)
       for opcode in names {
         let native = "HID" + "\(opcode)".dropFirst(3)

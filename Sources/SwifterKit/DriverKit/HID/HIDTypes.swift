@@ -135,7 +135,7 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
   /// Host-to-device report types accepted by the generated runtime.
   public let acceptedHostReportTypes: HIDHostReportTypes
   /// Host get-report types Swift answers through
-  /// ``DriverContext/completeHIDGetReport(_:bytes:status:)``.
+  /// ``DriverContext/completeHIDGetReport(_:bytes:status:)-(HIDGetReportRequest,_,_)``.
   public let answeredReportTypes: HIDGetReportTypes
 
   /// Creates virtual HID device metadata.
@@ -170,6 +170,15 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
     self.acceptedHostReportTypes = acceptedHostReportTypes
     self.answeredReportTypes = answeredReportTypes
   }
+
+  /// Whether the descriptor is present, the report-type masks are known, and every string is
+  /// non-empty and free of NUL. Callers add their own descriptor size limit.
+  var hasValidFields: Bool {
+    let strings = [transport, manufacturer, product, serialNumber]
+    return !reportDescriptor.isEmpty && acceptedHostReportTypes.subtracting(.all).isEmpty
+      && answeredReportTypes.subtracting(.all).isEmpty
+      && strings.allSatisfy { !$0.isEmpty && !$0.contains("\0") }
+  }
 }
 
 /// A HID operation or event that cannot be encoded safely.
@@ -198,4 +207,7 @@ public enum HIDRuntimeError: Error, Sendable, Equatable {
   case invalidElementPayload
   /// The native runtime returned a malformed HID event.
   case invalidEventPayload
+  /// A device configuration has an empty or oversized descriptor, an empty or NUL-containing
+  /// string, or an unknown report-type bit, or does not fit one runtime message.
+  case invalidDeviceConfiguration
 }

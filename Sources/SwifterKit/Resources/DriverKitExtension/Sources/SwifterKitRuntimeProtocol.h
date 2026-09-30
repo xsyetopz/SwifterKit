@@ -6,6 +6,7 @@
 // Wire constants, message kinds, opcodes, event types, and capability bits come from the Swift
 // schema. Payload layouts below stay hand-written and are checked against the schema sizes.
 #include "SwifterKitRuntimeFastPathSchema.h"
+#include "SwifterKitRuntimeHIDSchema.h"
 #include "SwifterKitRuntimeSchema.h"
 
 // DriverExtensionGenerator replaces this placeholder with the configured capability bits.

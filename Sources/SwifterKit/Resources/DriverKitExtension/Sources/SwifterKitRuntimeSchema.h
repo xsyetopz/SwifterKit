@@ -112,6 +112,11 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     HIDDeviceSetIdle = 0x0332,
     HIDDeviceSetIdlePolicy = 0x0333,
     HIDDeviceReset = 0x0334,
+    HIDFactoryCreateDevice = 0x0340,
+    HIDFactoryTerminateDevice = 0x0341,
+    HIDFactorySubmitInputReport = 0x0342,
+    HIDFactoryCompleteGetReport = 0x0343,
+    HIDFactoryGetRuntimeStatistics = 0x0344,
     PCIRead = 0x0400,
     PCIWrite = 0x0401,
     PCIGetBARInfo = 0x0402,
@@ -302,6 +307,9 @@ static constexpr uint32_t kSwifterKitEventHIDElementValues = 0x0311;
 static constexpr uint32_t kSwifterKitEventHIDGetReportRequest = 0x0312;
 static constexpr uint32_t kSwifterKitEventHIDLEDState = 0x0313;
 static constexpr uint32_t kSwifterKitEventHIDProperties = 0x0314;
+static constexpr uint32_t kSwifterKitEventHIDFactoryReport = 0x0315;
+static constexpr uint32_t kSwifterKitEventHIDFactoryGetReportRequest = 0x0316;
+static constexpr uint32_t kSwifterKitEventHIDFactoryDeviceTerminated = 0x0317;
 static constexpr uint32_t kSwifterKitEventSerial = 0x0600;
 static constexpr uint32_t kSwifterKitEventUSBSerialPacket = 0x0610;
 static constexpr uint32_t kSwifterKitEventBlockStorage = 0x0700;
@@ -450,69 +458,6 @@ static constexpr uint8_t kSwifterKitUSBConfigurationIndex = 1;
 static constexpr uint8_t kSwifterKitUSBConfigurationValue = 2;
 static constexpr uint8_t kSwifterKitUSBPipeDescriptorsOriginal = 0;
 static constexpr uint8_t kSwifterKitUSBPipeDescriptorsCurrentPolicy = 1;
-
-static constexpr uint32_t kSwifterKitHIDMaximumPendingReports = 16;
-static constexpr uint32_t kSwifterKitHIDMaximumElementPage = 512;
-static constexpr uint32_t kSwifterKitHIDMaximumCookies = 1024;
-static constexpr uint32_t kSwifterKitHIDMaximumCollectionElements = 64;
-static constexpr uint32_t kSwifterKitHIDMaximumTouches = 64;
-static constexpr uint32_t kSwifterKitHIDMaximumEventValues = 256;
-static constexpr uint32_t kSwifterKitHIDLEDUsagePage = 0x08;
-
-enum class SwifterKitHIDElementWriteKind : uint32_t {
-    Value = 0,
-    Data = 1,
-};
-
-static constexpr uint32_t kSwifterKitHIDHostReportOutput = 0x1;
-static constexpr uint32_t kSwifterKitHIDHostReportFeature = 0x2;
-static constexpr uint32_t kSwifterKitHIDHostReportTypesAll = 0x3;
-static constexpr uint32_t kSwifterKitHIDGetReportInput = 0x1;
-static constexpr uint32_t kSwifterKitHIDGetReportOutput = 0x2;
-static constexpr uint32_t kSwifterKitHIDGetReportFeature = 0x4;
-static constexpr uint32_t kSwifterKitHIDGetReportTypesAll = 0x7;
-static constexpr uint32_t kSwifterKitHIDDeliverReports = 0x1;
-static constexpr uint32_t kSwifterKitHIDDeliverElementValues = 0x2;
-static constexpr uint32_t kSwifterKitHIDDeliverAll = 0x3;
-
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryKeyboard = 0x1;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryPointer = 0x2;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryScroll = 0x4;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryLED = 0x8;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryDigitizer = 0x10;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryProximity = 0x20;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryGameController = 0x40;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoryRemaining = 0x80;
-static constexpr uint32_t kSwifterKitHIDEventDriverCategoriesAll = 0xFF;
-
-static constexpr uint32_t kSwifterKitHIDStylusInRange = 0x1;
-static constexpr uint32_t kSwifterKitHIDStylusTip = 0x2;
-static constexpr uint32_t kSwifterKitHIDStylusBarrelSwitch = 0x4;
-static constexpr uint32_t kSwifterKitHIDStylusInvert = 0x8;
-static constexpr uint32_t kSwifterKitHIDStylusEraser = 0x10;
-static constexpr uint32_t kSwifterKitHIDStylusTipChanged = 0x20;
-static constexpr uint32_t kSwifterKitHIDStylusPositionChanged = 0x40;
-static constexpr uint32_t kSwifterKitHIDStylusRangeChanged = 0x80;
-static constexpr uint32_t kSwifterKitHIDStylusFlagsAll = 0xFF;
-static constexpr uint32_t kSwifterKitHIDTouchInRange = 0x1;
-static constexpr uint32_t kSwifterKitHIDTouchTouch = 0x2;
-static constexpr uint32_t kSwifterKitHIDTouchTouchValid = 0x4;
-static constexpr uint32_t kSwifterKitHIDTouchTouchChanged = 0x8;
-static constexpr uint32_t kSwifterKitHIDTouchPositionChanged = 0x10;
-static constexpr uint32_t kSwifterKitHIDTouchRangeChanged = 0x20;
-static constexpr uint32_t kSwifterKitHIDTouchFlagsAll = 0x3F;
-static constexpr uint32_t kSwifterKitHIDCollectionTouch = 0x1;
-static constexpr uint32_t kSwifterKitHIDCollectionInRange = 0x2;
-static constexpr uint32_t kSwifterKitHIDCollectionStateFlagsAll = 0x3;
-static constexpr uint32_t kSwifterKitHIDCollectionChangeTouch = 0x1;
-static constexpr uint32_t kSwifterKitHIDCollectionChangePosition = 0x2;
-static constexpr uint32_t kSwifterKitHIDCollectionChangeRange = 0x4;
-static constexpr uint32_t kSwifterKitHIDCollectionChangesAll = 0x7;
-static constexpr uint32_t kSwifterKitHIDCollectionChangeShift = 2;
-static constexpr uint32_t kSwifterKitHIDCollectionFlagsAll = 0x1F;
-static constexpr uint32_t kSwifterKitHIDGameControllerThumbstickButtonLeft = 0x1;
-static constexpr uint32_t kSwifterKitHIDGameControllerThumbstickButtonRight = 0x2;
-static constexpr uint32_t kSwifterKitHIDGameControllerFlagsAll = 0x3;
 
 static constexpr uint32_t kSwifterKitNetworkMaximumBatch = 32;
 static constexpr uint32_t kSwifterKitNetworkEventHeaderSize = 16;

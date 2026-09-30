@@ -366,6 +366,24 @@ namespace {
 #endif
     }
 
+    kern_return_t DispatchHIDFactoryCommand([[maybe_unused]] const CommandContext& context) {
+#if SWIFTERKIT_HID_DEVICE_FACTORY
+        if (context.service == nullptr) {
+            return kIOReturnNotReady;
+        }
+        OSData* response = nullptr;
+        const kern_return_t result = context.service->HIDFactoryCommand(
+            context.client,
+            context.opcode,
+            context.payload,
+            context.payloadLength,
+            &response);
+        return RespondToCommand(context, result, response);
+#else
+        return kIOReturnUnsupported;
+#endif
+    }
+
     kern_return_t HandleCommand(
         IOUserClient* client,
         SwifterKitRuntimeService* service,
@@ -670,6 +688,12 @@ namespace {
                 return DispatchHIDRuntimeStatistics(context);
             case SwifterKitRuntimeOpcode::HIDSubmitInputReport:
                 return DispatchHIDInputReport(context);
+            case SwifterKitRuntimeOpcode::HIDFactoryCreateDevice:
+            case SwifterKitRuntimeOpcode::HIDFactoryTerminateDevice:
+            case SwifterKitRuntimeOpcode::HIDFactorySubmitInputReport:
+            case SwifterKitRuntimeOpcode::HIDFactoryCompleteGetReport:
+            case SwifterKitRuntimeOpcode::HIDFactoryGetRuntimeStatistics:
+                return DispatchHIDFactoryCommand(context);
         }
         return kIOReturnUnsupported;
     }

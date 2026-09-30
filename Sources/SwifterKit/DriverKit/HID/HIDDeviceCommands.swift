@@ -2,7 +2,8 @@ import Foundation
 
 /// A host request for a report that the generated HID device answers from Swift.
 ///
-/// Answer every request exactly once with ``DriverContext/completeHIDGetReport(_:bytes:status:)``.
+/// Answer every request exactly once with
+/// ``DriverContext/completeHIDGetReport(_:bytes:status:)-(HIDGetReportRequest,_,_)``.
 /// Requests still pending when the host detaches or the service stops complete with
 /// `kIOReturnAborted`.
 public struct HIDGetReportRequest: Sendable, Hashable {

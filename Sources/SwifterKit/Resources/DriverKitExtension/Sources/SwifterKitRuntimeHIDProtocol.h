@@ -3,9 +3,10 @@
 
 #include <stdint.h>
 
+#include "SwifterKitRuntimeHIDSchema.h"
 #include "SwifterKitRuntimeSchema.h"
 
-// Packed HID payloads for the 0x031x-0x033x opcodes and events. The Swift encoders in
+// Packed HID payloads for the 0x031x-0x034x opcodes and events. The Swift encoders in
 // Sources/SwifterKit/DriverKit/HID mirror these layouts. Every reserved field must be zero.
 // The limits, the element write kind, and the report, delivery, category, and dispatch-state
 // bits come from RuntimeSchema+HID.swift.
@@ -214,6 +215,34 @@ struct __attribute__((packed)) SwifterKitHIDElementValueUpdate {
     uint32_t value;
 };
 
+// Payload header of hidFactoryCreateDevice, followed by the UTF-8 transport, manufacturer,
+// product, and serial number without terminators, then the report descriptor.
+struct __attribute__((packed)) SwifterKitHIDFactoryDevice {
+    uint32_t vendorID;
+    uint32_t productID;
+    uint32_t versionNumber;
+    uint32_t countryCode;
+    uint32_t locationID;
+    uint32_t primaryUsagePage;
+    uint32_t primaryUsage;
+    uint32_t acceptedHostReportTypes;
+    uint32_t answeredReportTypes;
+    uint32_t transportLength;
+    uint32_t manufacturerLength;
+    uint32_t productLength;
+    uint32_t serialNumberLength;
+    uint32_t descriptorLength;
+    uint32_t reserved[2];
+};
+
+// The device prefix of every other factory command payload and factory event.
+struct __attribute__((packed)) SwifterKitHIDFactoryHandle {
+    uint32_t handle;
+    uint32_t reserved;
+};
+
+static_assert(sizeof(SwifterKitHIDFactoryDevice) == kSwifterKitHIDFactoryDeviceHeaderSize);
+static_assert(sizeof(SwifterKitHIDFactoryHandle) == kSwifterKitHIDFactoryHandleSize);
 static_assert(sizeof(SwifterKitHIDReportCompletion) == 16);
 static_assert(sizeof(SwifterKitHIDGetReportRequest) == 24);
 static_assert(sizeof(SwifterKitHIDElementPageRequest) == 8);

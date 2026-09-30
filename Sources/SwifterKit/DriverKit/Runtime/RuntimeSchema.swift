@@ -125,6 +125,11 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case hidDeviceSetIdle = 0x0332
   case hidDeviceSetIdlePolicy = 0x0333
   case hidDeviceReset = 0x0334
+  case hidFactoryCreateDevice = 0x0340
+  case hidFactoryTerminateDevice = 0x0341
+  case hidFactorySubmitInputReport = 0x0342
+  case hidFactoryCompleteGetReport = 0x0343
+  case hidFactoryGetRuntimeStatistics = 0x0344
   case pciRead = 0x0400
   case pciWrite = 0x0401
   case pciGetBARInfo = 0x0402
@@ -317,6 +322,9 @@ enum RuntimeEventType: UInt32, CaseIterable {
   case hidGetReportRequest = 0x0312
   case hidLEDState = 0x0313
   case hidProperties = 0x0314
+  case hidFactoryReport = 0x0315
+  case hidFactoryGetReportRequest = 0x0316
+  case hidFactoryDeviceTerminated = 0x0317
   case serial = 0x0600
   case usbSerialPacket = 0x0610
   case blockStorage = 0x0700

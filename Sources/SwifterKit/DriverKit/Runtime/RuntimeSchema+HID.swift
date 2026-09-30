@@ -1,7 +1,7 @@
 // HID wire constants: command limits, element writes, and the report, delivery, category, and
 // dispatch-state bits.
 //
-// `RuntimeSchemaHeader` renders these into `SwifterKitRuntimeSchema.h`, which
+// `RuntimeSchemaHeader` renders these into `SwifterKitRuntimeHIDSchema.h`, which
 // `SwifterKitRuntimeHIDProtocol.h` and the `SwifterKitRuntimeHID*.cpp` sources read, so neither
 // side spells a value twice.
 
@@ -9,6 +9,12 @@
 enum RuntimeHIDLimits {
   /// The host get-report requests Swift may answer at once.
   static let maximumPendingReports = 16
+  /// The most devices a HID device factory can be generated to hold.
+  static let maximumFactoryDevices = 32
+  /// The fixed `hidFactoryCreateDevice` header that precedes the strings and the descriptor.
+  static let factoryDeviceHeaderSize = 64
+  /// The handle prefix of every factory command and event that names one device.
+  static let factoryHandleSize = 8
   /// The most element descriptors one `hidCopyElements` response carries.
   static let maximumElementPage = 512
   /// The most cookies one commit names.

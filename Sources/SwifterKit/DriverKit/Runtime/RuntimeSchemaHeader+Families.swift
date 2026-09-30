@@ -2,8 +2,8 @@
 extension RuntimeSchemaHeader {
   /// The family sections, in header order. `render()` separates them with blank lines.
   static func familySections() -> [[String]] {
-    serviceSections() + storageSections() + midiSections() + usbSections() + hidSections()
-      + networkSections() + audioSections() + videoSections()
+    serviceSections() + storageSections() + midiSections() + usbSections() + networkSections()
+      + audioSections() + videoSections()
   }
 
   /// `static constexpr` declarations of one native type, from name and value pairs.
@@ -211,7 +211,8 @@ extension RuntimeSchemaHeader {
     ]
   }
 
-  private static func hidSections() -> [[String]] {
+  /// The HID sections, which `renderHID()` writes to their own header.
+  static func hidSections() -> [[String]] {
     let hid = RuntimeHIDLimits.self
     let collectionAll =
       RuntimeHIDCollectionFlag.allBits | RuntimeHIDCollectionChange.allBits
@@ -221,6 +222,9 @@ extension RuntimeSchemaHeader {
         "uint32_t",
         [
           ("kSwifterKitHIDMaximumPendingReports", "\(hid.maximumPendingReports)"),
+          ("kSwifterKitHIDMaximumFactoryDevices", "\(hid.maximumFactoryDevices)"),
+          ("kSwifterKitHIDFactoryDeviceHeaderSize", "\(hid.factoryDeviceHeaderSize)"),
+          ("kSwifterKitHIDFactoryHandleSize", "\(hid.factoryHandleSize)"),
           ("kSwifterKitHIDMaximumElementPage", "\(hid.maximumElementPage)"),
           ("kSwifterKitHIDMaximumCookies", "\(hid.maximumCookies)"),
           ("kSwifterKitHIDMaximumCollectionElements", "\(hid.maximumCollectionElements)"),
