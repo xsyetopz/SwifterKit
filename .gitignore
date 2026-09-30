@@ -9,3 +9,5 @@
 *.p12
 *.provisionprofile
 *.mobileprovision
+
+.claude/handoff.md
