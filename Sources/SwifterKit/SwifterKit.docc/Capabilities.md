@@ -8,7 +8,7 @@ The Swift package requires Swift 6.1 (Xcode 16.3) or later. It supports macOS 10
 
 | Capability | Minimum DriverKit target | Earliest host release |
 | --- | ---: | --- |
-| Base runtime, HID device, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
+| Base runtime, HID device, HID device factory, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
 | PCI | 19.0 | macOS 11.1 |
 | SCSI controller | 20.4 | macOS 11.3 |
 | Block storage, audio, HID event service | 21.0 | macOS 12 |
@@ -28,7 +28,21 @@ Use `.hid` with ``HIDDeviceConfiguration``. Submit input reports with ``DriverCo
 
 ``HIDDeviceConfiguration/acceptedHostReportTypes`` defaults to ``HIDHostReportTypes/all``, which keeps output and feature report delivery. Use ``HIDHostReportTypes/output`` for an output-only descriptor. The generated extension returns `kIOReturnUnsupported` synchronously for disallowed types before it reads, allocates, or enqueues their payloads. The Swift host never receives those events.
 
-``HIDDeviceConfiguration/answeredReportTypes`` routes the host's get-report requests of those types to Swift. Decode each with ``DriverEvent/hidGetReportRequest()`` and answer it once with ``DriverContext/completeHIDGetReport(_:bytes:status:)``. At most 16 requests stay pending at once. A request still pending when the host detaches or the service stops completes with `kIOReturnAborted`. The extension refuses a request with `kIOReturnNotReady` while no host is connected. Properties clients set on the device arrive as ``DriverEvent/hidProperties()``.
+``HIDDeviceConfiguration/answeredReportTypes`` routes the host's get-report requests of those types to Swift. Decode each with ``DriverEvent/hidGetReportRequest()`` and answer it once with ``DriverContext/completeHIDGetReport(_:bytes:status:)-(HIDGetReportRequest,_,_)``. At most 16 requests stay pending at once. A request still pending when the host detaches or the service stops completes with `kIOReturnAborted`. The extension refuses a request with `kIOReturnNotReady` while no host is connected. Properties clients set on the device arrive as ``DriverEvent/hidProperties()``.
+
+### HID device factories
+
+Use `.hid` with ``HIDDeviceFactoryConfiguration`` to publish virtual HID devices that Swift creates at run time. Match `IOUserResources`. The generated service is a plain `IOService` on that provider. Each device it creates is a separate `IOUserHIDDevice` with its own report descriptor and device properties. A factory is the extension's only HID role, and it cannot be combined with USB, PCI, interrupt, serial, networking, audio, MIDI, block-storage, SCSI, or video capabilities.
+
+``HIDDeviceFactoryConfiguration/maximumDevices`` fixes how many devices may exist at once, from 1 through 32. The generator writes it into the extension. The personality carries a `HIDDeviceProperties` dictionary that names the device class, so ``DriverConfiguration/matchingProperties`` cannot set that key.
+
+- ``DriverContext/createHIDDevice(_:)`` takes a ``HIDDeviceConfiguration`` and returns a ``HIDDeviceHandle``. Its vendor, product, version, country code, location, transport, manufacturer, product name, serial number, primary usage, descriptor, and report-type masks apply to that device only. A create while every slot is taken fails with `kIOReturnNoSpace`. A create while another create is running fails with `kIOReturnBusy`.
+- ``DriverContext/terminateHIDDevice(_:)`` removes the device. Its pending get-report requests complete with `kIOReturnAborted`.
+- ``DriverContext/submitHIDInputReport(_:to:)`` delivers an input report through one device. ``DriverContext/hidRuntimeStatistics(for:)`` reads that device's delivery counters.
+- ``DriverEvent/hidFactoryReport()`` decodes a host output or feature report as a ``HIDDeviceReport``. ``DriverEvent/hidFactoryGetReportRequest()`` decodes a host get-report request as a ``HIDDeviceGetReportRequest``. Answer it once with ``DriverContext/completeHIDGetReport(_:bytes:status:)-(HIDDeviceGetReportRequest,_,_)``. At most 8 requests per device stay pending at once.
+- ``DriverEvent/hidFactoryDeviceTerminated()`` reports a device the system stopped without a Swift request. Swift's own terminations and host detach send no event.
+
+Creation returns before DriverKit starts the device. Until the device has started, input reports for it fail with `kIOReturnNotReady`. Only the connection that receives events may command the factory. Another connection gets `kIOReturnNotPermitted`, and any connection gets `kIOReturnNotReady` while no host receives events. When that host detaches, the factory terminates every device. Handles are never reused while the service runs.
 
 ### USB HID devices
 

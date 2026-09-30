@@ -44,7 +44,7 @@ narrowest DriverKit target required by its capabilities.
 
 | Generated capability | Minimum DriverKit target | Host availability |
 | --- | ---: | --- |
-| Base runtime, HID device, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
+| Base runtime, HID device, HID device factory, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
 | PCI | 19.0 | macOS 11.1 |
 | SCSI controller | 20.4 | macOS 11.3 |
 | Block storage, audio, HID event service | 21.0 | macOS 12 |
@@ -155,6 +155,7 @@ supports only output reports. Rejected report types return
 | Capability | Configuration | Swift operations |
 | --- | --- | --- |
 | HID | `HIDDeviceConfiguration` | Input reports; allowlisted output and feature events |
+| HID device factory | `HIDDeviceFactoryConfiguration` | Create and terminate up to 32 virtual HID devices at run time, each with its own descriptor and identity; per-device input reports, host reports, and get-report answers tagged with the device handle |
 | USB | `USBDeviceConfiguration` | Interface or device providers; synchronous and asynchronous control transfers, synchronous and asynchronous endpoint I/O, bundled bulk I/O over descriptor rings, isochronous I/O, endpoint bandwidth adjustment, descriptors, configuration, frame numbers, idle policy, aborts |
 | PCI | `PCIDeviceConfiguration`, `PCIInterruptConfiguration` | Configuration space, bounded BAR access with access options, device location, capability search, MSI/MSI-X allocation, reset, state save/restore, power management, link speed, ASPM, sleep properties |
 | Serial | `SerialPortConfiguration` | Queue I/O, modem state, receive errors, UART events |

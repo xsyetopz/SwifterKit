@@ -15,9 +15,9 @@ The release workflow cannot access DriverKit signing secrets.
 ## Publish a version
 
 1. Ensure `CI` succeeds.
-2. Create and push a SemVer tag without a `v` prefix, such as `0.1.0`.
-3. The `Release` workflow validates the tagged commit and creates the GitHub release.
-4. Consumers can use SwiftPM's `from: "0.1.0"` requirement.
+1. Create and push a SemVer tag without a `v` prefix, such as `0.1.0`.
+1. The `Release` workflow validates the tagged commit and creates the GitHub release.
+1. Consumers can use SwiftPM's `from: "0.1.0"` requirement.
 
 Alternatively, run `Release` manually from `main` with the new version as `tag`. The workflow validates the `main` head, then creates and pushes the tag before publishing. Manual dispatch never moves an existing tag; it publishes that tag's commit.
 
@@ -26,6 +26,8 @@ Alternatively, run `Release` manually from `main` with the new version as `tag`.
 A driver product needs:
 
 - Apple approval for each requested DriverKit transport or family entitlement.
+  - A `.hid` extension, including a HID device factory, requests `com.apple.developer.driverkit.family.hid.device`, `com.apple.developer.driverkit.transport.hid`, and `com.apple.developer.driverkit.family.hid.eventservice`. A factory needs no further entitlement.
+  - `com.apple.developer.hid.virtual.device` is the CoreHID entitlement for user processes that create virtual HID devices. It never belongs in a dext's entitlements.
 - An explicit App ID for the generated dext bundle identifier.
 - An Apple Development certificate and its private key.
 - A DriverKit provisioning profile matching the dext App ID, entitlements, team, and certificate.

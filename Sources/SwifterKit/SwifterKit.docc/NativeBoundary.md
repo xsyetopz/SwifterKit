@@ -55,11 +55,12 @@ Required events carry DriverKit work that Swift must answer, or a result Swift m
 - audio or video control, custom-property, and stream-format changes
 - audio box-acquisition and clock-device sample-rate requests
 - USB pipe completions
-- HID get-report requests
+- HID get-report requests, including those of HID device factory devices
+- HID device factory device terminations
 
 Lossy events are notifications. Swift may miss them without leaving a DriverKit request outstanding:
 
-- HID host reports, input reports, element values, and LED and property changes
+- HID host reports, including those of HID device factory devices, input reports, element values, and LED and property changes
 - interrupts
 - serial and MIDI notifications
 - audio or video I/O state
@@ -97,6 +98,7 @@ Detaching empties both queues. It then answers tracked requests the same way the
 - SCSI parallel tasks complete with `kSCSIServiceResponse_SERVICE_DELIVERY_OR_TARGET_FAILURE`.
 - Ethernet transmit packets return to their buffer pool.
 - Pending HID get-report requests complete with `kIOReturnAborted`.
+- A HID device factory terminates every device it created. Each device first completes its pending get-report requests with `kIOReturnAborted`. No device-terminated event is queued for these devices.
 - Pending audio box-acquisition and clock-device sample-rate requests are rejected. The box reports `kIOReturnAborted` as its acquisition failure, and the sample rate stays unchanged.
 
 Other HID, serial, MIDI, interrupt, audio, video, and SCSI peripheral events leave no DriverKit request waiting for Swift. Those families have nothing to answer.

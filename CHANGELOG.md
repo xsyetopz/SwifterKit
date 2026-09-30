@@ -4,6 +4,43 @@ SwifterKit records user-visible changes in this file.
 
 ## [Unreleased]
 
+## [0.3.0]
+
+### Added
+
+- HID device factories. `DriverConfiguration.hidDeviceFactory` takes a
+  `HIDDeviceFactoryConfiguration` whose `maximumDevices` (1 through 32) caps
+  how many virtual HID devices exist at once. The generated service matches
+  `IOUserResources` and creates each device as its own `IOUserHIDDevice`,
+  with its own report descriptor, transport, vendor and product IDs, version,
+  country code, location, manufacturer, product, serial number, and primary
+  usage. The personality carries the device properties as
+  `HIDDeviceProperties`.
+- `DriverContext.createHIDDevice(_:)`, `terminateHIDDevice(_:)`,
+  `submitHIDInputReport(_:to:)`, `completeHIDGetReport(_:bytes:status:)` for a
+  `HIDDeviceGetReportRequest`, and `hidRuntimeStatistics(for:)`, with matching
+  `DriverCommand` constructors and `HIDDeviceHandle`.
+- `DriverEvent.hidFactoryReport()`, `hidFactoryGetReportRequest()`, and
+  `hidFactoryDeviceTerminated()`. Every factory event carries the device
+  handle.
+- Runtime opcodes 0x0340 through 0x0344 and events 0x0315 through 0x0317.
+- The HID schema constants now render into their own generated header,
+  `SwifterKitRuntimeHIDSchema.h`, so `SwifterKitRuntimeSchema.h` stays under
+  the source size limit. The names and values are unchanged.
+
+### Behavior
+
+- `createHIDDevice(_:)` returns before DriverKit starts the device. Input
+  reports for a device that has not started yet fail with `kIOReturnNotReady`.
+- Only the connection that receives events may command the factory. When that
+  host detaches, closes, or crashes, or the service stops, the factory
+  terminates every device and aborts its pending get-report requests.
+
+### Unchanged
+
+- Runtime protocol version 2, existing opcodes, events, and payloads, and the
+  static `HIDDeviceConfiguration` device mode.
+
 ## 0.2.1
 
 ### Changed
@@ -466,7 +503,6 @@ SwifterKit records user-visible changes in this file.
   index that is not BAR0 through BAR5, such as the expansion ROM, now fail with
   `kIOReturnBadArgument` before reaching DriverKit.
 
-
 - The runtime protocol is now version 2. The handshake offers a version range,
   the extension selects the highest common version, and both sides use it for
   the rest of the connection; `DriverRuntimeConnection.protocolVersion` reports
@@ -663,7 +699,6 @@ SwifterKit records user-visible changes in this file.
   transmits) as it does when a host disconnects. Before this, they stayed
   outstanding until the service stopped.
 
-
 - Registry numbers 0 and 1 no longer decode as Booleans. Only CoreFoundation
   Boolean values become `DriverProperty.boolean`, and registry integers decode
   as `DriverProperty.integer`.
@@ -678,7 +713,6 @@ SwifterKit records user-visible changes in this file.
 - **Breaking:** `RuntimeMessageFlags.finalFragment` and
   `RuntimeProtocolVersion.version1` are removed; the runtime never sent
   fragmented messages, and version 1 extensions do not negotiate the protocol.
-
 
 ## 0.1.3
 
