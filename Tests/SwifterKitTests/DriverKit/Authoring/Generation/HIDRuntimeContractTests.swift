@@ -212,7 +212,13 @@ struct HIDRuntimeContractTests {
       let elements = try source("SwifterKitRuntimeHIDElements.cpp", in: output)
       #expect(elements.contains("using ElementWriteKind = SwifterKitHIDElementWriteKind;"))
       let requests = try source("SwifterKitRuntimeHIDRequests.cpp", in: output)
-      #expect(requests.contains("kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportInput"))
+      #expect(
+        requests.contains(
+          "SwifterKitHIDAnswersReportType(kSwifterKitHIDAnsweredReportTypes, reportType)"
+        )
+      )
+      let shared = try source("SwifterKitRuntimeHIDShared.h", in: output)
+      #expect(shared.contains("(mask & kSwifterKitHIDGetReportInput) != 0"))
       let configuration = try source("SwifterKitRuntimeConfiguration.h", in: output)
       #expect(!configuration.contains("kSwifterKitHIDHostReportOutput ="))
     }

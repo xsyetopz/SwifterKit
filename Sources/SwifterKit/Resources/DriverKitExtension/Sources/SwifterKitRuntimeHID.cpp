@@ -12,6 +12,7 @@
     #include <DriverKit/IOMemoryMap.h>
     #include <HIDDriverKit/IOHIDDeviceKeys.h>
 
+    #include "SwifterKitRuntimeHIDShared.h"
     #include "SwifterKitRuntimeServiceProperties.h"
 #endif
 
@@ -64,67 +65,6 @@ namespace {
         }
     }
     #endif
-
-    [[maybe_unused]] void SetNumber(OSDictionary* dictionary, const char* key, uint32_t value) {
-        OSNumber* number = OSNumber::withNumber(value, 32);
-        if (number != nullptr) {
-            OSDictionarySetValue(dictionary, key, number);
-            number->release();
-        }
-    }
-
-    [[maybe_unused]] void SetString(OSDictionary* dictionary, const char* key, const char* value) {
-        OSString* string = OSString::withCString(value);
-        if (string != nullptr) {
-            OSDictionarySetValue(dictionary, key, string);
-            string->release();
-        }
-    }
-
-    [[maybe_unused]] void AddPrimaryUsagePair(OSDictionary* description) {
-        OSArray* pairs = OSArray::withCapacity(1);
-        OSDictionary* pair = OSDictionary::withCapacity(2);
-        if (pairs != nullptr && pair != nullptr) {
-            SetNumber(pair, kIOHIDDeviceUsagePageKey, kSwifterKitHIDPrimaryUsagePage);
-            SetNumber(pair, kIOHIDDeviceUsageKey, kSwifterKitHIDPrimaryUsage);
-            if (pairs->setObject(pair)) {
-                OSDictionarySetValue(description, kIOHIDDeviceUsagePairsKey, pairs);
-            }
-        }
-        OSSafeReleaseNULL(pair);
-        OSSafeReleaseNULL(pairs);
-    }
-
-    kern_return_t
-        CopyDescriptorBytes(IOMemoryDescriptor* descriptor, uint32_t length, OSData* destination) {
-        IOMemoryMap* map = nullptr;
-        kern_return_t result =
-            descriptor->CreateMapping(kIOMemoryMapReadOnly, 0, 0, length, 0, &map);
-        if (result != kIOReturnSuccess || map == nullptr) {
-            return result;
-        }
-
-        const uint64_t address = map->GetAddress();
-        if (address == 0
-            || !destination->appendBytes(SwifterKitMappedPointer<const void>(address), length)) {
-            result = kIOReturnNoMemory;
-        }
-        map->release();
-        return result;
-    }
-
-    bool AcceptsHostReportType(IOHIDReportType reportType) {
-        switch (reportType) {
-            case kIOHIDReportTypeOutput:
-                return (kSwifterKitHIDAcceptedHostReportTypes & kSwifterKitHIDHostReportOutput)
-                       != 0;
-            case kIOHIDReportTypeFeature:
-                return (kSwifterKitHIDAcceptedHostReportTypes & kSwifterKitHIDHostReportFeature)
-                       != 0;
-            default:
-                return false;
-        }
-    }
 }  // namespace
 
 bool SwifterKitRuntimeService::handleStart(IOService* provider) {
@@ -203,26 +143,21 @@ OSDictionary* SwifterKitRuntimeService::newDeviceDescription() {
     OSSafeReleaseNULL(decoded);
     return description;
     #else
-    OSDictionary* description = OSDictionary::withCapacity(14);
-    if (description == nullptr) {
-        return nullptr;
-    }
-
-    OSDictionarySetValue(description, "RegisterService", kOSBooleanTrue);
-    OSDictionarySetValue(description, "HIDDefaultBehavior", kOSBooleanTrue);
-    SetString(description, kIOHIDTransportKey, kSwifterKitHIDTransport);
-    SetNumber(description, kIOHIDVendorIDKey, kSwifterKitHIDVendorID);
-    SetNumber(description, kIOHIDProductIDKey, kSwifterKitHIDProductID);
-    SetNumber(description, kIOHIDVersionNumberKey, kSwifterKitHIDVersionNumber);
-    SetNumber(description, kIOHIDCountryCodeKey, kSwifterKitHIDCountryCode);
-    SetNumber(description, kIOHIDLocationIDKey, kSwifterKitHIDLocationID);
-    SetString(description, kIOHIDManufacturerKey, kSwifterKitHIDManufacturer);
-    SetString(description, kIOHIDProductKey, kSwifterKitHIDProduct);
-    SetString(description, kIOHIDSerialNumberKey, kSwifterKitHIDSerialNumber);
-    SetNumber(description, kIOHIDPrimaryUsagePageKey, kSwifterKitHIDPrimaryUsagePage);
-    SetNumber(description, kIOHIDPrimaryUsageKey, kSwifterKitHIDPrimaryUsage);
-    AddPrimaryUsagePair(description);
-    return description;
+    const SwifterKitHIDFactoryDevice numbers = {
+        .vendorID = kSwifterKitHIDVendorID,
+        .productID = kSwifterKitHIDProductID,
+        .versionNumber = kSwifterKitHIDVersionNumber,
+        .countryCode = kSwifterKitHIDCountryCode,
+        .locationID = kSwifterKitHIDLocationID,
+        .primaryUsagePage = kSwifterKitHIDPrimaryUsagePage,
+        .primaryUsage = kSwifterKitHIDPrimaryUsage,
+    };
+    return SwifterKitHIDNewDescription(
+        numbers,
+        SwifterKitHIDCString(kSwifterKitHIDTransport),
+        SwifterKitHIDCString(kSwifterKitHIDManufacturer),
+        SwifterKitHIDCString(kSwifterKitHIDProduct),
+        SwifterKitHIDCString(kSwifterKitHIDSerialNumber));
     #endif
 }
 
@@ -257,20 +192,8 @@ kern_return_t SwifterKitRuntimeService::SubmitHIDInputReport(
     }
 
     IOBufferMemoryDescriptor* buffer = nullptr;
-    kern_return_t result =
-        IOBufferMemoryDescriptor::Create(kIOMemoryDirectionIn, header->reportLength, 0, &buffer);
-    if (result != kIOReturnSuccess || buffer == nullptr) {
-        IOLockLock(ivars->eventLock);
-        ivars->hidInputReportFailures += 1;
-        IOLockUnlock(ivars->eventLock);
-        return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
-    }
-    (void)buffer->SetLength(header->reportLength);
-
-    IOMemoryMap* map = nullptr;
-    result = buffer->CreateMapping(0, 0, 0, header->reportLength, 0, &map);
-    if (result == kIOReturnSuccess && map != nullptr && map->GetAddress() != 0) {
-        memcpy(SwifterKitMappedPointer<void>(map->GetAddress()), bytes, header->reportLength);
+    kern_return_t result = SwifterKitHIDCreateReportBuffer(bytes, header->reportLength, &buffer);
+    if (result == kIOReturnSuccess) {
         // The superclass delivers the report, so a USB HID device does not echo it to Swift.
         result = super::handleReport(
             header->timestamp,
@@ -278,12 +201,8 @@ kern_return_t SwifterKitRuntimeService::SubmitHIDInputReport(
             header->reportLength,
             kIOHIDReportTypeInput,
             header->options);
-    } else if (result == kIOReturnSuccess) {
-        result = kIOReturnNoMemory;
+        buffer->release();
     }
-
-    OSSafeReleaseNULL(map);
-    buffer->release();
 
     IOLockLock(ivars->eventLock);
     if (result == kIOReturnSuccess) {
@@ -317,7 +236,7 @@ kern_return_t SwifterKitRuntimeService::setReport(
     IOOptionBits options,
     [[maybe_unused]] uint32_t completionTimeout,
     OSAction* action) {
-    if (!AcceptsHostReportType(reportType)) {
+    if (!SwifterKitHIDAcceptsHostReportType(kSwifterKitHIDAcceptedHostReportTypes, reportType)) {
     #if SWIFTERKIT_HID_USB_DEVICE
         return super::setReport(report, reportType, options, completionTimeout, action);
     #else
@@ -349,7 +268,7 @@ kern_return_t SwifterKitRuntimeService::setReport(
         return kIOReturnNoMemory;
     }
 
-    result = CopyDescriptorBytes(report, header.reportLength, payload);
+    result = SwifterKitHIDCopyDescriptorBytes(report, header.reportLength, payload);
     if (result == kIOReturnSuccess) {
         result = EnqueueEvent(
             kSwifterKitEventHIDReport,
@@ -387,7 +306,8 @@ kern_return_t SwifterKitRuntimeService::handleReport(
         };
         OSData* payload = OSData::withCapacity(sizeof(header) + reportLength);
         if (payload != nullptr && payload->appendBytes(&header, sizeof(header))
-            && CopyDescriptorBytes(report, reportLength, payload) == kIOReturnSuccess) {
+            && SwifterKitHIDCopyDescriptorBytes(report, reportLength, payload)
+                   == kIOReturnSuccess) {
             (void)EnqueueEvent(
                 kSwifterKitEventHIDInputReport,
                 payload->getBytesNoCopy(),

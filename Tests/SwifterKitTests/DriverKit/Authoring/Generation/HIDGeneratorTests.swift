@@ -64,7 +64,10 @@ struct HIDGeneratorTests {
       encoding: .utf8
     )
     let guardIndex = try #require(
-      source.range(of: "if (!AcceptsHostReportType(reportType))")?.lowerBound
+      source.range(
+        of: "if (!SwifterKitHIDAcceptsHostReportType("
+          + "kSwifterKitHIDAcceptedHostReportTypes, reportType))"
+      )?.lowerBound
     )
     let unsupportedIndex = try #require(
       source.range(of: "return kIOReturnUnsupported;", range: guardIndex..<source.endIndex)?
@@ -78,8 +81,17 @@ struct HIDGeneratorTests {
       source.range(of: "EnqueueEvent(", range: guardIndex..<source.endIndex)?.lowerBound
     )
 
-    #expect(source.contains("case kIOHIDReportTypeOutput:"))
-    #expect(source.contains("case kIOHIDReportTypeFeature:"))
+    let shared = try String(
+      contentsOf: output.appendingPathComponent("Sources/SwifterKitRuntimeHIDShared.h"),
+      encoding: .utf8
+    )
+    let accepts = try section(
+      of: shared,
+      from: "inline bool SwifterKitHIDAcceptsHostReportType(",
+      to: "default:"
+    )
+    #expect(accepts.contains("case kIOHIDReportTypeOutput:"))
+    #expect(accepts.contains("case kIOHIDReportTypeFeature:"))
     #expect(guardIndex < unsupportedIndex)
     #expect(unsupportedIndex < lengthIndex)
     #expect(lengthIndex < allocationIndex)

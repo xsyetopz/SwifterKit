@@ -51,7 +51,9 @@ struct DriverExtensionGeneratorTests {
     #expect(runtimeConfiguration.contains("kSwifterKitHIDVendorID = 4660"))
 
     let hidSource = try source("SwifterKitRuntimeHID.cpp", in: output)
-    #expect(hidSource.contains("kIOHIDDeviceUsagePairsKey"))
+    #expect(hidSource.contains("SwifterKitHIDNewDescription("))
+    let hidShared = try source("SwifterKitRuntimeHIDShared.h", in: output)
+    #expect(hidShared.contains("kIOHIDDeviceUsagePairsKey"))
 
     let entitlements = try loadEntitlements(in: output)
     #expect(entitlements["com.apple.developer.driverkit.family.hid.device"] as? Bool == true)

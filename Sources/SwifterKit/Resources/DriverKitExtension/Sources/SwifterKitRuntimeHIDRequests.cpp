@@ -11,6 +11,7 @@
     #include <DriverKit/IOBufferMemoryDescriptor.h>
     #include <DriverKit/IOMemoryMap.h>
 
+    #include "SwifterKitRuntimeHIDShared.h"
     #include "SwifterKitRuntimeServiceProperties.h"
 #endif
 
@@ -25,53 +26,6 @@
 namespace {
     constexpr uint32_t kMaximumEventPayload =
         kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize - sizeof(uint32_t);
-    // Swift answers with a command header and a completion header before the report bytes.
-    constexpr uint32_t kMaximumAnsweredReport =
-        kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize
-        - sizeof(SwifterKitRuntimeCommandHeader) - sizeof(SwifterKitHIDReportCompletion);
-
-    bool AnswersReportType(IOHIDReportType reportType) {
-        switch (reportType) {
-            case kIOHIDReportTypeInput:
-                return (kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportInput) != 0;
-            case kIOHIDReportTypeOutput:
-                return (kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportOutput) != 0;
-            case kIOHIDReportTypeFeature:
-                return (kSwifterKitHIDAnsweredReportTypes & kSwifterKitHIDGetReportFeature) != 0;
-            default:
-                return false;
-        }
-    }
-
-    kern_return_t
-        CopyIntoDescriptor(IOMemoryDescriptor* report, const uint8_t* bytes, uint32_t length) {
-        IOMemoryMap* map = nullptr;
-        kern_return_t result = report->CreateMapping(0, 0, 0, length, 0, &map);
-        if (result == kIOReturnSuccess && (map == nullptr || map->GetAddress() == 0)) {
-            result = kIOReturnNoMemory;
-        }
-        if (result == kIOReturnSuccess) {
-            memcpy(SwifterKitMappedPointer<void>(map->GetAddress()), bytes, length);
-        }
-        OSSafeReleaseNULL(map);
-        return result;
-    }
-
-    // Takes the pending request with requestID out of the table, or every request when
-    // requestID is zero. The caller holds hidLock.
-    uint32_t TakeRequests(
-        SwifterKitRuntimeService_IVars* state,
-        uint32_t requestID,
-        SwifterKitHIDPendingReport* taken) {
-        uint32_t count = 0;
-        for (auto& slot : state->hidRequests) {
-            if (slot.requestID != 0 && (requestID == 0 || slot.requestID == requestID)) {
-                taken[count++] = slot;
-                slot = {};
-            }
-        }
-        return count;
-    }
 }  // namespace
 
 kern_return_t SwifterKitRuntimeService::getReport(
@@ -80,7 +34,7 @@ kern_return_t SwifterKitRuntimeService::getReport(
     IOOptionBits options,
     uint32_t completionTimeout,
     OSAction* action) {
-    if (!AnswersReportType(reportType)) {
+    if (!SwifterKitHIDAnswersReportType(kSwifterKitHIDAnsweredReportTypes, reportType)) {
     #if SWIFTERKIT_HID_USB_DEVICE
         return super::getReport(report, reportType, options, completionTimeout, action);
     #else
@@ -93,7 +47,7 @@ kern_return_t SwifterKitRuntimeService::getReport(
     }
     uint64_t length = 0;
     kern_return_t result = report->GetLength(&length);
-    if (result != kIOReturnSuccess || length == 0 || length > kMaximumAnsweredReport) {
+    if (result != kIOReturnSuccess || length == 0 || length > kSwifterKitHIDMaximumAnsweredReport) {
         return kIOReturnBadArgument;
     }
     IOLockLock(ivars->eventLock);
@@ -138,7 +92,8 @@ kern_return_t SwifterKitRuntimeService::getReport(
     if (result != kIOReturnSuccess) {
         SwifterKitHIDPendingReport taken[1] = {};
         IORecursiveLockLock(ivars->hidLock);
-        const uint32_t count = TakeRequests(ivars, event.requestID, taken);
+        const uint32_t count =
+            SwifterKitHIDTakeRequests(ivars->hidRequests, event.requestID, taken);
         IORecursiveLockUnlock(ivars->hidLock);
         if (count == 1) {
             OSSafeReleaseNULL(taken[0].action);
@@ -154,7 +109,7 @@ void SwifterKitRuntimeService::AbortHIDRequests() {
     }
     SwifterKitHIDPendingReport taken[kSwifterKitHIDMaximumPendingReports] = {};
     IORecursiveLockLock(ivars->hidLock);
-    const uint32_t count = TakeRequests(ivars, 0, taken);
+    const uint32_t count = SwifterKitHIDTakeRequests(ivars->hidRequests, 0, taken);
     IORecursiveLockUnlock(ivars->hidLock);
     for (uint32_t index = 0; index < count; ++index) {
         CompleteReport(taken[index].action, kIOReturnAborted, 0);
@@ -210,7 +165,8 @@ kern_return_t SwifterKitRuntimeService::CompleteHIDGetReport(
                 return kIOReturnBadArgument;
             }
         }
-        const uint32_t count = TakeRequests(state, completion.requestID, taken);
+        const uint32_t count =
+            SwifterKitHIDTakeRequests(state->hidRequests, completion.requestID, taken);
         IORecursiveLockUnlock(state->hidLock);
         if (count == 0) {
             return kIOReturnNotFound;
@@ -219,7 +175,10 @@ kern_return_t SwifterKitRuntimeService::CompleteHIDGetReport(
         IOReturn status = completion.status;
         uint32_t length = completion.length;
         if (status == kIOReturnSuccess && length != 0) {
-            result = CopyIntoDescriptor(taken[0].report, payload + sizeof(completion), length);
+            result = SwifterKitHIDCopyIntoDescriptor(
+                taken[0].report,
+                payload + sizeof(completion),
+                length);
             if (result != kIOReturnSuccess) {
                 status = result;
                 length = 0;
@@ -280,7 +239,7 @@ kern_return_t SwifterKitRuntimeService::HIDCommand(
         memcpy(&request, payload, sizeof(request));
         if (request.timestamp != 0 || request.reserved != 0 || request.reportType > 2
             || request.reportID > 0xFF || (request.options & 0xFFU) != 0 || request.length == 0
-            || request.length > kMaximumAnsweredReport) {
+            || request.length > kSwifterKitHIDMaximumAnsweredReport) {
             return kIOReturnBadArgument;
         }
         IOBufferMemoryDescriptor* buffer = nullptr;
