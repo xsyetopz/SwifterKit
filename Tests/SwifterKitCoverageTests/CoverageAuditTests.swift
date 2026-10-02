@@ -109,6 +109,23 @@ struct CoverageAuditTests {
         evidence: nil
       ) == ["`IOExample::Gone` at A.swift:1 names no member the SDK headers declare"]
     )
+    // Without every SDK the article names, an undeclared member may come from a missing SDK.
+    #expect(
+      CoverageAudit.problems(
+        coverage,
+        documented: documented,
+        exclusions: exclusions,
+        evidence: evidence,
+        requireDeclared: false
+      ) == [
+        "`IOExample::Legacy` at A.swift:1 is documented but the runtime does not reach it",
+        "excluded `IOExample` `kern_return_t Start(IOService*)` is reached by the runtime",
+        "excluded `IOExample` `void Notify(uint64_t)` says \"Not yet\"; "
+          + "describe what SwifterKit does now",
+        "excluded `IOExample` `void _Plumbing()` is already kept from DriverKit clients: "
+          + "declared private in the SDK header",
+      ]
+    )
   }
 
   @Test

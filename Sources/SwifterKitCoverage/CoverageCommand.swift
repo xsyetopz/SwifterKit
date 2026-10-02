@@ -17,7 +17,8 @@ import Foundation
 ///
 /// `docc` writes the article. `check` fails on documentation mentions and exclusions that the
 /// headers or the evidence do not support, and, when it has the trees and the article names the
-/// same SDKs, on an article that differs from what `docc` would write.
+/// same SDKs, on an article that differs from what `docc` would write. When `--sdk` lacks an SDK
+/// the article names, `check` does not report members the given headers do not declare.
 @main
 enum CoverageCommand {
   struct Options {
@@ -80,7 +81,21 @@ enum CoverageCommand {
       guard let article = options.article else { throw Failure.usage("check needs --article") }
       let text = try String(contentsOf: article, encoding: .utf8)
       let exclusions = CoverageArticle.exclusions(in: text, article: true)
-      var (rendered, problems) = try audit(coverage, evidence, exclusions, options.swift)
+      let missing = CoverageArticle.missingSDKs(in: text, from: coverage.sdks)
+      if !missing.isEmpty {
+        print(
+          "note: --sdk lacks the DriverKit \(missing.joined(separator: ", ")) SDKs that "
+            + "\(article.lastPathComponent) names, so members the given headers do not declare "
+            + "are not reported"
+        )
+      }
+      var (rendered, problems) = try audit(
+        coverage,
+        evidence,
+        exclusions,
+        options.swift,
+        requireDeclared: missing.isEmpty
+      )
       if evidence == nil {
         print("note: without --trees, \(article.lastPathComponent) is not compared")
       } else if CoverageArticle.sdks(in: text) != coverage.sdks {
@@ -115,7 +130,8 @@ enum CoverageCommand {
     _ coverage: Coverage,
     _ evidence: CoverageEvidence?,
     _ exclusions: Set<Coverage.Exclusion>,
-    _ swift: [URL]
+    _ swift: [URL],
+    requireDeclared: Bool = true
   ) throws -> (Coverage, [String]) {
     let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     let documented = try DocumentedMembers(
@@ -125,7 +141,8 @@ enum CoverageCommand {
       coverage,
       documented: documented,
       exclusions: exclusions,
-      evidence: evidence
+      evidence: evidence,
+      requireDeclared: requireDeclared
     )
     guard let evidence else { return (coverage, problems) }
     let applied = coverage.applying(

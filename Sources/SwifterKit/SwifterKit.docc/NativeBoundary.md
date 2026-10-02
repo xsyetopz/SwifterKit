@@ -177,7 +177,7 @@ The one exception is a block-storage request whose identifier matches one still 
 - Not exposed: the header makes the member public and SwifterKit does not reach it, for the reason the article gives.
 - Apple only: the header keeps the member from DriverKit clients.
 
-The `SwifterKitCoverage` package tool, separate from the `SwifterKit` library, computes the article from the headers, clang's AST of the generated runtime, and the Swift documentation. Its `check` command fails when the documentation names a member the runtime does not reach, or when a reason names a member that is not public or that the runtime reaches.
+The `SwifterKitCoverage` package tool, separate from the `SwifterKit` library, computes the article from the headers, clang's AST of the generated runtime, and the Swift documentation. Its `check` command fails when the documentation names a member the runtime does not reach, or when a reason names a member that is not public or that the runtime reaches. Given fewer SDKs than the article names, `check` does not report members those headers do not declare, because a newer or older SDK can declare them.
 
 ## Related articles
 

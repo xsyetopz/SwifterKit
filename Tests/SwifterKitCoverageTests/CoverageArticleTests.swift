@@ -60,6 +60,8 @@ struct CoverageArticleTests {
 
     #expect(CoverageArticle.exclusions(in: text, article: true) == [reset])
     #expect(CoverageArticle.sdks(in: text) == ["24.4", "27.0"])
+    #expect(CoverageArticle.missingSDKs(in: text, from: ["24.4"]) == ["27.0"])
+    #expect(CoverageArticle.missingSDKs(in: text, from: ["24.4", "25.5", "27.0"]).isEmpty)
     // Gap and Apple lines have the same prefix but sit outside the exclusions section.
     #expect(CoverageArticle.exclusions(in: article(exclusions: []), article: true).isEmpty)
     let mapping = "- `IOExample` `void Reset()`: The runtime resets the device\nnot a line\n"

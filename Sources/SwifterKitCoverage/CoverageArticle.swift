@@ -92,6 +92,11 @@ enum CoverageArticle {
     return text[start.upperBound..<end.lowerBound].components(separatedBy: ", ")
   }
 
+  /// The SDK versions an article names that `versions` lacks.
+  static func missingSDKs(in text: String, from versions: [String]) -> [String] {
+    (sdks(in: text) ?? []).filter { !versions.contains($0) }
+  }
+
   private struct Counts {
     var values: [Int] = Array(repeating: 0, count: 6)
 

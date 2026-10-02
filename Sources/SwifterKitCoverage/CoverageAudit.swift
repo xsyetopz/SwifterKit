@@ -71,12 +71,15 @@ struct DocumentedMembers {
 /// evidence.
 enum CoverageAudit {
   /// Returns documentation mentions and exclusions that the headers or the evidence do not
-  /// support. Without `evidence`, only the header facts are checked.
+  /// support. Without `evidence`, only the header facts are checked. Without `requireDeclared`,
+  /// members the headers do not declare are not reported, because `coverage` lacks an SDK that
+  /// may declare them.
   static func problems(
     _ coverage: Coverage,
     documented: [DocumentedMembers.Mention: [CoverageEvidence.MemberKey]],
     exclusions: Set<Coverage.Exclusion>,
-    evidence: CoverageEvidence?
+    evidence: CoverageEvidence?,
+    requireDeclared: Bool = true
   ) -> [String] {
     var methods: [CoverageEvidence.MemberKey: Coverage.Method] = [:]
     for entry in coverage.classes {
@@ -88,7 +91,7 @@ enum CoverageAudit {
     for (mention, keys) in documented.sorted(by: { $0.key < $1.key }) {
       let name = "`\(mention.className)::\(mention.member)` at \(mention.location)"
       if keys.isEmpty {
-        problems.append("\(name) names no member the SDK headers declare")
+        if requireDeclared { problems.append("\(name) names no member the SDK headers declare") }
       } else if let evidence, !keys.contains(where: { evidence.members[$0] != nil }) {
         problems.append("\(name) is documented but the runtime does not reach it")
       }
@@ -99,7 +102,7 @@ enum CoverageAudit {
       let key = CoverageEvidence.MemberKey(exclusion.className, exclusion.signature)
       let name = "excluded `\(exclusion.className)` `\(exclusion.signature)`"
       guard let method = methods[key] else {
-        problems.append("\(name) names no member the SDK headers declare")
+        if requireDeclared { problems.append("\(name) names no member the SDK headers declare") }
         continue
       }
       if method.excludedBy == .apple {
