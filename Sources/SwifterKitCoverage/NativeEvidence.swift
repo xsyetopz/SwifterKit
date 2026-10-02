@@ -59,25 +59,44 @@ struct NativeEvidence {
     let sdk = (String(data: sdkPath, encoding: .utf8) ?? "").trimmed
     let results = Results()
     DispatchQueue.concurrentPerform(iterations: jobs.count) { index in
-      let job = jobs[index]
-      do {
-        let json = try Self.run([
-          "clang++", "-x", "c++", "-std=c++20", "-fblocks", "-fno-exceptions", "-fno-rtti",
-          "-target", "arm64-apple-driverkit\(job.target)", "-isysroot", sdk, "-I", job.sources.path,
-          "-I", job.derived.path, "-fsyntax-only", "-Xclang", "-ast-dump=json", job.file.path,
-        ])
-        results.add(
-          try Self.parse(
-            json,
-            treePrefix: job.sources.deletingLastPathComponent().path + "/",
-            sourcePrefix: job.sources.path + "/"
-          )
-        )
-      } catch { results.fail(error) }
+      Self.drainingAutoreleased { Self.compile(jobs[index], sdk: sdk, into: results) }
     }
     if let failure = results.failure { throw failure }
     uses = Self.resolvingActions(results.uses, actions)
     bases = results.bases
+  }
+
+  /// Runs `body` in its own autorelease pool. On Darwin, Foundation autoreleases each dump's
+  /// data and JSON objects, and nothing drains a `concurrentPerform` iteration's pool on the main
+  /// thread of a process without a run loop, so every dump would stay in memory until exit.
+  private static func drainingAutoreleased(_ body: () -> Void) {
+    #if canImport(ObjectiveC)
+      autoreleasepool(invoking: body)
+    #else
+      body()
+    #endif
+  }
+
+  /// Compiles one translation unit and adds the uses its AST shows to `results`.
+  private static func compile(
+    _ job: (sources: URL, derived: URL, target: String, file: URL),
+    sdk: String,
+    into results: Results
+  ) {
+    do {
+      let json = try Self.run([
+        "clang++", "-x", "c++", "-std=c++20", "-fblocks", "-fno-exceptions", "-fno-rtti", "-target",
+        "arm64-apple-driverkit\(job.target)", "-isysroot", sdk, "-I", job.sources.path, "-I",
+        job.derived.path, "-fsyntax-only", "-Xclang", "-ast-dump=json", job.file.path,
+      ])
+      results.add(
+        try Self.parse(
+          json,
+          treePrefix: job.sources.deletingLastPathComponent().path + "/",
+          sourcePrefix: job.sources.path + "/"
+        )
+      )
+    } catch { results.fail(error) }
   }
 
   init(uses: Set<NativeUse>, bases: [String: String]) {
