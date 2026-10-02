@@ -191,7 +191,7 @@ struct NativeEvidence {
     let errorFile = FileManager.default.temporaryDirectory.appendingPathComponent(
       "swifterkit-coverage-\(UUID().uuidString).log"
     )
-    FileManager.default.createFile(atPath: errorFile.path, contents: nil)
+    _ = FileManager.default.createFile(atPath: errorFile.path, contents: nil)
     defer { try? FileManager.default.removeItem(at: errorFile) }
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")

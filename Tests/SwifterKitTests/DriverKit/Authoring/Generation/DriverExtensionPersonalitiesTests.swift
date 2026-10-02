@@ -172,6 +172,21 @@ struct DriverExtensionPersonalitiesTests {
   }
 
   @Test
+  func mergesIdenticalTransportEntitlementsOnce() throws {
+    let combined = DriverExtensionConfiguration(
+      bundleIdentifier: Self.bundleIdentifier,
+      personalities: ["PadA": Self.usbInterface, "PadB": Self.usbInterface]
+    )
+    try withTemporaryExtension(combined) { output, _ in
+      let entitlements = try loadEntitlements(in: output)
+      let transport = try #require(
+        entitlements["com.apple.developer.driverkit.transport.usb"] as? [[String: Any]]
+      )
+      #expect(transport.count == 1)
+    }
+  }
+
+  @Test
   func serviceClassNamesThePersonalityOnlyWhenRequested() throws {
     #expect(Self.factory().serviceClass == DriverConfiguration.runtimeServiceClass)
     #expect(Self.extensionConfiguration.personalities["XboxUSB"]?.personalityName == nil)

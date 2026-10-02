@@ -140,7 +140,16 @@ extension DriverExtensionGenerator {
     }
   }
 
+  /// Compares property-list values structurally, without the Objective-C bridge Linux lacks.
   private static func isEqual(_ lhs: Any, _ rhs: Any) -> Bool {
-    (lhs as AnyObject).isEqual(rhs as AnyObject)
+    switch (lhs, rhs) {
+    case (let lhs as [Any], let rhs as [Any]):
+      lhs.count == rhs.count && zip(lhs, rhs).allSatisfy { isEqual($0, $1) }
+    case (let lhs as [String: Any], let rhs as [String: Any]):
+      lhs.count == rhs.count
+        && lhs.allSatisfy { key, value in rhs[key].map { isEqual(value, $0) } ?? false }
+    case (let lhs as AnyHashable, let rhs as AnyHashable): lhs == rhs
+    default: false
+    }
   }
 }
