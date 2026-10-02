@@ -137,4 +137,16 @@ struct HIDElementCommandsTests {
     #expect(throws: HIDRuntimeError.valueOutOfRange) { try HIDFixed.raw(40_000) }
     #expect(throws: HIDRuntimeError.valueOutOfRange) { try HIDFixed.raw(.nan) }
   }
+
+  @Test
+  func encodesElementDataValueRead() throws {
+    let command = try DriverCommand.hidElementDataValue(cookie: 7, options: 2)
+    #expect(command.opcode == 0x0345)
+    #expect(command.requiredCapabilities == .hid)
+    #expect(command.payload == Data([7, 0, 0, 0, 2, 0, 0, 0]))
+    #expect(command.maximumResponseSize == RuntimeMessage.maximumSize)
+    #expect(throws: HIDRuntimeError.invalidCookie) {
+      try DriverCommand.hidElementDataValue(cookie: 0)
+    }
+  }
 }

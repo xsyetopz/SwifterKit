@@ -9,6 +9,8 @@ extension DriverContext {
   /// closes. Mapping a handle again while its mapping is live returns the same instance. The
   /// extension refuses memory another connection wrapped. `IOConnectMapMemory64` reports every
   /// refused mapping as `kIOReturnBadArgument`.
+  ///
+  /// The user client resolves the mapping in `IOUserClient::CopyClientMemoryForType`.
   public func mapMemory(_ handle: DriverMemoryHandle) async throws -> DriverSharedMemory {
     guard handle.rawValue != 0,
       let type = RuntimeClientMemoryType(kind: .memoryBuffer, identifier: handle.rawValue)
@@ -18,6 +20,9 @@ extension DriverContext {
 
   /// Maps a networking packet pool into this process read-only, so Swift can inspect frames in
   /// the buffers the network family owns without copying them.
+  ///
+  /// The extension copies the pool's memory with
+  /// `IOUserNetworkPacketBufferPool::CopyMemoryDescriptor`.
   public func mapPacketPool(_ pool: EthernetPacketPool) async throws -> DriverSharedMemory {
     guard let type = RuntimeClientMemoryType(kind: .packetPool, identifier: UInt64(pool.rawValue))
     else { throw DriverMemoryError.invalidHandle }

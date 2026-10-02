@@ -360,4 +360,6 @@ public enum VideoRuntimeError: Error, Sendable, Equatable {
   case invalidPropertySelectors
   /// Sample rates are empty, duplicated, more than 16, or not finite and positive.
   case invalidSampleRates
+  /// The I/O snapshot contains an operation value the runtime does not define.
+  case invalidOperation(UInt32)
 }

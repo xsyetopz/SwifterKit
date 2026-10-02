@@ -15,7 +15,7 @@
     #include "SwifterKitRuntimeVideoDeviceState.h"
     #include "SwifterKitRuntimeVideoProtocol.h"
 
-// Device, stream, buffer, control, and custom-property contract (opcodes 0x0C20-0x0C2D):
+// Device, stream, buffer, control, and custom-property contract (opcodes 0x0C20-0x0C2E):
 // - MemberCommand runs under videoLock, like every other device command, and validates each
 //   payload length, reserved field, index, and selector before calling VideoDriverKit.
 // - IOUserVideoBuffer.iig allows SetDataMemoryDescriptor and SetControlMemoryDescriptor only
@@ -106,6 +106,8 @@ kern_return_t SwifterKitRuntimeVideoDevice::MemberCommand(
     switch (static_cast<SwifterKitRuntimeOpcode>(opcode)) {
         case SwifterKitRuntimeOpcode::VideoGetDeviceState:
             return payloadLength == 0 ? CopyDeviceState(response) : kIOReturnBadArgument;
+        case SwifterKitRuntimeOpcode::VideoGetIOOperationState:
+            return payloadLength == 0 ? CopyIOOperationState(response) : kIOReturnBadArgument;
         case SwifterKitRuntimeOpcode::VideoSetDeviceProperty:
             return SetDeviceProperty(
                 SwifterKitMemberPayload<SwifterKitVideoMemberValue>(payload, payloadLength));

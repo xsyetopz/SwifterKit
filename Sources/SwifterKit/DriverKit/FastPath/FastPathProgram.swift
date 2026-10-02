@@ -169,6 +169,10 @@ public enum FastPathOp: Sendable, Hashable {
   /// Appends the slots' values, 8 little-endian bytes each in order, as one entry of the
   /// ``FastPathDataQueueDirection/toHost`` data queue with this identifier. An entry that finds
   /// the queue full is dropped and counted. The program continues either way.
+  ///
+  /// The extension stages the entry with `IODataQueueDispatchSource::CanEnqueueData`,
+  /// `IODataQueueDispatchSource::EnqueueWithCoalesce` and signals the host with
+  /// `IODataQueueDispatchSource::SendDataAvailable`.
   case enqueue(UInt32, slots: [FastPathSlot])
 }
 
@@ -196,6 +200,9 @@ public enum FastPathTrigger: Sendable, Hashable {
   /// identifier, on the extension's runtime queue. The entry's first
   /// ``FastPathProgram/argumentCount`` little-endian 64-bit words fill `v0` onward, zero for words
   /// it does not hold. A queue has at most one such program.
+  ///
+  /// The extension reads each entry with `IODataQueueDispatchSource::Peek`,
+  /// `IODataQueueDispatchSource::DequeueWithCoalesce` while the program runs.
   case dataAvailable(UInt32)
 }
 

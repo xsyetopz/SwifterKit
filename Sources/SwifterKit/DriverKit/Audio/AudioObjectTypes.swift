@@ -146,14 +146,18 @@ public enum AudioObjectEvent: Sendable, Hashable {
   /// `IOUserAudioDriver::StopDevice` stopped I/O on the object.
   case deviceStopped(objectID: UInt32, flags: UInt64)
   /// A clock device's `StartIO` succeeded.
+  /// Raised from `IOUserAudioClockDevice::StartIO`.
   case clockDeviceStarted(index: UInt32, flags: UInt64)
   /// A clock device's `StopIO` ran.
+  /// Raised from `IOUserAudioClockDevice::StopIO`.
   case clockDeviceStopped(index: UInt32, flags: UInt64)
   /// A clock device applied a new sample rate.
   case clockDeviceSampleRateChanged(index: UInt32, sampleRate: Double)
   /// The host asked to acquire or release a box through `HandleChangeAcquireBox`.
+  /// Raised from `IOUserAudioBox::HandleChangeAcquireBox`.
   case boxAcquisitionRequested(requestID: UInt32, box: UInt32, acquire: Bool)
   /// The host asked a clock device to change sample rate through `HandleChangeSampleRate`.
+  /// Raised from `IOUserAudioClockDevice::HandleChangeSampleRate`.
   case clockDeviceSampleRateRequested(requestID: UInt32, index: UInt32, sampleRate: Double)
 
   init(runtimePayload: Data) throws {

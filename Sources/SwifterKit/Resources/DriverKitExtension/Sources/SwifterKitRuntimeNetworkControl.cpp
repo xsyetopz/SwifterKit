@@ -38,15 +38,27 @@ namespace {
     }
 }  // namespace
 
+// Copies the name `IOUserNetworkEthernet::getBSDName` returns, or answers with no bytes while it
+// returns nullptr, before the interface registers.
+kern_return_t SwifterKitRuntimeService::NetworkBSDName(OSData** response) {
+    const char* name = getBSDName();
+    *response = name == nullptr ? OSData::withCapacity(0) : OSData::withBytes(name, strlen(name));
+    return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+}
+
 kern_return_t SwifterKitRuntimeService::NetworkPacketCommand(
     uint32_t opcode,
     const uint8_t* payload,
     uint32_t payloadLength) {
     const auto command = static_cast<SwifterKitRuntimeOpcode>(opcode);
-    if (command == SwifterKitRuntimeOpcode::NetworkReceivePackets)
-        return NetworkReceivePackets(payload, payloadLength);
-    if (command == SwifterKitRuntimeOpcode::NetworkCompleteTransmits)
-        return NetworkCompleteTransmits(payload, payloadLength);
+    switch (command) {
+        case SwifterKitRuntimeOpcode::NetworkReceivePackets:
+            return NetworkReceivePackets(payload, payloadLength);
+        case SwifterKitRuntimeOpcode::NetworkCompleteTransmits:
+            return NetworkCompleteTransmits(payload, payloadLength);
+        default:
+            break;
+    }
     uint32_t reserved = 1;
     if (command == SwifterKitRuntimeOpcode::NetworkServiceTransmitQueue) {
         if (payloadLength == sizeof(reserved))

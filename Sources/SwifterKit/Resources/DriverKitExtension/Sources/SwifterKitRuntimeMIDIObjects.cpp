@@ -9,6 +9,7 @@
     #include <DriverKit/OSString.h>
     #include <MIDIDriverKit/MIDIDriverKit.h>
 
+    #include "SwifterKitRuntimeMIDIDevice.h"
     #include "SwifterKitRuntimeMIDIProperties.h"
     #include "SwifterKitRuntimeSchema.h"
     #include "SwifterKitRuntimeServiceState.h"
@@ -211,30 +212,21 @@ namespace {
                 && kind != kSwifterKitMIDITargetDestination)) {
             return kIOReturnBadArgument;
         }
-        const IOUserMIDIObject* member = CopyObject(service, state, kind, index);
+        IOUserMIDIObject* member = CopyObject(service, state, kind, index);
         const uint32_t ownerKind = kind == kSwifterKitMIDITargetEntity
                                        ? kSwifterKitMIDITargetDevice
                                        : kSwifterKitMIDITargetEntity;
-        const IOUserMIDIObject* owner = CopyObject(service, state, ownerKind, 0);
-        kern_return_t result = kIOReturnNotReady;
-        if (member != nullptr && owner != nullptr) {
-            if (auto* entity = OSDynamicCast(IOUserMIDIEntity, member)) {
-                auto* device = OSDynamicCast(IOUserMIDIDevice, owner);
-                result = attached != 0 ? device->AddEntity(entity) : device->RemoveEntity(entity);
-            } else if (auto* source = OSDynamicCast(IOUserMIDISource, member)) {
-                auto* entityOwner = OSDynamicCast(IOUserMIDIEntity, owner);
-                result = attached != 0 ? entityOwner->AddSource(source)
-                                       : entityOwner->RemoveSource(source);
-            } else if (auto* destination = OSDynamicCast(IOUserMIDIDestination, member)) {
-                auto* entityOwner = OSDynamicCast(IOUserMIDIEntity, owner);
-                result = attached != 0 ? entityOwner->AddDestination(destination)
-                                       : entityOwner->RemoveDestination(destination);
-            } else {
-                result = kIOReturnInternalError;
-            }
-        }
+        IOUserMIDIObject* owner = CopyObject(service, state, ownerKind, 0);
+        const IOUserMIDIObject* device = CopyObject(service, state, kSwifterKitMIDITargetDevice, 0);
+        auto* midiDevice = OSDynamicCast(SwifterKitRuntimeMIDIDevice, device);
+        // The change is applied in SwifterKitRuntimeMIDIDevice::PerformDeviceConfigurationChange.
+        const kern_return_t result =
+            member != nullptr && owner != nullptr && midiDevice != nullptr
+                ? midiDevice->RequestMemberChange(member, owner, attached != 0)
+                : kIOReturnNotReady;
         OSSafeReleaseNULL(member);
         OSSafeReleaseNULL(owner);
+        OSSafeReleaseNULL(device);
         return result;
     }
 

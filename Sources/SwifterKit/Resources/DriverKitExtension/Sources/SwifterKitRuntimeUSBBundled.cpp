@@ -192,36 +192,39 @@ kern_return_t SwifterKitRuntimeService::USBBundleCommand(
         return ivars->usbDevice != nullptr ? kIOReturnUnsupported : kIOReturnNotReady;
     }
     const auto code = static_cast<SwifterKitRuntimeOpcode>(opcode);
-    if (code == SwifterKitRuntimeOpcode::USBPipeCreateBundleRing) {
-        return CreateRing(this, ivars, payload, payloadLength);
-    }
-    if (code == SwifterKitRuntimeOpcode::USBPipeReleaseBundleRing) {
-        SwifterKitUSBPipeRequest request = {};
-        if (payloadLength != sizeof(request)) {
-            return kIOReturnBadArgument;
-        }
-        memcpy(&request, payload, sizeof(request));
-        if (request.option != 0 || request.reserved != 0 || request.value != 0) {
-            return kIOReturnBadArgument;
-        }
-        SwifterKitUSBBundleRing taken;
-        kern_return_t result = kIOReturnNotFound;
-        IOLockLock(ivars->usbLock);
-        if (SwifterKitUSBBundleRing* ring = FindRing(ivars, request.endpoint)) {
-            result = kIOReturnSuccess;
-            for (uint32_t index = 0; index < ring->entryCount; ++index) {
-                if (ring->entries[index].state != SwifterKitUSBBundleEntryState::Idle) {
-                    result = kIOReturnBusy;
+    switch (code) {
+        case SwifterKitRuntimeOpcode::USBPipeCreateBundleRing:
+            return CreateRing(this, ivars, payload, payloadLength);
+        case SwifterKitRuntimeOpcode::USBPipeReleaseBundleRing: {
+            SwifterKitUSBPipeRequest request = {};
+            if (payloadLength != sizeof(request)) {
+                return kIOReturnBadArgument;
+            }
+            memcpy(&request, payload, sizeof(request));
+            if (request.option != 0 || request.reserved != 0 || request.value != 0) {
+                return kIOReturnBadArgument;
+            }
+            SwifterKitUSBBundleRing taken;
+            kern_return_t result = kIOReturnNotFound;
+            IOLockLock(ivars->usbLock);
+            if (SwifterKitUSBBundleRing* ring = FindRing(ivars, request.endpoint)) {
+                result = kIOReturnSuccess;
+                for (uint32_t index = 0; index < ring->entryCount; ++index) {
+                    if (ring->entries[index].state != SwifterKitUSBBundleEntryState::Idle) {
+                        result = kIOReturnBusy;
+                    }
+                }
+                if (result == kIOReturnSuccess) {
+                    taken = *ring;
+                    *ring = SwifterKitUSBBundleRing {};
                 }
             }
-            if (result == kIOReturnSuccess) {
-                taken = *ring;
-                *ring = SwifterKitUSBBundleRing {};
-            }
+            IOLockUnlock(ivars->usbLock);
+            ReleaseRing(taken);
+            return result;
         }
-        IOLockUnlock(ivars->usbLock);
-        ReleaseRing(taken);
-        return result;
+        default:
+            break;
     }
     if (code != SwifterKitRuntimeOpcode::USBPipeEnqueueBundled) {
         return kIOReturnUnsupported;

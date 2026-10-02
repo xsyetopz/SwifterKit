@@ -130,6 +130,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case hidFactorySubmitInputReport = 0x0342
   case hidFactoryCompleteGetReport = 0x0343
   case hidFactoryGetRuntimeStatistics = 0x0344
+  case hidGetElementDataValue = 0x0345
   case pciRead = 0x0400
   case pciWrite = 0x0401
   case pciGetBARInfo = 0x0402
@@ -187,6 +188,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case networkPurgeTransmitQueue = 0x0923
   case networkServiceTransmitQueue = 0x0924
   case networkCompleteInterfaceCommand = 0x0925
+  case networkGetBSDName = 0x0926
   case audioReadStream = 0x0A00
   case audioWriteStream = 0x0A01
   case audioGetIOState = 0x0A02
@@ -277,6 +279,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case videoSetMemberAttachment = 0x0C2B
   case videoEnqueueOutputBuffer = 0x0C2C
   case videoGetStreamMemoryObjectID = 0x0C2D
+  case videoGetIOOperationState = 0x0C2E
   case serviceSetProperties = 0x0D00
   case serviceCopyProperties = 0x0D01
   case serviceRemoveProperty = 0x0D02
@@ -297,6 +300,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case serviceCreateSystemStateItem = 0x0D31
   case serviceSetSystemStateItem = 0x0D32
   case serviceSendCoreAnalyticsEvent = 0x0D33
+  case serviceSetName = 0x0D34
   case timerStart = 0x0E00
   case timerCancel = 0x0E01
   case watchServices = 0x0E10

@@ -117,6 +117,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     HIDFactorySubmitInputReport = 0x0342,
     HIDFactoryCompleteGetReport = 0x0343,
     HIDFactoryGetRuntimeStatistics = 0x0344,
+    HIDGetElementDataValue = 0x0345,
     PCIRead = 0x0400,
     PCIWrite = 0x0401,
     PCIGetBARInfo = 0x0402,
@@ -174,6 +175,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     NetworkPurgeTransmitQueue = 0x0923,
     NetworkServiceTransmitQueue = 0x0924,
     NetworkCompleteInterfaceCommand = 0x0925,
+    NetworkGetBSDName = 0x0926,
     AudioReadStream = 0x0A00,
     AudioWriteStream = 0x0A01,
     AudioGetIOState = 0x0A02,
@@ -264,6 +266,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     VideoSetMemberAttachment = 0x0C2B,
     VideoEnqueueOutputBuffer = 0x0C2C,
     VideoGetStreamMemoryObjectID = 0x0C2D,
+    VideoGetIOOperationState = 0x0C2E,
     ServiceSetProperties = 0x0D00,
     ServiceCopyProperties = 0x0D01,
     ServiceRemoveProperty = 0x0D02,
@@ -284,6 +287,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     ServiceCreateSystemStateItem = 0x0D31,
     ServiceSetSystemStateItem = 0x0D32,
     ServiceSendCoreAnalyticsEvent = 0x0D33,
+    ServiceSetName = 0x0D34,
     TimerStart = 0x0E00,
     TimerCancel = 0x0E01,
     WatchServices = 0x0E10,
@@ -544,6 +548,8 @@ static constexpr uint32_t kSwifterKitAudioEventStopped = 2;
 static constexpr uint32_t kSwifterKitAudioEventSampleRateChanged = 3;
 static constexpr uint32_t kSwifterKitAudioEventControlChanged = 4;
 static constexpr uint32_t kSwifterKitAudioEventCustomPropertyChanged = 5;
+static constexpr uint32_t kSwifterKitAudioEventStreamFormatChanged = 6;
+static constexpr uint32_t kSwifterKitAudioEventStreamActiveChanged = 7;
 static constexpr uint32_t kSwifterKitAudioObjectEventDeviceStarted = 1;
 static constexpr uint32_t kSwifterKitAudioObjectEventDeviceStopped = 2;
 static constexpr uint32_t kSwifterKitAudioObjectEventClockStarted = 3;

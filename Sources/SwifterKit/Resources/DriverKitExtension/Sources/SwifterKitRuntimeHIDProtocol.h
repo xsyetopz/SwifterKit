@@ -69,6 +69,12 @@ struct __attribute__((packed)) SwifterKitHIDElementValueRequest {
     uint32_t reserved;
 };
 
+// Payload of hidGetElementDataValue.
+struct __attribute__((packed)) SwifterKitHIDElementDataRequest {
+    uint32_t cookie;
+    uint32_t options;
+};
+
 struct __attribute__((packed)) SwifterKitHIDElementValue {
     uint32_t value;
     uint32_t scaledValue;

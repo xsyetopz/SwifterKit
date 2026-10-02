@@ -109,10 +109,17 @@ void SwifterKitRuntimeAudioDevice::RemoveControlsAndProperties() {
         auto* property = ivars->customProperties[index];
         if (property == nullptr)
             continue;
-        if (ivars->propertyPlacement[index] == kPlacementDevice)
-            (void)RemoveCustomProperty(property);
-        else if (ivars->propertyPlacement[index] == kPlacementDriver)
-            (void)static_cast<IOUserAudioDriver*>(ivars->service)->RemoveCustomProperty(property);
+        switch (ivars->propertyPlacement[index]) {
+            case kPlacementDevice:
+                (void)RemoveCustomProperty(property);
+                break;
+            case kPlacementDriver:
+                (void)static_cast<IOUserAudioDriver*>(ivars->service)
+                    ->RemoveCustomProperty(property);
+                break;
+            default:
+                break;
+        }
         ivars->propertyPlacement[index] = kPlacementDetached;
     }
 }

@@ -124,6 +124,41 @@ struct VideoMemberCommandsTests {
   }
 
   @Test
+  func encodesIOOperationStateCommandAndDecodesItsSnapshot() throws {
+    let command = DriverCommand.videoGetIOOperationState()
+    #expect(command.opcode == 0x0C2E)
+    #expect(command.requiredCapabilities == .video)
+    #expect(command.payload.isEmpty)
+    #expect(command.maximumResponseSize == RuntimeMessage.headerSize + 32)
+
+    func snapshot(operation: UInt32) -> Data {
+      var data = Data()
+      data.appendRuntimeInteger(UInt64(8))
+      data.appendRuntimeInteger(operation)
+      data.appendRuntimeInteger(UInt32(256))
+      data.appendRuntimeInteger(UInt64(4_096))
+      data.appendRuntimeInteger(UInt64(9_000))
+      return data
+    }
+    let decoded = try VideoIOOperationState(runtimePayload: snapshot(operation: 1))
+    #expect(decoded.sequence == 8)
+    #expect(decoded.operation == .writeEnd)
+    #expect(decoded.frameCount == 256)
+    #expect(decoded.sampleTime == 4_096)
+    #expect(decoded.hostTime == 9_000)
+    #expect(
+      try VideoIOOperationState(runtimePayload: snapshot(operation: 0xFFFF_FFFF)).operation
+        == .unavailable
+    )
+    #expect(throws: VideoRuntimeError.invalidOperation(7)) {
+      try VideoIOOperationState(runtimePayload: snapshot(operation: 7))
+    }
+    #expect(throws: VideoRuntimeError.invalidPayload) {
+      try VideoIOOperationState(runtimePayload: Data(count: 31))
+    }
+  }
+
+  @Test
   func encodesControlAndMemberCommands() throws {
     let info = DriverCommand.videoControlInfo(identifier: 7)
     #expect(info.opcode == 0x0C27)

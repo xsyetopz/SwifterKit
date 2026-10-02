@@ -246,6 +246,18 @@ kern_return_t SwifterKitRuntimeService::ServiceCommand(
                        ? BytesResponse(&registryEntryID, sizeof(registryEntryID), response)
                        : result;
         }
+        case SwifterKitRuntimeOpcode::ServiceSetName: {
+            // The payload is the name without a terminator. IOServiceName holds 128 bytes with it.
+            if (payload == nullptr || payloadLength == 0
+                || payloadLength > kSwifterKitPropertyNameMaximumLength
+                || memchr(payload, 0, payloadLength) != nullptr) {
+                return kIOReturnBadArgument;
+            }
+            IOServiceName name = {};
+            memcpy(name, payload, payloadLength);
+            // Qualified, because a family superclass may declare its own SetName overload.
+            return IOService::SetName(name);
+        }
         case SwifterKitRuntimeOpcode::TimerStart:
         case SwifterKitRuntimeOpcode::TimerCancel:
             return TimerCommand(opcode, payload, payloadLength, response);
@@ -287,17 +299,22 @@ kern_return_t SwifterKitRuntimeService::ServiceSystemCommand(
                 result = kIOReturnNotFound;
             }
             if (result == kIOReturnSuccess) {
-                if (kind == SwifterKitRuntimeOpcode::ServiceCreateSystemStateItem) {
-                    result = system->StateNotificationItemCreate(name, value);
-                } else if (kind == SwifterKitRuntimeOpcode::ServiceSetSystemStateItem) {
-                    result = system->StateNotificationItemSet(name, value);
-                } else {
-                    OSDictionary* item = nullptr;
-                    result = system->StateNotificationItemCopy(name, &item);
-                    if (result == kIOReturnSuccess && item != nullptr) {
-                        result = EncodeResponse(item, response);
+                switch (kind) {
+                    case SwifterKitRuntimeOpcode::ServiceCreateSystemStateItem:
+                        result = system->StateNotificationItemCreate(name, value);
+                        break;
+                    case SwifterKitRuntimeOpcode::ServiceSetSystemStateItem:
+                        result = system->StateNotificationItemSet(name, value);
+                        break;
+                    default: {
+                        OSDictionary* item = nullptr;
+                        result = system->StateNotificationItemCopy(name, &item);
+                        if (result == kIOReturnSuccess && item != nullptr) {
+                            result = EncodeResponse(item, response);
+                        }
+                        OSSafeReleaseNULL(item);
+                        break;
                     }
-                    OSSafeReleaseNULL(item);
                 }
             }
             OSSafeReleaseNULL(system);

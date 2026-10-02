@@ -155,6 +155,8 @@ extension DriverContext {
 
   /// Replaces, or with `accumulate` adds to, a state's residency, transition count, and last
   /// transition time, for reporters that keep their own time base.
+  ///
+  /// With `accumulate` the extension calls `IOStateReporter::incrementChannelState`.
   public func adjustReportState(
     _ state: UInt64,
     reporter: Int,
@@ -213,6 +215,8 @@ extension DriverContext {
   }
 
   /// Returns a state reporter channel's statistics for `state`.
+  /// The extension reads it with `IOStateReporter::getStateInTransitions`,
+  /// `IOStateReporter::getStateResidencyTime`, `IOStateReporter::getStateLastTransitionTime`.
   public func reportStateStatistics(
     _ state: UInt64,
     reporter: Int,

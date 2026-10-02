@@ -92,6 +92,16 @@ extension DriverCommand {
     )
   }
 
+  /// Reads one element's data value through `IOHIDElement::getDataValue`.
+  public static func hidElementDataValue(cookie: UInt32, options: UInt32 = 0) throws -> Self {
+    Self(
+      opcode: .hidGetElementDataValue,
+      requiredCapabilities: .hid,
+      payload: HIDLimits.words([try HIDLimits.validCookie(cookie), options]),
+      maximumResponseSize: RuntimeMessage.maximumSize
+    )
+  }
+
   /// Sets one element's integer value. Commit it to reach the device.
   public static func setHIDElementValue(_ value: UInt32, cookie: UInt32) throws -> Self {
     Self(
@@ -271,6 +281,13 @@ extension DriverContext {
         .hidElementValue(cookie: cookie, options: options, scale: scale)
       )
     )
+  }
+
+  /// Reads one element's data value through `IOHIDElement::getDataValue`, or returns `nil` when
+  /// the element has no data.
+  public func hidElementDataValue(cookie: UInt32, options: UInt32 = 0) async throws -> [UInt8]? {
+    let reply = try await execute(.hidElementDataValue(cookie: cookie, options: options))
+    return reply.isEmpty ? nil : [UInt8](reply)
   }
 
   /// Sets one element's integer value. Commit it to reach the device.

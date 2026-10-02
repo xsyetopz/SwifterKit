@@ -52,6 +52,19 @@ struct AudioGeneratorTests {
     let audioDevice = try source("SwifterKitRuntimeAudioDevice.cpp", in: output)
     #expect(audioDevice.contains("__atomic_add_fetch"))
     #expect(!audioDevice.contains("EnqueueEvent(kSwifterKitEventAudio"))
+    #expect(audioDevice.contains("OSTypeAlloc(SwifterKitRuntimeAudioStream)"))
+    #expect(!audioDevice.contains("IOUserAudioStream::Create"))
+    let audioStream = try source("SwifterKitRuntimeAudioStream.cpp", in: output)
+    #expect(audioStream.contains("super::HandleChangeCurrentStreamFormat(format)"))
+    #expect(audioStream.contains("super::HandleChangeStreamIsActive(isActive)"))
+    let streamHeader = try source("SwifterKitRuntimeAudioStream.iig", in: output)
+    #expect(streamHeader.contains("public IOUserAudioStream"))
+    let project = try String(
+      contentsOf: output.appendingPathComponent("SwifterKitRuntime.xcodeproj/project.pbxproj"),
+      encoding: .utf8
+    )
+    #expect(project.contains("SwifterKitRuntimeAudioStream.iig in Sources"))
+    #expect(project.contains("SwifterKitRuntimeAudioStream.cpp in Sources"))
     let audioRuntime = try source("SwifterKitRuntimeAudio.cpp", in: output)
     #expect(audioRuntime.contains("AudioControlValueEvent"))
     #expect(audioRuntime.contains("EnqueueRequiredEvent"))

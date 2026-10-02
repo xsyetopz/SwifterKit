@@ -1,0 +1,27 @@
+#ifndef SwifterKitRuntimeMIDIDevice_h
+#define SwifterKitRuntimeMIDIDevice_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_MIDI
+    #include <MIDIDriverKit/IOUserMIDIDevice.iig>
+
+// The generated MIDI device. Adding or removing the entity, a source, or a destination changes
+// the device structure, so it goes through RequestDeviceConfigurationChange and is applied in
+// PerformDeviceConfigurationChange, where IO is stopped.
+class SwifterKitRuntimeMIDIDevice : public IOUserMIDIDevice {
+public:
+    kern_return_t RequestMemberChange(
+        IOUserMIDIObject* member,
+        IOUserMIDIObject* owner,
+        bool attached) LOCALONLY;
+
+protected:
+    virtual kern_return_t PerformDeviceConfigurationChange(
+        uint64_t changeAction,
+        OSObject* changeInfo) LOCALONLY override;
+    virtual kern_return_t AbortDeviceConfigurationChange(
+        uint64_t changeAction,
+        OSObject* changeInfo) LOCALONLY override;
+};
+#endif
+#endif

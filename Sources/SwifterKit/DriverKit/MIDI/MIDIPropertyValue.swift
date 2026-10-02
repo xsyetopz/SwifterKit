@@ -143,7 +143,7 @@ public enum MIDIPropertyKey: Sendable, Hashable {
 ///
 /// Numbers keep their `OSNumber` width: `bits` is 8, 16, 32, or 64, and the value must fit that
 /// signed width. CoreMIDI integer properties are 32-bit. `array` exists for nested values such
-/// as the `entities` array `IOUserMIDIDevice::SetProperties` accepts.
+/// as the `entities` array a device's properties dictionary accepts.
 public indirect enum MIDIPropertyValue: Sendable, Hashable {
   /// An `OSString`.
   case string(String)

@@ -129,7 +129,7 @@ struct __attribute__((packed)) SwifterKitVideoObjectEvent {
     uint64_t value;
 };
 
-// Device, stream, buffer, control, and custom-property opcodes 0x0C20-0x0C2D.
+// Device, stream, buffer, control, and custom-property opcodes 0x0C20-0x0C2E.
 //
 // SetDeviceProperty selectors:
 // - 1-3 can-be-default input, output, system output (0 or 1).
@@ -284,6 +284,17 @@ struct __attribute__((packed)) SwifterKitVideoMemberAttachment {
     uint32_t reserved;
 };
 
+// The latest IOOperationHandler call, which VideoGetIOOperationState copies. Sequence is even
+// when the snapshot is consistent. Operation is an IOUserVideoIOOperation, or UINT32_MAX before
+// the host performs any I/O.
+struct __attribute__((packed)) SwifterKitVideoIOOperationState {
+    uint64_t sequence;
+    uint32_t operation;
+    uint32_t frameCount;
+    uint64_t sampleTime;
+    uint64_t hostTime;
+};
+
 static_assert(sizeof(SwifterKitVideoMemberValue) == 16);
 static_assert(sizeof(SwifterKitVideoDeviceState) == 64);
 static_assert(sizeof(SwifterKitVideoMemberRequest) == 8);
@@ -295,5 +306,6 @@ static_assert(sizeof(SwifterKitVideoBufferInfo) == 64);
 static_assert(sizeof(SwifterKitVideoControlInfo) == 48);
 static_assert(sizeof(SwifterKitVideoCustomPropertyInfo) == 24);
 static_assert(sizeof(SwifterKitVideoMemberAttachment) == 16);
+static_assert(sizeof(SwifterKitVideoIOOperationState) == 32);
 
 #endif

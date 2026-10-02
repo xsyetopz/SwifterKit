@@ -21,6 +21,8 @@ public struct ReportingConfiguration: Sendable, Hashable {
 }
 
 /// One `IOReporter` and its legend entry.
+/// The extension creates the reporter with `IOSimpleReporter::with`, `IOStateReporter::with`,
+/// `IOHistogramReporter::with` and sets state IDs with `IOStateReporter::setStateID`.
 public struct ReporterConfiguration: Sendable, Hashable {
   /// The reporter class and its class-specific layout.
   public enum Kind: Sendable, Hashable {
@@ -68,6 +70,7 @@ public struct ReporterConfiguration: Sendable, Hashable {
 }
 
 /// A reporter channel: a nonzero identifier unique within the service, and a name.
+/// The extension adds a simple or state reporter's channel with `IOReporter::addChannel`.
 public struct ReportChannel: Sendable, Hashable {
   /// The channel identifier. `IOREPORT_MAKEID` packs up to eight ASCII bytes into one.
   public let id: UInt64

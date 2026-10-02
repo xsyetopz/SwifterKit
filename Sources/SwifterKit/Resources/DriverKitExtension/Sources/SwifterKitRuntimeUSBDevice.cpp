@@ -185,12 +185,15 @@ namespace {
             return kIOReturnBadArgument;
         }
         const IOUSBConfigurationDescriptor* configuration = nullptr;
-        if (request->selector == kSwifterKitUSBConfigurationIndex) {
-            configuration = parent->CopyConfigurationDescriptor(request->value);
-        } else if (request->selector == kSwifterKitUSBConfigurationValue) {
-            configuration = parent->CopyConfigurationDescriptorWithValue(request->value);
-        } else {
-            return kIOReturnBadArgument;
+        switch (request->selector) {
+            case kSwifterKitUSBConfigurationIndex:
+                configuration = parent->CopyConfigurationDescriptor(request->value);
+                break;
+            case kSwifterKitUSBConfigurationValue:
+                configuration = parent->CopyConfigurationDescriptorWithValue(request->value);
+                break;
+            default:
+                return kIOReturnBadArgument;
         }
         return RespondWithDescriptor(configuration, TotalLength(configuration), response);
     }

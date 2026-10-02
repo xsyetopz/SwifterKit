@@ -118,6 +118,11 @@ namespace {
         return watchID;
     }
 
+    // The transport key that carries a user class name. The runtime removes it and merges what
+    // `IOService::CreateUserClassMatchingDictionary` builds into the matching dictionary, so
+    // Swift does not name the key that function writes.
+    constexpr const char* kUserClassTransportKey = "IOUserClass";
+
     kern_return_t DecodeMatching(const uint8_t* payload, uint32_t length, OSDictionary** matching) {
         OSObject* value = nullptr;
         const kern_return_t result = SwifterKitDecodeProperty(payload, length, &value);
@@ -125,6 +130,30 @@ namespace {
             return result;
         }
         *matching = OSDynamicCast(OSDictionary, value);
+        OSString* userClass =
+            *matching == nullptr
+                ? nullptr
+                : OSDynamicCast(OSString, (*matching)->getObject(kUserClassTransportKey));
+        if (userClass != nullptr) {
+            // Removing the key drops the dictionary's reference, so hold one across the call.
+            userClass->retain();
+            (*matching)->removeObject(kUserClassTransportKey);
+            const OSDictionary* userClassMatching =
+                userClass->getLength() == 0
+                    ? nullptr
+                    : IOService::CreateUserClassMatchingDictionary(userClass, nullptr);
+            const bool merged =
+                userClassMatching != nullptr && (*matching)->merge(userClassMatching);
+            const kern_return_t failure =
+                userClass->getLength() == 0 ? kIOReturnBadArgument : kIOReturnNoMemory;
+            OSSafeReleaseNULL(userClassMatching);
+            userClass->release();
+            if (!merged) {
+                *matching = nullptr;
+                value->release();
+                return failure;
+            }
+        }
         const OSString* providerClass =
             *matching == nullptr
                 ? nullptr

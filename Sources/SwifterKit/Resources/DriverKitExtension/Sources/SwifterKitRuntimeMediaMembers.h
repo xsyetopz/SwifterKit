@@ -157,17 +157,21 @@ kern_return_t SwifterKitSetControlProperty(IVars* ivars, const Request* request)
         return kIOReturnNotFound;
     const auto low = static_cast<uint32_t>(request->value);
     const auto high = static_cast<uint32_t>(request->value >> 32U);
-    if (request->selector == Family::kControlPropertySliderRange) {
-        auto* slider = SwifterKitDynamicCast<typename Family::SliderControl>(control);
-        if (slider == nullptr || low > high)
-            return kIOReturnBadArgument;
-        return slider->SetRange(typename Family::SliderRange {low, high});
-    }
-    if (request->selector == Family::kControlPropertyPanningChannels) {
-        auto* pan = SwifterKitDynamicCast<typename Family::StereoPanControl>(control);
-        if (pan == nullptr || low == high)
-            return kIOReturnBadArgument;
-        return pan->SetPanningChannels(low, high);
+    switch (request->selector) {
+        case Family::kControlPropertySliderRange: {
+            auto* slider = SwifterKitDynamicCast<typename Family::SliderControl>(control);
+            if (slider == nullptr || low > high)
+                return kIOReturnBadArgument;
+            return slider->SetRange(typename Family::SliderRange {low, high});
+        }
+        case Family::kControlPropertyPanningChannels: {
+            auto* pan = SwifterKitDynamicCast<typename Family::StereoPanControl>(control);
+            if (pan == nullptr || low == high)
+                return kIOReturnBadArgument;
+            return pan->SetPanningChannels(low, high);
+        }
+        default:
+            break;
     }
     return kIOReturnBadArgument;
 }
@@ -319,35 +323,40 @@ kern_return_t SwifterKitDeviceCommand(
     const uint8_t* payload,
     uint32_t payloadLength,
     OSData** response) {
-    if (opcode == Family::kUpdateTimestamp) {
-        const auto* timestamp =
-            SwifterKitMemberPayload<typename Family::Timestamp>(payload, payloadLength);
-        return timestamp != nullptr ? device->UpdateTimestamp(timestamp) : kIOReturnBadArgument;
-    }
-    if (opcode == Family::kRequestSampleRate) {
-        if (payload == nullptr || payloadLength != sizeof(uint64_t))
-            return kIOReturnBadArgument;
-        uint64_t bits = 0;
-        memcpy(&bits, payload, sizeof(bits));
-        return device->RequestSampleRate(__builtin_bit_cast(double, bits));
-    }
-    if (opcode == Family::kGetControl) {
-        const auto* request =
-            SwifterKitMemberPayload<typename Family::ControlGet>(payload, payloadLength);
-        return request != nullptr ? device->CopyControl(request, response) : kIOReturnBadArgument;
-    }
-    if (opcode == Family::kSetControl) {
-        const auto* request =
-            SwifterKitMemberHeader<typename Family::ControlValueHeader>(payload, payloadLength);
-        if (request == nullptr)
-            return kIOReturnBadArgument;
-        const uint64_t expected =
-            sizeof(*request) + static_cast<uint64_t>(request->valueCount) * sizeof(uint32_t);
-        return expected == payloadLength
-                   ? device->SetControl(
-                         request,
-                         reinterpret_cast<const uint32_t*>(payload + sizeof(*request)))
-                   : kIOReturnBadArgument;
+    switch (opcode) {
+        case Family::kUpdateTimestamp: {
+            const auto* timestamp =
+                SwifterKitMemberPayload<typename Family::Timestamp>(payload, payloadLength);
+            return timestamp != nullptr ? device->UpdateTimestamp(timestamp) : kIOReturnBadArgument;
+        }
+        case Family::kRequestSampleRate: {
+            if (payload == nullptr || payloadLength != sizeof(uint64_t))
+                return kIOReturnBadArgument;
+            uint64_t bits = 0;
+            memcpy(&bits, payload, sizeof(bits));
+            return device->RequestSampleRate(__builtin_bit_cast(double, bits));
+        }
+        case Family::kGetControl: {
+            const auto* request =
+                SwifterKitMemberPayload<typename Family::ControlGet>(payload, payloadLength);
+            return request != nullptr ? device->CopyControl(request, response)
+                                      : kIOReturnBadArgument;
+        }
+        case Family::kSetControl: {
+            const auto* request =
+                SwifterKitMemberHeader<typename Family::ControlValueHeader>(payload, payloadLength);
+            if (request == nullptr)
+                return kIOReturnBadArgument;
+            const uint64_t expected =
+                sizeof(*request) + static_cast<uint64_t>(request->valueCount) * sizeof(uint32_t);
+            return expected == payloadLength
+                       ? device->SetControl(
+                             request,
+                             reinterpret_cast<const uint32_t*>(payload + sizeof(*request)))
+                       : kIOReturnBadArgument;
+        }
+        default:
+            break;
     }
     if (opcode != Family::kGetCustomProperty && opcode != Family::kSetCustomProperty)
         return kIOReturnUnsupported;

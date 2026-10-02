@@ -34,6 +34,13 @@ struct SwifterKitRuntimeVideoDevice_IVars {
     IOMemoryMap* dataMaps[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
     IOMemoryMap* controlMaps[kSwifterKitVideoMaximumStreams][kSwifterKitVideoMaximumBuffers] = {};
     uint64_t pendingSampleRateBits = 0;
+    // The IOOperationHandler's seqlock snapshot. The real-time handler writes it without a lock
+    // and CopyIOOperationState reads it.
+    uint64_t sequence = 0;
+    uint64_t sampleTime = 0;
+    uint64_t hostTime = 0;
+    uint32_t operation = UINT32_MAX;
+    uint32_t frameCount = 0;
     // Live buffer sizing, identity, and attachment, which Swift can change after Configure.
     // bufferLock guards these, the maps, the descriptors, and the pending change. No
     // VideoDriverKit call runs under it.

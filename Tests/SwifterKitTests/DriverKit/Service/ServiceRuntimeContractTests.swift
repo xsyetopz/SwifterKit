@@ -15,7 +15,7 @@ struct ServiceRuntimeContractTests {
         to: "case SwifterKitRuntimeOpcode::InterruptSetEnabled:"
       )
       let serviceOpcodes = RuntimeOpcode.allCases.filter { $0.rawValue & 0xFF00 == 0x0D00 }
-      #expect(serviceOpcodes.count == 20)
+      #expect(serviceOpcodes.count == 21)
       for opcode in serviceOpcodes {
         let name = String(describing: opcode)
         let native = name.prefix(1).uppercased() + name.dropFirst()

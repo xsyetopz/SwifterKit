@@ -24,13 +24,43 @@ public struct DriverExtensionGenerationOptions: Sendable, Hashable {
 /// Generates a buildable internal dext project from Swift driver metadata.
 public enum DriverExtensionGenerator {
   /// Generates a new extension directory without overwriting existing data.
+  ///
+  /// A configuration from ``DriverExtensionConfiguration/personality(_:)`` generates an extension
+  /// with only that personality, whose classes carry its name.
   public static func generate(
     configuration: DriverConfiguration,
     options: DriverExtensionGenerationOptions = DriverExtensionGenerationOptions(),
     at outputDirectory: URL
   ) throws {
+    if let name = configuration.personalityName {
+      try generate(
+        extension: DriverExtensionConfiguration(
+          bundleIdentifier: configuration.bundleIdentifier,
+          personalities: [name: configuration]
+        ),
+        options: options,
+        at: outputDirectory
+      )
+      return
+    }
     try validate(configuration: configuration, options: options)
+    try stage(at: outputDirectory) { staging in
+      try writeInfo(
+        configuration: configuration,
+        options: options,
+        to: staging.appendingPathComponent("Info.plist")
+      )
+      try writeEntitlements(
+        configuration: configuration,
+        to: staging.appendingPathComponent("SwifterKitRuntime.entitlements")
+      )
+      try configureRuntime(configuration: configuration, options: options, in: staging)
+    }
+  }
 
+  /// Copies the native template to a staging directory, lets `populate` configure it, and moves
+  /// it to `outputDirectory`.
+  static func stage(at outputDirectory: URL, populate: (URL) throws -> Void) throws {
     let fileManager = FileManager.default
     guard !fileManager.fileExists(atPath: outputDirectory.path) else {
       throw DriverExtensionGenerationError.destinationExists(outputDirectory.path)
@@ -48,23 +78,14 @@ public enum DriverExtensionGenerator {
     do {
       try fileManager.createDirectory(at: parent, withIntermediateDirectories: true)
       try fileManager.copyItem(at: template, to: staging)
-      try writeInfo(
-        configuration: configuration,
-        options: options,
-        to: staging.appendingPathComponent("Info.plist")
-      )
-      try writeEntitlements(
-        configuration: configuration,
-        to: staging.appendingPathComponent("SwifterKitRuntime.entitlements")
-      )
-      try configureRuntime(configuration: configuration, options: options, in: staging)
+      try populate(staging)
       try fileManager.moveItem(at: staging, to: outputDirectory)
     } catch let error as DriverExtensionGenerationError { throw error } catch {
       throw DriverExtensionGenerationError.fileSystem(error.localizedDescription)
     }
   }
 
-  private static func validate(
+  static func validate(
     configuration: DriverConfiguration,
     options: DriverExtensionGenerationOptions
   ) throws {
@@ -313,6 +334,15 @@ public enum DriverExtensionGenerator {
     options: DriverExtensionGenerationOptions,
     to destination: URL
   ) throws {
+    try writeInfo(
+      personalities: ["SwiftDriver": personality(configuration)],
+      options: options,
+      to: destination
+    )
+  }
+
+  /// The IOKit personality dictionary for one configuration.
+  static func personality(_ configuration: DriverConfiguration) -> [String: Any] {
     var personality: [String: Any] = [
       "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)",
       "CFBundleIdentifierKernel": configuration.capabilities.contains(.blockStorage)
@@ -368,13 +398,20 @@ public enum DriverExtensionGenerator {
     for (key, value) in configuration.matchingProperties {
       personality[key] = value.foundationValue
     }
+    return personality
+  }
 
+  static func writeInfo(
+    personalities: [String: [String: Any]],
+    options: DriverExtensionGenerationOptions,
+    to destination: URL
+  ) throws {
     let info: [String: Any] = [
       "CFBundleDevelopmentRegion": "en", "CFBundleExecutable": "$(EXECUTABLE_NAME)",
       "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)", "CFBundleInfoDictionaryVersion": "6.0",
       "CFBundleName": "$(PRODUCT_NAME)", "CFBundlePackageType": "$(PRODUCT_BUNDLE_PACKAGE_TYPE)",
       "CFBundleShortVersionString": options.shortVersion, "CFBundleVersion": options.buildVersion,
-      "IOKitPersonalities": ["SwiftDriver": personality],
+      "IOKitPersonalities": personalities,
       "OSBundleUsageDescription": "Hosts DriverKit operations for Swift driver behavior.",
     ]
     try writePropertyList(info, to: destination)
@@ -383,7 +420,10 @@ public enum DriverExtensionGenerator {
   private static func writeEntitlements(
     configuration: DriverConfiguration,
     to destination: URL
-  ) throws {
+  ) throws { try writePropertyList(entitlements(configuration), to: destination) }
+
+  /// The entitlements one configuration needs.
+  static func entitlements(_ configuration: DriverConfiguration) -> [String: Any] {
     var entitlements: [String: Any] = ["com.apple.developer.driverkit": true]
     if configuration.capabilities.contains(.hid) {
       entitlements["com.apple.developer.driverkit.family.hid.device"] = true
@@ -430,20 +470,32 @@ public enum DriverExtensionGenerator {
         pci.matchingProperties.mapValues(\.foundationValue)
       ]
     }
-    try writePropertyList(entitlements, to: destination)
+    return entitlements
   }
 
-  private static func writePropertyList(_ value: Any, to destination: URL) throws {
+  static func writePropertyList(_ value: Any, to destination: URL) throws {
     let data = try PropertyListSerialization.data(fromPropertyList: value, format: .xml, options: 0)
     try data.write(to: destination, options: .atomic)
   }
 
-  private static func configureRuntime(
+  static func configureRuntime(
     configuration: DriverConfiguration,
     options: DriverExtensionGenerationOptions,
     in directory: URL
   ) throws {
-    let sources = directory.appendingPathComponent("Sources")
+    try configureSources(configuration, in: directory.appendingPathComponent("Sources"))
+    try renderProject(in: directory) { template in
+      try DriverExtensionProject.render(
+        configuration: configuration,
+        options: options,
+        template: template
+      )
+    }
+  }
+
+  /// Writes `configuration`'s capabilities, configuration header, and service interface into the
+  /// runtime sources at `sources`.
+  static func configureSources(_ configuration: DriverConfiguration, in sources: URL) throws {
     let header = sources.appendingPathComponent("SwifterKitRuntimeProtocol.h")
     try replace(
       in: header,
@@ -462,14 +514,13 @@ public enum DriverExtensionGenerator {
       atomically: true,
       encoding: .utf8
     )
+  }
 
+  /// Replaces the staged project file with `render` applied to its template.
+  static func renderProject(in directory: URL, render: (String) throws -> String) throws {
     let project = directory.appendingPathComponent("SwifterKitRuntime.xcodeproj/project.pbxproj")
     let template = try String(contentsOf: project, encoding: .utf8)
-    try DriverExtensionProject.render(
-      configuration: configuration,
-      options: options,
-      template: template
-    ).write(to: project, atomically: true, encoding: .utf8)
+    try render(template).write(to: project, atomically: true, encoding: .utf8)
   }
 
   private static func replace(in file: URL, source: String, with replacement: String) throws {

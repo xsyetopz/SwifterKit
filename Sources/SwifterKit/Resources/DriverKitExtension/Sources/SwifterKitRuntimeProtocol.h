@@ -320,6 +320,26 @@ struct __attribute__((packed)) SwifterKitAudioEvent {
     uint64_t value;
 };
 
+struct __attribute__((packed)) SwifterKitAudioStreamEvent {
+    uint32_t kind;
+    uint32_t streamIndex;
+    uint64_t value;
+};
+
+struct __attribute__((packed)) SwifterKitAudioStreamFormatEvent {
+    uint32_t kind;
+    uint32_t streamIndex;
+    double sampleRate;
+    uint32_t formatID;
+    uint32_t formatFlags;
+    uint32_t bytesPerPacket;
+    uint32_t framesPerPacket;
+    uint32_t bytesPerFrame;
+    uint32_t channelsPerFrame;
+    uint32_t bitsPerChannel;
+    uint32_t reserved;
+};
+
 struct __attribute__((packed)) SwifterKitAudioControlGet {
     uint32_t identifier;
     uint32_t kind;
@@ -584,6 +604,8 @@ static_assert(sizeof(SwifterKitAudioTransferHeader) == kSwifterKitAudioTransferH
 static_assert(sizeof(SwifterKitAudioTimestamp) == 16);
 static_assert(sizeof(SwifterKitAudioIOState) == 32);
 static_assert(sizeof(SwifterKitAudioEvent) == 16);
+static_assert(sizeof(SwifterKitAudioStreamEvent) == 16);
+static_assert(sizeof(SwifterKitAudioStreamFormatEvent) == 48);
 static_assert(sizeof(SwifterKitAudioControlGet) == 8);
 static_assert(sizeof(SwifterKitAudioControlValueHeader) == 16);
 static_assert(sizeof(SwifterKitAudioCustomPropertyHeader) == 16);

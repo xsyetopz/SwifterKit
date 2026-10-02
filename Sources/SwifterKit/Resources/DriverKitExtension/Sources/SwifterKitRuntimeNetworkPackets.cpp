@@ -113,133 +113,150 @@ kern_return_t SwifterKitRuntimeService::NetworkCommand(
     kern_return_t result = kIOReturnUnsupported;
     uint32_t receivedLength = 0;
     IOUserNetworkPacketPoller* poller = nullptr;
-    if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReceive)) {
-        if (payloadLength < sizeof(SwifterKitNetworkReceiveHeader))
-            result = kIOReturnBadArgument;
-        else {
-            const auto* header = reinterpret_cast<const SwifterKitNetworkReceiveHeader*>(payload);
-            if (header->length == 0 || header->length > kSwifterKitEthernetPacketBufferSize
-                || payloadLength != sizeof(*header) + header->length || header->reserved[0] != 0
-                || header->reserved[1] != 0 || header->reserved[2] != 0)
+    switch (opcode) {
+        case static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReceive): {
+            if (payloadLength < sizeof(SwifterKitNetworkReceiveHeader))
                 result = kIOReturnBadArgument;
             else {
-                IOUserNetworkPacket* packet = nullptr;
-                result = ivars->networkRxSubmission->DequeuePacket(&packet);
-                if (result == kIOReturnSuccess && packet != nullptr) {
-                    const uint64_t address = packet->getDataVirtualAddress();
-                    const uint16_t offset = packet->getDataOffset();
-                    result = address == 0 ? kIOReturnNotReady : kIOReturnSuccess;
-                    if (result == kIOReturnSuccess) {
-                        memcpy(
-                            SwifterKitMappedPointer<void>(address + offset),
-                            payload + sizeof(*header),
-                            header->length);
-                        result = packet->setDataLength(header->length);
-                    }
-                    if (result == kIOReturnSuccess)
-                        result = packet->setLinkHeaderLength(header->linkHeaderLength);
-                    if (result == kIOReturnSuccess
-                        && (ivars->networkTapMode & kSwifterKitEthernetTapInput) != 0)
-                        bpfTapInputPacket(kSwifterKitEthernetDataLinkType, packet, nullptr, 0);
-                    if (result == kIOReturnSuccess)
-                        result = ivars->networkRxCompletion->EnqueuePacket(packet);
-                    if (result != kIOReturnSuccess)
-                        (void)ivars->networkRxPool->deallocatePacket(packet);
-                    else if (ivars->networkPoller != nullptr) {
-                        receivedLength = header->length;
-                        poller = ivars->networkPoller;
-                        poller->retain();
-                    }
-                } else if (result == kIOReturnSuccess)
-                    result = kIOReturnNoResources;
-            }
-        }
-    } else if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkCompleteTransmit)) {
-        if (payloadLength != sizeof(SwifterKitNetworkCompletion))
-            result = kIOReturnBadArgument;
-        else {
-            const auto* completion = reinterpret_cast<const SwifterKitNetworkCompletion*>(payload);
-            IOUserNetworkPacket* packet = nullptr;
-            for (auto& pending : ivars->networkTransmits)
-                if (pending.requestID == completion->requestID && pending.packet != nullptr) {
-                    packet = pending.packet;
-                    pending = {};
-                    break;
+                const auto* header =
+                    reinterpret_cast<const SwifterKitNetworkReceiveHeader*>(payload);
+                if (header->length == 0 || header->length > kSwifterKitEthernetPacketBufferSize
+                    || payloadLength != sizeof(*header) + header->length || header->reserved[0] != 0
+                    || header->reserved[1] != 0 || header->reserved[2] != 0)
+                    result = kIOReturnBadArgument;
+                else {
+                    IOUserNetworkPacket* packet = nullptr;
+                    result = ivars->networkRxSubmission->DequeuePacket(&packet);
+                    if (result == kIOReturnSuccess && packet != nullptr) {
+                        const uint64_t address = packet->getDataVirtualAddress();
+                        const uint16_t offset = packet->getDataOffset();
+                        result = address == 0 ? kIOReturnNotReady : kIOReturnSuccess;
+                        if (result == kIOReturnSuccess) {
+                            memcpy(
+                                SwifterKitMappedPointer<void>(address + offset),
+                                payload + sizeof(*header),
+                                header->length);
+                            result = packet->setDataLength(header->length);
+                        }
+                        if (result == kIOReturnSuccess)
+                            result = packet->setLinkHeaderLength(header->linkHeaderLength);
+                        if (result == kIOReturnSuccess
+                            && (ivars->networkTapMode & kSwifterKitEthernetTapInput) != 0)
+                            bpfTapInputPacket(kSwifterKitEthernetDataLinkType, packet, nullptr, 0);
+                        if (result == kIOReturnSuccess)
+                            result = ivars->networkRxCompletion->EnqueuePacket(packet);
+                        if (result != kIOReturnSuccess)
+                            (void)ivars->networkRxPool->deallocatePacket(packet);
+                        else if (ivars->networkPoller != nullptr) {
+                            receivedLength = header->length;
+                            poller = ivars->networkPoller;
+                            poller->retain();
+                        }
+                    } else if (result == kIOReturnSuccess)
+                        result = kIOReturnNoResources;
                 }
-            if (packet == nullptr)
-                result = kIOReturnNotFound;
-            else {
-                // A failed transmit returns through the completion queue with its status.
-                SwifterKitCompleteTransmitPacket(packet, completion->status, 0, 0, 0);
-                result = ivars->networkTxCompletion->EnqueuePacket(packet);
-                if (result != kIOReturnSuccess)
-                    SwifterKitReturnNetworkPacket(packet);
-                packet->release();
             }
+            break;
         }
-    } else if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportLink)) {
-        if (payloadLength != sizeof(SwifterKitNetworkLink))
-            result = kIOReturnBadArgument;
-        else {
-            const auto* link = reinterpret_cast<const SwifterKitNetworkLink*>(payload);
-            const uint32_t base =
-                link->status
-                & ~static_cast<uint32_t>(
-                    kIOUserNetworkLinkStatusWakeSameNet | kIOUserNetworkLinkStatusForceNotify);
-            result =
-                base == kIOUserNetworkLinkStatusInactive || base == kIOUserNetworkLinkStatusActive
-                    ? reportLinkStatus(link->status, link->media)
-                    : kIOReturnBadArgument;
+        case static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkCompleteTransmit): {
+            if (payloadLength != sizeof(SwifterKitNetworkCompletion))
+                result = kIOReturnBadArgument;
+            else {
+                const auto* completion =
+                    reinterpret_cast<const SwifterKitNetworkCompletion*>(payload);
+                IOUserNetworkPacket* packet = nullptr;
+                for (auto& pending : ivars->networkTransmits)
+                    if (pending.requestID == completion->requestID && pending.packet != nullptr) {
+                        packet = pending.packet;
+                        pending = {};
+                        break;
+                    }
+                if (packet == nullptr)
+                    result = kIOReturnNotFound;
+                else {
+                    // A failed transmit returns through the completion queue with its status.
+                    SwifterKitCompleteTransmitPacket(packet, completion->status, 0, 0, 0);
+                    result = ivars->networkTxCompletion->EnqueuePacket(packet);
+                    if (result != kIOReturnSuccess)
+                        SwifterKitReturnNetworkPacket(packet);
+                    packet->release();
+                }
+            }
+            break;
         }
-    } else if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportLinkQuality)) {
-        int32_t quality = 0;
-        if (payloadLength == sizeof(quality))
-            memcpy(&quality, payload, sizeof(quality));
-        result = payloadLength == sizeof(quality) && quality >= kIOUserNetworkLinkQualityOff
-                         && quality <= kIOUserNetworkLinkQualityGood
-                     ? reportLinkQuality(static_cast<LinkQuality>(quality))
-                     : kIOReturnBadArgument;
-    } else if (
-        opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportDataBandwidths)) {
-        const auto* rates = reinterpret_cast<const SwifterKitNetworkBandwidths*>(payload);
-        result = payloadLength == sizeof(*rates) && rates->effectiveInput <= rates->maximumInput
-                         && rates->effectiveOutput <= rates->maximumOutput
-                     ? reportDataBandwidths(
-                           rates->maximumInput,
-                           rates->maximumOutput,
-                           rates->effectiveInput,
-                           rates->effectiveOutput)
-                     : kIOReturnBadArgument;
-    } else if (opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkAddHardwareCounts)) {
-        const auto* input = reinterpret_cast<const SwifterKitNetworkHardwareCounts*>(payload);
-        IOUserNetworkHardwareCounts counts = {};
-        if (payloadLength == sizeof(*input)) {
-            counts.packets_in = input->packetsIn;
-            counts.bytes_in = input->bytesIn;
-            counts.multicasts_in = input->multicastsIn;
-            counts.errors_in = input->errorsIn;
-            counts.packets_out = input->packetsOut;
-            counts.bytes_out = input->bytesOut;
-            counts.multicasts_out = input->multicastsOut;
-            counts.errors_out = input->errorsOut;
-            counts.collisions = input->collisions;
-            counts.dropped = input->dropped;
-            counts.no_protocol = input->noProtocol;
-            result = addHardwareCountsWithInterfaceStatistics(&counts);
-        } else
-            result = kIOReturnBadArgument;
-    } else if (
-        opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportNICProxyLimits)) {
-        nicproxy_limits_info_t limits = {};
-        static_assert(sizeof(limits) == 16);
-        if (payloadLength != sizeof(limits))
-            result = kIOReturnBadArgument;
-        else if ((kSwifterKitEthernetFeatureFlags & kIOUserNetworkFeatureFlagNicProxy) == 0)
-            result = kIOReturnUnsupported;
-        else {
-            memcpy(&limits, payload, sizeof(limits));
-            result = reportNicProxyLimits(limits);
+        case static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportLink): {
+            if (payloadLength != sizeof(SwifterKitNetworkLink))
+                result = kIOReturnBadArgument;
+            else {
+                const auto* link = reinterpret_cast<const SwifterKitNetworkLink*>(payload);
+                const uint32_t base =
+                    link->status
+                    & ~static_cast<uint32_t>(
+                        kIOUserNetworkLinkStatusWakeSameNet | kIOUserNetworkLinkStatusForceNotify);
+                result = base == kIOUserNetworkLinkStatusInactive
+                                 || base == kIOUserNetworkLinkStatusActive
+                             ? reportLinkStatus(link->status, link->media)
+                             : kIOReturnBadArgument;
+            }
+            break;
         }
+        case static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportLinkQuality): {
+            int32_t quality = 0;
+            if (payloadLength == sizeof(quality))
+                memcpy(&quality, payload, sizeof(quality));
+            result = payloadLength == sizeof(quality) && quality >= kIOUserNetworkLinkQualityOff
+                             && quality <= kIOUserNetworkLinkQualityGood
+                         ? reportLinkQuality(static_cast<LinkQuality>(quality))
+                         : kIOReturnBadArgument;
+            break;
+        }
+        case static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportDataBandwidths): {
+            const auto* rates = reinterpret_cast<const SwifterKitNetworkBandwidths*>(payload);
+            result = payloadLength == sizeof(*rates) && rates->effectiveInput <= rates->maximumInput
+                             && rates->effectiveOutput <= rates->maximumOutput
+                         ? reportDataBandwidths(
+                               rates->maximumInput,
+                               rates->maximumOutput,
+                               rates->effectiveInput,
+                               rates->effectiveOutput)
+                         : kIOReturnBadArgument;
+            break;
+        }
+        case static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkAddHardwareCounts): {
+            const auto* input = reinterpret_cast<const SwifterKitNetworkHardwareCounts*>(payload);
+            IOUserNetworkHardwareCounts counts = {};
+            if (payloadLength == sizeof(*input)) {
+                counts.packets_in = input->packetsIn;
+                counts.bytes_in = input->bytesIn;
+                counts.multicasts_in = input->multicastsIn;
+                counts.errors_in = input->errorsIn;
+                counts.packets_out = input->packetsOut;
+                counts.bytes_out = input->bytesOut;
+                counts.multicasts_out = input->multicastsOut;
+                counts.errors_out = input->errorsOut;
+                counts.collisions = input->collisions;
+                counts.dropped = input->dropped;
+                counts.no_protocol = input->noProtocol;
+                result = addHardwareCountsWithInterfaceStatistics(&counts);
+            } else
+                result = kIOReturnBadArgument;
+            break;
+        }
+        case static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkReportNICProxyLimits): {
+            nicproxy_limits_info_t limits = {};
+            static_assert(sizeof(limits) == 16);
+            if (payloadLength != sizeof(limits))
+                result = kIOReturnBadArgument;
+            else if ((kSwifterKitEthernetFeatureFlags & kIOUserNetworkFeatureFlagNicProxy) == 0)
+                result = kIOReturnUnsupported;
+            else {
+                memcpy(&limits, payload, sizeof(limits));
+                result = reportNicProxyLimits(limits);
+            }
+            break;
+        }
+        default:
+            break;
     }
     IOLockUnlock(ivars->networkLock);
     // The poller may call back into the network queue, so it hears of the frame unlocked.

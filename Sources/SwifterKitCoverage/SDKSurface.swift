@@ -55,10 +55,3 @@ struct SDKSurface {
     self.classes = classes
   }
 }
-
-/// Orders SDK versions numerically, such as 24.4 before 25.5.
-func compareVersions(_ lhs: String, _ rhs: String) -> Bool {
-  let left = lhs.split(separator: ".").map { Int($0) ?? 0 }
-  let right = rhs.split(separator: ".").map { Int($0) ?? 0 }
-  return left.lexicographicallyPrecedes(right)
-}

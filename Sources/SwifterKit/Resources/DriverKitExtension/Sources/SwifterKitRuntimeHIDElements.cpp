@@ -133,6 +133,37 @@ namespace {
         return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
     }
 
+    // The response is the bytes of IOHIDElement::getDataValue, or empty when it returns nullptr.
+    // HIDDriverKit does not document getDataValue's ownership. The kernel's open-source
+    // IOHIDElementPrivate::getDataValue returns its _dataValue ivar unretained and may replace it
+    // on the next call, so the runtime copies the bytes at once and does not release the OSData.
+    kern_return_t ReadDataValue(
+        const OSArray* elements,
+        const uint8_t* payload,
+        uint32_t payloadLength,
+        OSData** response) {
+        SwifterKitHIDElementDataRequest request = {};
+        if (payloadLength != sizeof(request)) {
+            return kIOReturnBadArgument;
+        }
+        memcpy(&request, payload, sizeof(request));
+        IOHIDElement* element = FindElement(elements, request.cookie);
+        if (element == nullptr) {
+            return kIOReturnNotFound;
+        }
+        const OSData* value = element->getDataValue(request.options);
+        if (value == nullptr || value->getLength() == 0) {
+            *response = OSData::withCapacity(0);
+            return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+        }
+        if (value->getLength()
+            > kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize) {
+            return kIOReturnNoSpace;
+        }
+        *response = OSData::withBytes(value->getBytesNoCopy(), value->getLength());
+        return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+    }
+
     kern_return_t
         WriteValue(const OSArray* elements, const uint8_t* payload, uint32_t payloadLength) {
         SwifterKitHIDElementWrite write = {};
@@ -327,6 +358,9 @@ kern_return_t SwifterKitRuntimeService::HIDElementCommand(
             break;
         case SwifterKitRuntimeOpcode::HIDGetElementValue:
             result = ReadValue(elements, payload, payloadLength, response);
+            break;
+        case SwifterKitRuntimeOpcode::HIDGetElementDataValue:
+            result = ReadDataValue(elements, payload, payloadLength, response);
             break;
         case SwifterKitRuntimeOpcode::HIDSetElementValue:
             result = WriteValue(elements, payload, payloadLength);

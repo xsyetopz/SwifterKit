@@ -57,6 +57,8 @@
 		0D00C1112AAAAAAA00000001 /* SwifterKitRuntimeHIDDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D00C1122AAAAAAA00000001 /* SwifterKitRuntimeHIDDevice.iig */; };
 		0D001D132AAAAAAA00000001 /* SwifterKitRuntimeMIDIObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D142AAAAAAA00000001 /* SwifterKitRuntimeMIDIObjects.cpp */; };
 		0D001D152AAAAAAA00000001 /* SwifterKitRuntimeMIDIProperties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D162AAAAAAA00000001 /* SwifterKitRuntimeMIDIProperties.cpp */; };
+		0D001D172AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D182AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.iig */; };
+		0D001D192AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D1A2AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.cpp */; };
 		0D001D312AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D322AAAAAAA00000001 /* SwifterKitRuntimeClients.cpp */; };
 		0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */; };
 		0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */; };
@@ -78,7 +80,9 @@
 		0D00AB012AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00AB022AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp */; };
 		0D00AB012AAAAAAA00000002 /* SwifterKitRuntimeAudioMembers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D00AB022AAAAAAA00000002 /* SwifterKitRuntimeAudioMembers.cpp */; };
 		0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */; };
+		0D0032202AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D0033202AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.iig */; };
 		0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */; };
+		0D0032212AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D0033212AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.cpp */; };
 		0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */; };
 		0D001EA12AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EA22AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp */; };
 		0D001EB12AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig in Sources */ = {isa = PBXBuildFile; fileRef = 0D001EB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig */; };
@@ -156,6 +160,8 @@
 		0D00C1122AAAAAAA00000001 /* SwifterKitRuntimeHIDDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeHIDDevice.iig; sourceTree = "<group>"; };
 		0D001D142AAAAAAA00000001 /* SwifterKitRuntimeMIDIObjects.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeMIDIObjects.cpp; sourceTree = "<group>"; };
 		0D001D162AAAAAAA00000001 /* SwifterKitRuntimeMIDIProperties.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeMIDIProperties.cpp; sourceTree = "<group>"; };
+		0D001D182AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeMIDIDevice.iig; sourceTree = "<group>"; };
+		0D001D1A2AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeMIDIDevice.cpp; sourceTree = "<group>"; };
 		0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkSetup.cpp; sourceTree = "<group>"; };
 		0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkPackets.cpp; sourceTree = "<group>"; };
 		0D00F0522AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeNetworkControl.cpp; sourceTree = "<group>"; };
@@ -177,7 +183,9 @@
 		0D00AB022AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioRequests.cpp; sourceTree = "<group>"; };
 		0D00AB022AAAAAAA00000002 /* SwifterKitRuntimeAudioMembers.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioMembers.cpp; sourceTree = "<group>"; };
 		0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioDevice.iig; sourceTree = "<group>"; };
+		0D0033202AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioStream.iig; sourceTree = "<group>"; };
 		0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioDevice.cpp; sourceTree = "<group>"; };
+		0D0033212AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioStream.cpp; sourceTree = "<group>"; };
 		0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudio.cpp; sourceTree = "<group>"; };
 		0D001EA22AAAAAAA00000001 /* SwifterKitRuntimeAudioControls.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SwifterKitRuntimeAudioControls.cpp; sourceTree = "<group>"; };
 		0D001EB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBooleanControl.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = SwifterKitRuntimeAudioBooleanControl.iig; sourceTree = "<group>"; };
@@ -274,6 +282,7 @@
 				0D00C1122AAAAAAA00000001 /* SwifterKitRuntimeHIDDevice.iig */,
 				0D001D142AAAAAAA00000001 /* SwifterKitRuntimeMIDIObjects.cpp */,
 				0D001D162AAAAAAA00000001 /* SwifterKitRuntimeMIDIProperties.cpp */,
+				0D001D1A2AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.cpp */,
 				0D001D422AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp */,
 				0D001D522AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp */,
 				0D00F0522AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp */,
@@ -293,6 +302,7 @@
 				0D00AB022AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp */,
 				0D00AB022AAAAAAA00000002 /* SwifterKitRuntimeAudioMembers.cpp */,
 				0D001E222AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp */,
+				0D0033212AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.cpp */,
 				0D001E322AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp */,
 				0D0020252AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp */,
 				0D00ACC22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.cpp */,
@@ -342,9 +352,11 @@
 				0D00ABB22AAAAAAA00000001 /* SwifterKitRuntimeAudioBox.iig */,
 				0D00ABD22AAAAAAA00000001 /* SwifterKitRuntimeAudioClockDevice.iig */,
 				0D001E122AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig */,
+				0D0033202AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.iig */,
 				0D0020242AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig */,
 				0D00ACB22AAAAAAA00000001 /* SwifterKitRuntimeVideoBox.iig */,
 				0D00ACD22AAAAAAA00000001 /* SwifterKitRuntimeVideoClockDevice.iig */,
+				0D001D182AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.iig */,
 				0D001BBB2AAAAAAA00000001 /* RuntimeSources */,
 			);
 			path = Sources;
@@ -424,6 +436,8 @@
 				0D00C1112AAAAAAA00000001 /* SwifterKitRuntimeHIDDevice.iig in Sources */,
 				0D001D132AAAAAAA00000001 /* SwifterKitRuntimeMIDIObjects.cpp in Sources */,
 				0D001D152AAAAAAA00000001 /* SwifterKitRuntimeMIDIProperties.cpp in Sources */,
+				0D001D172AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.iig in Sources */,
+				0D001D192AAAAAAA00000001 /* SwifterKitRuntimeMIDIDevice.cpp in Sources */,
 				0D001D412AAAAAAA00000001 /* SwifterKitRuntimeNetworkSetup.cpp in Sources */,
 				0D001D512AAAAAAA00000001 /* SwifterKitRuntimeNetworkPackets.cpp in Sources */,
 				0D00F0512AAAAAAA00000001 /* SwifterKitRuntimeNetworkControl.cpp in Sources */,
@@ -445,7 +459,9 @@
 				0D00AB012AAAAAAA00000001 /* SwifterKitRuntimeAudioRequests.cpp in Sources */,
 				0D00AB012AAAAAAA00000002 /* SwifterKitRuntimeAudioMembers.cpp in Sources */,
 				0D001E112AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.iig in Sources */,
+				0D0032202AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.iig in Sources */,
 				0D001E212AAAAAAA00000001 /* SwifterKitRuntimeAudioDevice.cpp in Sources */,
+				0D0032212AAAAAAA00000001 /* SwifterKitRuntimeAudioStream.cpp in Sources */,
 				0D001E312AAAAAAA00000001 /* SwifterKitRuntimeAudio.cpp in Sources */,
 				0D0020202AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.iig in Sources */,
 				0D0020212AAAAAAA00000001 /* SwifterKitRuntimeVideoDevice.cpp in Sources */,

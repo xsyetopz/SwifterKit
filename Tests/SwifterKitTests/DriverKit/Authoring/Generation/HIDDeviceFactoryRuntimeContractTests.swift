@@ -23,7 +23,7 @@ struct HIDDeviceFactoryRuntimeContractTests {
         from: "case SwifterKitRuntimeOpcode::HIDFactoryCreateDevice:",
         to: "return DispatchHIDFactoryCommand(context);"
       )
-      let names = RuntimeOpcode.allCases.filter { $0.rawValue >= 0x0340 && $0.rawValue < 0x0350 }
+      let names = RuntimeOpcode.allCases.filter { $0.rawValue >= 0x0340 && $0.rawValue < 0x0345 }
       #expect(names.count == 5)
       for opcode in names {
         let native = "HID" + "\(opcode)".dropFirst(3)

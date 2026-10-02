@@ -121,6 +121,7 @@ extension DriverExtensionGenerator {
               uint32_t opcode,
               const uint8_t* payload,
               uint32_t payloadLength) LOCALONLY;
+          kern_return_t NetworkBSDName(OSData** response) LOCALONLY;
           kern_return_t NetworkPacketCommand(
               uint32_t opcode,
               const uint8_t* payload,

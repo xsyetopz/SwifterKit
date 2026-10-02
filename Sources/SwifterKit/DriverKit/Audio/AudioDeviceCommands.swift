@@ -198,16 +198,30 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads device state that has no other typed reader.
+  /// Calls `IOUserAudioDevice::CanBeDefaultInputDevice`,
+  /// `IOUserAudioDevice::CanBeDefaultOutputDevice`,
+  /// `IOUserAudioDevice::CanBeDefaultSystemOutputDevice`,
+  /// `IOUserAudioDevice::GetCurrentClientIOTime`, `IOUserAudioDevice::GetInputSafetyOffset`,
+  /// `IOUserAudioDevice::GetOutputSafetyOffset` and
+  /// `IOUserAudioDevice::GetPreferredChannelsForStereo`.
   public func audioDeviceState() async throws -> AudioDeviceState {
     try AudioDeviceState(runtimePayload: await execute(.audioDeviceState()))
   }
 
   /// Changes one `IOUserAudioDevice` property.
+  /// Calls `IOUserAudioDevice::SetCanBeDefaultInputDevice`,
+  /// `IOUserAudioDevice::SetCanBeDefaultOutputDevice`,
+  /// `IOUserAudioDevice::SetCanBeDefaultSystemOutputDevice`,
+  /// `IOUserAudioDevice::SetInputSafetyOffset`, `IOUserAudioDevice::SetOutputSafetyOffset`,
+  /// `IOUserAudioDevice::SetPreferredChannelsForStereo` and
+  /// `IOUserAudioDevice::SetWantsStreamFormatsRestored`.
   public func audioSetDeviceProperty(_ property: AudioDeviceProperty) async throws {
     _ = try await execute(.audioSetDeviceProperty(property))
   }
 
   /// Sets the device's preferred input or output channel layout.
+  /// Calls `IOUserAudioDevice::SetPreferredInputChannelLayout` and
+  /// `IOUserAudioDevice::SetPreferredOutputChannelLayout`.
   public func audioSetPreferredChannelLayout(
     direction: AudioStreamDirection,
     labels: [AudioChannelLabel]
@@ -216,16 +230,26 @@ extension DriverContext {
   }
 
   /// Reads the state, formats, and memory length of a configured stream.
+  /// Calls `IOUserAudioStream::GetAvailableStreamFormats`,
+  /// `IOUserAudioStream::GetIOMemoryDescriptor`, `IOUserAudioStream::GetLatency`,
+  /// `IOUserAudioStream::GetNumberAvailableStreamFormats`, `IOUserAudioStream::GetStartingChannel`,
+  /// `IOUserAudioStream::GetStreamDirection`, `IOUserAudioStream::GetStreamIsActive` and
+  /// `IOUserAudioStream::GetTerminalType`.
   public func audioStreamState(index: UInt32) async throws -> AudioStreamState {
     try AudioStreamState(runtimePayload: await execute(.audioStreamState(index: index)))
   }
 
   /// Changes one property of a configured stream.
+  /// Calls `IOUserAudioStream::SetIOMemoryDescriptor`, `IOUserAudioStream::SetLatency`,
+  /// `IOUserAudioStream::SetStartingChannel`, `IOUserAudioStream::SetStreamIsActive` and
+  /// `IOUserAudioStream::SetTerminalType`.
   public func audioSetStreamProperty(index: UInt32, _ property: AudioStreamProperty) async throws {
     _ = try await execute(.audioSetStreamProperty(index: index, property))
   }
 
   /// Reads the scope, element, range, channels, and selector items of a configured control.
+  /// Calls `IOUserAudioControl::GetControlElement`, `IOUserAudioControl::GetControlScope`,
+  /// `IOUserAudioControl::GetIsSettable` and `IOUserAudioSelectorControl::GetControlValuesCount`.
   public func audioControlInfo(identifier: UInt32) async throws -> AudioControlInfo {
     try AudioControlInfo(runtimePayload: await execute(.audioControlInfo(identifier: identifier)))
   }
@@ -239,11 +263,13 @@ extension DriverContext {
   }
 
   /// Removes items from a selector control by value.
+  /// Calls `IOUserAudioSelectorControl::RemoveControlValueDescriptions`.
   public func audioRemoveSelectorItems(identifier: UInt32, values: [UInt32]) async throws {
     _ = try await execute(.audioRemoveSelectorItems(identifier: identifier, values: values))
   }
 
   /// Reads the selector, data types, and owner of a configured custom property.
+  /// Calls `IOUserAudioCustomProperty::GetCustomPropertyInfo`.
   public func audioCustomPropertyInfo(identifier: UInt32) async throws -> AudioCustomPropertyInfo {
     try AudioCustomPropertyInfo(
       runtimePayload: await execute(.audioCustomPropertyInfo(identifier: identifier))
@@ -251,6 +277,7 @@ extension DriverContext {
   }
 
   /// Adds a configured stream, control, or custom property to its owner, or removes it.
+  /// Calls `IOUserAudioDevice::RemoveStream` and `IOUserAudioDriver::RemoveCustomProperty`.
   public func audioSetMemberAttachment(_ member: AudioMember, owner: AudioMemberOwner) async throws
   { _ = try await execute(.audioSetMemberAttachment(member, owner: owner)) }
 }

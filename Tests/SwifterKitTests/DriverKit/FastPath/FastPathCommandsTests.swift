@@ -156,17 +156,19 @@ private actor FastPathMockConnection: DriverConnection {
       let opcode: UInt32 = try message.payload.readRuntimeInteger(at: 0)
       let body = Data(message.payload.dropFirst(RuntimeSchema.commandHeaderSize))
       commands.append((opcode, body))
-      if opcode == RuntimeOpcode.fastPathRun.rawValue {
+      switch opcode {
+      case RuntimeOpcode.fastPathRun.rawValue:
         payload.appendRuntimeInteger(runStatus)
         payload.appendRuntimeInteger(UInt32(0))
         payload.appendRuntimeInteger(try body.readRuntimeInteger(at: 8) as UInt64)
         payload.appendRuntimeInteger(try body.readRuntimeInteger(at: 16) as UInt64)
         payload.appendRuntimeInteger(UInt64(try body.readRuntimeInteger(at: 0) as UInt32))
         for value: UInt64 in [0, 0, 0, 0, 0xFFFF_FFFF] { payload.appendRuntimeInteger(value) }
-      } else if opcode == RuntimeOpcode.fastPathStatus.rawValue {
+      case RuntimeOpcode.fastPathStatus.rawValue:
         payload.appendRuntimeInteger(UInt32(0xE000_02BE))
         payload.appendRuntimeInteger(UInt32(0))
         payload.appendRuntimeInteger(UInt64(3))
+      default: break
       }
     case .response, .event, .error: throw RuntimeProtocolError.unknownMessageKind
     }

@@ -205,7 +205,45 @@ kern_return_t SwifterKitRuntimeVideoDevice::Configure() {
     }
     if (result == kIOReturnSuccess)
         result = ConfigureControls();
-    return result;
+    if (result != kIOReturnSuccess)
+        return result;
+    // The host calls this block on a real-time thread, so it only writes a seqlock snapshot of
+    // the operation with atomics, never locks or allocates, and captures the ivars it needs.
+    auto* state = ivars;
+    return SetIOOperationHandler(^kern_return_t(
+        IOUserVideoObjectID,
+        IOUserVideoIOOperation operation,
+        uint32_t frameCount,
+        uint64_t sampleTime,
+        uint64_t hostTime) {
+      const uint64_t writing = __atomic_add_fetch(&state->sequence, 1, __ATOMIC_ACQ_REL);
+      __atomic_store_n(&state->operation, operation, __ATOMIC_RELAXED);
+      __atomic_store_n(&state->frameCount, frameCount, __ATOMIC_RELAXED);
+      __atomic_store_n(&state->sampleTime, sampleTime, __ATOMIC_RELAXED);
+      __atomic_store_n(&state->hostTime, hostTime, __ATOMIC_RELAXED);
+      __atomic_store_n(&state->sequence, writing + 1, __ATOMIC_RELEASE);
+      return kIOReturnSuccess;
+    });
+}
+
+kern_return_t SwifterKitRuntimeVideoDevice::CopyIOOperationState(OSData** response) {
+    if (response == nullptr || ivars == nullptr)
+        return kIOReturnBadArgument;
+    SwifterKitVideoIOOperationState state = {};
+    for (uint32_t attempt = 0; attempt < 4; ++attempt) {
+        state.sequence = __atomic_load_n(&ivars->sequence, __ATOMIC_ACQUIRE);
+        if ((state.sequence & 1U) != 0)
+            continue;
+        state.operation = __atomic_load_n(&ivars->operation, __ATOMIC_RELAXED);
+        state.frameCount = __atomic_load_n(&ivars->frameCount, __ATOMIC_RELAXED);
+        state.sampleTime = __atomic_load_n(&ivars->sampleTime, __ATOMIC_RELAXED);
+        state.hostTime = __atomic_load_n(&ivars->hostTime, __ATOMIC_RELAXED);
+        if (state.sequence == __atomic_load_n(&ivars->sequence, __ATOMIC_ACQUIRE)) {
+            *response = OSData::withBytes(&state, sizeof(state));
+            return *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+        }
+    }
+    return kIOReturnBusy;
 }
 
 kern_return_t SwifterKitRuntimeVideoDevice::ReadBuffer(
@@ -384,21 +422,36 @@ kern_return_t SwifterKitRuntimeVideoDevice::StopIO(IOUserVideoStartStopFlags fla
 kern_return_t SwifterKitRuntimeVideoDevice::PerformDeviceConfigurationChange(
     uint64_t changeAction,
     OSObject* changeInfo) {
-    if (changeAction == kSwifterKitVideoMemberChangeAction)
-        return ApplyMemberChange();
-    if (changeAction == kSwifterKitVideoStructureChangeAction)
-        return ApplyStructureChange(changeInfo);
+    switch (changeAction) {
+        case kSwifterKitVideoMemberChangeAction:
+            return ApplyMemberChange();
+        case kSwifterKitVideoStructureChangeAction:
+            return ApplyStructureChange(changeInfo);
+        default:
+            break;
+    }
     if (changeAction != kSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const double sampleRate = __builtin_bit_cast(
         double,
         __atomic_exchange_n(&ivars->pendingSampleRateBits, 0, __ATOMIC_ACQUIRE));
-    const kern_return_t result =
+    kern_return_t result =
         IsSupportedSampleRate(sampleRate) ? SetSampleRate(sampleRate) : kIOReturnBadArgument;
+    result = result == kIOReturnSuccess ? NotifyStreamsSampleRate(sampleRate) : result;
     if (result == kIOReturnSuccess)
         (void)ivars->service->VideoControlEvent(
             kSwifterKitVideoEventSampleRateChanged,
             __builtin_bit_cast(uint64_t, sampleRate));
+    return result;
+}
+
+// Updates each stream's format for the new device sample rate through DeviceSampleRateChanged.
+kern_return_t SwifterKitRuntimeVideoDevice::NotifyStreamsSampleRate(double sampleRate) {
+    kern_return_t result = kIOReturnSuccess;
+    for (uint32_t index = 0; result == kIOReturnSuccess && index < kSwifterKitVideoStreamCount;
+         ++index)
+        if (ivars->streams[index] != nullptr)
+            result = ivars->streams[index]->DeviceSampleRateChanged(sampleRate);
     return result;
 }
 
@@ -434,7 +487,8 @@ void SwifterKitRuntimeVideoDevice::StreamFormatChanged(IOUserVideoObjectID strea
 kern_return_t SwifterKitRuntimeVideoDevice::HandleChangeSampleRate(double sampleRate) {
     if (!IsSupportedSampleRate(sampleRate))
         return kIOReturnBadArgument;
-    const kern_return_t result = SetSampleRate(sampleRate);
+    kern_return_t result = SetSampleRate(sampleRate);
+    result = result == kIOReturnSuccess ? NotifyStreamsSampleRate(sampleRate) : result;
     if (result == kIOReturnSuccess)
         (void)ivars->service->VideoControlEvent(
             kSwifterKitVideoEventSampleRateChanged,

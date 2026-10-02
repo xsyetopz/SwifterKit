@@ -56,7 +56,7 @@ Public Swift APIs require documentation and Swift 6 concurrency-safe behavior. P
 
 Driver authors should not need to copy or maintain C++, C, Objective-C, or IIG glue. Add native work inside SwifterKit and expose it through typed Swift configuration, commands, events, and tests.
 
-When a change adds or removes support for a DriverKit member, update its entry in `coverage/driverkit.json`: set `status`, and add `swiftSymbol` for `swift-api`, `note` for `excluded`, and both for `fast-path`, whose member the native runtime must also reference. A note on a covered member describes what SwifterKit does, never intent such as "planned" or "not yet". `swift run SwifterKitCoverage check --manifest coverage/driverkit.json --sdk "$(xcrun --sdk driverkit --show-sdk-path)"` verifies the claims against the sources and the selected SDK.
+When a change adds or removes support for a DriverKit member, name each member the Swift API reaches as `` `Class::member` `` in that API's `///` documentation, then regenerate `Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md` with `swift run SwifterKitCoverage docc --sdk DIR... --trees DIR --article Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md`, where `--trees` holds the trees that `SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE=DIR swift test` captures and `--sdk` names every installed `DriverKit.sdk`. A public member SwifterKit does not reach is a gap unless the article's "Members SwifterKit does not expose" section gives a reason on a `` - `Class` `signature`: reason `` line. A reason describes what SwifterKit does, never intent such as "planned" or "not yet". `./scripts/ci/validate.sh` checks the documentation and the reasons against clang's evidence and the headers, and compares the article.
 
 ## Pull requests
 

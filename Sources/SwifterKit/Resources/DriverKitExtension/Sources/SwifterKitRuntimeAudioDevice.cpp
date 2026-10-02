@@ -9,6 +9,7 @@
     #include <DriverKit/OSString.h>
 
     #include "SwifterKitRuntimeAudioDeviceState.h"
+    #include "SwifterKitRuntimeAudioStream.h"
     #include "SwifterKitRuntimeMappedMemory.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeService.h"
@@ -125,12 +126,17 @@ kern_return_t SwifterKitRuntimeAudioDevice::Configure() {
             result = ivars->descriptors[index]
                          ->CreateMapping(0, 0, 0, bufferSize, 0, &ivars->maps[index]);
         if (result == kIOReturnSuccess) {
-            ivars->streams[index] = IOUserAudioStream::Create(
-                                        ivars->service,
-                                        static_cast<IOUserAudioStreamDirection>(config.direction),
-                                        ivars->descriptors[index])
-                                        .detach();
-            result = ivars->streams[index] == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+            auto* stream = OSTypeAlloc(SwifterKitRuntimeAudioStream);
+            if (stream != nullptr
+                && !stream->init(
+                    ivars->service,
+                    ivars->service,
+                    index,
+                    static_cast<IOUserAudioStreamDirection>(config.direction),
+                    ivars->descriptors[index]))
+                OSSafeReleaseNULL(stream);
+            ivars->streams[index] = stream;
+            result = stream == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
         }
         name = result == kIOReturnSuccess ? OSString::withCString(config.name) : nullptr;
         if (result == kIOReturnSuccess)
@@ -271,10 +277,14 @@ kern_return_t SwifterKitRuntimeAudioDevice::StopIO(IOUserAudioStartStopFlags fla
 kern_return_t SwifterKitRuntimeAudioDevice::PerformDeviceConfigurationChange(
     uint64_t changeAction,
     OSObject* changeInfo) {
-    if (changeAction == kSwifterKitAudioRingBufferChangeAction)
-        return ApplyRingBufferChange();
-    if (changeAction == kSwifterKitAudioMemberChangeAction)
-        return ApplyMemberChange(changeInfo);
+    switch (changeAction) {
+        case kSwifterKitAudioRingBufferChangeAction:
+            return ApplyRingBufferChange();
+        case kSwifterKitAudioMemberChangeAction:
+            return ApplyMemberChange(changeInfo);
+        default:
+            break;
+    }
     if (changeAction != kSampleRateChangeAction)
         return super::PerformDeviceConfigurationChange(changeAction, changeInfo);
     const uint64_t sampleRateBits =

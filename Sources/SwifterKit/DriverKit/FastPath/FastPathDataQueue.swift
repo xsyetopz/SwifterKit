@@ -21,6 +21,10 @@ import Foundation
 /// moves the entries into its staging queue and runs the queue's
 /// ``FastPathTrigger/dataAvailable(_:)`` program once per entry. Those entries are never dropped
 /// for lack of space: they wait in the host ring until the extension has room.
+///
+/// The extension sizes each staging queue with
+/// `IODataQueueDispatchSource::GetDataQueueEntryHeaderSize` and checks it with
+/// `IODataQueueDispatchSource::CanEnqueueData`.
 public struct FastPathDataQueue: Sendable, Hashable {
   /// The queue's identifier, unique in its configuration and at most `0xFF_FFFF`. Operations and
   /// ``DriverContext/mapDataQueue(_:)`` name the queue by it.
@@ -151,6 +155,9 @@ public struct FastPathDataQueueNotification: Sendable, Hashable {
   public let movedEntries: UInt32
   /// The entries still in the host ring because the extension's staging queue is full. The
   /// extension takes them once it frees space, then queues a ``FastPathDataQueueEvent``.
+  ///
+  /// The extension takes them after `IODataQueueDispatchSource::SendDataServiced` runs the handler
+  /// set with `IODataQueueDispatchSource::SetDataServicedHandler`.
   public let waitingEntries: UInt32
   /// Every time the extension refused this queue's host ring as corrupt.
   public let refusals: UInt64
@@ -221,6 +228,8 @@ extension DriverContext {
   ///
   /// Entries that do not fit wait in the host ring. The extension takes them when its staging
   /// queue frees space, then queues a ``FastPathDataQueueEvent``.
+  ///
+  /// The extension stages the entries with `IODataQueueDispatchSource::Enqueue`.
   public func notifyDataQueue(_ id: UInt32) async throws -> FastPathDataQueueNotification {
     let command = try DriverCommand.notifyDataQueue(id, in: fastPath)
     return try FastPathDataQueueNotification(runtimePayload: await execute(command))

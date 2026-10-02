@@ -43,6 +43,8 @@ public struct SCSIProtocolPropertyKey: RawRepresentable, Sendable, Hashable {
 ///
 /// The generated runtime reports every key the header marks as required, so DriverKit never sees
 /// a partial dictionary.
+///
+/// The runtime passes them to `IOUserSCSIParallelInterfaceController::UserReportHBAConstraints`.
 public struct SCSIControllerConstraints: Sendable, Hashable {
   /// `kIOMaximumSegmentCountReadKey`.
   public let maximumSegmentCountRead: UInt64

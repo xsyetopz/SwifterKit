@@ -186,17 +186,17 @@ extension DriverContext {
     return [UInt8](reply)
   }
 
-  /// Selects a USB HID device's protocol through `setProtocol`.
+  /// Selects a USB HID device's protocol through `IOUserUSBHostHIDDevice::setProtocol`.
   public func setHIDDeviceProtocol(_ deviceProtocol: HIDDeviceProtocol) async throws {
     _ = try await execute(.setHIDDeviceProtocol(deviceProtocol))
   }
 
-  /// Sets a USB HID device's idle rate through `setIdle`.
+  /// Sets a USB HID device's idle rate through `IOUserUSBHostHIDDevice::setIdle`.
   public func setHIDDeviceIdle(milliseconds: UInt16) async throws {
     _ = try await execute(.setHIDDeviceIdle(milliseconds: milliseconds))
   }
 
-  /// Sets a USB HID device's idle policy through `setIdlePolicy`.
+  /// Sets a USB HID device's idle policy through `IOUserUSBHostHIDDevice::setIdlePolicy`.
   public func setHIDDeviceIdlePolicy(
     _ target: HIDIdlePolicyTarget,
     milliseconds: UInt16
@@ -204,7 +204,7 @@ extension DriverContext {
     _ = try await execute(.setHIDDeviceIdlePolicy(target, milliseconds: milliseconds))
   }
 
-  /// Resets a USB HID device through `reset`.
+  /// Resets a USB HID device through `IOUserUSBHostHIDDevice::reset`.
   public func resetHIDDevice() async throws { _ = try await execute(.resetHIDDevice) }
 }
 

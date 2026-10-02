@@ -55,6 +55,12 @@ public enum DriverExtensionGenerationError: Error, Sendable, Equatable {
   case destinationExists(String)
   /// Packaged native runtime templates are unavailable.
   case templateUnavailable
+  /// A ``DriverExtensionConfiguration`` has no personalities.
+  case noPersonalities
+  /// A personality name is not an ASCII letter followed by ASCII letters and digits, starts or
+  /// is started by another personality's name ignoring case, or differs from the
+  /// ``DriverConfiguration/personalityName`` of its configuration.
+  case invalidPersonalityName(String)
   /// A packaged template no longer contains an expected token.
   case templateInvariant(String)
   /// A file-system operation failed.

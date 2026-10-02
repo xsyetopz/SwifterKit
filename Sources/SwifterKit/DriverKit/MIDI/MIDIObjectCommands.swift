@@ -95,7 +95,8 @@ extension DriverCommand {
     )
   }
 
-  /// Removes the entity, a source, or a destination from its owner, or adds it back.
+  /// Removes the entity, a source, or a destination from its owner, or adds it back, through a
+  /// device configuration change. See ``DriverContext/midiSetMemberAttachment(_:attached:)``.
   public static func midiSetMemberAttachment(_ member: MIDIMember, attached: Bool) throws -> Self {
     var payload = try midiTargetPayload(member.target)
     payload.appendRuntimeInteger(UInt32(attached ? 1 : 0))
@@ -140,16 +141,22 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads the identity and name of a MIDIDriverKit object or the driver.
+  /// Calls `IOUserMIDIDriver::GetMIDIObjectForObjectID`, `IOUserMIDIDriver::GetName`,
+  /// `IOUserMIDIObject::GetBaseClassID`, `IOUserMIDIObject::GetClassID`,
+  /// `IOUserMIDIObject::GetName`, `IOUserMIDIObject::GetObjectID` and
+  /// `IOUserMIDIObject::GetOwnerObjectID`.
   public func midiObjectInfo(_ target: MIDIObjectTarget) async throws -> MIDIObjectInfo {
     try MIDIObjectInfo(runtimePayload: await execute(.midiObjectInfo(target)))
   }
 
   /// Renames a MIDIDriverKit object or the driver.
+  /// Calls `IOUserMIDIObject::SetName`.
   public func midiSetObjectName(_ target: MIDIObjectTarget, name: String) async throws {
     _ = try await execute(.midiSetObjectName(target, name: name))
   }
 
   /// Reads the value type of a property.
+  /// Calls `IOUserMIDIObject::GetPropertyType`.
   public func midiPropertyType(
     _ target: MIDIObjectTarget,
     property: MIDIProperty
@@ -162,6 +169,7 @@ extension DriverContext {
   }
 
   /// Copies one property.
+  /// Calls `IOUserMIDIObject::CopyProperty`.
   public func midiCopyProperty(
     _ target: MIDIObjectTarget,
     key: MIDIPropertyKey
@@ -170,6 +178,7 @@ extension DriverContext {
   }
 
   /// Sets one property.
+  /// Calls `IOUserMIDIObject::SetProperty`.
   public func midiSetProperty(
     _ target: MIDIObjectTarget,
     key: MIDIPropertyKey,
@@ -177,6 +186,7 @@ extension DriverContext {
   ) async throws { _ = try await execute(.midiSetProperty(target, key: key, value: value)) }
 
   /// Reads every set property.
+  /// Calls `IOUserMIDIObject::GetProperties`.
   public func midiProperties(_ target: MIDIObjectTarget) async throws -> [String: MIDIPropertyValue]
   {
     let value = try MIDIPropertyValue(runtimePayload: await execute(.midiProperties(target)))
@@ -185,22 +195,34 @@ extension DriverContext {
   }
 
   /// Sets properties from a dictionary.
+  /// Calls `IOUserMIDIObject::SetProperties`.
   public func midiSetProperties(
     _ target: MIDIObjectTarget,
     _ properties: [String: MIDIPropertyValue]
   ) async throws { _ = try await execute(.midiSetProperties(target, properties)) }
 
   /// Reads whether the device is running and which entities it holds.
+  /// Calls `IOUserMIDIDevice::GetEntities`.
   public func midiDeviceState() async throws -> MIDIDeviceState {
     try MIDIDeviceState(runtimePayload: await execute(.midiDeviceState()))
   }
 
   /// Reads which sources and destinations the entity holds.
+  /// Calls `IOUserMIDIEntity::GetDestinations` and `IOUserMIDIEntity::GetSources`.
   public func midiEntityMembers() async throws -> MIDIEntityMembers {
     try MIDIEntityMembers(runtimePayload: await execute(.midiEntityMembers()))
   }
 
   /// Removes the entity, a source, or a destination from its owner, or adds it back.
+  ///
+  /// The change alters the device structure, so the runtime requests it through
+  /// `IOUserMIDIDevice::RequestDeviceConfigurationChange` and applies it in
+  /// `IOUserMIDIDevice::PerformDeviceConfigurationChange`, where I/O is stopped. This call returns
+  /// once the host accepts the request, and the host can apply the change later. Read
+  /// ``midiDeviceState()`` or ``midiEntityMembers()`` to see the result.
+  /// Calls `IOUserMIDIDevice::AddEntity`, `IOUserMIDIDevice::RemoveEntity`,
+  /// `IOUserMIDIEntity::AddSource`, `IOUserMIDIEntity::RemoveSource`,
+  /// `IOUserMIDIEntity::AddDestination` and `IOUserMIDIEntity::RemoveDestination`.
   public func midiSetMemberAttachment(_ member: MIDIMember, attached: Bool) async throws {
     _ = try await execute(.midiSetMemberAttachment(member, attached: attached))
   }

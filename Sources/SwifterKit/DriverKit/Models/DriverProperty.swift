@@ -9,6 +9,14 @@ public indirect enum DriverProperty: Sendable, Hashable {
   /// An unsigned integer property.
   case unsignedInteger(UInt64)
   /// A floating-point property.
+  ///
+  /// DriverKit's `OSNumber` is an unsigned integer and has no floating-point form, so the
+  /// extension cannot hold this value. Commands that send properties to the extension, such as
+  /// ``DriverContext/setServiceProperties(_:)`` and ``DriverContext/watchServices(matching:)``,
+  /// throw ``ServiceRuntimeError/unsupportedProperty`` for it. Generation throws
+  /// ``DriverExtensionGenerationError/invalidHIDConfiguration`` when
+  /// ``USBHIDDeviceConfiguration/deviceProperties`` contains it. Host-side matching and registry
+  /// reads support it.
   case real(Double)
   /// A string property.
   case string(String)

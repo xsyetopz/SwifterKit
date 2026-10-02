@@ -181,40 +181,52 @@ configuration and completion details.
 
 ## DriverKit coverage
 
-`coverage/driverkit.json` lists every class and member function declared in
-the DriverKit SDK `.iig` headers, with the SDK versions that declare it, the
-`introduced` and `deprecated` DriverKit versions when the header's availability
-attribute gives them, and how SwifterKit handles it:
+The DocC article
+[DriverKit Coverage](Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md)
+tells driver authors how much of the DriverKit API a Swift driver reaches. For
+each framework it counts the members Apple's SDK `.iig` headers declare, and it
+lists every public member a Swift driver cannot reach and every member Apple
+keeps from DriverKit clients.
 
-| Status | Meaning |
+`SwifterKitCoverage` computes the article on every run from three sources, and
+stores nothing else:
+
+| Status | Source |
 | --- | --- |
-| `gap` | Not yet reachable from Swift |
-| `generated` | Called or overridden by the generated extension runtime |
-| `swift-api` | Exposed through the typed Swift API named in `swiftSymbol` |
-| `fast-path` | Declarable through the native fast path |
-| `excluded` | Out of scope, with the reason in `note` |
+| Swift API | The runtime reaches the member, and a `///` comment in `Sources/SwifterKit` names it as `` `Class::member` `` |
+| Runtime | Clang's AST of the generated extension trees shows the runtime calling or overriding the member |
+| Gap | The header makes the member public and nothing reaches it |
+| Not exposed | The header makes the member public and the article gives SwifterKit's reason for not reaching it |
+| Apple only | The header keeps the member from DriverKit clients: private members, private `EXTENDS` class extensions, and declarations compiled only for the kernel or under `#if 0` or private conditions |
 
-Members start as gaps. The tool excludes private members, private `EXTENDS`
-class extensions, `init`/`free` lifecycle hooks, and declarations compiled only
-for the kernel or under `#if 0` or private conditions. `generated` entries were
-inferred from the runtime naming the class and the member, and overloaded names
-were left as gaps; confirm an entry before relying on it.
+Evidence resolves each call or override to the declaring class and overload.
+The only hand-written text is the reasons under "Members SwifterKit does not
+expose", one member per line:
 
-Print the current counts per framework:
-
-```sh
-swift run SwifterKitCoverage summary --manifest coverage/driverkit.json
+```text
+- `IOService` `kern_return_t Example(uint32_t)`: The runtime owns this call
 ```
 
-CI checks the manifest against the DriverKit SDK in each job and fails when the
-SDK declares a member the manifest does not list, or when a `generated`,
-`swift-api`, `fast-path`, or `excluded` entry lacks supporting source or a
-note. After installing a new SDK, record its surface:
+Regenerate the article after changing the runtime, its documentation, or the
+installed SDKs. Pass every installed DriverKit SDK, as `validate.sh` does;
+`--exclusions FILE` adds or replaces reasons from a local file in the same line
+format:
 
 ```sh
-swift run SwifterKitCoverage update --manifest coverage/driverkit.json \
-  --sdk "$(xcrun --sdk driverkit --show-sdk-path)"
+generated_trees="$PWD/.build/SwifterKitGeneratedTrees"
+SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE="$generated_trees" swift test
+swift run SwifterKitCoverage docc \
+  --sdk "$(xcrun --sdk driverkit --show-sdk-path)" --trees "$generated_trees" \
+  --article Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md
 ```
+
+`check` fails when a documented `Class::member` names no declared member or
+names one the runtime does not reach, and when an exclusion names no public
+member, names one the runtime reaches, or describes intent such as "planned" or
+"not yet". With `--trees` and the same SDKs the article names, it also fails
+when the article differs from what `docc` writes; otherwise it prints a note
+and skips that comparison. CI runs it with the selected SDK and no trees;
+`validate.sh` runs it with every installed SDK and the trees.
 
 ## Native boundary
 
@@ -279,7 +291,7 @@ compile-checked but unexecuted in CI:
   macOS 10.15 host; and
 - signed entitlement, provisioning, and hardware behavior.
 
-SwifterKit 0.2.1 has not been run on physical hardware. This includes fast-path
+SwifterKit 0.3.0 has not been run on physical hardware. This includes fast-path
 programs, DMA rings, host-shared data queues, wrapped or mapped host memory, and
 device I/O for every capability family: HID, USB and USB serial, PCI, serial,
 block storage, MIDI, Ethernet networking, audio, SCSI, video, interrupts,

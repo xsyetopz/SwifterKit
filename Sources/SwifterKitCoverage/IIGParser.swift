@@ -235,13 +235,18 @@ enum IIGParser {
           text.hasPrefix($0)
         })
       else { return nil }
-      let prefix = text[..<open].trimmed
-      guard let name = prefix.split(separator: " ").last.map(String.init), let first = name.first,
-        first.isLetter || first == "_", name.allSatisfy(\.isIdentifier),
+      var returnTokens = text[..<open].trimmed.split(separator: " ").map(String.init)
+      // `OSArray *getElements()` attaches the return type's pointer to the name.
+      guard var name = returnTokens.popLast() else { return nil }
+      let declarator = name.prefix { $0 == "*" || $0 == "&" }
+      if !declarator.isEmpty {
+        name.removeFirst(declarator.count)
+        returnTokens.append(String(declarator))
+      }
+      guard let first = name.first, first.isLetter || first == "_", name.allSatisfy(\.isIdentifier),
         !name.hasPrefix("OSDeclare")
       else { return nil }
       guard let close = Self.closingParenthesis(in: text, from: open) else { return nil }
-      let returnTokens = prefix.split(separator: " ").dropLast().map(String.init)
       let parameters = String(text[text.index(after: open)..<close])
       let (trailing, availability) = Self.availability(
         in: String(text[text.index(after: close)...])
@@ -249,7 +254,7 @@ enum IIGParser {
       let isStatic = returnTokens.contains("static")
       let returnType = returnTokens.filter { $0 != "virtual" && $0 != "static" }.joined(
         separator: " "
-      ).replacingOccurrences(of: " *", with: "*")
+      ).replacingOccurrences(of: " *", with: "*").replacingOccurrences(of: " &", with: "&")
       let signature =
         "\(returnType.isEmpty ? "" : returnType + " ")\(name)(\(normalized(parameters)))"
         + qualifiers(trailing)

@@ -123,6 +123,29 @@ struct IIGParserTests {
   }
 
   @Test
+  func parsesPointerAndReferenceAttachedToTheName() throws {
+    let classes = IIGParser.parse(
+      """
+      class IOExampleService : public IOService
+      {
+      public:
+          virtual OSArray *getElements() LOCALONLY;
+          const OSData &descriptor(uint32_t index) const;
+          static IOExampleService **all(void);
+      };
+      """
+    )
+    let service = try #require(classes.first)
+    #expect(service.methods.map(\.name) == ["getElements", "descriptor", "all"])
+    #expect(
+      service.methods.map(\.signature) == [
+        "OSArray* getElements()", "const OSData& descriptor(uint32_t) const",
+        "IOExampleService** all()",
+      ]
+    )
+  }
+
+  @Test
   func normalizesParameterNamesArraysAndDefaults() {
     #expect(
       IIGParser.normalizedParameters(

@@ -49,6 +49,24 @@ public struct DriverConfiguration: Sendable, Hashable {
   public let reporting: ReportingConfiguration?
   /// Register programs the generated extension runs natively, if any.
   public let fastPath: FastPathConfiguration?
+  /// The IOKit personality this configuration describes inside a multi-personality extension.
+  ///
+  /// `nil` for a single-configuration extension. ``DriverExtensionConfiguration/personality(_:)``
+  /// returns configurations with this set, which names the personality's own ``serviceClass``.
+  public internal(set) var personalityName: String?
+
+  /// The native class of the service this configuration's extension starts.
+  ///
+  /// ``runtimeServiceClass`` for a single-configuration extension. Each personality of a
+  /// ``DriverExtensionConfiguration`` runs its own class, which inserts the personality name:
+  /// `SwifterKit<Name>RuntimeService`.
+  public var serviceClass: String {
+    guard let personalityName else { return Self.runtimeServiceClass }
+    return DriverExtensionPersonalityRenaming.renamed(
+      Self.runtimeServiceClass,
+      personality: personalityName
+    )
+  }
 
   /// Creates driver metadata consumed by the extension generator.
   public init(
@@ -106,8 +124,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     DriverServiceMatch(
       serviceClass: "IOService",
       registryProperties: [
-        "CFBundleIdentifier": .string(bundleIdentifier),
-        "IOUserClass": .string(Self.runtimeServiceClass),
+        "CFBundleIdentifier": .string(bundleIdentifier), "IOUserClass": .string(serviceClass),
       ]
     )
   }

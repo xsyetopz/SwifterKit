@@ -126,6 +126,7 @@ extension DriverContext {
   }
 
   /// Enables or disables the configured packet poller.
+  /// It calls `IOUserNetworkPacketPoller::enable`, `IOUserNetworkPacketPoller::disable`.
   public func setEthernetPolling(enabled: Bool) async throws {
     _ = try await execute(.setEthernetPolling(enabled: enabled))
   }

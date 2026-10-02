@@ -135,6 +135,10 @@ extension DriverContext {
   ///
   /// The extension rejects an aperture access that does not fit inside the BAR whose memory
   /// index it names. Configuration space accepts no options.
+  ///
+  /// The extension calls `IOPCIDevice::ConfigurationRead8`, `IOPCIDevice::ConfigurationRead16`,
+  /// `IOPCIDevice::ConfigurationRead32`, `IOPCIDevice::MemoryRead8`, `IOPCIDevice::MemoryRead16`,
+  /// `IOPCIDevice::MemoryRead32`, `IOPCIDevice::MemoryRead64` by space and width.
   public func pciRead(
     space: PCIRegisterSpace,
     offset: UInt64,
@@ -152,6 +156,11 @@ extension DriverContext {
   ///
   /// The extension rejects an aperture access that does not fit inside the BAR whose memory
   /// index it names. Configuration space accepts no options.
+  ///
+  /// The extension calls `IOPCIDevice::ConfigurationWrite8`, `IOPCIDevice::ConfigurationWrite16`,
+  /// `IOPCIDevice::ConfigurationWrite32`, `IOPCIDevice::MemoryWrite8`,
+  /// `IOPCIDevice::MemoryWrite16`, `IOPCIDevice::MemoryWrite32`, `IOPCIDevice::MemoryWrite64` by
+  /// space and width.
   public func pciWrite(
     space: PCIRegisterSpace,
     offset: UInt64,
@@ -165,16 +174,19 @@ extension DriverContext {
   }
 
   /// Returns information about a PCI base-address register.
+  /// The extension calls `IOPCIDevice::GetBARInfo`.
   public func pciBaseAddressInfo(index: UInt8) async throws -> PCIBaseAddressInfo {
     try await PCIBaseAddressInfo(runtimePayload: execute(try .pciBaseAddressInfo(index: index)))
   }
 
   /// Returns the device's PCI bus/device/function address.
+  /// The extension calls `IOPCIDevice::GetBusDeviceFunction`.
   public func pciLocation() async throws -> PCILocation {
     try await PCILocation(runtimePayload: execute(.pciLocation))
   }
 
   /// Finds the next matching PCI capability offset.
+  /// The extension calls `IOPCIDevice::FindPCICapability`.
   public func pciFindCapability(
     identifier: UInt32,
     startingAt offset: UInt64 = 0

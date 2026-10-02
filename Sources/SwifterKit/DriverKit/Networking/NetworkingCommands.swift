@@ -25,6 +25,13 @@ extension DriverCommand {
     )
   }
 
+  /// Creates a BSD interface name read through `IOUserNetworkEthernet::getBSDName`.
+  public static let ethernetBSDName = Self(
+    opcode: .networkGetBSDName,
+    requiredCapabilities: .networking,
+    maximumResponseSize: RuntimeMessage.headerSize + ServicePropertyCoding.maximumNameLength
+  )
+
   /// Reports the physical link state and active media word.
   public static func reportEthernetLink(active: Bool, media: EthernetMedia) -> Self {
     var payload = Data(capacity: 8)
@@ -43,6 +50,17 @@ extension DriverContext {
   /// Completes an outgoing frame after the hardware transport finishes.
   public func completeEthernetTransmit(requestID: UInt32, status: Int32 = 0) async throws {
     _ = try await execute(.completeEthernetTransmit(requestID: requestID, status: status))
+  }
+
+  /// Returns the interface's BSD name, such as `en5`, from `IOUserNetworkEthernet::getBSDName`, or
+  /// `nil` while it returns no name, before the interface registers.
+  public func ethernetBSDName() async throws -> String? {
+    let reply = try await execute(.ethernetBSDName)
+    guard !reply.isEmpty else { return nil }
+    guard let name = String(data: reply, encoding: .utf8) else {
+      throw EthernetRuntimeError.invalidPayload
+    }
+    return name
   }
 
   /// Reports the physical link state and active media word.

@@ -219,6 +219,13 @@ namespace {
         if (context.service == nullptr) {
             return kIOReturnNotReady;
         }
+        if (context.opcode == static_cast<uint32_t>(SwifterKitRuntimeOpcode::NetworkGetBSDName)) {
+            OSData* response = nullptr;
+            const kern_return_t result = context.payloadLength == 0
+                                             ? context.service->NetworkBSDName(&response)
+                                             : kIOReturnBadArgument;
+            return RespondToCommand(context, result, response);
+        }
         const kern_return_t result =
             context.service->NetworkCommand(context.opcode, context.payload, context.payloadLength);
         if (result != kIOReturnSuccess) {
@@ -431,6 +438,7 @@ namespace {
             case SwifterKitRuntimeOpcode::ServiceCopyProviderProperties:
             case SwifterKitRuntimeOpcode::ServiceCopyName:
             case SwifterKitRuntimeOpcode::ServiceGetRegistryEntryID:
+            case SwifterKitRuntimeOpcode::ServiceSetName:
             case SwifterKitRuntimeOpcode::ServiceChangePowerState:
             case SwifterKitRuntimeOpcode::ServiceSetPowerOverride:
             case SwifterKitRuntimeOpcode::ServiceCreatePMAssertion:
@@ -542,6 +550,7 @@ namespace {
             case SwifterKitRuntimeOpcode::NetworkPurgeTransmitQueue:
             case SwifterKitRuntimeOpcode::NetworkServiceTransmitQueue:
             case SwifterKitRuntimeOpcode::NetworkCompleteInterfaceCommand:
+            case SwifterKitRuntimeOpcode::NetworkGetBSDName:
                 return DispatchNetworkCommand(context);
             case SwifterKitRuntimeOpcode::AudioReadStream:
             case SwifterKitRuntimeOpcode::AudioWriteStream:
@@ -617,6 +626,7 @@ namespace {
             case SwifterKitRuntimeOpcode::VideoSetMemberAttachment:
             case SwifterKitRuntimeOpcode::VideoEnqueueOutputBuffer:
             case SwifterKitRuntimeOpcode::VideoGetStreamMemoryObjectID:
+            case SwifterKitRuntimeOpcode::VideoGetIOOperationState:
                 return DispatchMediaCommand(context);
             case SwifterKitRuntimeOpcode::MIDISend:
             case SwifterKitRuntimeOpcode::MIDIGetObjectInfo:
@@ -658,6 +668,7 @@ namespace {
             case SwifterKitRuntimeOpcode::HIDCompleteGetReport:
             case SwifterKitRuntimeOpcode::HIDCopyElements:
             case SwifterKitRuntimeOpcode::HIDGetElementValue:
+            case SwifterKitRuntimeOpcode::HIDGetElementDataValue:
             case SwifterKitRuntimeOpcode::HIDSetElementValue:
             case SwifterKitRuntimeOpcode::HIDCommitElement:
             case SwifterKitRuntimeOpcode::HIDCommitElements:

@@ -90,6 +90,8 @@ extension DriverContext {
   /// Each firing arrives as an event that ``DriverEvent/timerFiring()`` decodes. A one-shot timer
   /// ends when it fires. At most ``ServiceTimerLimits/maximumTimers`` timers run at once. More
   /// fail with `kIOReturnNoResources`. Timers end when the host disconnects.
+  ///
+  /// The extension arms the timer with `IOTimerDispatchSource::WakeAtTime`.
   public func startTimer(
     afterNanoseconds delay: UInt64,
     repeatingEveryNanoseconds interval: UInt64? = nil,

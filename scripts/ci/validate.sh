@@ -38,12 +38,28 @@ driverkit_settings="$(xcrun --sdk driverkit --show-sdk-path)/SDKSettings.json"
 driverkit_target="$(plutil -extract SupportedTargets.driverkit.MinimumDeploymentTarget raw -o - "$driverkit_settings")"
 export SWIFTERKIT_DRIVERKIT_TARGET="$driverkit_target"
 
-# Every class and member the selected SDK declares must be recorded in the coverage manifest.
-swift run SwifterKitCoverage check --manifest coverage/driverkit.json \
-	--sdk "$(xcrun --sdk driverkit --show-sdk-path)"
+# The DocC coverage article must match what Apple's headers, clang's evidence from the generated
+# trees, and the Swift documentation give. It names the SDKs it was generated from, so pass every
+# installed DriverKit SDK; the check compares the article only when the SDKs match.
+coverage_sdks=()
+while IFS= read -r sdk; do
+	coverage_sdks+=(--sdk "$sdk")
+done < <(
+	{
+		xcrun --sdk driverkit --show-sdk-path
+		find /Applications -maxdepth 1 -name 'Xcode*.app' -exec find \
+			{}/Contents/Developer/Platforms/DriverKit.platform/Developer/SDKs \
+			-maxdepth 1 -name 'DriverKit[0-9]*.sdk' \; 2>/dev/null
+	} | while IFS= read -r path; do realpath "$path"; done | sort -u
+)
+swift run SwifterKitCoverage check "${coverage_sdks[@]}" \
+	--trees "$generated_trees" \
+	--article Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md
 
 derived_data="${RUNNER_TEMP:-.build}/SwifterKitDriverKitDerived"
-xcodebuild -quiet \
+# Build DriverKit with Xcode's own compilers. A `TOOLCHAINS` override, such as a swift.org
+# toolchain, swaps in a clang that rejects Xcode's module flags under -Werror.
+env -u TOOLCHAINS xcodebuild -quiet \
 	-project "$native_project" \
 	-scheme SwifterKitRuntime \
 	-configuration Debug \
@@ -67,7 +83,7 @@ if [[ " $native_architectures " != *" arm64 "* || " $native_architectures " != *
 fi
 
 analysis_derived_data="${derived_data}-Analyze"
-xcodebuild -quiet \
+env -u TOOLCHAINS xcodebuild -quiet \
 	-project "$native_project" \
 	-scheme SwifterKitRuntime \
 	-configuration Debug \

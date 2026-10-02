@@ -239,7 +239,7 @@ extension DriverCommand {
 }
 
 extension DriverContext {
-  /// Dispatches a keyboard or consumer key through `dispatchKeyboardEvent`.
+  /// Dispatches a keyboard or consumer key through `IOHIDEventService::dispatchKeyboardEvent`.
   public func dispatchHIDKeyboardEvent(
     usagePage: UInt32,
     usage: UInt32,
@@ -260,7 +260,7 @@ extension DriverContext {
     )
   }
 
-  /// Dispatches relative pointer motion through `dispatchRelativePointerEvent`.
+  /// Dispatches relative pointer motion through `IOHIDEventService::dispatchRelativePointerEvent`.
   public func dispatchHIDRelativePointerEvent(
     dx: Double,
     dy: Double,
@@ -281,7 +281,8 @@ extension DriverContext {
     )
   }
 
-  /// Dispatches an absolute pointer position through `dispatchAbsolutePointerEvent`.
+  /// Dispatches an absolute pointer position through
+  /// `IOHIDEventService::dispatchAbsolutePointerEvent`.
   public func dispatchHIDAbsolutePointerEvent(
     x: Double,
     y: Double,
@@ -302,7 +303,7 @@ extension DriverContext {
     )
   }
 
-  /// Dispatches scroll-wheel motion through `dispatchRelativeScrollWheelEvent`.
+  /// Dispatches scroll-wheel motion through `IOHIDEventService::dispatchRelativeScrollWheelEvent`.
   public func dispatchHIDScrollEvent(
     dx: Double,
     dy: Double,
@@ -323,17 +324,25 @@ extension DriverContext {
     )
   }
 
-  /// Dispatches one stylus through `dispatchDigitizerStylusEvent`.
+  /// Dispatches one stylus through `IOUserHIDEventService::dispatchDigitizerStylusEvent`.
   public func dispatchHIDStylusEvent(_ stylus: HIDStylus, timestamp: UInt64 = 0) async throws {
     _ = try await execute(.dispatchHIDStylusEvent(stylus, timestamp: timestamp))
   }
 
-  /// Dispatches up to 64 fingers at once through `dispatchDigitizerTouchEvent`.
+  /// Dispatches up to 64 fingers at once through
+  /// `IOUserHIDEventService::dispatchDigitizerTouchEvent`.
   public func dispatchHIDTouchEvent(_ touches: [HIDTouch], timestamp: UInt64 = 0) async throws {
     _ = try await execute(.dispatchHIDTouchEvent(touches, timestamp: timestamp))
   }
 
-  /// Dispatches one transducer through an `IOHIDDigitizerCollection`.
+  /// Dispatches one transducer through an `IOHIDDigitizerCollection`. Builds the collection with
+  /// `IOHIDDigitizerCollection::addElement`, `IOHIDDigitizerCollection::setTouch`,
+  /// `IOHIDDigitizerCollection::setInRange`, `IOHIDDigitizerCollection::setX`,
+  /// `IOHIDDigitizerCollection::setY` and `IOHIDDigitizerCollection::setZ`. For a stylus or touch
+  /// collection, it reads the state back with `IOHIDDigitizerCollection::getType`,
+  /// `IOHIDDigitizerCollection::getX`, `IOHIDDigitizerCollection::getY`,
+  /// `IOHIDDigitizerCollection::getZ`, `IOHIDDigitizerCollection::getInRange` and
+  /// `IOHIDDigitizerCollection::getTouch`.
   public func dispatchHIDDigitizerCollection(
     _ collection: HIDDigitizerCollection,
     timestamp: UInt64 = 0
@@ -341,7 +350,8 @@ extension DriverContext {
     _ = try await execute(.dispatchHIDDigitizerCollection(collection, timestamp: timestamp))
   }
 
-  /// Dispatches a standard game controller through `dispatchStandardGameControllerEvent`.
+  /// Dispatches a standard game controller through
+  /// `IOUserHIDEventService::dispatchStandardGameControllerEvent`.
   public func dispatchHIDGameControllerEvent(
     _ state: HIDGameControllerState,
     options: UInt32 = 0,
@@ -352,7 +362,8 @@ extension DriverContext {
     )
   }
 
-  /// Dispatches an extended game controller with optional buttons.
+  /// Dispatches an extended game controller with optional buttons. Calls
+  /// `IOUserHIDEventService::dispatchExtendedGameControllerEventWithOptionalButtons`.
   public func dispatchHIDExtendedGameControllerEvent(
     _ state: HIDGameControllerState,
     buttons: HIDGameControllerOptionalButtons,
@@ -369,7 +380,7 @@ extension DriverContext {
     )
   }
 
-  /// Sets an LED-page usage through `SetLED`.
+  /// Sets an LED-page usage through `IOHIDEventService::SetLED`.
   public func setHIDLED(usage: UInt32, on: Bool) async throws {
     _ = try await execute(.setHIDLED(usage: usage, on: on))
   }

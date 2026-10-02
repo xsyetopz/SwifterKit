@@ -17,9 +17,9 @@ SwifterKit covers HID, USB, PCI, serial, block storage, MIDI, Ethernet, audio, S
 interrupts, and managed native memory. A generated extension exposes only the capabilities in
 its ``DriverConfiguration``.
 
-SwifterKit 0.2.1 requires Swift 6.1 (Xcode 16.3) or later and macOS 10.15 or later. The IOKit
+SwifterKit 0.3.0 requires Swift 6.1 (Xcode 16.3) or later and macOS 10.15 or later. The IOKit
 transport builds only on Apple platforms. Configuration and generation also build on Linux. No
-0.2.1 path has run on physical hardware.
+0.3.0 path has run on physical hardware.
 
 ## Topics
 
@@ -29,16 +29,19 @@ transport builds only on Apple platforms. Configuration and generation also buil
 - <doc:Capabilities>
 - <doc:NativeBoundary>
 - <doc:FastPath>
+- <doc:DriverKitCoverage>
 
 ### Driver authoring
 
 - ``SwiftDriver``
 - ``DriverConfiguration``
+- ``DriverExtensionConfiguration``
 - ``DriverContext``
 - ``DriverEvent``
 - ``DriverHost``
 - ``DriverEventSequence``
 - ``DriverExtensionGenerator``
+- ``DriverExtensionGenerator/generate(extension:options:at:)``
 
 ### Service access
 

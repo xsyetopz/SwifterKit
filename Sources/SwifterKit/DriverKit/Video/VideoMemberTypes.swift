@@ -501,3 +501,43 @@ public enum VideoMember: Sendable, Hashable {
     }
   }
 }
+
+/// A lock-free snapshot of the latest real-time VideoDriverKit I/O operation.
+///
+/// The runtime records it from the `IOOperationHandler` it installs through
+/// `IOUserVideoDevice::SetIOOperationHandler`.
+public struct VideoIOOperationState: Sendable, Hashable {
+  /// An operation observed in the real-time I/O callback.
+  public enum Operation: UInt32, Sendable, Hashable {
+    /// The host is about to read input frames from the device stream buffers.
+    case beginRead = 0
+    /// The host finished writing output frames to the device stream buffers.
+    case writeEnd = 1
+    /// The host has not performed any I/O operation yet.
+    case unavailable = 0xFFFF_FFFF
+  }
+
+  /// Monotonically increasing even snapshot sequence.
+  public let sequence: UInt64
+  /// Most recently observed I/O operation.
+  public let operation: Operation
+  /// Frames covered by the operation.
+  public let frameCount: UInt32
+  /// Device sample-timeline position.
+  public let sampleTime: UInt64
+  /// Host clock value associated with the operation.
+  public let hostTime: UInt64
+
+  init(runtimePayload: Data) throws {
+    guard runtimePayload.count == 32 else { throw VideoRuntimeError.invalidPayload }
+    sequence = try runtimePayload.readRuntimeInteger(at: 0)
+    let rawOperation: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
+    guard let operation = Operation(rawValue: rawOperation) else {
+      throw VideoRuntimeError.invalidOperation(rawOperation)
+    }
+    self.operation = operation
+    frameCount = try runtimePayload.readRuntimeInteger(at: 12)
+    sampleTime = try runtimePayload.readRuntimeInteger(at: 16)
+    hostTime = try runtimePayload.readRuntimeInteger(at: 24)
+  }
+}

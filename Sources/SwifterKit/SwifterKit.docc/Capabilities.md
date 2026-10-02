@@ -32,7 +32,7 @@ Use `.hid` with ``HIDDeviceConfiguration``. Submit input reports with ``DriverCo
 
 ### HID device factories
 
-Use `.hid` with ``HIDDeviceFactoryConfiguration`` to publish virtual HID devices that Swift creates at run time. Match `IOUserResources`. The generated service is a plain `IOService` on that provider. Each device it creates is a separate `IOUserHIDDevice` with its own report descriptor and device properties. A factory is the extension's only HID role, and it cannot be combined with USB, PCI, interrupt, serial, networking, audio, MIDI, block-storage, SCSI, or video capabilities.
+Use `.hid` with ``HIDDeviceFactoryConfiguration`` to publish virtual HID devices that Swift creates at run time. Match `IOUserResources`. The generated service is a plain `IOService` on that provider. Each device it creates is a separate `IOUserHIDDevice` with its own report descriptor and device properties. A factory configuration has no other HID role and no USB, PCI, interrupt, serial, networking, audio, MIDI, block-storage, SCSI, or video capabilities. To ship a factory beside another role, give each its own personality, as <doc:Capabilities#Multi-personality-extensions> describes.
 
 ``HIDDeviceFactoryConfiguration/maximumDevices`` fixes how many devices may exist at once, from 1 through 32. The generator writes it into the extension. The personality carries a `HIDDeviceProperties` dictionary that names the device class, so ``DriverConfiguration/matchingProperties`` cannot set that key.
 
@@ -272,6 +272,16 @@ These events are lossy: each carries a count or sequence number, so compare it w
 Set ``DriverConfiguration/reporting`` to a ``ReportingConfiguration`` to publish channels for the system's IOReport clients. Each ``ReporterConfiguration`` is an `IOSimpleReporter`, an `IOStateReporter` with its state IDs, or an `IOHistogramReporter` with its ``HistogramSegment`` layout. Each also carries ``ReportChannel`` values, ``ReportCategories``, a ``ReportUnit``, and a legend group. The generator rejects configurations outside ``ReportingLimits`` with ``DriverExtensionGenerationError/invalidReportingConfiguration``.
 
 The extension creates the reporters when the service starts and publishes their legend with `IOService::SetLegend`, so the channels exist even while no host is connected. The generated service answers `ConfigureReport` and `UpdateReport` from those reporters. Swift names a reporter by its index in ``ReportingConfiguration/reporters`` and updates it with ``DriverContext/setReportValue(_:reporter:channel:)``, ``DriverContext/incrementReportValue(by:reporter:channel:)``, ``DriverContext/setReportState(_:reporter:channel:)``, ``DriverContext/adjustReportState(_:reporter:channel:residency:transitions:lastTransition:accumulate:)``, ``DriverContext/tallyReportValue(_:reporter:channel:)``, and ``DriverContext/overrideHistogramBucket(_:reporter:channel:hits:minimum:maximum:sum:)``. ``DriverContext/reportValue(reporter:channel:)`` and ``DriverContext/reportStateStatistics(_:reporter:channel:)`` read values back. The extension rejects an operation that does not match the reporter's kind, channel, or states with `kIOReturnBadArgument`.
+
+## Multi-personality extensions
+
+One extension can carry several IOKit personalities, each with any role and capabilities. ``DriverExtensionConfiguration`` keys one ``DriverConfiguration`` per personality name under the extension's bundle identifier, and ``DriverExtensionGenerator/generate(extension:options:at:)`` writes them into one project. For example, a HID device factory on `IOUserResources` and a USB interface driver can ship as one dext.
+
+Each personality runs its own native classes, named after the personality: personality `Pad` runs `SwifterKitPadRuntimeService` with `SwifterKitPadRuntimeUserClient`. Each class compiles only its own personality's capabilities, so its handshake reports them, and it rejects a command for any other family with `kIOReturnUnsupported`. The extension's entitlements are the union of the personalities' entitlements.
+
+A personality name is an ASCII letter followed by ASCII letters and digits. No name may start another, ignoring case, because their class and file names would collide. Each configuration keeps its own validation, and its bundle identifier must match the extension's. The generator reports an empty personality set with ``DriverExtensionGenerationError/noPersonalities`` and a name outside these rules with ``DriverExtensionGenerationError/invalidPersonalityName(_:)``.
+
+To connect, take the configuration from ``DriverExtensionConfiguration/personality(_:)``. It carries ``DriverConfiguration/personalityName``, so its ``DriverConfiguration/serviceClass`` and ``DriverConfiguration/serviceMatch`` name that personality's service. Generating that configuration alone with ``DriverExtensionGenerator/generate(configuration:options:at:)`` produces the same classes.
 
 ## Related articles
 

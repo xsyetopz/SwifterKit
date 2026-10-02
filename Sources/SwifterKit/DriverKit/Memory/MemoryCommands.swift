@@ -246,6 +246,8 @@ extension DriverContext {
   /// creation, so a later ``setMemoryLength(_:length:)`` on the source does not change it, and
   /// the subrange's own length cannot be changed. It counts toward
   /// ``MemoryPoolConfiguration/maximumBuffers`` but not toward the pool's total size.
+  ///
+  /// The extension builds it with `IOMemoryDescriptor::CreateSubMemoryDescriptor`.
   public func memorySubrange(
     _ handle: DriverMemoryHandle,
     offset: UInt64,
@@ -269,6 +271,8 @@ extension DriverContext {
   /// Runtime reads and writes of a chain require DriverKit to map the chain into the extension.
   /// When DriverKit cannot, those commands fail with `kIOReturnUnsupported`. DMA and host mapping
   /// still work.
+  ///
+  /// The extension builds it with `IOMemoryDescriptor::CreateWithMemoryDescriptors`.
   public func memoryChain(
     _ handles: [DriverMemoryHandle],
     direction: DriverMemoryDirection

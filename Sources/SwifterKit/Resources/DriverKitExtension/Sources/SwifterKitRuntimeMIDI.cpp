@@ -11,6 +11,7 @@
     #include <MIDIDriverKit/IOUserMIDIEntity.h>
     #include <MIDIDriverKit/IOUserMIDISource.h>
 
+    #include "SwifterKitRuntimeMIDIDevice.h"
     #include "SwifterKitRuntimeProtocol.h"
     #include "SwifterKitRuntimeServiceState.h"
 
@@ -71,8 +72,14 @@ kern_return_t SwifterKitRuntimeService::StartMIDI() {
     }
 
     kern_return_t result = SetName(driverName);
-    const auto device =
-        IOUserMIDIDevice::Create(this, deviceIdentifier, modelIdentifier, manufacturerIdentifier);
+    // IOUserMIDIDevice::Create cannot build a subclass, so the device is allocated and initialized
+    // here.
+    OSSharedPtr<SwifterKitRuntimeMIDIDevice> device(
+        OSTypeAlloc(SwifterKitRuntimeMIDIDevice),
+        OSNoRetain);
+    if (device && !device->init(this, deviceIdentifier, modelIdentifier, manufacturerIdentifier)) {
+        device.reset();
+    }
     const auto entity = IOUserMIDIEntity::Create(
         this,
         device.get(),

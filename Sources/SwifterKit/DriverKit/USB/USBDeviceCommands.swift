@@ -140,53 +140,63 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Selects a device configuration. When `matchInterfaces` is true, IOKit registers the new
-  /// configuration's interfaces for matching. Requires an `IOUSBHostDevice` provider.
+  /// configuration's interfaces for matching. Requires an `IOUSBHostDevice` provider. Calls
+  /// `IOUSBHostDevice::SetConfiguration`.
   public func usbSetConfiguration(_ value: UInt8, matchInterfaces: Bool = true) async throws {
     _ = try await execute(.usbSetConfiguration(value, matchInterfaces: matchInterfaces))
   }
 
   /// Resets and re-enumerates the device. The current device and its driver terminate.
-  /// Requires an `IOUSBHostDevice` provider.
+  /// Requires an `IOUSBHostDevice` provider. Calls `IOUSBHostDevice::Reset`.
   public func usbResetDevice() async throws { _ = try await execute(.usbResetDevice()) }
 
-  /// Returns the device's operating speed.
+  /// Returns the device's operating speed. Calls `IOUSBHostDevice::GetSpeed`.
   public func usbDeviceSpeed() async throws -> USBDeviceSpeed {
     USBDeviceSpeed(rawValue: UInt8(truncatingIfNeeded: try await usbValue(.usbDeviceSpeed())))
   }
 
-  /// Returns the device's bus address.
+  /// Returns the device's bus address. Calls `IOUSBHostDevice::GetAddress`.
   public func usbDeviceAddress() async throws -> UInt8 {
     UInt8(truncatingIfNeeded: try await usbValue(.usbDeviceAddress()))
   }
 
-  /// Returns the status of the device's port.
+  /// Returns the status of the device's port. Calls `IOUSBHostDevice::GetPortStatus` or
+  /// `IOUSBHostInterface::GetPortStatus`, depending on the provider.
   public func usbPortStatus() async throws -> USBPortStatus {
     USBPortStatus(rawValue: try await usbValue(.usbPortStatus()))
   }
 
-  /// Returns the controller's current frame number and the current system time.
+  /// Returns the controller's current frame number and the current system time. Calls
+  /// `IOUSBHostDevice::GetFrameNumber` or `IOUSBHostInterface::GetFrameNumber`, depending on the
+  /// provider.
   public func usbFrameNumber() async throws -> USBFrameTime {
     try USBFrameTime(runtimePayload: await execute(.usbFrameNumber()))
   }
 
   /// Returns the controller's current microframe number. Extensions built with an SDK older
-  /// than DriverKit 25 report `kIOReturnUnsupported`.
+  /// than DriverKit 25 report `kIOReturnUnsupported`. Calls `IOUSBHostDevice::CurrentMicroframe` or
+  /// `IOUSBHostInterface::CurrentMicroframe`, depending on the provider.
   public func usbCurrentMicroframe() async throws -> USBFrameTime {
     try USBFrameTime(runtimePayload: await execute(.usbCurrentMicroframe()))
   }
 
   /// Returns a recent microframe number with a time captured near its boundary. Extensions
-  /// built with an SDK older than DriverKit 25 report `kIOReturnUnsupported`.
+  /// built with an SDK older than DriverKit 25 report `kIOReturnUnsupported`. Calls
+  /// `IOUSBHostDevice::ReferenceMicroframe` or `IOUSBHostInterface::ReferenceMicroframe`, depending
+  /// on the provider.
   public func usbReferenceMicroframe() async throws -> USBFrameTime {
     try USBFrameTime(runtimePayload: await execute(.usbReferenceMicroframe()))
   }
 
-  /// Returns the device descriptor.
+  /// Returns the device descriptor. Copies it with `IOUSBHostDevice::CopyDeviceDescriptor`.
   public func usbDeviceDescriptor() async throws -> USBDeviceDescriptor {
     try USBDeviceDescriptor(descriptor: await usbDescriptorBytes(.usbDeviceDescriptor()))
   }
 
-  /// Returns a configuration descriptor with its interfaces and endpoints.
+  /// Returns a configuration descriptor with its interfaces and endpoints. The current
+  /// configuration comes from `IOUSBHostInterface::CopyConfigurationDescriptor` or
+  /// `IOUSBHostDevice::CopyConfigurationDescriptor`, and a configuration value from
+  /// `IOUSBHostDevice::CopyConfigurationDescriptorWithValue`.
   ///
   /// Throws ``USBDescriptorError/tooLarge(length:)`` when the descriptor exceeds one runtime
   /// message.
@@ -199,6 +209,8 @@ extension DriverContext {
   }
 
   /// Returns a string descriptor. Without a language identifier, USBDriverKit uses US English.
+  /// Calls `IOUSBHostDevice::CopyStringDescriptor` or `IOUSBHostInterface::CopyStringDescriptor`,
+  /// depending on the provider.
   public func usbStringDescriptor(
     index: UInt8,
     languageID: UInt16? = nil
@@ -210,7 +222,8 @@ extension DriverContext {
     )
   }
 
-  /// Returns the device's binary object store (BOS) descriptor, or nil when it has none.
+  /// Returns the device's binary object store (BOS) descriptor, or nil when it has none. Copies it
+  /// with `IOUSBHostDevice::CopyCapabilityDescriptors`.
   public func usbCapabilityDescriptors() async throws -> USBCapabilityDescriptors? {
     let payload = try await execute(.usbCapabilityDescriptors())
     return try USBDescriptorError.descriptorBytes(from: payload).map(
@@ -218,7 +231,8 @@ extension DriverContext {
     )
   }
 
-  /// Returns up to `length` bytes of any descriptor through USBDriverKit's descriptor cache.
+  /// Returns up to `length` bytes of any descriptor through USBDriverKit's descriptor cache. Calls
+  /// `IOUSBHostDevice::CopyDescriptor`.
   public func usbDescriptor(
     type: UInt8,
     index: UInt8 = 0,
@@ -240,7 +254,8 @@ extension DriverContext {
   }
 
   /// Returns the interfaces of the device's active configuration. Requires an
-  /// `IOUSBHostDevice` provider.
+  /// `IOUSBHostDevice` provider. Walks them with `IOUSBHostDevice::CreateInterfaceIterator`,
+  /// `IOUSBHostDevice::CopyInterface` and `IOUSBHostDevice::DestroyInterfaceIterator`.
   public func usbInterfaces() async throws -> [USBInterfaceDescriptor] {
     let payload = try await execute(.usbInterfaces())
     let count = Int(try payload.readRuntimeInteger(at: 0) as UInt32)
@@ -258,7 +273,7 @@ extension DriverContext {
   }
 
   /// Returns the matched interface's descriptor for its current alternate setting. Requires an
-  /// `IOUSBHostInterface` provider.
+  /// `IOUSBHostInterface` provider. Calls `IOUSBHostInterface::GetInterfaceDescriptor`.
   public func usbInterfaceDescriptor() async throws -> USBInterfaceDescriptor {
     let bytes = [UInt8](try await execute(.usbInterfaceDescriptor()))
     guard bytes.count == 9, let interface = USBInterfaceDescriptor(descriptor: bytes[...]) else {
@@ -268,16 +283,19 @@ extension DriverContext {
   }
 
   /// Sets how long, in milliseconds, the interface waits after its pipes go idle before the
-  /// device may suspend. Requires an `IOUSBHostInterface` provider.
+  /// device may suspend. Requires an `IOUSBHostInterface` provider. Calls
+  /// `IOUSBHostInterface::SetIdlePolicy`.
   public func usbSetIdlePolicy(timeout: UInt32) async throws {
     _ = try await execute(.usbSetIdlePolicy(timeout: timeout))
   }
 
   /// Returns the interface's idle suspend timeout in milliseconds. Requires an
-  /// `IOUSBHostInterface` provider.
+  /// `IOUSBHostInterface` provider. Calls `IOUSBHostInterface::GetIdlePolicy`.
   public func usbIdlePolicy() async throws -> UInt32 { try await usbValue(.usbIdlePolicy()) }
 
-  /// Asynchronously aborts this driver's outstanding default-endpoint requests.
+  /// Asynchronously aborts this driver's outstanding default-endpoint requests. Calls
+  /// `IOUSBHostDevice::AbortDeviceRequests` or `IOUSBHostInterface::AbortDeviceRequests`, depending
+  /// on the provider.
   public func usbAbortDeviceRequests() async throws {
     _ = try await execute(.usbAbortDeviceRequests())
   }

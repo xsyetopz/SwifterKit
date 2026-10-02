@@ -10,10 +10,12 @@
     static func decode(_ value: Any) -> Self? {
       let object = value as CFTypeRef
       let type = CFGetTypeID(object)
-      if type == CFBooleanGetTypeID() {
+      switch type {
+      case CFBooleanGetTypeID():
         return .boolean(CFBooleanGetValue(unsafeDowncast(object, to: CFBoolean.self)))
+      case CFNumberGetTypeID(): return decode(unsafeDowncast(object, to: CFNumber.self))
+      default: break
       }
-      if type == CFNumberGetTypeID() { return decode(unsafeDowncast(object, to: CFNumber.self)) }
       if let value = value as? String { return .string(value) }
       if let value = value as? Data { return .data(value) }
       if let values = value as? [Any] { return .array(values.compactMap(Self.decode)) }

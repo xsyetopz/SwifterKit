@@ -158,7 +158,8 @@ public struct AudioDeviceConfiguration: Sendable, Hashable {
   public let manufacturerUID: String
   /// Human-readable device name.
   public let name: String
-  /// Physical transport reported for the device.
+  /// Physical transport reported for the driver and the device, through
+  /// `IOUserAudioDriver::SetTransportType` and `IOUserAudioClockDevice::SetTransportType`.
   public let transport: AudioTransport
   /// Whether the hardware supports prewarming before normal I/O.
   public let supportsPrewarming: Bool
@@ -263,6 +264,12 @@ public enum AudioEvent: Sendable, Hashable {
   case controlChanged(identifier: UInt32, value: AudioControlValue)
   /// Reports a custom-property change with its identifier, qualifier, and UTF-8 value.
   case customPropertyChanged(identifier: UInt32, qualifier: String, value: String)
+  /// Reports that `IOUserAudioStream::HandleChangeCurrentStreamFormat` accepted a new format for
+  /// the indexed stream.
+  case streamFormatChanged(index: UInt32, format: AudioStreamFormat)
+  /// Reports that `IOUserAudioStream::HandleChangeStreamIsActive` changed whether the indexed
+  /// stream is active.
+  case streamActiveChanged(index: UInt32, isActive: Bool)
 
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 4 else { throw AudioRuntimeError.invalidPayload }
@@ -302,6 +309,40 @@ public enum AudioEvent: Sendable, Hashable {
         let value = String(data: runtimePayload[qualifierEnd..<valueEnd], encoding: .utf8)
       else { throw AudioRuntimeError.invalidPayload }
       self = .customPropertyChanged(identifier: identifier, qualifier: qualifier, value: value)
+    case .streamFormatChanged:
+      guard runtimePayload.count == 48 else { throw AudioRuntimeError.invalidPayload }
+      let index: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
+      let sampleRateBits: UInt64 = try runtimePayload.readRuntimeInteger(at: 8)
+      let formatID: UInt32 = try runtimePayload.readRuntimeInteger(at: 16)
+      let formatFlags: UInt32 = try runtimePayload.readRuntimeInteger(at: 20)
+      let bytesPerPacket: UInt32 = try runtimePayload.readRuntimeInteger(at: 24)
+      let framesPerPacket: UInt32 = try runtimePayload.readRuntimeInteger(at: 28)
+      let bytesPerFrame: UInt32 = try runtimePayload.readRuntimeInteger(at: 32)
+      let channelsPerFrame: UInt32 = try runtimePayload.readRuntimeInteger(at: 36)
+      let bitsPerChannel: UInt32 = try runtimePayload.readRuntimeInteger(at: 40)
+      let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 44)
+      let sampleRate = Double(bitPattern: sampleRateBits)
+      guard reserved == 0, sampleRate.isFinite, sampleRate > 0, formatID != 0, channelsPerFrame > 0
+      else { throw AudioRuntimeError.invalidPayload }
+      self = .streamFormatChanged(
+        index: index,
+        format: AudioStreamFormat(
+          sampleRate: sampleRate,
+          formatID: AudioFormatID(rawValue: formatID),
+          formatFlags: AudioFormatFlags(rawValue: formatFlags),
+          bytesPerPacket: bytesPerPacket,
+          framesPerPacket: framesPerPacket,
+          bytesPerFrame: bytesPerFrame,
+          channelsPerFrame: channelsPerFrame,
+          bitsPerChannel: bitsPerChannel
+        )
+      )
+    case .streamActiveChanged:
+      guard runtimePayload.count == 16 else { throw AudioRuntimeError.invalidPayload }
+      let index: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
+      let value: UInt64 = try runtimePayload.readRuntimeInteger(at: 8)
+      guard value <= 1 else { throw AudioRuntimeError.invalidPayload }
+      self = .streamActiveChanged(index: index, isActive: value == 1)
     }
   }
 }

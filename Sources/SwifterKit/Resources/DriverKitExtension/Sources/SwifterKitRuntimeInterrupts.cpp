@@ -31,12 +31,18 @@ namespace {
     bool IsValidPCIInterruptConfiguration() {
         const uint32_t type = kSwifterKitPCIInterruptType;
         uint32_t maximum = 0;
-        if (type == kInterruptTypeLevel) {
-            maximum = 1;
-        } else if (type == kIOInterruptTypePCIMessaged) {
-            maximum = 32;
-        } else if (type == kIOInterruptTypePCIMessagedX) {
-            maximum = 2048;
+        switch (type) {
+            case kInterruptTypeLevel:
+                maximum = 1;
+                break;
+            case kIOInterruptTypePCIMessaged:
+                maximum = 32;
+                break;
+            case kIOInterruptTypePCIMessagedX:
+                maximum = 2048;
+                break;
+            default:
+                break;
         }
         if (kSwifterKitPCIInterruptRequiredVectors == 0
             || kSwifterKitPCIInterruptRequiredVectors > kSwifterKitPCIInterruptRequestedVectors

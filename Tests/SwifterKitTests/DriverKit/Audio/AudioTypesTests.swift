@@ -70,6 +70,52 @@ struct AudioTypesTests {
   }
 
   @Test
+  func decodesStreamFormatAndActiveEvents() throws {
+    var format = Data()
+    format.appendRuntimeInteger(UInt32(6))
+    format.appendRuntimeInteger(UInt32(1))
+    format.appendRuntimeInteger(48_000.0.bitPattern)
+    for field: UInt32 in [0x6C70_636D, 12, 8, 1, 8, 2, 32, 0] { format.appendRuntimeInteger(field) }
+    let expected = AudioStreamFormat(
+      sampleRate: 48_000,
+      bytesPerPacket: 8,
+      bytesPerFrame: 8,
+      channelsPerFrame: 2,
+      bitsPerChannel: 32
+    )
+    #expect(
+      try DriverEvent(type: 0x0A00, payload: Array(format)).audio()
+        == .streamFormatChanged(index: 1, format: expected)
+    )
+    var reserved = format
+    reserved.replaceSubrange(44..<48, with: Data([1, 0, 0, 0]))
+    #expect(throws: AudioRuntimeError.invalidPayload) {
+      try DriverEvent(type: 0x0A00, payload: Array(reserved)).audio()
+    }
+    #expect(throws: AudioRuntimeError.invalidPayload) {
+      try DriverEvent(type: 0x0A00, payload: Array(format.dropLast())).audio()
+    }
+
+    for (value, isActive) in [(UInt64(1), true), (UInt64(0), false)] {
+      var active = Data()
+      active.appendRuntimeInteger(UInt32(7))
+      active.appendRuntimeInteger(UInt32(3))
+      active.appendRuntimeInteger(value)
+      #expect(
+        try DriverEvent(type: 0x0A00, payload: Array(active)).audio()
+          == .streamActiveChanged(index: 3, isActive: isActive)
+      )
+    }
+    var invalid = Data()
+    invalid.appendRuntimeInteger(UInt32(7))
+    invalid.appendRuntimeInteger(UInt32(0))
+    invalid.appendRuntimeInteger(UInt64(2))
+    #expect(throws: AudioRuntimeError.invalidPayload) {
+      try DriverEvent(type: 0x0A00, payload: Array(invalid)).audio()
+    }
+  }
+
+  @Test
   func rejectsInvalidTransfersAndPayloads() {
     #expect(throws: AudioRuntimeError.invalidStreamIndex) {
       try DriverCommand.audioReadStream(index: 8, byteOffset: 0, length: 1)
@@ -83,7 +129,7 @@ struct AudioTypesTests {
     #expect(throws: AudioRuntimeError.invalidPayload) {
       try DriverEvent(type: 0x0A00, payload: []).audio()
     }
-    for kind: UInt32 in [0, 6] {
+    for kind: UInt32 in [0, 8] {
       var event = Data()
       event.appendRuntimeInteger(kind)
       event.appendRuntimeInteger(UInt32(0))
@@ -99,6 +145,8 @@ struct AudioTypesTests {
     let schema = RuntimeSchemaHeader.render()
     #expect(schema.contains("kSwifterKitAudioMaximumWriteLength = 65472;"))
     #expect(schema.contains("kSwifterKitAudioMaximumReadLength = 65512;"))
+    #expect(schema.contains("kSwifterKitAudioEventStreamFormatChanged = 6;"))
+    #expect(schema.contains("kSwifterKitAudioEventStreamActiveChanged = 7;"))
     #expect(schema.contains("kSwifterKitAudioValueStereoPan = 6;"))
     #expect(schema.contains("kSwifterKitAudioControlStereoPan = 5;"))
     #expect(schema.contains("kSwifterKitAudioObjectEventClockRequest = 7;"))

@@ -48,7 +48,9 @@ public struct USBSerialPortConfiguration: Sendable, Hashable {
   }
 }
 
-/// A packet USBSerialDriverKit handed to the generated `IOUserUSBSerial` service.
+/// A packet USBSerialDriverKit handed to the generated `IOUserUSBSerial` service. The service
+/// receives them from the `IOUserUSBSerial::handleRxPacket` and
+/// `IOUserUSBSerial::handleInterruptPacket` overrides.
 ///
 /// Packet events are lossy notifications: a stalled host loses packets rather than blocking the
 /// USB pipes. A packet larger than one runtime message arrives as several consecutive events.

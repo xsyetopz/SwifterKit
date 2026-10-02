@@ -1,0 +1,26 @@
+#ifndef SwifterKitRuntimeAudioStream_h
+#define SwifterKitRuntimeAudioStream_h
+
+#include "SwifterKitRuntimeConfiguration.h"
+#if SWIFTERKIT_ENABLE_AUDIO
+    #include <AudioDriverKit/IOUserAudioStream.iig>
+
+class SwifterKitRuntimeService;
+
+class SwifterKitRuntimeAudioStream : public IOUserAudioStream {
+public:
+    virtual bool init(
+        IOUserAudioDriver* driver,
+        SwifterKitRuntimeService* service,
+        uint32_t streamIndex,
+        IOUserAudioStreamDirection direction,
+        IOMemoryDescriptor* memoryDescriptor) LOCALONLY;
+    virtual void free() override LOCALONLY;
+
+protected:
+    virtual kern_return_t HandleChangeCurrentStreamFormat(
+        const IOUserAudioStreamBasicDescription* format) LOCALONLY override;
+    virtual kern_return_t HandleChangeStreamIsActive(bool isActive) LOCALONLY override;
+};
+#endif
+#endif

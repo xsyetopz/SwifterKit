@@ -100,6 +100,16 @@ public struct EthernetLROFlags: OptionSet, Sendable, Hashable {
 }
 
 /// Everything the networking stack recorded on an outgoing `IOUserNetworkPacket`.
+/// The runtime reads it with `IOUserNetworkPacket::getDataOff`,
+/// `IOUserNetworkPacket::getLinkHeaderLength`, `IOUserNetworkPacket::getServiceClass`,
+/// `IOUserNetworkPacket::getTraceID`, `IOUserNetworkPacket::isLinkMulticast`,
+/// `IOUserNetworkPacket::isLinkBroadcast`, `IOUserNetworkPacket::isTimestampRequested`,
+/// `IOUserNetworkPacket::isTransportTrafficBackground`,
+/// `IOUserNetworkPacket::isTransportTrafficRealtime`, `IOUserNetworkPacket::getTimestamp`,
+/// `IOUserNetworkPacket::getExpiryTime`, `IOUserNetworkPacket::getVlanTag`,
+/// `IOUserNetworkPacket::getTxChecksumInfo`, `IOUserNetworkPacket::getTSOInfo`,
+/// `IOUserNetworkPacket::getTxCsumFlags`, `IOUserNetworkPacket::getMSS`,
+/// `IOUserNetworkPacket::getMemorySegmentOffset`, `IOUserNetworkPacket::getDataIOVirtualAddress`.
 public struct EthernetTransmitMetadata: Sendable, Hashable {
   /// Offset of the frame in the packet buffer (`getDataOff`).
   public var dataOffset: UInt32 = 0
@@ -184,6 +194,12 @@ public struct EthernetTransmitMetadata: Sendable, Hashable {
 }
 
 /// Per-frame state a driver sets on a received `IOUserNetworkPacket`.
+/// The runtime applies it to each received packet with `IOUserNetworkPacket::setDataOffAndLen`,
+/// `IOUserNetworkPacket::setDataOffsetAndLength`, `IOUserNetworkPacket::setIsLinkMulticast`,
+/// `IOUserNetworkPacket::setRxChecksumInfo`, `IOUserNetworkPacket::setLROInfo`,
+/// `IOUserNetworkPacket::setTimestamp`, `IOUserNetworkPacket::clearTimestamp`,
+/// `IOUserNetworkPacket::setVlanTag`, `IOUserNetworkPacket::setWakeFlag`,
+/// `IOUserNetworkPacket::traceEvent`.
 public struct EthernetReceiveMetadata: Sendable, Hashable {
   /// Offset of the frame in the packet buffer, or nil for the pool's offset (`setDataOffAndLen`).
   public var dataOffset: UInt32?
@@ -264,6 +280,7 @@ public struct EthernetReceiveMetadata: Sendable, Hashable {
 }
 
 /// A received frame and the metadata to set on its packet.
+/// The runtime enqueues the filled packets through `IOUserNetworkPacketQueue::EnqueuePackets`.
 public struct EthernetReceivedFrame: Sendable, Hashable {
   /// Complete Ethernet frame.
   public let frame: Data
@@ -278,6 +295,8 @@ public struct EthernetReceivedFrame: Sendable, Hashable {
 }
 
 /// The outcome of one transmit, recorded on its packet before it returns to the stack.
+/// The runtime records it on the packet with `IOUserNetworkPacket::setCompletionStatus`,
+/// `IOUserNetworkPacket::setTimestamp`, `IOUserNetworkPacket::traceEvent`.
 public struct EthernetTransmitCompletion: Sendable, Hashable {
   /// Identifier from ``EthernetTransmitRequest/requestID``.
   public let requestID: UInt32

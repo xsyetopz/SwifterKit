@@ -2,9 +2,7 @@
 
 SwifterKit records user-visible changes in this file.
 
-## [Unreleased]
-
-## [0.3.0]
+## 0.3.0
 
 ### Added
 
@@ -27,6 +25,57 @@ SwifterKit records user-visible changes in this file.
 - The HID schema constants now render into their own generated header,
   `SwifterKitRuntimeHIDSchema.h`, so `SwifterKitRuntimeSchema.h` stays under
   the source size limit. The names and values are unchanged.
+- Multi-personality extensions. `DriverExtensionConfiguration` groups several
+  `DriverConfiguration` values under one bundle identifier, keyed by IOKit
+  personality name, and
+  `DriverExtensionGenerator.generate(extension:options:at:)` writes one
+  personality per configuration. Each personality may take any role and runs
+  its own native classes, named after it (`SwifterKit<Name>RuntimeService` and
+  `SwifterKit<Name>RuntimeUserClient`), which compile only that personality's
+  capabilities. The entitlements are the union of the personalities'
+  entitlements.
+- `DriverConfiguration.personalityName`, set by
+  `DriverExtensionConfiguration.personality(_:)`, and
+  `DriverConfiguration.serviceClass`, the native class `serviceMatch` matches.
+  Generating such a configuration alone with `generate(configuration:)` uses
+  the personality's classes.
+- `DriverExtensionGenerationError.noPersonalities` for an empty personality set,
+  and `invalidPersonalityName(_:)` for a name that is not an ASCII letter
+  followed by ASCII letters and digits, a name that starts another ignoring
+  case, or a configuration whose `personalityName` differs from its key.
+- `DriverContext.hidElementDataValue(cookie:options:)` reads
+  `IOHIDElement::getDataValue` on opcode 0x0345.
+- `DriverContext.ethernetBSDName()` reads
+  `IOUserNetworkEthernet::getBSDName` on opcode 0x0926.
+- `DriverContext.setServiceName(_:)` calls `IOService::SetName` on opcode
+  0x0D34.
+- `DriverContext.videoIOOperationState()` returns a `VideoIOOperationState`
+  snapshot that the runtime records from its `IOOperationHandler`, on opcode
+  0x0C2E.
+- `DriverServiceMatch.userClass`. A service watch adds the entries
+  `IOService::CreateUserClassMatchingDictionary` builds for it.
+- **Breaking:** `AudioEvent` gains `streamFormatChanged(index:format:)` and
+  `streamActiveChanged(index:isActive:)`, reported by the generated
+  `IOUserAudioStream` subclass. `VideoRuntimeError` gains
+  `invalidOperation(_:)`. Exhaustive switches over either enum need the new
+  cases.
+- Video sample-rate changes update every stream through
+  `IOUserVideoStream::DeviceSampleRateChanged`.
+
+### Changed
+
+- `midiSetMemberAttachment` requests a device configuration change through
+  `IOUserMIDIDevice::RequestDeviceConfigurationChange`. The generated
+  `SwifterKitRuntimeMIDIDevice` adds or removes the member in
+  `PerformDeviceConfigurationChange`, where I/O is stopped. The call returns
+  once the host accepts the request.
+- `SwifterKitCoverage` computes DriverKit coverage from Apple's `.iig`
+  headers, clang's AST of the generated extension trees, and the
+  `` `Class::member` `` names in Swift `///` documentation, and writes the
+  DocC article `DriverKitCoverage`. Its commands are `docc`, `check`, and
+  `evidence`. `coverage/driverkit.json` and the `update` and `summary`
+  commands are removed. The reasons for members SwifterKit does not expose
+  live in the article.
 
 ### Behavior
 
@@ -38,8 +87,8 @@ SwifterKit records user-visible changes in this file.
 
 ### Unchanged
 
-- Runtime protocol version 2, existing opcodes, events, and payloads, and the
-  static `HIDDeviceConfiguration` device mode.
+- Runtime protocol version 2, the payloads of existing opcodes and events, and
+  the static `HIDDeviceConfiguration` device mode.
 
 ## 0.2.1
 
@@ -376,7 +425,7 @@ SwifterKit records user-visible changes in this file.
   type's limit and source indices at or above the required vector count.
   `PCIInterruptType(interruptTypeFlags:)` classifies `interruptType(index:)`.
 - The extension bounds every PCI aperture access by the BAR size `GetBARInfo`
-  reports. PCIDriverKit coverage in `coverage/driverkit.json` has no remaining
+  reports. The DriverKit Coverage article lists no remaining PCIDriverKit
   gaps.
 - USB drivers can match a whole device: set `providerClass` to
   `USBDeviceConfiguration.deviceProviderClass` (`IOUSBHostDevice`) and leave the
@@ -394,10 +443,14 @@ SwifterKit records user-visible changes in this file.
   `IOReturn` status, byte counts, timestamps, and data. Up to 32 transfers can
   be outstanding. Completions use the required event queue.
 - USB pipe abort, idle policy, endpoint descriptors, speed, and device address.
-- `coverage/driverkit.json` records every class and member function declared
-  by the DriverKit 24.4, 25.5, and 27.0 SDK headers and how SwifterKit covers
-  it. The `SwifterKitCoverage` tool updates, summarizes, and checks the manifest,
-  and CI fails when the selected SDK declares a member the manifest omits.
+- The DocC article DriverKit Coverage counts, per framework, the members the
+  DriverKit 24.4, 25.5, and 27.0 SDK headers declare and how a Swift driver
+  reaches each: through a Swift API, through the generated runtime, not at all
+  (a gap), not by SwifterKit's choice with the reason, or not at all because
+  Apple's header keeps the member from DriverKit clients. The
+  `SwifterKitCoverage` tool computes it on every run from the headers, clang's
+  AST of the generated runtime, and the `` `Class::member` `` names in the
+  Swift documentation, and checks those names and the reasons.
 
 ### Changed
 
@@ -425,9 +478,8 @@ SwifterKit records user-visible changes in this file.
 - **Breaking:** `DriverExtensionGenerationError` gains
   `invalidFastPathConfiguration(_:)`, which carries the `FastPathError` that
   refused a fast-path configuration.
-- `SwifterKitCoverage check` requires a `fast-path` member to name a
-  `swiftSymbol` found in the Swift sources and to be referenced by the native
-  runtime, and rejects notes on covered members that say "deferred",
+- `SwifterKitCoverage check` rejects a documented `` `Class::member` `` that
+  the runtime does not reach, and exclusion reasons that say "deferred",
   "planned", "not yet", "hard", "today", or "TODO".
 - **Breaking:** `SCSIControllerRuntimeError` gains `invalidPropertyUpdate` and
   `invalidDataRange`.
@@ -624,7 +676,7 @@ SwifterKit records user-visible changes in this file.
 - Stopping the video runtime removed the device from the driver while its
   controls and custom properties were still attached; they are now removed
   first.
-- `coverage/driverkit.json` listed `IOUserVideoDriver::AddCustomProperty` as
+- The coverage data listed `IOUserVideoDriver::AddCustomProperty` as
   generated although the runtime never called it; `videoSetCustomPropertyOwner`
   now calls it and its removal counterpart.
 - An audio box's `HandleChangeAcquireBox` returned success before

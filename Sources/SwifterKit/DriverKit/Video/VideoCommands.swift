@@ -96,6 +96,9 @@ extension DriverCommand {
   }
 
   /// Requests a host-coordinated device sample-rate change.
+  ///
+  /// After `IOUserVideoDevice::SetSampleRate` applies the rate, the runtime updates every stream
+  /// through `IOUserVideoStream::DeviceSampleRateChanged`.
   public static func videoRequestSampleRate(_ sampleRate: Double) -> Self {
     var payload = Data(capacity: 8)
     payload.appendRuntimeInteger(sampleRate.bitPattern)
@@ -203,6 +206,9 @@ extension DriverContext {
   }
 
   /// Requests a host-coordinated sample-rate change.
+  ///
+  /// After `IOUserVideoDevice::SetSampleRate` applies the rate, the runtime updates every stream
+  /// through `IOUserVideoStream::DeviceSampleRateChanged`.
   public func videoRequestSampleRate(_ sampleRate: Double) async throws {
     _ = try await execute(.videoRequestSampleRate(sampleRate))
   }

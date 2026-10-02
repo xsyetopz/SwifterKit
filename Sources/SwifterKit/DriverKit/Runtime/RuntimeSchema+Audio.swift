@@ -69,6 +69,8 @@ enum RuntimeAudioEventKind: UInt32, CaseIterable {
   case sampleRateChanged = 3
   case controlChanged = 4
   case customPropertyChanged = 5
+  case streamFormatChanged = 6
+  case streamActiveChanged = 7
 }
 
 /// What an `audioObject` event reports, the `kind` of `SwifterKitAudioObjectEvent`.

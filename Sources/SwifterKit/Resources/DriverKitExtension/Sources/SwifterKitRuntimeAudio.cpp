@@ -60,6 +60,8 @@ kern_return_t SwifterKitRuntimeService::StartAudio() {
                                    || device == nullptr
                                ? kIOReturnNoMemory
                                : kIOReturnSuccess;
+    if (result == kIOReturnSuccess)
+        result = SetTransportType(static_cast<IOUserAudioTransportType>(kSwifterKitAudioTransport));
     if (result == kIOReturnSuccess
         && !device->init(
             this,
@@ -107,6 +109,54 @@ void SwifterKitRuntimeService::StopAudio() {
 kern_return_t SwifterKitRuntimeService::AudioControlEvent(uint32_t kind, uint64_t value) {
     const SwifterKitAudioEvent event = {kind, 0, value};
     return EnqueueEvent(kSwifterKitEventAudio, &event, sizeof(event));
+}
+
+kern_return_t SwifterKitRuntimeService::AudioStreamFormatEvent(
+    uint32_t streamIndex,
+    const IOUserAudioStreamBasicDescription* format) {
+    if (streamIndex >= kSwifterKitAudioStreamCount || format == nullptr || format->mReserved != 0)
+        return kIOReturnBadArgument;
+    const auto& stream = kSwifterKitAudioStreams[streamIndex];
+    bool supported = false;
+    for (uint32_t index = 0; index < stream.formatCount; ++index) {
+        const auto& candidate = kSwifterKitAudioFormats[stream.formatStart + index];
+        supported = supported
+                    || (format->mSampleRate == candidate.sampleRate
+                        && static_cast<uint32_t>(format->mFormatID) == candidate.formatID
+                        && static_cast<uint32_t>(format->mFormatFlags) == candidate.formatFlags
+                        && format->mBytesPerPacket == candidate.bytesPerPacket
+                        && format->mFramesPerPacket == candidate.framesPerPacket
+                        && format->mBytesPerFrame == candidate.bytesPerFrame
+                        && format->mChannelsPerFrame == candidate.channelsPerFrame
+                        && format->mBitsPerChannel == candidate.bitsPerChannel);
+    }
+    if (!supported)
+        return kIOReturnBadArgument;
+    const SwifterKitAudioStreamFormatEvent event = {
+        kSwifterKitAudioEventStreamFormatChanged,
+        streamIndex,
+        format->mSampleRate,
+        static_cast<uint32_t>(format->mFormatID),
+        static_cast<uint32_t>(format->mFormatFlags),
+        format->mBytesPerPacket,
+        format->mFramesPerPacket,
+        format->mBytesPerFrame,
+        format->mChannelsPerFrame,
+        format->mBitsPerChannel,
+        0};
+    return EnqueueRequiredEvent(kSwifterKitEventAudio, &event, sizeof(event));
+}
+
+kern_return_t SwifterKitRuntimeService::AudioStreamActiveEvent(
+    uint32_t streamIndex,
+    bool isActive) {
+    if (streamIndex >= kSwifterKitAudioStreamCount)
+        return kIOReturnBadArgument;
+    const SwifterKitAudioStreamEvent event = {
+        kSwifterKitAudioEventStreamActiveChanged,
+        streamIndex,
+        isActive ? 1ULL : 0ULL};
+    return EnqueueRequiredEvent(kSwifterKitEventAudio, &event, sizeof(event));
 }
 
 kern_return_t SwifterKitRuntimeService::AudioControlValueEvent(

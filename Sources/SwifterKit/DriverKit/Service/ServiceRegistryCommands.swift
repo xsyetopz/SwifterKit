@@ -53,6 +53,14 @@ extension DriverCommand {
     responseSize: ServicePropertyCoding.maximumNameLength
   )
 
+  /// Creates a registry-name change through `IOService::SetName`.
+  ///
+  /// The name must be 1 to 127 UTF-8 bytes without NUL, so it fits `IOServiceName` with its
+  /// terminator.
+  public static func setServiceName(_ name: String) throws -> Self {
+    service(.serviceSetName, payload: try ServicePropertyCoding.nameBytes(name))
+  }
+
   /// Creates a registry-entry identifier read through `IOService::GetRegistryEntryID`.
   public static let registryEntryID = service(.serviceGetRegistryEntryID, responseSize: 8)
 
@@ -151,7 +159,7 @@ extension DriverContext {
 
   /// Returns supportable properties of each provider from this service towards the root.
   ///
-  /// This is how Swift reads the provider that `IOService::GetProvider` returns natively.
+  /// The runtime reads them with `IOService::CopyProviderProperties`.
   public func providerProperties(keys: [String]? = nil) async throws -> [[String: DriverProperty]] {
     guard
       case .array(let entries) = try await ServicePropertyCoding.decode(
@@ -174,6 +182,14 @@ extension DriverContext {
     return name
   }
 
+  /// Sets the generated service's registry entry name through `IOService::SetName`.
+  ///
+  /// DriverKit copies the name. It must be 1 to 127 UTF-8 bytes without NUL, or this throws
+  /// ``ServiceRuntimeError/invalidName(_:)``.
+  public func setServiceName(_ name: String) async throws {
+    _ = try await execute(try .setServiceName(name))
+  }
+
   /// Returns the generated service's registry entry identifier.
   public func registryEntryID() async throws -> UInt64 {
     let reply = try await execute(.registryEntryID)
@@ -183,18 +199,23 @@ extension DriverContext {
 
   /// Returns a system state item, such as `com.apple.iokit.pm.sleepdescription`, or `nil` when
   /// the item has no value.
+  ///
+  /// The extension calls `IOService::CopySystemStateNotificationService`,
+  /// `IOService::StateNotificationItemCopy`.
   public func systemStateItem(named name: String) async throws -> [String: DriverProperty]? {
     let reply = try await execute(try .systemStateItem(named: name))
     return reply.isEmpty ? nil : try Self.dictionary(reply)
   }
 
   /// Creates a system state item on the system state notification service.
+  /// The extension calls `IOService::StateNotificationItemCreate`.
   public func createSystemStateItem(
     named name: String,
     value: [String: DriverProperty]? = nil
   ) async throws { _ = try await execute(try .createSystemStateItem(named: name, value: value)) }
 
   /// Sets the value of a system state item on the system state notification service.
+  /// The extension calls `IOService::StateNotificationItemSet`.
   public func setSystemStateItem(named name: String, value: [String: DriverProperty]) async throws {
     _ = try await execute(try .setSystemStateItem(named: name, value: value))
   }

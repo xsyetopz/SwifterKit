@@ -70,9 +70,13 @@ struct MIDIObjectRuntimeContractTests {
         "CopyProperty(key.name, &value)", "CopyProperty(Selector(key), &value)",
         "SetProperty(key.name, value)", "SetProperty(Selector(key), value)", "GetProperties()",
         "SetProperties(dictionary)", "GetEntities()", "GetDeviceIsRunning()", "GetSources()",
-        "GetDestinations()", "AddEntity(entity)", "RemoveEntity(entity)", "AddSource(source)",
-        "RemoveSource(source)", "AddDestination(destination)", "RemoveDestination(destination)",
+        "GetDestinations()",
       ] { #expect(objects.contains(call), Comment(rawValue: call)) }
+      let device = try source("SwifterKitRuntimeMIDIDevice.cpp", in: output)
+      for call in [
+        "AddEntity(entity)", "RemoveEntity(entity)", "AddSource(source)", "RemoveSource(source)",
+        "AddDestination(destination)", "RemoveDestination(destination)",
+      ] { #expect(device.contains(call), Comment(rawValue: call)) }
       let properties = try source("SwifterKitRuntimeMIDIProperties.cpp", in: output)
       let header = try source(RuntimeSchemaHeader.fileName, in: output)
       #expect(
@@ -92,6 +96,50 @@ struct MIDIObjectRuntimeContractTests {
       #expect(
         properties.contains("kSwifterKitRuntimeMaximumMessageSize - kSwifterKitRuntimeHeaderSize")
       )
+    }
+  }
+
+  @Test
+  func appliesMemberAttachmentInAConfigurationChange() throws {
+    try withGeneratedExtension { output in
+      let midi = try source("SwifterKitRuntimeMIDI.cpp", in: output)
+      #expect(midi.contains("OSTypeAlloc(SwifterKitRuntimeMIDIDevice)"))
+      #expect(!midi.contains("IOUserMIDIDevice::Create("))
+
+      let objects = try source("SwifterKitRuntimeMIDIObjects.cpp", in: output)
+      #expect(objects.contains("midiDevice->RequestMemberChange(member, owner, attached != 0)"))
+      for call in ["AddEntity(", "RemoveEntity(", "AddSource(", "AddDestination("] {
+        #expect(!objects.contains(call), Comment(rawValue: call))
+      }
+
+      let header = try source("SwifterKitRuntimeMIDIDevice.iig", in: output)
+      #expect(header.contains("class SwifterKitRuntimeMIDIDevice : public IOUserMIDIDevice"))
+      let device = try source("SwifterKitRuntimeMIDIDevice.cpp", in: output)
+      let request = try #require(device.range(of: "RequestDeviceConfigurationChange("))
+      let perform = try #require(
+        device.range(of: "SwifterKitRuntimeMIDIDevice::PerformDeviceConfigurationChange(")
+      )
+      let abort = try #require(
+        device.range(of: "SwifterKitRuntimeMIDIDevice::AbortDeviceConfigurationChange(")
+      )
+      #expect(request.lowerBound < perform.lowerBound)
+      let performBody = device[perform.upperBound..<abort.lowerBound]
+      #expect(performBody.contains("ApplyMemberChange("))
+      // A member change applied here still reaches super, which updates the host's state.
+      #expect(!performBody.contains("return ApplyMemberChange("))
+      #expect(
+        performBody.contains("super::PerformDeviceConfigurationChange(changeAction, changeInfo)")
+      )
+      #expect(
+        device[abort.upperBound...].contains(
+          "super::AbortDeviceConfigurationChange(changeAction, changeInfo)"
+        )
+      )
+
+      let project = try source("../SwifterKitRuntime.xcodeproj/project.pbxproj", in: output)
+      for name in ["SwifterKitRuntimeMIDIDevice.iig", "SwifterKitRuntimeMIDIDevice.cpp"] {
+        #expect(project.contains("\(name) in Sources"), Comment(rawValue: name))
+      }
     }
   }
 

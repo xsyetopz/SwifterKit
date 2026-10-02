@@ -17,8 +17,8 @@ struct VideoMemberRuntimeContractTests {
   @Test
   func routesMemberOpcodesThroughTheVideoFamilyUnderVideoLock() throws {
     try withGeneratedExtension { output, _ in
-      let opcodes = RuntimeOpcode.allCases.filter { (0x0C20...0x0C2D).contains($0.rawValue) }
-      #expect(opcodes.count == 14)
+      let opcodes = RuntimeOpcode.allCases.filter { (0x0C20...0x0C2E).contains($0.rawValue) }
+      #expect(opcodes.count == 15)
       let dispatch = try source("SwifterKitRuntimeCommandDispatch.cpp", in: output)
       let group = try section(
         of: dispatch,
@@ -58,6 +58,39 @@ struct VideoMemberRuntimeContractTests {
       let device = try source("SwifterKitRuntimeVideoDevice.cpp", in: output)
       #expect(device.contains("SwifterKitApplyStructureChange<VideoStructureFamily>("))
       #expect(shared.contains("RemoveStream("))
+    }
+  }
+
+  @Test
+  func installsALockFreeIOOperationHandlerAndUpdatesStreamsOnSampleRateChange() throws {
+    try withGeneratedExtension { output, _ in
+      let device = try source("SwifterKitRuntimeVideoDevice.cpp", in: output)
+      let configure = try section(of: device, from: "::Configure()", to: "::CopyIOOperationState(")
+      #expect(configure.contains("SetIOOperationHandler(^kern_return_t("))
+      #expect(configure.contains("__atomic_add_fetch(&state->sequence"))
+      #expect(!configure.contains("IOLockLock"))
+      let copy = try section(of: device, from: "::CopyIOOperationState(", to: "::ReadBuffer(")
+      #expect(copy.contains("__atomic_load_n(&ivars->sequence, __ATOMIC_ACQUIRE)"))
+      let notify = try section(
+        of: device,
+        from: "::NotifyStreamsSampleRate(",
+        to: "::ApplyStructureChange("
+      )
+      #expect(notify.contains("DeviceSampleRateChanged(sampleRate)"))
+      let perform = try section(
+        of: device,
+        from: "::PerformDeviceConfigurationChange(",
+        to: "::ApplyStructureChange("
+      )
+      #expect(perform.contains("NotifyStreamsSampleRate(sampleRate)"))
+      let handle = try section(
+        of: device,
+        from: "::HandleChangeSampleRate(",
+        to: "::NotifyBufferQueue("
+      )
+      #expect(handle.contains("NotifyStreamsSampleRate(sampleRate)"))
+      let members = try source("SwifterKitRuntimeVideoMembers.cpp", in: output)
+      #expect(members.contains("case SwifterKitRuntimeOpcode::VideoGetIOOperationState:"))
     }
   }
 

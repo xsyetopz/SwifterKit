@@ -54,6 +54,7 @@ public:
         uint32_t payloadLength,
         OSData** response) LOCALONLY;
     kern_return_t CopyDeviceState(OSData** response) LOCALONLY;
+    kern_return_t CopyIOOperationState(OSData** response) LOCALONLY;
     kern_return_t SetDeviceProperty(const SwifterKitVideoMemberValue* request) LOCALONLY;
     kern_return_t CopyStreamState(const SwifterKitVideoMemberRequest* request, OSData** response)
         LOCALONLY;
@@ -80,6 +81,7 @@ public:
         uint64_t value) LOCALONLY;
     kern_return_t ApplyMemberChange() LOCALONLY;
     kern_return_t ApplyStructureChange(OSObject* changeInfo) LOCALONLY;
+    kern_return_t NotifyStreamsSampleRate(double sampleRate) LOCALONLY;
     kern_return_t NativeEntry(
         uint32_t streamIndex,
         const SwifterKitVideoQueueEntry* entry,

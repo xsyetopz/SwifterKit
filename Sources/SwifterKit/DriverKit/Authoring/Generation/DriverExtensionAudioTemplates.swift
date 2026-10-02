@@ -141,6 +141,10 @@ extension DriverExtensionGenerator {
           uint32_t payloadLength,
           OSData** response) LOCALONLY;
       kern_return_t AudioControlEvent(uint32_t kind, uint64_t value) LOCALONLY;
+      kern_return_t AudioStreamFormatEvent(
+          uint32_t streamIndex,
+          const IOUserAudioStreamBasicDescription* format) LOCALONLY;
+      kern_return_t AudioStreamActiveEvent(uint32_t streamIndex, bool isActive) LOCALONLY;
       kern_return_t AudioControlValueEvent(
           uint32_t identifier,
           uint32_t kind,

@@ -24,6 +24,8 @@ public enum ServiceWatchLimits {
 /// A driver extension sees another service only for the duration of the notification. The
 /// event carries its registry entry ID and name. Look the service up from the host with
 /// ``DriverClient`` when more is needed.
+///
+/// The extension receives it through `IOServiceNotificationDispatchSource::DeliverNotifications`.
 public struct ServiceMatchNotification: Sendable, Hashable {
   /// Whether the service matched or terminated.
   public enum Kind: UInt32, Sendable, Hashable {
@@ -65,6 +67,8 @@ public struct ServiceMatchNotification: Sendable, Hashable {
 }
 
 /// A system state item that changed, from `IOServiceStateNotificationDispatchSource`.
+/// The extension re-arms the source with
+/// `IOServiceStateNotificationDispatchSource::StateNotificationBegin`.
 public struct SystemStateNotification: Sendable, Hashable {
   /// The watch that observed the item.
   public let watch: ServiceWatch
@@ -105,10 +109,16 @@ public struct SystemStateNotification: Sendable, Hashable {
 }
 
 extension DriverCommand {
+  /// The matching key that carries a user class to the extension. The extension replaces it with
+  /// the entries `IOService::CreateUserClassMatchingDictionary` writes.
+  static let userClassTransportKey = "IOUserClass"
+
   /// Creates a service watch through `IOServiceNotificationDispatchSource::Create`.
   ///
   /// The matching dictionary holds `IOProviderClass`, `IONameMatch` for a ``DriverServiceMatch``
-  /// name, and `IOPropertyMatch` for its registry properties.
+  /// name, and `IOPropertyMatch` for its registry properties. With a ``DriverServiceMatch``
+  /// `userClass`, the extension adds the entries `IOService::CreateUserClassMatchingDictionary`
+  /// builds for it.
   public static func watchServices(matching criteria: DriverServiceMatch) throws -> Self {
     _ = try ServicePropertyCoding.nameBytes(criteria.serviceClass)
     var matching: [String: DriverProperty] = ["IOProviderClass": .string(criteria.serviceClass)]
@@ -119,6 +129,10 @@ extension DriverCommand {
     if !criteria.registryProperties.isEmpty {
       for key in criteria.registryProperties.keys { _ = try ServicePropertyCoding.nameBytes(key) }
       matching["IOPropertyMatch"] = .dictionary(criteria.registryProperties)
+    }
+    if let userClass = criteria.userClass {
+      _ = try ServicePropertyCoding.nameBytes(userClass)
+      matching[Self.userClassTransportKey] = .string(userClass)
     }
     let payload = try ServicePropertyCoding.encode(.dictionary(matching))
     guard payload.count <= ServicePropertyCoding.maximumPayloadSize else {
@@ -149,6 +163,10 @@ extension DriverContext {
   /// Watches for services that match `criteria`. Each match and termination arrives as an event
   /// that ``DriverEvent/serviceMatchNotification()`` decodes, starting with services that
   /// already match.
+  ///
+  /// A ``DriverServiceMatch/userClass`` matches through
+  /// `IOService::CreateUserClassMatchingDictionary`, which the extension calls. A criteria
+  /// without a user class does not call it.
   ///
   /// At most ``ServiceWatchLimits/maximumWatches`` watches run at once. More fail with
   /// `kIOReturnNoResources`. Watches end when the host disconnects.

@@ -180,6 +180,14 @@ extension DriverCommand {
     )
   }
 
+  /// Requests the latest lock-free real-time I/O snapshot.
+  ///
+  /// The runtime records it from the `IOOperationHandler` block it installs through
+  /// `IOUserVideoDevice::SetIOOperationHandler`.
+  public static func videoGetIOOperationState() -> Self {
+    videoMemberCommand(.videoGetIOOperationState, Data(), response: 32)
+  }
+
   /// Reads `IOUserVideoStream::GetMemoryObjectID` for a memory type, whose upper 16 bits are a
   /// category and lower 16 bits an index.
   public static func videoStreamMemoryObjectID(
@@ -227,17 +235,39 @@ extension DriverCommand {
 }
 
 extension DriverContext {
+  /// Returns the latest real-time I/O operation snapshot.
+  ///
+  /// The runtime installs an `IOOperationHandler` through
+  /// `IOUserVideoDevice::SetIOOperationHandler` that records each operation without locking, so
+  /// reading the snapshot never blocks I/O.
+  public func videoIOOperationState() async throws -> VideoIOOperationState {
+    try VideoIOOperationState(runtimePayload: await execute(.videoGetIOOperationState()))
+  }
+
   /// Reads device state that has no other typed reader.
+  /// Calls `IOUserVideoDevice::CanBeDefaultInputDevice`,
+  /// `IOUserVideoDevice::CanBeDefaultOutputDevice`,
+  /// `IOUserVideoDevice::CanBeDefaultSystemOutputDevice`,
+  /// `IOUserVideoDevice::GetCurrentClientIOTime`, `IOUserVideoDevice::GetInputSafetyOffset`,
+  /// `IOUserVideoDevice::GetOutputSafetyOffset` and
+  /// `IOUserVideoDevice::GetPreferredChannelsForStereo`.
   public func videoDeviceState() async throws -> VideoDeviceState {
     try VideoDeviceState(runtimePayload: await execute(.videoDeviceState()))
   }
 
   /// Changes one `IOUserVideoDevice` property.
+  /// Calls `IOUserVideoDevice::SetCanBeDefaultInputDevice`,
+  /// `IOUserVideoDevice::SetCanBeDefaultOutputDevice`,
+  /// `IOUserVideoDevice::SetCanBeDefaultSystemOutputDevice`,
+  /// `IOUserVideoDevice::SetInputSafetyOffset`, `IOUserVideoDevice::SetOutputSafetyOffset` and
+  /// `IOUserVideoDevice::SetPreferredChannelsForStereo`.
   public func videoSetDeviceProperty(_ property: VideoDeviceProperty) async throws {
     _ = try await execute(.videoSetDeviceProperty(property))
   }
 
   /// Sets the device's preferred input or output channel layout.
+  /// Calls `IOUserVideoDevice::SetPreferredInputChannelLayout` and
+  /// `IOUserVideoDevice::SetPreferredOutputChannelLayout`.
   public func videoSetPreferredChannelLayout(
     direction: VideoStreamDirection,
     labels: [VideoChannelLabel]
@@ -246,16 +276,34 @@ extension DriverContext {
   }
 
   /// Reads the state, formats, queues, and buffer list of a configured stream.
+  /// Calls `IOUserVideoStream::GetAvailableStreamFormats`, `IOUserVideoStream::GetBufferCount`,
+  /// `IOUserVideoStream::GetBufferList`, `IOUserVideoStream::GetInputQueue`,
+  /// `IOUserVideoStream::GetInputQueueMemoryDescriptor`,
+  /// `IOUserVideoStream::GetNumberAvailableStreamFormats`, `IOUserVideoStream::GetOutputQueue`,
+  /// `IOUserVideoStream::GetOutputQueueMemoryDescriptor`, `IOUserVideoStream::GetStartingChannel`,
+  /// `IOUserVideoStream::GetStreamDirection`, `IOUserVideoStream::GetStreamIsActive` and
+  /// `IOUserVideoStream::GetTerminalType`.
   public func videoStreamState(index: UInt32) async throws -> VideoStreamState {
     try VideoStreamState(runtimePayload: await execute(.videoStreamState(index: index)))
   }
 
   /// Changes one property of a configured stream.
+  /// Calls `IOUserVideoBuffer::SetControlMemoryDescriptor`,
+  /// `IOUserVideoBuffer::SetDataMemoryDescriptor`, `IOUserVideoStream::SetStartingChannel`,
+  /// `IOUserVideoStream::SetStreamIsActive`, `IOUserVideoStream::SetTerminalType`,
+  /// `IOUserVideoStream::createQueues` and `IOUserVideoStream::destroyQueues`.
   public func videoSetStreamProperty(index: UInt32, _ property: VideoStreamProperty) async throws {
     _ = try await execute(.videoSetStreamProperty(index: index, property))
   }
 
   /// Reads the identity and memory of a configured buffer.
+  /// Calls `IOUserVideoBuffer::GetBaseClassID`, `IOUserVideoBuffer::GetClassID`,
+  /// `IOUserVideoBuffer::GetControlMemoryDescriptor`, `IOUserVideoBuffer::GetDataMemoryDescriptor`,
+  /// `IOUserVideoBuffer::getBufferID`, `IOUserVideoStream::GetBufferWithID`,
+  /// `IOUserVideoStream::GetOutputControlMemoryDescriptor`,
+  /// `IOUserVideoStream::GetOutputDataMemoryDescriptor`,
+  /// `IOUserVideoStream::_GetOutputControlMemoryObjectID` and
+  /// `IOUserVideoStream::_GetOutputDataMemoryObjectID`.
   public func videoBufferInfo(
     streamIndex: UInt32,
     bufferIndex: UInt32
@@ -268,6 +316,8 @@ extension DriverContext {
   }
 
   /// Changes a configured buffer's ID or stream membership in a device configuration change.
+  /// Calls `IOUserVideoBuffer::setBufferID`, `IOUserVideoStream::addBuffer`,
+  /// `IOUserVideoStream::addBuffers` and `IOUserVideoStream::removeAllBuffers`.
   public func videoSetBufferProperty(
     streamIndex: UInt32,
     bufferIndex: UInt32,
@@ -279,11 +329,18 @@ extension DriverContext {
   }
 
   /// Reads the scope, element, owner, range, channels, and selector items of a configured control.
+  /// Calls `IOUserVideoControl::GetControlElement`, `IOUserVideoControl::GetControlScope`,
+  /// `IOUserVideoControl::GetIsSettable`, `IOUserVideoControl::GetOwningDeviceID`,
+  /// `IOUserVideoSelectorControl::GetControlValueDescriptions`,
+  /// `IOUserVideoSelectorControl::GetControlValuesCount`, `IOUserVideoSliderControl::GetRange` and
+  /// `IOUserVideoStereoPanControl::GetPanningChannels`.
   public func videoControlInfo(identifier: UInt32) async throws -> VideoControlInfo {
     try VideoControlInfo(runtimePayload: await execute(.videoControlInfo(identifier: identifier)))
   }
 
   /// Changes a slider range or stereo-pan channel pair.
+  /// Calls `IOUserVideoSliderControl::SetRange` and
+  /// `IOUserVideoStereoPanControl::SetPanningChannels`.
   public func videoSetControlProperty(
     identifier: UInt32,
     _ property: VideoControlProperty
@@ -292,11 +349,13 @@ extension DriverContext {
   }
 
   /// Removes items from a selector control by value.
+  /// Calls `IOUserVideoSelectorControl::RemoveControlValueDescriptions`.
   public func videoRemoveSelectorItems(identifier: UInt32, values: [UInt32]) async throws {
     _ = try await execute(.videoRemoveSelectorItems(identifier: identifier, values: values))
   }
 
   /// Reads the selector, data types, and owner of a configured custom property.
+  /// Calls `IOUserVideoCustomProperty::GetCustomPropertyInfo`.
   public func videoCustomPropertyInfo(identifier: UInt32) async throws -> VideoCustomPropertyInfo {
     try VideoCustomPropertyInfo(
       runtimePayload: await execute(.videoCustomPropertyInfo(identifier: identifier))
@@ -304,6 +363,12 @@ extension DriverContext {
   }
 
   /// Adds a configured stream or control to the device, or removes it.
+  ///
+  /// A control changes before the call returns, through `IOUserVideoClockDevice::AddControl` or
+  /// `IOUserVideoClockDevice::RemoveControl`. A stream changes through a device configuration
+  /// change: the call returns once the host accepts the request, and the runtime calls
+  /// `IOUserVideoDevice::AddStream` or `IOUserVideoDevice::RemoveStream` later, while I/O is
+  /// stopped.
   public func videoSetMemberAttachment(_ member: VideoMember, attached: Bool) async throws {
     _ = try await execute(.videoSetMemberAttachment(member, attached: attached))
   }

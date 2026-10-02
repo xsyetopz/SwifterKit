@@ -306,19 +306,26 @@ kern_return_t SwifterKitRuntimeService::HIDFactoryCommand(
         TerminateDevice(device);
         return result;
     }
-    if (code == SwifterKitRuntimeOpcode::HIDFactorySubmitInputReport) {
-        const auto* header = reinterpret_cast<const SwifterKitHIDReportHeader*>(body);
-        result = header->reportLength != bodyLength - sizeof(SwifterKitHIDReportHeader)
-                     ? kIOReturnBadArgument
-                     : device->SubmitInputReport(header, body + sizeof(SwifterKitHIDReportHeader));
-    } else if (code == SwifterKitRuntimeOpcode::HIDFactoryCompleteGetReport) {
-        result = device->CompleteGetReport(body, bodyLength);
-    } else {
-        SwifterKitHIDRuntimeStatistics statistics = {};
-        result = device->CopyStatistics(&statistics);
-        if (result == kIOReturnSuccess) {
-            *response = OSData::withBytes(&statistics, sizeof(statistics));
-            result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+    switch (code) {
+        case SwifterKitRuntimeOpcode::HIDFactorySubmitInputReport: {
+            const auto* header = reinterpret_cast<const SwifterKitHIDReportHeader*>(body);
+            result =
+                header->reportLength != bodyLength - sizeof(SwifterKitHIDReportHeader)
+                    ? kIOReturnBadArgument
+                    : device->SubmitInputReport(header, body + sizeof(SwifterKitHIDReportHeader));
+            break;
+        }
+        case SwifterKitRuntimeOpcode::HIDFactoryCompleteGetReport:
+            result = device->CompleteGetReport(body, bodyLength);
+            break;
+        default: {
+            SwifterKitHIDRuntimeStatistics statistics = {};
+            result = device->CopyStatistics(&statistics);
+            if (result == kIOReturnSuccess) {
+                *response = OSData::withBytes(&statistics, sizeof(statistics));
+                result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
+            }
+            break;
         }
     }
     device->release();

@@ -118,6 +118,7 @@ extension DriverContext {
   }
 
   /// Completes several transmits at once.
+  /// The runtime returns the packets through `IOUserNetworkPacketQueue::enqueuePackets`.
   public func completeEthernetTransmits(_ completions: [EthernetTransmitCompletion]) async throws {
     _ = try await execute(.completeEthernetTransmits(completions))
   }
@@ -138,6 +139,7 @@ extension DriverContext {
   }
 
   /// Answers an ``EthernetInterfaceCommand`` with an `IOReturn` status.
+  /// The runtime holds `IOUserNetworkEthernet::processInterfaceCommand` until this answer arrives.
   public func completeEthernetInterfaceCommand(requestID: UInt32, status: Int32) async throws {
     _ = try await execute(.completeEthernetInterfaceCommand(requestID: requestID, status: status))
   }

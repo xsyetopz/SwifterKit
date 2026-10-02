@@ -2,7 +2,7 @@
 
 SwifterKit separates Swift driver behavior from the native extension that the DriverKit ABI requires. ``DriverExtensionGenerator`` copies and configures that internal extension from ``DriverConfiguration``. Driver authors do not provide C++ or IIG source to the generator.
 
-Toolchain and platform requirements are in <doc:Capabilities#Deployment-requirements>. No 0.2.1 paths have run on physical hardware.
+Toolchain and platform requirements are in <doc:Capabilities#Deployment-requirements>. No 0.3.0 paths have run on physical hardware.
 
 ## Configuration becomes extension metadata
 
@@ -167,22 +167,17 @@ The one exception is a block-storage request whose identifier matches one still 
 
 ``DriverClient`` and ``DriverSession`` are separate from the generated runtime protocol. They enumerate IOKit services and invoke raw user-client external methods through ``DriverRequest`` and ``DriverResponse``. Use those APIs only when no capability-specific ``DriverContext`` method describes the operation you need.
 
-## DriverKit coverage manifest
+## DriverKit coverage
 
-The repository file `coverage/driverkit.json` lists every class and member function that the DriverKit SDK `.iig` headers declare. Each entry records the SDK versions that declare the member. It also records the member's `introduced` and `deprecated` DriverKit versions when the header gives them. Each entry also records a status:
+<doc:DriverKitCoverage> counts, per framework, the member functions that the DriverKit SDK `.iig` headers declare, and lists every member a Swift driver cannot reach. Each member has one status:
 
-- `gap`: Swift cannot reach the member yet.
-- `generated`: the generated extension runtime calls or overrides the member.
-- `swift-api`: the typed Swift API named in `swiftSymbol` exposes the member.
-- `fast-path`: a fast-path program can declare the member. See <doc:FastPath>.
-- `excluded`: the member is out of scope, and `note` gives the reason.
+- Swift API: a typed Swift API reaches the member through the runtime, and that API's documentation names it as `Class::member`.
+- Runtime: the generated extension runtime calls or overrides the member.
+- Gap: the header makes the member public and Swift cannot reach it.
+- Not exposed: the header makes the member public and SwifterKit does not reach it, for the reason the article gives.
+- Apple only: the header keeps the member from DriverKit clients.
 
-The `SwifterKitCoverage` package tool is separate from the `SwifterKit` library:
-
-- Its `summary` command prints the counts per framework.
-- Its `update` command records the surface of a new SDK.
-
-CI checks the manifest against the DriverKit SDK in each job. The check fails when the SDK declares a member that the manifest does not list. It also fails when a non-`gap` entry has no supporting source or note.
+The `SwifterKitCoverage` package tool, separate from the `SwifterKit` library, computes the article from the headers, clang's AST of the generated runtime, and the Swift documentation. Its `check` command fails when the documentation names a member the runtime does not reach, or when a reason names a member that is not public or that the runtime reaches.
 
 ## Related articles
 
