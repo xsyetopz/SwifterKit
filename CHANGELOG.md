@@ -2,6 +2,16 @@
 
 SwifterKit records user-visible changes in this file.
 
+## Unreleased
+
+### Fixed
+
+- USB output buffers for control transfers, pipe transfers, and bundled pipe
+  rings are `kIOMemoryDirectionInOut`, as the isochronous frame list is. With
+  `kIOMemoryDirectionOut`, the copy of the output bytes to the mapped address
+  crashed the driver extension with `EXC_BAD_ACCESS (KERN_PROTECTION_FAILURE)`
+  on macOS 27.0.1. Not tested on hardware.
+
 ## 0.3.0
 
 ### Added

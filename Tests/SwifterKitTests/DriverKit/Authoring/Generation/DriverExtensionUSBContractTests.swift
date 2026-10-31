@@ -147,6 +147,24 @@ struct DriverExtensionUSBContractTests {
     }
   }
 
+  @Test
+  func outputBuffersAreWritableThroughTheDriverMapping() throws {
+    try withGeneratedExtension { output in
+      let support = try source("SwifterKitRuntimeUSBSupport.h", in: output)
+      let create = try section(
+        of: support,
+        from: "kern_return_t SwifterKitCreateUSBBuffer(",
+        to: "SwifterKitUSBMappedBytes("
+      )
+      #expect(create.contains("input ? kIOMemoryDirectionIn : kIOMemoryDirectionInOut"))
+      #expect(!create.contains("kIOMemoryDirectionOut,"))
+
+      let bundled = try source("SwifterKitRuntimeUSBBundled.cpp", in: output)
+      #expect(bundled.contains("input ? kIOMemoryDirectionIn : kIOMemoryDirectionInOut"))
+      #expect(!bundled.contains("kIOMemoryDirectionOut,"))
+    }
+  }
+
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
     try withTemporaryExtension(
       named: "USBContractDriver",

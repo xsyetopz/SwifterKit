@@ -89,7 +89,7 @@ namespace {
              ++index) {
             SwifterKitUSBBundleEntry& entry = ring->entries[index];
             result = interface->CreateIOBuffer(
-                input ? kIOMemoryDirectionIn : kIOMemoryDirectionOut,
+                input ? kIOMemoryDirectionIn : kIOMemoryDirectionInOut,
                 request.bufferLength,
                 &entry.buffer);
             if (result == kIOReturnSuccess && entry.buffer == nullptr) {

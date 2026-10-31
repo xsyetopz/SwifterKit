@@ -75,7 +75,7 @@ kern_return_t SwifterKitCreateUSBBuffer(
         return kIOReturnBadArgument;
     }
     kern_return_t result = provider->CreateIOBuffer(
-        input ? kIOMemoryDirectionIn : kIOMemoryDirectionOut,
+        input ? kIOMemoryDirectionIn : kIOMemoryDirectionInOut,
         length,
         descriptor);
     if (result != kIOReturnSuccess || *descriptor == nullptr) {
