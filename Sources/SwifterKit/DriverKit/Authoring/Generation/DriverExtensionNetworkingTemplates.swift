@@ -1,7 +1,7 @@
 import Foundation
 
 extension DriverExtensionGenerator {
-  /// Returns whether the offload, naming, pool, and polling metadata is internally consistent.
+  // Returns whether the offload, naming, pool, and polling metadata is internally consistent.
   static func isValid(ethernetCapabilities value: EthernetDeviceConfiguration) -> Bool {
     let assists = value.assists
     let tso = assists.contains(.tso4) || assists.contains(.tso6)
@@ -40,7 +40,7 @@ extension DriverExtensionGenerator {
       && bsdNamePrefix.utf8.allSatisfy { (UInt8(ascii: "a")...UInt8(ascii: "z")).contains($0) }
   }
 
-  /// Native constants for the Ethernet interface, packet pools, and poller.
+  // Native constants for the Ethernet interface, packet pools, and poller.
   static func ethernetConfigurationDeclarations(_ configuration: DriverConfiguration) -> String {
     let ethernet = configuration.ethernetDevice
     let pool = ethernet?.poolOptions
@@ -107,7 +107,7 @@ extension DriverExtensionGenerator {
     value?.media.map { String($0.rawValue) }.joined(separator: ", ") ?? "0"
   }
 
-  /// `IOUserNetworkEthernet` members the generated service declares.
+  // `IOUserNetworkEthernet` members the generated service declares.
   static func networkingServiceMethods(enabled: Bool) -> String {
     guard enabled else { return "" }
     return """

@@ -6,51 +6,51 @@
 // neither side spells a value twice. The header declares plain integers, so an extension built
 // without VideoDriverKit still compiles it.
 
-/// Bounds the video commands, events, and generated configuration share with the extension.
+// Bounds the video commands, events, and generated configuration share with the extension.
 enum RuntimeVideoLimits {
-  /// The boxes or clock devices one driver declares, ``VideoObjectTarget/maximumTableCount``.
+  // The boxes or clock devices one driver declares, ``VideoObjectTarget/maximumTableCount``.
   static let objectTableCount = Int(VideoObjectTarget.maximumTableCount)
-  /// The box and clock-device requests waiting for Swift at once.
+  // The box and clock-device requests waiting for Swift at once.
   static let pendingRequestCount = 8
-  /// The most sample rates Swift, a configuration, or a clock-device state carries.
+  // The most sample rates Swift, a configuration, or a clock-device state carries.
   static let maximumSampleRates = 16
-  /// The longest object, element, control, selector-item, or qualifier name, in UTF-8 bytes.
+  // The longest object, element, control, selector-item, or qualifier name, in UTF-8 bytes.
   static let nameMaximumLength = 255
-  /// The longest custom-property value, in UTF-8 bytes.
+  // The longest custom-property value, in UTF-8 bytes.
   static let customPropertyValueMaximumLength = 4_096
-  /// The most selectors one `PropertiesChanged` names.
+  // The most selectors one `PropertiesChanged` names.
   static let maximumChangedProperties = 32
-  /// The streams one device declares.
+  // The streams one device declares.
   static let maximumStreams = 8
-  /// The buffers one stream declares.
+  // The buffers one stream declares.
   static let maximumBuffers = 32
-  /// The controls one device declares.
+  // The controls one device declares.
   static let maximumControls = 64
-  /// The custom properties one device declares.
+  // The custom properties one device declares.
   static let maximumCustomProperties = 32
-  /// The formats one stream offers.
+  // The formats one stream offers.
   static let maximumStreamFormats = 16
-  /// The items one selector control offers or selects, and the values one control value carries.
+  // The items one selector control offers or selects, and the values one control value carries.
   static let maximumSelectorItems = 32
-  /// The labels one preferred channel layout carries.
+  // The labels one preferred channel layout carries.
   static let maximumChannelLabels = 64
-  /// The most entries one stream queue holds.
+  // The most entries one stream queue holds.
   static let maximumQueueEntries = 256
-  /// The largest data plane `SetStreamProperty` gives a buffer, in bytes: 64 MiB.
+  // The largest data plane `SetStreamProperty` gives a buffer, in bytes: 64 MiB.
   static let maximumDataCapacity = 67_108_864
-  /// The largest control plane `SetStreamProperty` gives a buffer, in bytes: 1 MiB.
+  // The largest control plane `SetStreamProperty` gives a buffer, in bytes: 1 MiB.
   static let maximumControlCapacity = 1_048_576
-  /// The bytes of `SwifterKitVideoTransferHeader`, which begins a buffer read or write.
+  // The bytes of `SwifterKitVideoTransferHeader`, which begins a buffer read or write.
   static let transferHeaderSize = 32
-  /// The most bytes one buffer read returns: the most a transfer request may name.
+  // The most bytes one buffer read returns: the most a transfer request may name.
   static let maximumReadLength =
     RuntimeSchema.maximumMessageSize - RuntimeSchema.headerSize - RuntimeSchema.commandHeaderSize
     - transferHeaderSize
-  /// The most bytes one buffer write carries, one transfer header below the largest read.
+  // The most bytes one buffer write carries, one transfer header below the largest read.
   static let maximumWriteLength = maximumReadLength - transferHeaderSize
 }
 
-/// The object a video command addresses, the `kind` of `SwifterKitVideoObjectTarget`.
+// The object a video command addresses, the `kind` of `SwifterKitVideoObjectTarget`.
 enum RuntimeVideoTargetKind: UInt32, CaseIterable {
   case driver = 0
   case device = 1
@@ -59,8 +59,8 @@ enum RuntimeVideoTargetKind: UInt32, CaseIterable {
   case object = 4
 }
 
-/// What a `video` event reports, the `kind` of `SwifterKitVideoEvent`, of the control and
-/// custom-property event headers, and of `SwifterKitVideoStreamFormatEvent`.
+// What a `video` event reports, the `kind` of `SwifterKitVideoEvent`, of the control and
+// custom-property event headers, and of `SwifterKitVideoStreamFormatEvent`.
 enum RuntimeVideoEventKind: UInt32, CaseIterable {
   case started = 1
   case stopped = 2
@@ -74,22 +74,22 @@ enum RuntimeVideoEventKind: UInt32, CaseIterable {
   case streamInputAvailable = 10
 }
 
-/// What a `videoObject` event reports, the `kind` of `SwifterKitVideoObjectEvent`.
+// What a `videoObject` event reports, the `kind` of `SwifterKitVideoObjectEvent`.
 enum RuntimeVideoObjectEventKind: UInt32, CaseIterable {
   case deviceStarted = 1
   case deviceStopped = 2
   case clockStarted = 3
   case clockStopped = 4
   case clockRateChanged = 5
-  /// A required box acquisition request.
+  // A required box acquisition request.
   case boxRequest = 6
-  /// A required clock-device sample-rate request.
+  // A required clock-device sample-rate request.
   case clockRequest = 7
   case clockFormatChanged = 8
   case deviceFormatChanged = 9
 }
 
-/// `SetDeviceProperty` selectors.
+// `SetDeviceProperty` selectors.
 enum RuntimeVideoDeviceProperty: UInt32, CaseIterable {
   case canBeDefaultInput = 1
   case canBeDefaultOutput = 2
@@ -99,7 +99,7 @@ enum RuntimeVideoDeviceProperty: UInt32, CaseIterable {
   case preferredStereoChannels = 6
 }
 
-/// `SetStreamProperty` selectors.
+// `SetStreamProperty` selectors.
 enum RuntimeVideoStreamProperty: UInt32, CaseIterable {
   case isActive = 1
   case startingChannel = 2
@@ -109,19 +109,19 @@ enum RuntimeVideoStreamProperty: UInt32, CaseIterable {
   case queueEntryCount = 6
 }
 
-/// `SetBufferProperty` selectors.
+// `SetBufferProperty` selectors.
 enum RuntimeVideoBufferProperty: UInt32, CaseIterable {
   case bufferID = 1
   case isAttached = 2
 }
 
-/// `SetControlProperty` selectors.
+// `SetControlProperty` selectors.
 enum RuntimeVideoControlProperty: UInt32, CaseIterable {
   case sliderRange = 1
   case panningChannels = 2
 }
 
-/// `SetBoxProperty` selectors.
+// `SetBoxProperty` selectors.
 enum RuntimeVideoBoxProperty: UInt32, CaseIterable {
   case transport = 1
   case hasAudio = 2
@@ -133,7 +133,7 @@ enum RuntimeVideoBoxProperty: UInt32, CaseIterable {
   case acquisitionFailure = 8
 }
 
-/// `SwifterKitVideoBoxState` flag bits.
+// `SwifterKitVideoBoxState` flag bits.
 enum RuntimeVideoBoxState: UInt32, CaseIterable {
   case hasAudio = 0x1
   case hasMIDI = 0x2
@@ -143,7 +143,7 @@ enum RuntimeVideoBoxState: UInt32, CaseIterable {
   case isProtected = 0x20
 }
 
-/// `SetClockDeviceProperty` selectors.
+// `SetClockDeviceProperty` selectors.
 enum RuntimeVideoClockProperty: UInt32, CaseIterable {
   case clockDomain = 1
   case clockAlgorithm = 2
@@ -155,7 +155,7 @@ enum RuntimeVideoClockProperty: UInt32, CaseIterable {
   case transport = 8
 }
 
-/// `SwifterKitVideoClockState` flag bits.
+// `SwifterKitVideoClockState` flag bits.
 enum RuntimeVideoClockState: UInt32, CaseIterable {
   case clockIsStable = 0x1
   case isAlive = 0x2
@@ -163,31 +163,43 @@ enum RuntimeVideoClockState: UInt32, CaseIterable {
   case isHidden = 0x8
 }
 
-/// What `SwifterKitVideoMemberAttachment` moves.
+// What `SwifterKitVideoMemberAttachment` moves.
 enum RuntimeVideoMemberKind: UInt32, CaseIterable {
   case stream = 1
   case control = 2
 }
 
-/// The control representations a value carries. The public type carries the wire values.
+// The control representations a value carries.
+//
+// The public type carries the wire values.
 typealias RuntimeVideoValueKind = VideoControlValueKind
 
-/// The kinds of configured controls. The public type carries the wire values.
+// The kinds of configured controls.
+//
+// The public type carries the wire values.
 typealias RuntimeVideoControlKind = VideoControlInfo.Kind
 
-/// Where a custom property sits. The public type carries the wire values.
+// Where a custom property sits.
+//
+// The public type carries the wire values.
 typealias RuntimeVideoOwner = VideoCustomPropertyOwner
 
-/// Which per-element string an element-name command addresses. The public type carries the
-/// wire values.
+// Which per-element string an element-name command addresses.
+//
+// The public type carries the wire values.
 typealias RuntimeVideoElementNameKind = VideoElementNameKind
 
-/// Which host notification `SwifterKitVideoQueueNotification` sends. The public type carries
-/// the wire values.
+// Which host notification a video queue notification sends.
+//
+// The public type carries the wire values.
 typealias RuntimeVideoQueueNotification = VideoBufferQueueNotification
 
-/// A stream's direction. The public type carries the wire values.
+// A stream's direction.
+//
+// The public type carries the wire values.
 typealias RuntimeVideoDirection = VideoStreamDirection
 
-/// A buffer plane a transfer addresses. The public type carries the wire values.
+// A buffer plane a transfer addresses.
+//
+// The public type carries the wire values.
 typealias RuntimeVideoPlane = VideoBufferPlane

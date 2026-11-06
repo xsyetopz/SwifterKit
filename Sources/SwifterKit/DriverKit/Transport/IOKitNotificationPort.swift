@@ -2,19 +2,19 @@
   import Foundation
   @preconcurrency import IOKit
 
-  /// Owns one connection's IOKit notification port and the receivers its completions reach.
-  ///
-  /// IOKit calls the registered callout on the port's serial dispatch queue. Deinitialization
-  /// destroys the port on that queue, so a running callout finishes first and none runs later, and
-  /// then finishes and releases every receiver. Only ``IOKitDriverConnection`` holds an instance.
+  // Owns one connection's IOKit notification port and the receivers its completions reach.
+  //
+  // IOKit calls the registered callout on the port's serial dispatch queue. Deinitialization
+  // destroys the port on that queue, so a running callout finishes first and none runs later, and
+  // then finishes and releases every receiver. Only ``IOKitDriverConnection`` holds an instance.
   final class IOKitNotificationPort {
     private let port: IONotificationPortRef
     private let queue = DispatchQueue(label: "SwifterKit.IOKitDriverConnection.notifications")
-    /// Every registration's receiver. Each stays retained until the port is destroyed, because a
-    /// completion already in flight can still carry an earlier registration's refcon.
+    // Every registration's receiver. Each stays retained until the port is destroyed, because a
+    // completion already in flight can still carry an earlier registration's refcon.
     private var receivers: [Unmanaged<NotificationReceiver>] = []
 
-    /// Creates a port served on a private dispatch queue, or nil when IOKit cannot create one.
+    // Creates a port served on a private dispatch queue, or nil when IOKit cannot create one.
     init?() {
       guard let port = IONotificationPortCreate(defaultIOKitMainPort) else { return nil }
       self.port = port
@@ -29,12 +29,12 @@
       }
     }
 
-    /// The port that receives asynchronous completions.
+    // The port that receives asynchronous completions.
     var machPort: mach_port_t { IONotificationPortGetMachPort(port) }
 
-    /// Adds a receiver for `continuation` and returns the asynchronous reference that routes a
-    /// completion to it. Earlier registrations' streams finish, because the extension keeps only
-    /// the newest registration.
+    // Adds a receiver for `continuation` and returns the asynchronous reference that routes a
+    // completion to it. Earlier registrations' streams finish, because the extension keeps only
+    // the newest registration.
     func register(_ continuation: AsyncStream<Void>.Continuation) -> [UInt64] {
       for receiver in receivers { receiver.takeUnretainedValue().continuation.finish() }
       let receiver = Unmanaged.passRetained(NotificationReceiver(continuation: continuation))
@@ -54,10 +54,10 @@
     }
   }
 
-  /// Carries one registration's continuation to the IOKit callout through its refcon.
-  ///
-  /// The only stored property is a `Sendable` continuation, so the class is `Sendable` without an
-  /// unchecked conformance, and it holds no reference to the connection.
+  // Carries one registration's continuation to the IOKit callout through its refcon.
+  //
+  // The only stored property is a `Sendable` continuation, so the class is `Sendable` without an
+  // unchecked conformance, and it holds no reference to the connection.
   private final class NotificationReceiver: Sendable {
     let continuation: AsyncStream<Void>.Continuation
 

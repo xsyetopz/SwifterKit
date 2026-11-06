@@ -39,10 +39,10 @@ enum DriverExtensionProject {
     )
   }
 
-  /// Renders the project for an extension that links `frameworks`.
-  ///
-  /// When `personalities` is not empty, each runtime source record is replaced by one record per
-  /// personality that names the personality's renamed file and uses its own object identifiers.
+  // Renders the project for an extension that links `frameworks`.
+  //
+  // When `personalities` is not empty, each runtime source record is replaced by one record per
+  // personality that names the personality's renamed file and uses its own object identifiers.
   static func render(
     frameworks selectedFrameworks: Set<String>,
     bundleIdentifier: String,
@@ -72,7 +72,7 @@ enum DriverExtensionProject {
     }.joined(separator: "\n")
     rendered = try replacing("com.swifterkit.Runtime", with: bundleIdentifier, in: rendered)
     rendered = try replacing(
-      "DRIVERKIT_DEPLOYMENT_TARGET = 19.0;",
+      "DRIVERKIT_DEPLOYMENT_TARGET = 21.0;",
       with: "DRIVERKIT_DEPLOYMENT_TARGET = \(options.deploymentTarget);",
       in: rendered
     )
@@ -95,10 +95,10 @@ enum DriverExtensionProject {
     return value.replacingOccurrences(of: source, with: replacement)
   }
 
-  /// Object identifiers in the template share this segment, which the clones replace.
+  // Object identifiers in the template share this segment, which the clones replace.
   private static let identifierSegment = "2AAAAAAA"
 
-  /// `line` once per personality when it records a runtime source file, otherwise `line`.
+  // `line` once per personality when it records a runtime source file, otherwise `line`.
   private static func personalityLines(
     for line: Substring,
     personalities: [String]

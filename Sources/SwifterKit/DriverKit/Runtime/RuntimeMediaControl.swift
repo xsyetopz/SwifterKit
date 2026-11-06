@@ -4,7 +4,7 @@ import Foundation
 // one layout. Each family supplies its own limits, opcodes, and errors.
 
 extension Data {
-  /// Encodes a typed control value: identifier, kind, word count, a reserved zero, then the words.
+  // Encodes a typed control value: identifier, kind, word count, a reserved zero, then the words.
   static func runtimeControlPayload(
     identifier: UInt32,
     kind: UInt32,
@@ -22,8 +22,8 @@ extension Data {
     return payload
   }
 
-  /// Decodes the kind and words of a typed control value encoded like
-  /// ``runtimeControlPayload(identifier:kind:values:maximumItems:invalidValue:)``.
+  // Decodes the kind and words of a typed control value encoded like
+  // ``runtimeControlPayload(identifier:kind:values:maximumItems:invalidValue:)``.
   func readRuntimeControlWords(
     maximumItems: Int,
     invalidPayload: some Error
@@ -41,7 +41,7 @@ extension Data {
 }
 
 extension DriverCommand {
-  /// Reads (`value` is `nil`) or writes a string custom property for one qualifier.
+  // Reads (`value` is `nil`) or writes a string custom property for one qualifier.
   static func runtimeCustomPropertyCommand(
     opcode: RuntimeOpcode,
     requiredCapabilities: RuntimeCapabilities,

@@ -25,16 +25,16 @@ public enum FastPathDataQueueError: Error, Sendable, Hashable {
   case notProducer
 }
 
-/// The portable single-producer, single-consumer logic over a data queue host ring's bytes,
-/// described by ``FastPathDataQueueLayout``.
-///
-/// It has no platform dependency, so the layout checks run everywhere Swift does.
+// The portable single-producer, single-consumer logic over a data queue host ring's bytes,
+// described by ``FastPathDataQueueLayout``.
+//
+// It has no platform dependency, so the layout checks run everywhere Swift does.
 struct FastPathDataQueueRing {
   let entryCount: UInt32
   let stride: UInt32
   let maximumEntrySize: UInt32
 
-  /// Reads and checks the geometry in the header of `bytes`, against `queue` when it is known.
+  // Reads and checks the geometry in the header of `bytes`, against `queue` when it is known.
   init(
     header bytes: UnsafeRawBufferPointer,
     expecting queue: FastPathDataQueue?
@@ -58,8 +58,8 @@ struct FastPathDataQueueRing {
     maximumEntrySize = maximum
   }
 
-  /// Takes the oldest record and passes its payload to `body` in place. Returns nil when the
-  /// ring is empty. The record is released only after `body` returns without throwing.
+  // Takes the oldest record and passes its payload to `body` in place. Returns nil when the
+  // ring is empty. The record is released only after `body` returns without throwing.
   func dequeue<Result>(
     _ bytes: UnsafeMutableRawBufferPointer,
     _ body: (UnsafeRawBufferPointer) throws -> Result
@@ -83,7 +83,7 @@ struct FastPathDataQueueRing {
     return result
   }
 
-  /// Appends one record holding `payload`.
+  // Appends one record holding `payload`.
   func enqueue(
     _ bytes: UnsafeMutableRawBufferPointer,
     _ payload: UnsafeRawBufferPointer
@@ -109,7 +109,7 @@ struct FastPathDataQueueRing {
     Self.release(bytes, FastPathDataQueueLayout.producerOffset, producer &+ 1)
   }
 
-  /// The records waiting for the consumer, or nil when the indices are corrupt.
+  // The records waiting for the consumer, or nil when the indices are corrupt.
   func pending(_ bytes: UnsafeRawBufferPointer) -> UInt32? {
     let used =
       Self.acquire(bytes, FastPathDataQueueLayout.producerOffset)
@@ -129,14 +129,14 @@ struct FastPathDataQueueRing {
     bytes.storeBytes(of: value.littleEndian, toByteOffset: offset, as: UInt32.self)
   }
 
-  /// Loads the other side's index, ordering later record reads after it.
+  // Loads the other side's index, ordering later record reads after it.
   private static func acquire(_ bytes: UnsafeRawBufferPointer, _ offset: Int) -> UInt32 {
     let value = load(bytes, offset)
     fence()
     return value
   }
 
-  /// Stores this side's index, ordering earlier record accesses before it.
+  // Stores this side's index, ordering earlier record accesses before it.
   private static func release(
     _ bytes: UnsafeMutableRawBufferPointer,
     _ offset: Int,
@@ -171,9 +171,10 @@ public final class DriverDataQueue: Sendable {
     self.queue = queue
   }
 
-  /// Takes the oldest entry and passes its payload to `body` without copying. Returns nil when
-  /// the ring is empty. The buffer must not escape `body`. The entry is released when `body`
-  /// returns.
+  /// Takes the oldest entry and passes its payload to `body` without copying.
+  ///
+  /// Returns nil when the ring is empty. The buffer must not escape `body`. The entry is released
+  /// when `body` returns.
   public func dequeue<Result>(_ body: (UnsafeRawBufferPointer) throws -> Result) throws -> Result? {
     try memory.withUnsafeMutableBytes { bytes in
       let ring = try FastPathDataQueueRing(header: UnsafeRawBufferPointer(bytes), expecting: queue)
@@ -181,8 +182,9 @@ public final class DriverDataQueue: Sendable {
     }
   }
 
-  /// Takes the oldest entry as little-endian 64-bit words. Returns nil when the ring is empty.
-  /// Trailing bytes that do not fill a word are dropped.
+  /// Takes the oldest entry as little-endian 64-bit words.
+  ///
+  /// Returns nil when the ring is empty. Trailing bytes that do not fill a word are dropped.
   public func dequeueValues() throws -> [UInt64]? {
     try dequeue { payload in
       stride(from: 0, to: payload.count / 8 * 8, by: 8).map {
@@ -191,11 +193,12 @@ public final class DriverDataQueue: Sendable {
     }
   }
 
-  /// Appends one entry to a ``FastPathDataQueueDirection/toExtension`` ring. Call
-  /// ``DriverContext/notifyDataQueue(_:)`` after one or more appends so the extension takes them.
-  /// Throws ``FastPathDataQueueError/full`` when the extension has not taken enough entries yet,
-  /// and refuses an empty entry or one above the maximum entry size. Use one writer per queue: the
-  /// ring has a single producer.
+  /// Appends one entry to a ``FastPathDataQueueDirection/toExtension`` ring.
+  ///
+  /// Call ``DriverContext/notifyDataQueue(_:)`` after one or more appends so the extension takes
+  /// them. Throws ``FastPathDataQueueError/full`` when the extension has not taken enough entries
+  /// yet, and refuses an empty entry or one above the maximum entry size. Use one writer per queue:
+  /// the ring has a single producer.
   public func enqueue(_ payload: UnsafeRawBufferPointer) throws {
     try memory.withUnsafeMutableBytes { bytes in
       let ring = try FastPathDataQueueRing(header: UnsafeRawBufferPointer(bytes), expecting: queue)
@@ -209,7 +212,9 @@ public final class DriverDataQueue: Sendable {
     }
   }
 
-  /// Appends `values`, eight little-endian bytes each, as one entry. See ``enqueue(_:)``.
+  /// Appends `values`, eight little-endian bytes each, as one entry.
+  ///
+  /// See ``enqueue(_:)``.
   public func enqueueValues(_ values: [UInt64]) throws {
     let bytes = values.flatMap { withUnsafeBytes(of: $0.littleEndian, Array.init) }
     try bytes.withUnsafeBytes { try enqueue($0) }

@@ -3,8 +3,8 @@ import Testing
 
 @testable import SwifterKit
 
-/// The generated extension's fast-path wiring: lifecycle order, interrupt ordering and delivery,
-/// the exactly-once command answer, locking, and the PCI-only build.
+// The generated extension's fast-path wiring: lifecycle order, interrupt ordering and delivery,
+// the exactly-once command answer, locking, and the PCI-only build.
 @Suite
 struct FastPathRuntimeContractTests {
   private static let register = FastPathRegister(bar: 0, offset: 0x10, width: .bits32)

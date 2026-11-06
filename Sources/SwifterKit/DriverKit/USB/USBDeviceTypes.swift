@@ -138,7 +138,7 @@ public struct USBPipeDescriptors: Sendable, Hashable {
   /// The `dwBytesPerInterval` of the SuperSpeedPlus isochronous companion, when present.
   public let superSpeedPlusIsochronousBytesPerInterval: UInt32?
 
-  /// The `bcdUSB` values `AdjustPipe` accepts.
+  // The `bcdUSB` values `AdjustPipe` accepts.
   static let supportedReleases = Set(RuntimeUSBLimits.supportedReleases)
 
   /// Creates endpoint descriptors, for example an adjusted copy for
@@ -155,7 +155,7 @@ public struct USBPipeDescriptors: Sendable, Hashable {
     self.superSpeedPlusIsochronousBytesPerInterval = superSpeedPlusIsochronousBytesPerInterval
   }
 
-  /// The 23-byte `SwifterKitUSBPipeDescriptors` layout.
+  // The 23-byte `SwifterKitUSBPipeDescriptors` layout.
   var runtimePayload: [UInt8] {
     var bytes = [UInt8(truncatingIfNeeded: usbRelease), UInt8(truncatingIfNeeded: usbRelease >> 8)]
     bytes += [

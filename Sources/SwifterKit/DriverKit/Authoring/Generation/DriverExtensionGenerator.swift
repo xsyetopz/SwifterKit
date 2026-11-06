@@ -13,7 +13,7 @@ public struct DriverExtensionGenerationOptions: Sendable, Hashable {
   public init(
     shortVersion: String = "0.1.1",
     buildVersion: String = "1",
-    deploymentTarget: String = "19.0"
+    deploymentTarget: String = "21.0"
   ) {
     self.shortVersion = shortVersion
     self.buildVersion = buildVersion
@@ -58,8 +58,8 @@ public enum DriverExtensionGenerator {
     }
   }
 
-  /// Copies the native template to a staging directory, lets `populate` configure it, and moves
-  /// it to `outputDirectory`.
+  // Copies the native template to a staging directory, lets `populate` configure it, and moves
+  // it to `outputDirectory`.
   static func stage(at outputDirectory: URL, populate: (URL) throws -> Void) throws {
     let fileManager = FileManager.default
     guard !fileManager.fileExists(atPath: outputDirectory.path) else {
@@ -111,7 +111,7 @@ public enum DriverExtensionGenerator {
       throw DriverExtensionGenerationError.invalidVersion
     }
     guard let deploymentVersion = DriverKitDeploymentVersion(options.deploymentTarget),
-      deploymentVersion >= .v19
+      deploymentVersion >= .v21
     else { throw DriverExtensionGenerationError.invalidDeploymentTarget }
 
     let supported = RuntimeCapabilities.hid.union(.usb).union(.pci).union(.serial).union(
@@ -122,7 +122,7 @@ public enum DriverExtensionGenerator {
     guard unsupported.isEmpty else {
       throw DriverExtensionGenerationError.unsupportedCapabilities(unsupported)
     }
-    try validateHID(configuration, deploymentVersion: deploymentVersion)
+    try validateHID(configuration)
     if configuration.capabilities.contains(.usb) {
       guard isValidUSB(configuration) else {
         throw DriverExtensionGenerationError.invalidUSBConfiguration
@@ -167,7 +167,7 @@ public enum DriverExtensionGenerator {
       throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.networking)
     }
     if configuration.capabilities.contains(.audio) {
-      guard let audio = configuration.audioDevice, isValid(audio: audio), deploymentVersion >= .v21,
+      guard let audio = configuration.audioDevice, isValid(audio: audio),
         configuration.capabilities.isDisjoint(with: [
           .hid, .serial, .blockStorage, .midi, .networking,
         ])
@@ -194,7 +194,7 @@ public enum DriverExtensionGenerator {
         ])
       else { throw DriverExtensionGenerationError.invalidSCSIConfiguration }
       if let controller = configuration.scsiController {
-        guard deploymentVersion >= .v20Point4, isValid(scsi: controller) else {
+        guard isValid(scsi: controller) else {
           throw DriverExtensionGenerationError.invalidSCSIConfiguration
         }
       } else if deploymentVersion < .v22 {
@@ -229,9 +229,6 @@ public enum DriverExtensionGenerator {
     }
     do throws(FastPathError) { try configuration.fastPath?.validate(for: configuration) } catch {
       throw DriverExtensionGenerationError.invalidFastPathConfiguration(error)
-    }
-    if configuration.capabilities.contains(.blockStorage), deploymentVersion < .v21 {
-      throw DriverExtensionGenerationError.invalidBlockStorageConfiguration
     }
     if configuration.capabilities.contains(.midi), deploymentVersion < .v24 {
       throw DriverExtensionGenerationError.invalidMIDIConfiguration
@@ -341,7 +338,7 @@ public enum DriverExtensionGenerator {
     )
   }
 
-  /// The IOKit personality dictionary for one configuration.
+  // The IOKit personality dictionary for one configuration.
   static func personality(_ configuration: DriverConfiguration) -> [String: Any] {
     var personality: [String: Any] = [
       "CFBundleIdentifier": "$(PRODUCT_BUNDLE_IDENTIFIER)",
@@ -422,7 +419,7 @@ public enum DriverExtensionGenerator {
     to destination: URL
   ) throws { try writePropertyList(entitlements(configuration), to: destination) }
 
-  /// The entitlements one configuration needs.
+  // The entitlements one configuration needs.
   static func entitlements(_ configuration: DriverConfiguration) -> [String: Any] {
     var entitlements: [String: Any] = ["com.apple.developer.driverkit": true]
     if configuration.capabilities.contains(.hid) {
@@ -493,8 +490,9 @@ public enum DriverExtensionGenerator {
     }
   }
 
-  /// Writes `configuration`'s capabilities, configuration header, and service interface into the
-  /// runtime sources at `sources`.
+  // Writes the capabilities, configuration header, and service interface into runtime sources.
+  //
+  // The sources are the ones at `sources`, and the values come from `configuration`.
   static func configureSources(_ configuration: DriverConfiguration, in sources: URL) throws {
     let header = sources.appendingPathComponent("SwifterKitRuntimeProtocol.h")
     try replace(
@@ -516,7 +514,7 @@ public enum DriverExtensionGenerator {
     )
   }
 
-  /// Replaces the staged project file with `render` applied to its template.
+  // Replaces the staged project file with `render` applied to its template.
   static func renderProject(in directory: URL, render: (String) throws -> String) throws {
     let project = directory.appendingPathComponent("SwifterKitRuntime.xcodeproj/project.pbxproj")
     let template = try String(contentsOf: project, encoding: .utf8)

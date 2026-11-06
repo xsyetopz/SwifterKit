@@ -1,18 +1,18 @@
 import Foundation
 
-/// The HIDDriverKit role a generated runtime plays.
+// The HIDDriverKit role a generated runtime plays.
 enum HIDRuntimeMode: Equatable {
-  /// No HID behavior.
+  // No HID behavior.
   case none
-  /// `IOUserHIDDevice` with a report descriptor from ``HIDDeviceConfiguration``.
+  // `IOUserHIDDevice` with a report descriptor from ``HIDDeviceConfiguration``.
   case device
-  /// `IOUserUSBHostHIDDevice` on a USB HID interface.
+  // `IOUserUSBHostHIDDevice` on a USB HID interface.
   case usbDevice
-  /// `IOUserHIDEventService` on an `IOHIDInterface`.
+  // `IOUserHIDEventService` on an `IOHIDInterface`.
   case eventService
-  /// `IOUserHIDEventDriver` on an `IOHIDInterface`.
+  // `IOUserHIDEventDriver` on an `IOHIDInterface`.
   case eventDriver
-  /// An `IOService` root that creates `IOUserHIDDevice` children at run time.
+  // An `IOService` root that creates `IOUserHIDDevice` children at run time.
   case deviceFactory
 
   init(_ configuration: DriverConfiguration) {
@@ -37,8 +37,8 @@ enum HIDRuntimeMode: Equatable {
 
   var isEventService: Bool { self == .eventService || self == .eventDriver }
 
-  /// Whether the root service itself derives from an HIDDriverKit class and starts through
-  /// `handleStart` instead of `Start`.
+  // Whether the root service itself derives from an HIDDriverKit class and starts through
+  // `handleStart` instead of `Start`.
   var isHIDService: Bool { self != .none && self != .deviceFactory }
 
   var superclass: String? {
@@ -52,7 +52,7 @@ enum HIDRuntimeMode: Equatable {
     }
   }
 
-  /// The kernel class that hosts the generated service, from Apple's own HID personalities.
+  // The kernel class that hosts the generated service, from Apple's own HID personalities.
   var kernelClass: String? {
     switch self {
     case .none, .deviceFactory: nil
@@ -63,10 +63,7 @@ enum HIDRuntimeMode: Equatable {
 }
 
 extension DriverExtensionGenerator {
-  static func validateHID(
-    _ configuration: DriverConfiguration,
-    deploymentVersion: DriverKitDeploymentVersion
-  ) throws {
+  static func validateHID(_ configuration: DriverConfiguration) throws {
     let capabilities = configuration.capabilities
     let roles = [
       configuration.hidDevice != nil, configuration.hidEventService != nil,
@@ -83,7 +80,7 @@ extension DriverExtensionGenerator {
     if let service = configuration.hidEventService {
       guard service.isValid,
         configuration.providerClass == HIDEventServiceConfiguration.providerClass,
-        deploymentVersion >= .v21, capabilities.isDisjoint(with: [.usb, .pci, .interrupts])
+        capabilities.isDisjoint(with: [.usb, .pci, .interrupts])
       else { throw DriverExtensionGenerationError.invalidHIDConfiguration }
     }
     if let factory = configuration.hidDeviceFactory {
@@ -108,14 +105,14 @@ extension DriverExtensionGenerator {
     hid.hasValidFields && hid.reportDescriptor.count <= 65_488
   }
 
-  /// Registry keys an event service's typed matching writes into the personality.
+  // Registry keys an event service's typed matching writes into the personality.
   static func hidReservedKeys(_ configuration: DriverConfiguration) -> Set<String> {
     if configuration.hidDeviceFactory != nil { return [hidDevicePropertiesKey] }
     return configuration.hidEventService == nil
       ? [] : ["DeviceUsagePairs", "VendorID", "ProductID"]
   }
 
-  /// The personality key whose dictionary `IOService::Create` reads for each factory device.
+  // The personality key whose dictionary `IOService::Create` reads for each factory device.
   static let hidDevicePropertiesKey = "HIDDeviceProperties"
 
   static func addHIDPersonality(

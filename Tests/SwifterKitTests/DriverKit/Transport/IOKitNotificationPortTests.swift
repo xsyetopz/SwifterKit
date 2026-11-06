@@ -4,8 +4,8 @@
 
   @testable import SwifterKit
 
-  /// Exercises the callout bridge by invoking the registered callout directly, as
-  /// `IODispatchCalloutFromMessage` does. No extension sends a real completion here.
+  // Exercises the callout bridge by invoking the registered callout directly, as
+  // `IODispatchCalloutFromMessage` does. No extension sends a real completion here.
   @Suite
   struct IOKitNotificationPortTests {
     @Test

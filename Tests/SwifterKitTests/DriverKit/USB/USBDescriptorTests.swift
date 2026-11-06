@@ -5,7 +5,7 @@ import Testing
 
 @Suite
 struct USBDescriptorTests {
-  /// A configuration with one vendor interface, a class-specific descriptor, and two endpoints.
+  // A configuration with one vendor interface, a class-specific descriptor, and two endpoints.
   static let configuration: [UInt8] = [
     9, 0x02, 39, 0, 1, 1, 4, 0x80, 50, 9, 0x04, 0, 0, 2, 0xFF, 1, 2, 5, 5, 0x24, 0, 0, 0, 7, 0x05,
     0x81, 0x02, 0x00, 0x02, 0, 7, 0x05, 0x02, 0x03, 0x40, 0x00, 4, 2, 0x30,

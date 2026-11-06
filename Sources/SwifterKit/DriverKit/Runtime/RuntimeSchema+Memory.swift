@@ -6,68 +6,75 @@
 // `SwifterKitRuntimeProtocol.h`, `SwifterKitRuntimeMemory.cpp`, and
 // `SwifterKitRuntimeClients.cpp` read, so neither side spells a value twice.
 
-/// Bounds and payload sizes the memory commands share with the extension.
+// Bounds and payload sizes the memory commands share with the extension.
 enum RuntimeMemoryLimits {
-  /// The largest memory handle. Handles fit the client-memory identifier field and wrap to 1.
+  // The largest memory handle.
+  //
+  // Handles fit the client-memory identifier field and wrap to 1.
   static let maximumHandle = UInt64(RuntimeClientMemoryType.identifierMask)
-  /// The most descriptors one chain concatenates, the `CreateWithMemoryDescriptors` array size.
+  // The most descriptors one chain concatenates, the `CreateWithMemoryDescriptors` array size.
   static let maximumChainLength = 32
-  /// The bytes of `SwifterKitMemorySubrangeHeader`: handle, offset, length, direction, reserved.
+  // The bytes of `SwifterKitMemorySubrangeHeader`: handle, offset, length, direction, reserved.
   static let subrangeHeaderSize = 32
-  /// The bytes of `SwifterKitMemoryChainHeader`, which precedes the chained handles.
+  // The bytes of `SwifterKitMemoryChainHeader`, which precedes the chained handles.
   static let chainHeaderSize = 8
-  /// The most host address segments one wrap names, the `CreateMemoryDescriptorFromClient`
-  /// array size.
+  // The most host address segments one wrap names, the `CreateMemoryDescriptorFromClient`
+  // array size.
   static let maximumClientSegments = 32
-  /// The bytes of `SwifterKitMemoryClientHeader`, which precedes the segments.
+  // The bytes of `SwifterKitMemoryClientHeader`, which precedes the segments.
   static let clientHeaderSize = 8
-  /// The bytes of one segment: a 64-bit address and a 64-bit length, as `IOAddressSegment`.
+  // The bytes of one segment: a 64-bit address and a 64-bit length, as `IOAddressSegment`.
   static let clientSegmentSize = 16
 }
 
-/// The `IOReturn` values memory commands answer with that Swift maps to a typed error. The
-/// extension asserts each against its `IOReturn.h` name.
+// The status codes memory commands answer with that Swift maps to a typed error.
+//
+// The extension asserts each against its `IOReturn.h` name.
 enum RuntimeMemoryStatus: UInt32, CaseIterable {
-  /// A release names an entry that a subrange or chain still uses: `kIOReturnBusy`.
+  // A release names an entry that a subrange or chain still uses: `kIOReturnBusy`.
   case inUse = 0xE000_02D5
-  /// A command or host mapping names wrapped host memory, or a subrange or chain built from it,
-  /// that another user client wrapped: `kIOReturnNotPermitted`.
+  // A command or host mapping names wrapped host memory, or a subrange or chain built from it,
+  // that another user client wrapped: `kIOReturnNotPermitted`.
   case notOwner = 0xE000_02E2
 
-  /// The status as the transport reports it in ``DriverKitError/Kind/ioReturn(_:)``.
+  // The status as the transport reports it in ``DriverKitError/Kind/ioReturn(_:)``.
   var ioReturn: Int32 { Int32(bitPattern: rawValue) }
 }
 
-/// What a client-memory type maps, stored in its top bits.
+// What a client-memory type maps, stored in its top bits.
 enum RuntimeClientMemoryKind: UInt32, CaseIterable {
-  /// A runtime memory-pool entry. The identifier is its ``DriverMemoryHandle``.
+  // A runtime memory-pool entry. The identifier is its ``DriverMemoryHandle``.
   case memoryBuffer = 1
-  /// A networking packet pool. The identifier is an ``EthernetPacketPool`` value.
+  // A networking packet pool. The identifier is an ``EthernetPacketPool`` value.
   case packetPool = 2
-  /// A fast-path ring. The identifier is its ``FastPathRing/id``.
+  // A fast-path ring. The identifier is its ``FastPathRing/id``.
   case ring = 3
-  /// A fast-path data queue's host ring. The identifier is its ``FastPathDataQueue/id``.
+  // A fast-path data queue's host ring. The identifier is its ``FastPathDataQueue/id``.
   case dataQueue = 4
 }
 
-/// The 32-bit `memoryType` of `IOConnectMapMemory64`: a kind above a 24-bit identifier.
+// The 32-bit `memoryType` of `IOConnectMapMemory64`: a kind above a 24-bit identifier.
 struct RuntimeClientMemoryType: Hashable, Sendable {
-  /// The bit position of the kind.
+  // The bit position of the kind.
   static let kindShift = 24
-  /// The identifier bits below the kind.
+  // The identifier bits below the kind.
   static let identifierMask: UInt32 = 0xFF_FFFF
 
-  /// The encoded memory type.
+  // The encoded memory type.
   let rawValue: UInt32
 
-  /// Encodes `identifier` under `kind`. Returns nil when the identifier does not fit.
+  // Encodes an identifier under a kind.
+  //
+  // Returns nil when the identifier does not fit.
   init?(kind: RuntimeClientMemoryKind, identifier: UInt64) {
     guard identifier <= UInt64(Self.identifierMask) else { return nil }
     rawValue = kind.rawValue << Self.kindShift | UInt32(identifier)
   }
 }
 
-/// Networking packet pools as client-memory identifiers. The public type carries the wire values.
+// Networking packet pools as client-memory identifiers.
+//
+// The public type carries the wire values.
 typealias RuntimePacketPool = EthernetPacketPool
 
 extension RuntimeSchemaHeader {

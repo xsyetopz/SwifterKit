@@ -158,8 +158,10 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Enqueues an asynchronous request on the default control endpoint and returns its request
-  /// identifier. Calls `IOUSBHostDevice::AsyncDeviceRequest` or
-  /// `IOUSBHostInterface::AsyncDeviceRequest`, depending on the provider.
+  /// identifier.
+  ///
+  /// Calls `IOUSBHostDevice::AsyncDeviceRequest` or `IOUSBHostInterface::AsyncDeviceRequest`,
+  /// depending on the provider.
   ///
   /// The result arrives in a ``USBDeviceRequestCompletion`` event, decoded with
   /// ``DriverEvent/usb()``, and can arrive before this call returns. Cancel outstanding requests
@@ -186,7 +188,9 @@ extension DriverContext {
   }
 
   /// Submits consecutive IN transfers from a pipe's descriptor ring and returns how many the pipe
-  /// accepted. Calls `IOUSBHostPipe::AsyncIOBundled`.
+  /// accepted.
+  ///
+  /// Calls `IOUSBHostPipe::AsyncIOBundled`.
   public func usbEnqueueBundledReads(
     endpoint: UInt8,
     firstIndex: Int,
@@ -230,7 +234,9 @@ extension DriverContext {
     _ = try await execute(.usbReleaseBundleRing(endpoint: endpoint))
   }
 
-  /// Changes the bandwidth a periodic endpoint reserves. Calls `IOUSBHostPipe::AdjustPipe`.
+  /// Changes the bandwidth a periodic endpoint reserves.
+  ///
+  /// Calls `IOUSBHostPipe::AdjustPipe`.
   public func usbAdjustPipe(endpoint: UInt8, descriptors: USBPipeDescriptors) async throws {
     _ = try await execute(.usbAdjustPipe(endpoint: endpoint, descriptors: descriptors))
   }

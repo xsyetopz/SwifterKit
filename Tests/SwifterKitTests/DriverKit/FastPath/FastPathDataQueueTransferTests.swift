@@ -3,13 +3,17 @@ import Testing
 
 @testable import SwifterKit
 
-/// Runs `SwifterKitRuntimeFastPathDataQueueTransfer.h` on the host against a fake staging queue:
-/// - The extension's doorbell move out of a to-extension host ring.
-/// - Its corrupt-ring refusals.
-/// - The data-available consumer that runs the interpreter on each entry.
+// Runs `SwifterKitRuntimeFastPathDataQueueTransfer.h` on the host against a fake staging queue.
+//
+// The harness checks:
+// - The extension's doorbell move out of a to-extension host ring.
+// - Its corrupt-ring refusals.
+// - The data-available consumer that runs the interpreter on each entry.
 @Suite
 struct FastPathDataQueueTransferTests {
-  /// Queue 4 holds 64 records of 64 bytes (32-byte entries). Program 0 consumes it.
+  // Queue 4 holds 64 records of 64 bytes (32-byte entries).
+  //
+  // Program 0 consumes it.
   static let configuration = FastPathConfiguration(
     programs: [
       FastPathProgram(

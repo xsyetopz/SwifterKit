@@ -1,11 +1,12 @@
 import Foundation
 
-/// Assigns clang-resolved native uses to the members the SDK headers declare.
+// Assigns clang-resolved native uses to the members the SDK headers declare.
 struct CoverageEvidence {
-  /// The evidence for each member, keyed by `MemberKey`.
+  // The evidence for each member, keyed by `MemberKey`.
   private(set) var members: [MemberKey: Set<String>] = [:]
-  /// Uses of DriverKit classes that match no member, such as calls the IIG headers do not
-  /// declare. SwifterKit's own classes are not listed.
+  // Uses of DriverKit classes that match no member.
+  //
+  // These include calls the IIG headers do not declare. SwifterKit's own classes are not listed.
   private(set) var unresolved: Set<NativeUse> = []
 
   struct MemberKey: Hashable, Comparable {
@@ -57,8 +58,10 @@ struct CoverageEvidence {
     }
   }
 
-  /// The overrides of `key` that classes below `receiver` declare, for the classes in `held`.
-  /// A call through a `receiver` pointer reaches the override of the object's class.
+  // The overrides of a member that classes below its receiver declare.
+  //
+  // Only the classes in `held` count. A call through a `receiver` pointer reaches the override of
+  // the object's class.
   private static func overrides(
     of key: MemberKey,
     named name: String,
@@ -81,9 +84,11 @@ struct CoverageEvidence {
     }
   }
 
-  /// The declarations above `key` that it overrides: the members of its superclasses with its
-  /// name and parameters. An override of `key` overrides each of them, as an override of
-  /// `IOUserHIDEventService::SetProperties` overrides `IOHIDEventService::SetProperties`.
+  // The declarations above a member that it overrides.
+  //
+  // These are the members of its superclasses with its name and parameters. An override of `key`
+  // overrides each of them, as an override of `IOUserHIDEventService::SetProperties` overrides
+  // `IOHIDEventService::SetProperties`.
   private static func overridden(
     _ key: MemberKey,
     named name: String,
@@ -103,9 +108,11 @@ struct CoverageEvidence {
     return result
   }
 
-  /// The classes to resolve a use attributed to `name` from. IIG declares the methods of a
-  /// `LOCALONLY` class again on a generated `<Class>Interface` base, and clang resolves calls
-  /// through a pointer to the class to that declaration, so `<Class>` follows `name`.
+  // The classes to resolve a use attributed to a class name from.
+  //
+  // IIG declares the methods of a `LOCALONLY` class again on a generated `<Class>Interface` base,
+  // and clang resolves calls through a pointer to the class to that declaration, so `<Class>`
+  // follows `name`.
   private static func declaringClasses(
     _ name: String,
     classes: [String: Coverage.Class]
@@ -115,8 +122,8 @@ struct CoverageEvidence {
     return classes[declaring] == nil ? [name] : [name, declaring]
   }
 
-  /// The member `use` reaches: the nearest class, starting at `start`, that declares the
-  /// method, and the overload whose parameters match.
+  // The member `use` reaches: the nearest class, starting at `start`, that declares the
+  // method, and the overload whose parameters match.
   private static func resolve(
     _ use: NativeUse,
     from start: String,
@@ -135,8 +142,9 @@ struct CoverageEvidence {
     return nil
   }
 
-  /// The candidate whose parameters match `use`, or the only candidate with as many parameters.
-  /// An IIG override has no C++ parameters to compare, so it needs a single candidate.
+  // The candidate whose parameters match the use, or the only one with as many parameters.
+  //
+  // An IIG override has no C++ parameters to compare, so it needs a single candidate.
   private static func overload(
     of use: NativeUse,
     in candidates: [Coverage.Method]

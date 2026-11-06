@@ -105,7 +105,9 @@ extension DriverContext {
     return ServiceTimer(id: try Self.identifier(from: try await execute(command)))
   }
 
-  /// Cancels a timer. Fails with `kIOReturnNotFound` once a one-shot timer has fired.
+  /// Cancels a timer.
+  ///
+  /// Fails with `kIOReturnNotFound` once a one-shot timer has fired.
   public func cancelTimer(_ timer: ServiceTimer) async throws {
     _ = try await execute(try .cancelTimer(timer))
   }

@@ -2,18 +2,18 @@ import Foundation
 
 @testable import SwifterKit
 
-/// A runtime connection that models the extension's event queue and notification rule.
-///
-/// It follows the native contract in `SwifterKitRuntimeEvents.cpp`:
-/// - A poll that finds the queue empty arms the registration.
-/// - An enqueue that finds it armed disarms it and sends one notification.
-/// - Registration arms, or notifies at once when events are already queued.
+// A runtime connection that models the extension's event queue and notification rule.
+//
+// It follows the native contract in `SwifterKitRuntimeEvents.cpp`:
+// - A poll that finds the queue empty arms the registration.
+// - An enqueue that finds it armed disarms it and sends one notification.
+// - Registration arms, or notifies at once when events are already queued.
 actor EventSourceConnection: DriverConnection {
   let capabilities: RuntimeCapabilities
   private var queue: [DriverEvent] = []
   private var armed = false
   private var continuation: AsyncStream<Void>.Continuation?
-  /// Events the next empty poll queues after it arms, before it answers.
+  // Events the next empty poll queues after it arms, before it answers.
   private var afterEmptyPoll: [DriverEvent] = []
   private var failNextPoll = false
   private(set) var pollCount = 0
@@ -27,7 +27,7 @@ actor EventSourceConnection: DriverConnection {
     self.queue = events
   }
 
-  /// Queues an event as a DriverKit callback would.
+  // Queues an event as a DriverKit callback would.
   func enqueue(_ event: DriverEvent) {
     queue.append(event)
     guard armed, let continuation else { return }
@@ -36,13 +36,13 @@ actor EventSourceConnection: DriverConnection {
     continuation.yield()
   }
 
-  /// Queues `events` during the next empty poll, after it arms and before it answers.
+  // Queues `events` during the next empty poll, after it arms and before it answers.
   func enqueueAfterNextEmptyPoll(_ events: [DriverEvent]) { afterEmptyPoll = events }
 
-  /// Makes the next poll fail as a connection closed while the request was in flight.
+  // Makes the next poll fail as a connection closed while the request was in flight.
   func failNextPollAsClosed() { failNextPoll = true }
 
-  /// Sends a notification regardless of the armed flag.
+  // Sends a notification regardless of the armed flag.
   func signal() { continuation?.yield() }
 
   func notifications(selector: UInt32) throws -> AsyncStream<Void> {
@@ -127,7 +127,7 @@ actor EventSourceConnection: DriverConnection {
   }
 }
 
-/// Yields until `condition` holds, returning false if it never does.
+// Yields until `condition` holds, returning false if it never does.
 func eventually(_ condition: @Sendable () async -> Bool) async -> Bool {
   for _ in 0..<10_000 {
     if await condition() { return true }

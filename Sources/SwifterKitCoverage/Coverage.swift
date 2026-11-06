@@ -1,41 +1,43 @@
 import Foundation
 
-/// How SwifterKit handles one DriverKit member function.
+// How SwifterKit handles one DriverKit member function.
 enum CoverageStatus: CaseIterable, Comparable {
-  /// Public in the header and not reachable from Swift.
+  // Public in the header and not reachable from Swift.
   case gap
-  /// Called or overridden by the generated extension runtime.
+  // Called or overridden by the generated extension runtime.
   case generated
-  /// Reached by the runtime on behalf of a Swift API whose documentation names the member.
+  // Reached by the runtime on behalf of a Swift API whose documentation names the member.
   case swiftAPI
-  /// Not reachable from Swift. `excludedBy` says whose decision that is and `note` gives the
-  /// reason.
+  // Not reachable from Swift. `excludedBy` says whose decision that is and `note` gives the
+  // reason.
   case excluded
 }
 
-/// Who keeps an excluded member out of Swift's reach.
+// Who keeps an excluded member out of Swift's reach.
 enum ExclusionSource {
-  /// Apple's header keeps the member from DriverKit clients, as the note quotes.
+  // Apple's header keeps the member from DriverKit clients, as the note quotes.
   case apple
-  /// SwifterKit chose not to expose a member that DriverKit clients can use.
+  // SwifterKit chose not to expose a member that DriverKit clients can use.
   case swifterkit
 }
 
-/// Every DriverKit class and member function that the given SDKs declare, and how SwifterKit
-/// handles each one. Built anew on every run from Apple's headers, clang's evidence, and the
-/// Swift sources; nothing here is stored.
+// Every DriverKit class and member function that the given SDKs declare, and how SwifterKit
+// handles each one.
+//
+// Built anew on every run from Apple's headers, clang's evidence, and the Swift sources; nothing
+// here is stored.
 struct Coverage: Equatable {
   struct Method: Equatable {
     var signature: String
     var name: String
     var access: IIGMethod.Access
     var conditions: [String]
-    /// SDK versions that declare this member.
+    // SDK versions that declare this member.
     var sdks: [String]
     var status: CoverageStatus = .gap
     var note: String?
-    /// `File: Class::function` for each runtime function that clang shows calling or
-    /// overriding the member.
+    // `File: Class::function` for each runtime function that clang shows calling or
+    // overriding the member.
     var evidence: [String]?
     var excludedBy: ExclusionSource?
   }
@@ -48,19 +50,21 @@ struct Coverage: Equatable {
     var methods: [Method]
   }
 
-  /// A member that SwifterKit chose not to expose, and why.
+  // A member that SwifterKit chose not to expose, and why.
   struct Exclusion: Hashable {
     let className: String
     let signature: String
     let reason: String
   }
 
-  /// The SDK versions the coverage was read from, oldest first.
+  // The SDK versions the coverage was read from, oldest first.
   var sdks: [String] = []
   var classes: [Class] = []
 
-  /// Reads the members every surface declares. Members a header keeps from DriverKit clients
-  /// start excluded by Apple and all others start as gaps.
+  // Reads the members every surface declares.
+  //
+  // Members a header keeps from DriverKit clients start excluded by Apple and all others start as
+  // gaps.
   init(_ surfaces: [SDKSurface]) {
     var byClass: [String: Class] = [:]
     for surface in surfaces.sorted(by: { compareVersions($0.version, $1.version) }) {
@@ -117,7 +121,7 @@ struct Coverage: Equatable {
     }.sorted { ($0.framework, $0.name) < ($1.framework, $1.name) }
   }
 
-  /// The header text that keeps a declaration from DriverKit clients, if any.
+  // The header text that keeps a declaration from DriverKit clients, if any.
   static func headerReason(_ method: Method) -> String? {
     if method.access == .private { return "declared private in the SDK header" }
     let excluded: Set = [
@@ -130,11 +134,11 @@ struct Coverage: Equatable {
     return nil
   }
 
-  /// The coverage with each public member's status decided by `evidence`, the `Class::member`
-  /// names in Swift documentation, and SwifterKit's exclusions.
-  ///
-  /// A member the runtime reaches is `swiftAPI` when the documentation names it and `generated`
-  /// otherwise. An exclusion applies only to a public member the runtime does not reach.
+  // The coverage with each public member's status decided by `evidence`, the `Class::member`
+  // names in Swift documentation, and SwifterKit's exclusions.
+  //
+  // A member the runtime reaches is `swiftAPI` when the documentation names it and `generated`
+  // otherwise. An exclusion applies only to a public member the runtime does not reach.
   func applying(
     _ evidence: CoverageEvidence,
     documented: Set<CoverageEvidence.MemberKey> = [],
@@ -169,7 +173,7 @@ struct Coverage: Equatable {
   }
 }
 
-/// Orders SDK versions numerically, such as 24.4 before 25.5.
+// Orders SDK versions numerically, such as 24.4 before 25.5.
 func compareVersions(_ lhs: String, _ rhs: String) -> Bool {
   let left = lhs.split(separator: ".").map { Int($0) ?? 0 }
   let right = rhs.split(separator: ".").map { Int($0) ?? 0 }

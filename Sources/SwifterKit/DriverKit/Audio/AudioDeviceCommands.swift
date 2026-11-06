@@ -1,7 +1,7 @@
 import Foundation
 
 extension DriverCommand {
-  /// The largest stream table, control-selector list, and channel layout the runtime accepts.
+  // The largest stream table, control-selector list, and channel layout the runtime accepts.
   static let audioMaximumStreams = UInt32(RuntimeAudioLimits.maximumStreams)
   static let audioMaximumSelectorItems = RuntimeAudioLimits.maximumSelectorItems
   static let audioMaximumChannelLabels = RuntimeAudioLimits.maximumChannelLabels
@@ -198,6 +198,7 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads device state that has no other typed reader.
+  ///
   /// Calls `IOUserAudioDevice::CanBeDefaultInputDevice`,
   /// `IOUserAudioDevice::CanBeDefaultOutputDevice`,
   /// `IOUserAudioDevice::CanBeDefaultSystemOutputDevice`,
@@ -209,6 +210,7 @@ extension DriverContext {
   }
 
   /// Changes one `IOUserAudioDevice` property.
+  ///
   /// Calls `IOUserAudioDevice::SetCanBeDefaultInputDevice`,
   /// `IOUserAudioDevice::SetCanBeDefaultOutputDevice`,
   /// `IOUserAudioDevice::SetCanBeDefaultSystemOutputDevice`,
@@ -220,6 +222,7 @@ extension DriverContext {
   }
 
   /// Sets the device's preferred input or output channel layout.
+  ///
   /// Calls `IOUserAudioDevice::SetPreferredInputChannelLayout` and
   /// `IOUserAudioDevice::SetPreferredOutputChannelLayout`.
   public func audioSetPreferredChannelLayout(
@@ -230,6 +233,7 @@ extension DriverContext {
   }
 
   /// Reads the state, formats, and memory length of a configured stream.
+  ///
   /// Calls `IOUserAudioStream::GetAvailableStreamFormats`,
   /// `IOUserAudioStream::GetIOMemoryDescriptor`, `IOUserAudioStream::GetLatency`,
   /// `IOUserAudioStream::GetNumberAvailableStreamFormats`, `IOUserAudioStream::GetStartingChannel`,
@@ -240,6 +244,7 @@ extension DriverContext {
   }
 
   /// Changes one property of a configured stream.
+  ///
   /// Calls `IOUserAudioStream::SetIOMemoryDescriptor`, `IOUserAudioStream::SetLatency`,
   /// `IOUserAudioStream::SetStartingChannel`, `IOUserAudioStream::SetStreamIsActive` and
   /// `IOUserAudioStream::SetTerminalType`.
@@ -248,6 +253,7 @@ extension DriverContext {
   }
 
   /// Reads the scope, element, range, channels, and selector items of a configured control.
+  ///
   /// Calls `IOUserAudioControl::GetControlElement`, `IOUserAudioControl::GetControlScope`,
   /// `IOUserAudioControl::GetIsSettable` and `IOUserAudioSelectorControl::GetControlValuesCount`.
   public func audioControlInfo(identifier: UInt32) async throws -> AudioControlInfo {
@@ -263,12 +269,14 @@ extension DriverContext {
   }
 
   /// Removes items from a selector control by value.
+  ///
   /// Calls `IOUserAudioSelectorControl::RemoveControlValueDescriptions`.
   public func audioRemoveSelectorItems(identifier: UInt32, values: [UInt32]) async throws {
     _ = try await execute(.audioRemoveSelectorItems(identifier: identifier, values: values))
   }
 
   /// Reads the selector, data types, and owner of a configured custom property.
+  ///
   /// Calls `IOUserAudioCustomProperty::GetCustomPropertyInfo`.
   public func audioCustomPropertyInfo(identifier: UInt32) async throws -> AudioCustomPropertyInfo {
     try AudioCustomPropertyInfo(
@@ -277,6 +285,7 @@ extension DriverContext {
   }
 
   /// Adds a configured stream, control, or custom property to its owner, or removes it.
+  ///
   /// Calls `IOUserAudioDevice::RemoveStream` and `IOUserAudioDriver::RemoveCustomProperty`.
   public func audioSetMemberAttachment(_ member: AudioMember, owner: AudioMemberOwner) async throws
   { _ = try await execute(.audioSetMemberAttachment(member, owner: owner)) }

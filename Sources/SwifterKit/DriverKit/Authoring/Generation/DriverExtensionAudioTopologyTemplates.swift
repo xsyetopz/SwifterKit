@@ -1,7 +1,7 @@
 import Foundation
 
 extension DriverExtensionGenerator {
-  /// Renders the box and clock-device tables that `StartAudioObjects` creates objects from.
+  // Renders the box and clock-device tables that `StartAudioObjects` creates objects from.
   static func audioTopologyDeclarations(_ audio: AudioDeviceConfiguration?) -> String {
     let boxes = audio?.boxes ?? []
     let clocks = audio?.clockDevices ?? []

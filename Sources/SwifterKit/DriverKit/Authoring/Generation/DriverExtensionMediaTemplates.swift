@@ -1,6 +1,6 @@
 import Foundation
 
-/// One row of the control table that the audio and video runtimes share.
+// One row of the control table that the audio and video runtimes share.
 struct MediaControlTableRow {
   var kind: UInt32
   var identifier: UInt32
@@ -14,11 +14,11 @@ struct MediaControlTableRow {
   var maximum: UInt32 = 0
   var auxiliary0: UInt32 = 0
   var auxiliary1: UInt32 = 0
-  /// The selector items and initial selections of a selector control.
+  // The selector items and initial selections of a selector control.
   var selector: (values: [(value: UInt32, name: String)], initialValues: [UInt32])?
 }
 
-/// One row of the custom-property table that the audio and video runtimes share.
+// One row of the custom-property table that the audio and video runtimes share.
 struct MediaCustomPropertyTableRow {
   var identifier: UInt32
   var selector: UInt32
@@ -29,7 +29,7 @@ struct MediaCustomPropertyTableRow {
 }
 
 extension DriverExtensionGenerator {
-  /// Declares the control, selector, and custom-property structs for `family`.
+  // Declares the control, selector, and custom-property structs for `family`.
   static func mediaControlStructDeclarations(family: String) -> String {
     """
     struct SwifterKit\(family)ControlConfiguration {
@@ -70,7 +70,7 @@ extension DriverExtensionGenerator {
     """
   }
 
-  /// Declares the box struct for `family`.
+  // Declares the box struct for `family`.
   static func mediaBoxStructDeclaration(family: String) -> String {
     """
     struct SwifterKit\(family)BoxConfiguration {
@@ -89,7 +89,7 @@ extension DriverExtensionGenerator {
     """
   }
 
-  /// Renders empty control and custom-property tables for a family without a device.
+  // Renders empty control and custom-property tables for a family without a device.
   static func mediaEmptyControlTables(family: String) -> String {
     let type = "SwifterKit\(family)"
     let name = "kSwifterKit\(family)"
@@ -107,7 +107,7 @@ extension DriverExtensionGenerator {
       """
   }
 
-  /// Renders the control, selector, and custom-property tables for `family`.
+  // Renders the control, selector, and custom-property tables for `family`.
   static func mediaControlTables(
     family: String,
     controls: [MediaControlTableRow],

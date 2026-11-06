@@ -3,11 +3,11 @@ import Testing
 
 @testable import SwifterKit
 
-/// The generated extension's client-memory wiring:
-/// - The user client forwards each mapping once.
-/// - The service validates the type and identifier.
-/// - Subranges and chains retain their sources and keep them from being released.
-/// - Memory- and networking-enabled extensions build.
+// The generated extension's client-memory wiring:
+// - The user client forwards each mapping once.
+// - The service validates the type and identifier.
+// - Subranges and chains retain their sources and keep them from being released.
+// - Memory- and networking-enabled extensions build.
 @Suite
 struct ClientMemoryRuntimeContractTests {
   private static func checkedIn(_ name: String) throws -> String {

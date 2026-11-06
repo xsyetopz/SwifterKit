@@ -16,7 +16,7 @@ public struct FastPathRegister: Sendable, Hashable {
     /// The access size in bytes.
     public var byteCount: Int { Int(rawValue) }
 
-    /// The largest value the register holds.
+    // The largest value the register holds.
     var mask: UInt64 { self == .bits64 ? .max : (1 << (UInt64(rawValue) * 8)) - 1 }
   }
 
@@ -114,8 +114,10 @@ public struct FastPathCondition: Sendable, Hashable {
   }
 }
 
-/// One step of a fast-path program. The set is closed and every operation terminates: there are
-/// no loops, only bounded polls and forward skips.
+/// One step of a fast-path program.
+///
+/// The set is closed and every operation terminates: there are no loops, only bounded polls and
+/// forward skips.
 public enum FastPathOp: Sendable, Hashable {
   /// Reads a register into a slot, zero-extended.
   case read(FastPathRegister, into: FastPathSlot)

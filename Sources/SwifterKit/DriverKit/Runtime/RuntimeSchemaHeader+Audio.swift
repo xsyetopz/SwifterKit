@@ -1,4 +1,4 @@
-/// Renders the audio schema declarations under the native names the extension uses.
+// Renders the audio schema declarations under the native names the extension uses.
 extension RuntimeSchemaHeader {
   static func audioSections() -> [[String]] {
     let audio = RuntimeAudioLimits.self

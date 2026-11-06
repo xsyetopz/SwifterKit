@@ -1,17 +1,17 @@
-/// Renders the per-family schema declarations, each under the native name the extension uses.
+// Renders the per-family schema declarations, each under the native name the extension uses.
 extension RuntimeSchemaHeader {
-  /// The family sections, in header order. `render()` separates them with blank lines.
+  // The family sections, in header order. `render()` separates them with blank lines.
   static func familySections() -> [[String]] {
     serviceSections() + storageSections() + midiSections() + usbSections() + networkSections()
       + audioSections() + videoSections()
   }
 
-  /// `static constexpr` declarations of one native type, from name and value pairs.
+  // `static constexpr` declarations of one native type, from name and value pairs.
   static func constants(_ type: String, _ entries: [(name: String, value: String)]) -> [String] {
     entries.map { constant(type, $0.name, $0.value) }
   }
 
-  /// An `enum class` whose cases take the native names of a Swift enumeration's cases.
+  // An `enum class` whose cases take the native names of a Swift enumeration's cases.
   static func enumeration<Value: RawRepresentable>(
     _ name: String,
     type: String,
@@ -20,7 +20,7 @@ extension RuntimeSchemaHeader {
     enumeration(name, type: type, cases: cases.map { (nativeName($0), "\($0.rawValue)") })
   }
 
-  /// `static constexpr` declarations named `prefix` plus each case's native name.
+  // `static constexpr` declarations named `prefix` plus each case's native name.
   static func constants<Value: RawRepresentable>(
     _ prefix: String,
     type: String,
@@ -29,8 +29,8 @@ extension RuntimeSchemaHeader {
     constants(type, cases.map { (prefix + nativeName($0), "\($0.rawValue)") })
   }
 
-  /// `static constexpr` bit masks named `prefix` plus each case's native name, then `allName`
-  /// with every bit set.
+  // `static constexpr` bit masks named `prefix` plus each case's native name, then `allName`
+  // with every bit set.
   static func bits<Value: CaseIterable & RawRepresentable>(
     _ prefix: String,
     _ type: Value.Type,
@@ -44,7 +44,7 @@ extension RuntimeSchemaHeader {
     )
   }
 
-  /// Concatenates declaration groups that share one section.
+  // Concatenates declaration groups that share one section.
   static func joined(_ groups: [String]...) -> [String] { groups.flatMap { $0 } }
 
   private static func serviceSections() -> [[String]] {
@@ -211,7 +211,7 @@ extension RuntimeSchemaHeader {
     ]
   }
 
-  /// The HID sections, which `renderHID()` writes to their own header.
+  // The HID sections, which `renderHID()` writes to their own header.
   static func hidSections() -> [[String]] {
     let hid = RuntimeHIDLimits.self
     let collectionAll =

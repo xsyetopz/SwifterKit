@@ -1,7 +1,7 @@
 import Foundation
 
 extension DriverExtensionGenerator {
-  /// The terminal metadata of an `IOUserSerial` or `IOUserUSBSerial` service.
+  // The terminal metadata of an `IOUserSerial` or `IOUserUSBSerial` service.
   static func serialTerminal(
     _ configuration: DriverConfiguration
   ) -> (baseName: String, suffix: String, modem: SerialModemStatus)? {

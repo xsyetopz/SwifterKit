@@ -1,7 +1,7 @@
 import Foundation
 
 extension DriverCommand {
-  /// The largest stream table, buffer table, selector list, and channel layout the runtime accepts.
+  // The largest stream table, buffer table, selector list, and channel layout the runtime accepts.
   static let videoMaximumStreams = UInt32(RuntimeVideoLimits.maximumStreams)
   static let videoMaximumBuffers = UInt32(RuntimeVideoLimits.maximumBuffers)
   static let videoMaximumSelectorItems = RuntimeVideoLimits.maximumSelectorItems
@@ -245,6 +245,7 @@ extension DriverContext {
   }
 
   /// Reads device state that has no other typed reader.
+  ///
   /// Calls `IOUserVideoDevice::CanBeDefaultInputDevice`,
   /// `IOUserVideoDevice::CanBeDefaultOutputDevice`,
   /// `IOUserVideoDevice::CanBeDefaultSystemOutputDevice`,
@@ -256,6 +257,7 @@ extension DriverContext {
   }
 
   /// Changes one `IOUserVideoDevice` property.
+  ///
   /// Calls `IOUserVideoDevice::SetCanBeDefaultInputDevice`,
   /// `IOUserVideoDevice::SetCanBeDefaultOutputDevice`,
   /// `IOUserVideoDevice::SetCanBeDefaultSystemOutputDevice`,
@@ -266,6 +268,7 @@ extension DriverContext {
   }
 
   /// Sets the device's preferred input or output channel layout.
+  ///
   /// Calls `IOUserVideoDevice::SetPreferredInputChannelLayout` and
   /// `IOUserVideoDevice::SetPreferredOutputChannelLayout`.
   public func videoSetPreferredChannelLayout(
@@ -276,6 +279,7 @@ extension DriverContext {
   }
 
   /// Reads the state, formats, queues, and buffer list of a configured stream.
+  ///
   /// Calls `IOUserVideoStream::GetAvailableStreamFormats`, `IOUserVideoStream::GetBufferCount`,
   /// `IOUserVideoStream::GetBufferList`, `IOUserVideoStream::GetInputQueue`,
   /// `IOUserVideoStream::GetInputQueueMemoryDescriptor`,
@@ -288,6 +292,7 @@ extension DriverContext {
   }
 
   /// Changes one property of a configured stream.
+  ///
   /// Calls `IOUserVideoBuffer::SetControlMemoryDescriptor`,
   /// `IOUserVideoBuffer::SetDataMemoryDescriptor`, `IOUserVideoStream::SetStartingChannel`,
   /// `IOUserVideoStream::SetStreamIsActive`, `IOUserVideoStream::SetTerminalType`,
@@ -297,6 +302,7 @@ extension DriverContext {
   }
 
   /// Reads the identity and memory of a configured buffer.
+  ///
   /// Calls `IOUserVideoBuffer::GetBaseClassID`, `IOUserVideoBuffer::GetClassID`,
   /// `IOUserVideoBuffer::GetControlMemoryDescriptor`, `IOUserVideoBuffer::GetDataMemoryDescriptor`,
   /// `IOUserVideoBuffer::getBufferID`, `IOUserVideoStream::GetBufferWithID`,
@@ -316,6 +322,7 @@ extension DriverContext {
   }
 
   /// Changes a configured buffer's ID or stream membership in a device configuration change.
+  ///
   /// Calls `IOUserVideoBuffer::setBufferID`, `IOUserVideoStream::addBuffer`,
   /// `IOUserVideoStream::addBuffers` and `IOUserVideoStream::removeAllBuffers`.
   public func videoSetBufferProperty(
@@ -329,6 +336,7 @@ extension DriverContext {
   }
 
   /// Reads the scope, element, owner, range, channels, and selector items of a configured control.
+  ///
   /// Calls `IOUserVideoControl::GetControlElement`, `IOUserVideoControl::GetControlScope`,
   /// `IOUserVideoControl::GetIsSettable`, `IOUserVideoControl::GetOwningDeviceID`,
   /// `IOUserVideoSelectorControl::GetControlValueDescriptions`,
@@ -339,6 +347,7 @@ extension DriverContext {
   }
 
   /// Changes a slider range or stereo-pan channel pair.
+  ///
   /// Calls `IOUserVideoSliderControl::SetRange` and
   /// `IOUserVideoStereoPanControl::SetPanningChannels`.
   public func videoSetControlProperty(
@@ -349,12 +358,14 @@ extension DriverContext {
   }
 
   /// Removes items from a selector control by value.
+  ///
   /// Calls `IOUserVideoSelectorControl::RemoveControlValueDescriptions`.
   public func videoRemoveSelectorItems(identifier: UInt32, values: [UInt32]) async throws {
     _ = try await execute(.videoRemoveSelectorItems(identifier: identifier, values: values))
   }
 
   /// Reads the selector, data types, and owner of a configured custom property.
+  ///
   /// Calls `IOUserVideoCustomProperty::GetCustomPropertyInfo`.
   public func videoCustomPropertyInfo(identifier: UInt32) async throws -> VideoCustomPropertyInfo {
     try VideoCustomPropertyInfo(

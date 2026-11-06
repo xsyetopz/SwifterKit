@@ -220,7 +220,7 @@ public indirect enum MIDIPropertyValue: Sendable, Hashable {
     return payload
   }
 
-  /// Decodes exactly one value that fills `payload`.
+  // Decodes exactly one value that fills `payload`.
   init(runtimePayload payload: Data) throws {
     var offset = 0
     do { self = try Self.decode(Data(payload), at: &offset, depth: 1) } catch {

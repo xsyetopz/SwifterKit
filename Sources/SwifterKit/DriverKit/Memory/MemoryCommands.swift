@@ -126,7 +126,7 @@ extension DriverCommand {
     try handleCommand(opcode: .memoryCompleteDMA, handle: handle)
   }
 
-  /// Creates a memory entry for `length` bytes of `handle`'s valid data starting at `offset`.
+  /// Creates a memory entry for `length` bytes of the valid data of `handle`, from `offset`.
   ///
   /// The extension answers with a new handle. `direction` may narrow, never widen, the source's
   /// device access.
@@ -239,7 +239,7 @@ extension DriverContext {
     return try DriverMemoryHandle(runtimePayload: payload)
   }
 
-  /// Creates a memory entry for part of `handle`'s valid data.
+  /// Creates a memory entry for part of the valid data of `handle`.
   ///
   /// The new entry retains its source's descriptor, and ``releaseMemory(_:)`` refuses `handle`
   /// with ``DriverMemoryError/inUse`` until the subrange is released. The range is fixed at
@@ -339,8 +339,8 @@ extension DriverContext {
 }
 
 extension DriverContext {
-  /// Runs a memory command that names a handle, throwing an answer among `statuses` as its
-  /// ``DriverMemoryError`` case.
+  // Runs a memory command that names a handle, throwing an answer among `statuses` as its
+  // ``DriverMemoryError`` case.
   func executeMemory(
     _ command: DriverCommand,
     mapping statuses: [RuntimeMemoryStatus] = [.notOwner]
@@ -353,7 +353,7 @@ extension DriverContext {
 }
 
 extension DriverMemoryError {
-  /// The typed error for `error` when it reports one of `statuses`.
+  // The typed error for `error` when it reports one of `statuses`.
   init?(_ error: DriverKitError, among statuses: [RuntimeMemoryStatus]) {
     let status = statuses.first { error.kind == .ioReturn($0.ioReturn) }
     switch status {

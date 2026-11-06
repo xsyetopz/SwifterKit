@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKitCoverage
 
-/// Reads `header` as the ExampleKit framework of one SDK.
+// Reads `header` as the ExampleKit framework of one SDK.
 func surface(_ version: String, _ header: String) -> SDKSurface {
   SDKSurface(
     version: version,
@@ -30,7 +30,7 @@ func use(
   )
 }
 
-/// The status of every member, keyed `Class::signature`.
+// The status of every member, keyed `Class::signature`.
 func statuses(_ coverage: Coverage) -> [String: CoverageStatus] {
   Dictionary(
     uniqueKeysWithValues: coverage.classes.flatMap { entry in

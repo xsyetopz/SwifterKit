@@ -78,7 +78,7 @@ public struct DriverContext: Sendable {
     return try await runtime.execute(command)
   }
 
-  /// Maps a runtime client-memory type through the attached extension runtime.
+  // Maps a runtime client-memory type through the attached extension runtime.
   func mapMemory(
     _ type: RuntimeClientMemoryType,
     readOnly: Bool,
@@ -89,8 +89,8 @@ public struct DriverContext: Sendable {
     return try await runtime.mapMemory(type, readOnly: readOnly, requiring: capability)
   }
 
-  /// Wraps `memory` through the attached extension runtime, which holds it until the handle's
-  /// release succeeds.
+  // Wraps `memory` through the attached extension runtime, which holds it until the handle's
+  // release succeeds.
   func wrapHostMemory(
     _ memory: DriverHostMemory,
     direction: DriverMemoryDirection

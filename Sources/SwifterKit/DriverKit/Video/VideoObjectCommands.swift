@@ -336,6 +336,7 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads the identity of a VideoDriverKit object.
+  ///
   /// Calls `IOUserVideoBox::GetTransportType`, `IOUserVideoBox::GetUID`,
   /// `IOUserVideoClockDevice::GetUID`, `IOUserVideoDriver::GetBaseClassID`,
   /// `IOUserVideoDriver::GetClassID`, `IOUserVideoDriver::GetName`,
@@ -347,12 +348,14 @@ extension DriverContext {
   }
 
   /// Renames a VideoDriverKit object.
+  ///
   /// Calls `IOUserVideoObject::SetName`.
   public func videoSetObjectName(_ target: VideoObjectTarget, name: String) async throws {
     _ = try await execute(.videoSetObjectName(target, name: name))
   }
 
   /// Reads an element name, category name, or number name.
+  ///
   /// Calls `IOUserVideoObject::GetElementCategoryName`, `IOUserVideoObject::GetElementName` and
   /// `IOUserVideoObject::GetElementNumberName`.
   public func videoElementName(
@@ -371,6 +374,7 @@ extension DriverContext {
   }
 
   /// Sets an element name, category name, or number name.
+  ///
   /// Calls `IOUserVideoObject::SetElementCategoryName`, `IOUserVideoObject::SetElementName` and
   /// `IOUserVideoObject::SetElementNumberName`.
   public func videoSetElementName(
@@ -386,11 +390,13 @@ extension DriverContext {
   }
 
   /// Tells the host that properties of an object changed.
+  ///
   /// Calls `IOUserVideoDriver::PropertiesChanged`.
   public func videoPropertiesChanged(_ target: VideoObjectTarget, selectors: [UInt32]) async throws
   { _ = try await execute(.videoPropertiesChanged(target, selectors: selectors)) }
 
   /// Reads a box's state.
+  ///
   /// Calls `IOUserVideoBox::GetAcquisitionFailure`, `IOUserVideoBox::HasAudio`,
   /// `IOUserVideoBox::HasMIDI`, `IOUserVideoBox::HasVideo`, `IOUserVideoBox::IsAcquirable`,
   /// `IOUserVideoBox::IsAcquired` and `IOUserVideoBox::IsProtected`.
@@ -399,6 +405,7 @@ extension DriverContext {
   }
 
   /// Changes one box property.
+  ///
   /// Calls `IOUserVideoBox::SetAcquisitionFailure`, `IOUserVideoBox::SetHasAudio`,
   /// `IOUserVideoBox::SetHasMIDI`, `IOUserVideoBox::SetHasVideo`,
   /// `IOUserVideoBox::SetIsAcquirable`, `IOUserVideoBox::SetIsAcquired`,
@@ -408,6 +415,7 @@ extension DriverContext {
   }
 
   /// Adds the device or a clock device to a box, or removes it.
+  ///
   /// Calls `IOUserVideoBox::AddClockDevice`, `IOUserVideoBox::AddDevice`,
   /// `IOUserVideoBox::RemoveClockDevice` and `IOUserVideoBox::RemoveDevice`.
   public func videoSetBoxOwnership(
@@ -417,6 +425,7 @@ extension DriverContext {
   ) async throws { _ = try await execute(.videoSetBoxOwnership(box, target: target, owned: owned)) }
 
   /// Reads the clock state of the video device or a clock device.
+  ///
   /// Calls `IOUserVideoClockDevice::GetAvailableSampleRates`,
   /// `IOUserVideoClockDevice::GetClockAlgorithm`, `IOUserVideoClockDevice::GetClockDomain`,
   /// `IOUserVideoClockDevice::GetClockIsStable`,
@@ -435,6 +444,7 @@ extension DriverContext {
   }
 
   /// Changes one clock-device property.
+  ///
   /// Calls `IOUserVideoClockDevice::SetClockAlgorithm`, `IOUserVideoClockDevice::SetClockDomain`,
   /// `IOUserVideoClockDevice::SetClockIsStable`, `IOUserVideoClockDevice::SetDeviceIsAlive`,
   /// `IOUserVideoClockDevice::SetInputLatency`, `IOUserVideoClockDevice::SetIsHidden`,
@@ -445,12 +455,14 @@ extension DriverContext {
   ) async throws { _ = try await execute(.videoSetClockDeviceProperty(index, property)) }
 
   /// Replaces a clock device's available sample rates.
+  ///
   /// Calls `IOUserVideoClockDevice::SetAvailableSampleRates`.
   public func videoSetClockSampleRates(_ index: UInt32, _ sampleRates: [Double]) async throws {
     _ = try await execute(.videoSetClockSampleRates(index, sampleRates))
   }
 
   /// Reports a hardware-derived zero timestamp for a clock device.
+  ///
   /// Calls `IOUserVideoClockDevice::UpdateCurrentZeroTimestamp`.
   public func videoUpdateClockTimestamp(
     _ index: UInt32,
@@ -463,6 +475,7 @@ extension DriverContext {
   }
 
   /// Requests a host-coordinated clock-rate change on a clock device.
+  ///
   /// Calls `IOUserVideoClockDevice::AbortDeviceConfigurationChange`,
   /// `IOUserVideoClockDevice::PerformDeviceConfigurationChange`,
   /// `IOUserVideoClockDevice::RequestDeviceConfigurationChange` and
@@ -491,6 +504,7 @@ extension DriverContext {
   }
 
   /// Adds a configured custom property to the device or the driver, or removes it.
+  ///
   /// Calls `IOUserVideoDriver::AddCustomProperty`, `IOUserVideoDriver::RemoveCustomProperty`,
   /// `IOUserVideoObject::AddCustomProperty` and `IOUserVideoObject::RemoveCustomProperty`.
   public func videoSetCustomPropertyOwner(

@@ -1,6 +1,4 @@
 struct DriverKitDeploymentVersion: Comparable, Sendable {
-  static let v19 = Self(major: 19, minor: 0)
-  static let v20Point4 = Self(major: 20, minor: 4)
   static let v21 = Self(major: 21, minor: 0)
   static let v22 = Self(major: 22, minor: 0)
   static let v24 = Self(major: 24, minor: 0)

@@ -151,8 +151,9 @@ extension DriverCommand {
   }
 
   /// Dispatches an extended game controller through
-  /// `dispatchExtendedGameControllerEventWithOptionalButtons`. This needs DriverKit 23.0.
-  /// Older systems answer `kIOReturnUnsupported`.
+  /// `dispatchExtendedGameControllerEventWithOptionalButtons`.
+  ///
+  /// This needs DriverKit 23.0. Older systems answer `kIOReturnUnsupported`.
   public static func dispatchHIDExtendedGameControllerEvent(
     _ state: HIDGameControllerState,
     buttons: HIDGameControllerOptionalButtons,
@@ -170,8 +171,9 @@ extension DriverCommand {
     dispatch(.hidSetLED, HIDLimits.words([RuntimeHIDLimits.ledUsagePage, usage, on ? 1 : 0, 0]))
   }
 
-  /// Sets an LED through `SetLEDState`. The runtime also delivers the change as
-  /// ``DriverEvent/hidLEDState()``.
+  /// Sets an LED through `SetLEDState`.
+  ///
+  /// The runtime also delivers the change as ``DriverEvent/hidLEDState()``.
   public static func setHIDLEDState(usagePage: UInt32, usage: UInt32, on: Bool) -> Self {
     dispatch(.hidSetLEDState, HIDLimits.words([usagePage, usage, on ? 1 : 0, 0]))
   }
@@ -186,8 +188,9 @@ extension DriverCommand {
     )
   }
 
-  /// Chooses which parsed `IOUserHIDEventDriver` categories dispatch events. Categories the
-  /// configuration did not parse stay silent.
+  /// Chooses which parsed `IOUserHIDEventDriver` categories dispatch events.
+  ///
+  /// Categories the configuration did not parse stay silent.
   public static func setHIDEventDriverCategories(
     _ categories: HIDEventDriverCategories
   ) throws -> Self {
@@ -335,14 +338,15 @@ extension DriverContext {
     _ = try await execute(.dispatchHIDTouchEvent(touches, timestamp: timestamp))
   }
 
-  /// Dispatches one transducer through an `IOHIDDigitizerCollection`. Builds the collection with
-  /// `IOHIDDigitizerCollection::addElement`, `IOHIDDigitizerCollection::setTouch`,
-  /// `IOHIDDigitizerCollection::setInRange`, `IOHIDDigitizerCollection::setX`,
-  /// `IOHIDDigitizerCollection::setY` and `IOHIDDigitizerCollection::setZ`. For a stylus or touch
-  /// collection, it reads the state back with `IOHIDDigitizerCollection::getType`,
-  /// `IOHIDDigitizerCollection::getX`, `IOHIDDigitizerCollection::getY`,
-  /// `IOHIDDigitizerCollection::getZ`, `IOHIDDigitizerCollection::getInRange` and
-  /// `IOHIDDigitizerCollection::getTouch`.
+  /// Dispatches one transducer through an `IOHIDDigitizerCollection`.
+  ///
+  /// Builds the collection with `IOHIDDigitizerCollection::addElement`,
+  /// `IOHIDDigitizerCollection::setTouch`, `IOHIDDigitizerCollection::setInRange`,
+  /// `IOHIDDigitizerCollection::setX`, `IOHIDDigitizerCollection::setY` and
+  /// `IOHIDDigitizerCollection::setZ`. For a stylus or touch collection, it reads the state back
+  /// with `IOHIDDigitizerCollection::getType`, `IOHIDDigitizerCollection::getX`,
+  /// `IOHIDDigitizerCollection::getY`, `IOHIDDigitizerCollection::getZ`,
+  /// `IOHIDDigitizerCollection::getInRange` and `IOHIDDigitizerCollection::getTouch`.
   public func dispatchHIDDigitizerCollection(
     _ collection: HIDDigitizerCollection,
     timestamp: UInt64 = 0
@@ -362,8 +366,9 @@ extension DriverContext {
     )
   }
 
-  /// Dispatches an extended game controller with optional buttons. Calls
-  /// `IOUserHIDEventService::dispatchExtendedGameControllerEventWithOptionalButtons`.
+  /// Dispatches an extended game controller with optional buttons.
+  ///
+  /// Calls `IOUserHIDEventService::dispatchExtendedGameControllerEventWithOptionalButtons`.
   public func dispatchHIDExtendedGameControllerEvent(
     _ state: HIDGameControllerState,
     buttons: HIDGameControllerOptionalButtons,

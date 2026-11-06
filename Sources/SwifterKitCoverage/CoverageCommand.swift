@@ -1,24 +1,24 @@
 import Foundation
 
-/// Generates and checks the DocC article on SwifterKit's DriverKit coverage.
-///
-///     swifterkit-coverage docc --sdk DIR... --trees DIR --article FILE [--exclusions FILE]
-///         [--swift DIR...]
-///     swifterkit-coverage check --sdk DIR... [--trees DIR] --article FILE [--swift DIR...]
-///     swifterkit-coverage evidence --sdk DIR... --trees DIR
-///
-/// `--sdk` names a `DriverKit.sdk` directory, whose `.iig` headers declare the members. `--trees`
-/// names the directory of generated extension trees that `SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE`
-/// collects during `swift test`; clang reads which members those trees call or override.
-/// `--swift` names the directories whose `///` comments name `` `Class::member` ``, by default
-/// `Sources/SwifterKit`. SwifterKit's exclusions come from the article's "Members SwifterKit does
-/// not expose" section and, for `docc`, from `--exclusions`, a file of lines in the same format
-/// whose reasons replace the article's.
-///
-/// `docc` writes the article. `check` fails on documentation mentions and exclusions that the
-/// headers or the evidence do not support, and, when it has the trees and the article names the
-/// same SDKs, on an article that differs from what `docc` would write. When `--sdk` lacks an SDK
-/// the article names, `check` does not report members the given headers do not declare.
+// Generates and checks the DocC article on SwifterKit's DriverKit coverage.
+//
+//     swifterkit-coverage docc --sdk DIR... --trees DIR --article FILE [--exclusions FILE]
+//         [--swift DIR...]
+//     swifterkit-coverage check --sdk DIR... [--trees DIR] --article FILE [--swift DIR...]
+//     swifterkit-coverage evidence --sdk DIR... --trees DIR
+//
+// `--sdk` names a `DriverKit.sdk` directory, whose `.iig` headers declare the members. `--trees`
+// names the directory of generated extension trees that `SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE`
+// collects during `swift test`; clang reads which members those trees call or override.
+// `--swift` names the directories whose `///` comments name `` `Class::member` ``, by default
+// `Sources/SwifterKit`. SwifterKit's exclusions come from the article's "Members SwifterKit does
+// not expose" section and, for `docc`, from `--exclusions`, a file of lines in the same format
+// whose reasons replace the article's.
+//
+// `docc` writes the article. `check` fails on documentation mentions and exclusions that the
+// headers or the evidence do not support, and, when it has the trees and the article names the
+// same SDKs, on an article that differs from what `docc` would write. When `--sdk` lacks an SDK
+// the article names, `check` does not report members the given headers do not declare.
 @main
 enum CoverageCommand {
   struct Options {
@@ -124,8 +124,8 @@ enum CoverageCommand {
     }
   }
 
-  /// The coverage with the evidence, documentation, and exclusions applied, and the problems the
-  /// audit finds in them.
+  // The coverage with the evidence, documentation, and exclusions applied, and the problems the
+  // audit finds in them.
   private static func audit(
     _ coverage: Coverage,
     _ evidence: CoverageEvidence?,
@@ -153,7 +153,7 @@ enum CoverageCommand {
     return (applied, problems)
   }
 
-  /// The exclusions an existing article lists, or none when there is no article yet.
+  // The exclusions an existing article lists, or none when there is no article yet.
   private static func existingExclusions(_ article: URL) throws -> Set<Coverage.Exclusion> {
     guard FileManager.default.fileExists(atPath: article.path) else { return [] }
     return CoverageArticle.exclusions(

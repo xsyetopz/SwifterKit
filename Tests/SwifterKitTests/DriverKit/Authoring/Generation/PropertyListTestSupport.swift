@@ -12,7 +12,7 @@ func loadPropertyList(at url: URL) throws -> [String: Any] {
   return dictionary
 }
 
-/// Returns the `SwiftDriver` personality from the Info.plist of the extension at `output`.
+// Returns the `SwiftDriver` personality from the Info.plist of the extension at `output`.
 func loadDriverPersonality(
   in output: URL,
   sourceLocation: SourceLocation = #_sourceLocation
@@ -28,7 +28,7 @@ func loadDriverPersonality(
   )
 }
 
-/// Returns the entitlements of the extension at `output`.
+// Returns the entitlements of the extension at `output`.
 func loadEntitlements(in output: URL) throws -> [String: Any] {
   try loadPropertyList(at: output.appendingPathComponent("SwifterKitRuntime.entitlements"))
 }

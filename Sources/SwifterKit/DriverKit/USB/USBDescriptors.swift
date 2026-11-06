@@ -226,8 +226,8 @@ public struct USBConfigurationDescriptor: Sendable, Hashable {
     self.interfaces = interfaces
   }
 
-  /// Visits each descriptor in `bytes` after `offset`, rejecting lengths that cannot advance or
-  /// that run past the end.
+  // Visits each descriptor in `bytes` after `offset`, rejecting lengths that cannot advance or
+  // that run past the end.
   static func walk(
     _ bytes: [UInt8],
     from offset: Int,
@@ -249,7 +249,9 @@ public struct USBStringDescriptor: Sendable, Hashable {
   /// The UTF-16LE code units after the two-byte header.
   public let codeUnits: [UInt16]
 
-  /// The descriptor text. For string index 0 the code units are language identifiers instead.
+  /// The descriptor text.
+  ///
+  /// For string index 0 the code units are language identifiers instead.
   public var string: String { String(decoding: codeUnits, as: UTF16.self) }
 
   init(descriptor bytes: [UInt8]) throws {
@@ -296,7 +298,7 @@ public struct USBCapabilityDescriptors: Sendable, Hashable {
 }
 
 extension USBDescriptorError {
-  /// Decodes a descriptor response: its full length, then the bytes when they fit.
+  // Decodes a descriptor response: its full length, then the bytes when they fit.
   static func descriptorBytes(from payload: Data) throws -> [UInt8]? {
     let length: UInt32 = try payload.readRuntimeInteger(at: 0)
     let bytes = Array(payload.dropFirst(4))

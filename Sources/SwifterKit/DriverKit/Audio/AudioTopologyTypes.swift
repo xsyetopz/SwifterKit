@@ -74,7 +74,9 @@ public struct AudioClockDeviceConfiguration: Sendable, Hashable {
   public let sampleRates: [Double]
   /// Sample rate selected during device creation.
   public let initialSampleRate: Double
-  /// Clock domain shared by devices that run from one clock. Zero means none.
+  /// Clock domain shared by devices that run from one clock.
+  ///
+  /// Zero means none.
   public let clockDomain: UInt32
   /// The timestamp smoothing algorithm.
   public let clockAlgorithm: AudioClockAlgorithm
@@ -87,7 +89,9 @@ public struct AudioClockDeviceConfiguration: Sendable, Hashable {
   /// Output latency in frames.
   public let outputLatency: UInt32
   /// Whether the host saves and restores the device's controls, or `nil` for the framework
-  /// default. Applied only when the extension is built with the DriverKit 25.5 SDK or newer.
+  /// default.
+  ///
+  /// Applied only when the extension is built with the DriverKit 25.5 SDK or newer.
   public let wantsControlsRestored: Bool?
 
   /// Creates static clock-device metadata.
@@ -128,7 +132,7 @@ public struct AudioClockDeviceConfiguration: Sendable, Hashable {
   }
 }
 
-/// A snapshot of an `IOUserAudioBox`'s state.
+/// A snapshot of the state of an `IOUserAudioBox`.
 public struct AudioBoxState: Sendable, Hashable {
   /// The box's object identifier.
   public let objectID: UInt32
@@ -201,7 +205,7 @@ public enum AudioBoxProperty: Sendable, Hashable {
   }
 }
 
-/// A snapshot of an `IOUserAudioClockDevice`'s clock, timing, and I/O state.
+/// A snapshot of the clock, timing, and I/O state of an `IOUserAudioClockDevice`.
 public struct AudioClockDeviceState: Sendable, Hashable {
   /// The object identifier.
   public let objectID: UInt32

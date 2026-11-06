@@ -320,8 +320,8 @@ struct DriverExtensionPersonalitiesTests {
     )
   }
 
-  /// Expects every runtime source to belong to one of `personalities`, each with the same files,
-  /// and no source to name a class or file of the unrenamed runtime.
+  // Expects every runtime source to belong to one of `personalities`, each with the same files,
+  // and no source to name a class or file of the unrenamed runtime.
   private func expectOnlyPersonalitySources(
     _ personalities: [String],
     in output: URL,
@@ -357,8 +357,8 @@ struct DriverExtensionPersonalitiesTests {
     text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
   }
 
-  /// Generates `configuration` into a fresh temporary directory, then runs `body` with the
-  /// extension directory and the temporary root, which is removed afterwards.
+  // Generates `configuration` into a fresh temporary directory, then runs `body` with the
+  // extension directory and the temporary root, which is removed afterwards.
   private func withTemporaryExtension(
     _ configuration: DriverExtensionConfiguration,
     options: DriverExtensionGenerationOptions = DriverExtensionGenerationOptions(),

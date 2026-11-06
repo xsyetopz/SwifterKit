@@ -96,9 +96,13 @@ public enum AudioElementNameKind: UInt32, Sendable, Hashable {
 
 /// Identity metadata read from an AudioDriverKit object.
 public struct AudioObjectInfo: Sendable, Hashable {
-  /// The object's `IOUserAudioObjectID`. Zero for the driver, which has none.
+  /// The object's `IOUserAudioObjectID`.
+  ///
+  /// Zero for the driver, which has none.
   public let objectID: UInt32
-  /// The owning object's identifier. Zero for the driver.
+  /// The owning object's identifier.
+  ///
+  /// Zero for the driver.
   public let ownerObjectID: UInt32
   /// The concrete class identifier.
   public let classID: AudioClassID

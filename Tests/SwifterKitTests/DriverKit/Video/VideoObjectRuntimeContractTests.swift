@@ -253,7 +253,7 @@ struct VideoObjectRuntimeContractTests {
     )
   }
 
-  /// One 64x64 BGRA output stream at 60 frames per second.
+  // One 64x64 BGRA output stream at 60 frames per second.
   static var outputStream: VideoStreamConfiguration {
     VideoStreamConfiguration(
       identifier: "Out",

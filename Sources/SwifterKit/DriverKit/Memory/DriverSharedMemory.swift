@@ -25,8 +25,9 @@ import Foundation
 public final class DriverSharedMemory: @unchecked Sendable {
   /// The mapped byte count.
   public let length: Int
-  /// Whether the extension shares the memory read-only. Stores then throw
-  /// ``DriverSharedMemoryError/readOnly``.
+  /// Whether the extension shares the memory read-only.
+  ///
+  /// Stores then throw ``DriverSharedMemoryError/readOnly``.
   public let isReadOnly: Bool
 
   private let baseAddress: UnsafeMutableRawPointer
@@ -62,7 +63,9 @@ public final class DriverSharedMemory: @unchecked Sendable {
     return isMappedState && !unmapRequested
   }
 
-  /// Removes the mapping. Later calls do nothing.
+  /// Removes the mapping.
+  ///
+  /// Later calls do nothing.
   public func unmap() {
     lock.lock()
     defer { lock.unlock() }
@@ -110,7 +113,9 @@ public final class DriverSharedMemory: @unchecked Sendable {
     }
   }
 
-  /// Calls `body` with the whole mapping. The buffer must not escape the closure.
+  /// Calls `body` with the whole mapping.
+  ///
+  /// The buffer must not escape the closure.
   public func withUnsafeBytes<Result>(
     _ body: (UnsafeRawBufferPointer) throws -> Result
   ) throws -> Result {
@@ -119,7 +124,9 @@ public final class DriverSharedMemory: @unchecked Sendable {
     }
   }
 
-  /// Calls `body` with the whole writable mapping. The buffer must not escape the closure.
+  /// Calls `body` with the whole writable mapping.
+  ///
+  /// The buffer must not escape the closure.
   public func withUnsafeMutableBytes<Result>(
     _ body: (UnsafeMutableRawBufferPointer) throws -> Result
   ) throws -> Result {

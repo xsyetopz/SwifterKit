@@ -4,7 +4,7 @@
   @preconcurrency import IOKit
 
   var defaultIOKitMainPort: mach_port_t {
-    if #available(macOS 12.0, *) { kIOMainPortDefault } else { kIOMasterPortDefault }
+    kIOMainPortDefault
   }
 
   /// Native macOS transport for I/O Registry discovery and user-client connections.

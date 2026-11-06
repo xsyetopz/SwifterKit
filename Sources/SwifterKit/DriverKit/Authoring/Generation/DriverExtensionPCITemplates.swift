@@ -1,7 +1,7 @@
 import Foundation
 
 extension DriverExtensionGenerator {
-  /// Returns whether PCI interrupt allocation fits the configured interrupt sources.
+  // Returns whether PCI interrupt allocation fits the configured interrupt sources.
   static func isValid(
     pciInterrupts value: PCIInterruptConfiguration,
     configuration: DriverConfiguration
@@ -10,7 +10,7 @@ extension DriverExtensionGenerator {
       && configuration.interruptSources.allSatisfy { value.canDeliver(sourceIndex: $0.index) }
   }
 
-  /// Native constants for `IOPCIDevice::ConfigureInterrupts`.
+  // Native constants for `IOPCIDevice::ConfigureInterrupts`.
   static func pciInterruptDeclarations(_ configuration: DriverConfiguration) -> String {
     let interrupts = configuration.pciDevice?.interrupts
     let configure = interrupts == nil ? "false" : "true"

@@ -2,7 +2,19 @@
 
 SwifterKit records user-visible changes in this file.
 
-## Unreleased
+## 0.4.0
+
+### Changed
+
+- SwifterKit requires Swift 6.4 (Xcode 27.0) or later and macOS 12 or later.
+  The package manifest uses `swift-tools-version:6.4.0`.
+- `DriverExtensionGenerationOptions.deploymentTarget` defaults to `21.0`, the
+  oldest target the DriverKit SDK in Xcode 27 builds. The generator rejects
+  older targets with `invalidDeploymentTarget`, so block storage, audio, SCSI
+  controller, and HID event service configurations no longer fail on their own
+  deployment checks.
+- DocC documents only the API clients see: `open` and `public` declarations,
+  and the enum cases and protocol requirements they make public.
 
 ### Fixed
 
@@ -11,6 +23,29 @@ SwifterKit records user-visible changes in this file.
   `kIOMemoryDirectionOut`, the copy of the output bytes to the mapped address
   crashed the driver extension with `EXC_BAD_ACCESS (KERN_PROTECTION_FAILURE)`
   on macOS 27.0.1. Not tested on hardware.
+- The runtime checks the result of each `SetLength` on a buffer it fills: USB
+  transfer buffers, isochronous frame lists, bundled pipe rings, and HID report
+  buffers. A failure now ends the request with its error, before a mapping or
+  a transfer uses the new length.
+- HID element reports map their buffer once with `CreateMapping`, not twice
+  with `Map`, and a get report checks the mapped length before it reads.
+- The runtime checks that each mapping it creates covers the length it reads
+  or writes: SCSI peripheral buffers, fast-path rings and data queues, HID
+  descriptor and report copies, and memory entries. A short mapping fails with
+  `kIOReturnNoMemory`, or `kIOReturnNoResources` for the fast path. A
+  composed memory entry with a short mapping stays available for DMA and host
+  mapping, and its reads and writes fail with `kIOReturnUnsupported`.
+- Buffers the runtime writes through its own mapping are allocated
+  `kIOMemoryDirectionInOut` when their direction is `kIOMemoryDirectionOut`:
+  HID element set reports, SCSI peripheral outbound data, fast-path rings, and
+  `.deviceReads` memory pool buffers. DriverKit's `IOMemoryDescriptor.h`
+  describes `Out` memory as readable only. A pool buffer keeps its
+  `.deviceReads` direction for subranges and chains, and its
+  `DriverDMAMapping.flags` come from the writable backing. Not tested on
+  hardware.
+- A composed `.deviceReads` memory entry, a subrange, chain, or wrapped client
+  memory, is mapped read-only in the driver extension. Writing it fails with
+  `kIOReturnNotWritable` instead of writing through an `Out` descriptor.
 
 ## 0.3.0
 

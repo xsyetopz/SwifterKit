@@ -3,8 +3,8 @@ import Testing
 
 @testable import SwifterKit
 
-/// Wrapping host memory: the request payload, Swift-side segment checks, and the page-aligned
-/// host allocation that keeps wrapped pages alive.
+// Wrapping host memory: the request payload, Swift-side segment checks, and the page-aligned
+// host allocation that keeps wrapped pages alive.
 @Suite
 struct ClientMemoryWrapTests {
   @Test

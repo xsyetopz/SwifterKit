@@ -17,9 +17,9 @@ Use SwifterKit when a driver needs:
 
 ## Requirements
 
-- Swift 6.1 (Xcode 16.3) or later for package consumers
+- Swift 6.4 (Xcode 27.0) or later for package consumers
 - the Swift version in `.swift-version` for local development
-- macOS 10.15 or later for the IOKit host transport and base DriverKit runtime;
+- macOS 12 or later for the IOKit host transport and base DriverKit runtime;
   configuration, validation, protocol, and generation code also builds on
   Linux, where the IOKit transport is unavailable
 - Xcode with the DriverKit SDK for generated extension builds
@@ -30,24 +30,20 @@ Signing is not required to build or test the package or its generated extension
 project locally.
 
 DriverKit family frameworks were added across later releases.
-`DriverExtensionGenerationOptions.deploymentTarget` defaults to `19.0`; the
-generator rejects a capability when its native runtime needs a newer DriverKit version.
-Build a 19.0 or 20.x target with an Xcode whose DriverKit SDK still accepts
-it, such as Xcode 16.3 (DriverKit 24.4 accepts 19.0 and later). The DriverKit
-SDK in Xcode 27 accepts deployment targets from 21.0.
+`DriverExtensionGenerationOptions.deploymentTarget` defaults to `21.0`, the
+oldest target the generator accepts and the oldest the DriverKit SDK in Xcode 27
+builds. The generator rejects a capability when its native runtime needs a newer
+DriverKit version.
 
 ### Deployment targets
 
 The package target and the generated extension target are independent. Swift
-package clients can run on macOS 10.15 while a generated extension selects the
+package clients can run on macOS 12 while a generated extension selects the
 narrowest DriverKit target required by its capabilities.
 
 | Generated capability | Minimum DriverKit target | Host availability |
 | --- | ---: | --- |
-| Base runtime, HID device, HID device factory, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
-| PCI | 19.0 | macOS 11.1 |
-| SCSI controller | 20.4 | macOS 11.3 |
-| Block storage, audio, HID event service | 21.0 | macOS 12 |
+| Base runtime, HID device, HID device factory, USB HID device, USB, serial, interrupts, memory, PCI, SCSI controller, block storage, audio, HID event service | 21.0 | macOS 12 |
 | Networking, SCSI peripheral | 22.0 | macOS 13 |
 | MIDI | 24.0 | macOS 15 |
 | Video | 25.5 | macOS 26.5 |
@@ -259,14 +255,13 @@ The suite checks Swift and C++ formatting, SwiftLint, Swift 6 tests, a release
 build with warnings as errors, DocC links, C++20 static analysis, unsigned
 arm64 and x86_64 DriverKit builds, property lists, and source LOC limits.
 
-The compatibility job runs the tests with Xcode 16.3, Swift 6.1, and the
-DriverKit 24.4 SDK while retaining the macOS 10.15 deployment target. A Linux
-job runs the tests in the `swift:6.1` container. The main validation job uses
+The compatibility job runs the tests with Xcode 27.0, Swift 6.4, and the
+DriverKit 27.0 SDK while retaining the macOS 12 deployment target. A Linux
+job runs the tests in the `swift:6.4` container. The main validation job uses
 the latest passing local toolchain.
 
 Tests that build a generated extension use the DriverKit SDK in
 `SWIFTERKIT_DRIVERKIT_DEVELOPER_DIR`, or `DEVELOPER_DIR` when that is unset.
-Point it at Xcode 16.3 to build the default DriverKit 19.0 target unchanged.
 `validate.sh` builds the checked-in native project, which links every family
 framework including VideoDriverKit, with `DEVELOPER_DIR`. With a newer SDK the
 build's deployment target is raised to the SDK minimum (the Xcode 27 SDK starts
@@ -279,27 +274,24 @@ compilers.
 
 ### Hardware runtime coverage
 
-CI does not run on macOS 10.15 and cannot activate a signed extension or attach
-physical hardware. The following macOS 10.15 runtime paths remain
+CI does not run on macOS 12 and cannot activate a signed extension or attach
+physical hardware. The following macOS 12 runtime paths remain
 compile-checked but unexecuted in CI:
 
-- IOKit service discovery and user-client opening through `kIOMasterPortDefault`;
-- Swift concurrency back-deployment during the driver lifecycle and event loop;
+- IOKit service discovery and user-client opening through `kIOMainPortDefault`;
 - event notifications through `IOConnectCallAsyncStructMethod`, the IOKit
   notification port, and the extension's `AsyncCompletion` calls;
 - generated extension activation, runtime negotiation, and device I/O on a
-  macOS 10.15 host; and
+  macOS 12 host; and
 - signed entitlement, provisioning, and hardware behavior.
 
-SwifterKit 0.3.0 has not been run on physical hardware. This includes fast-path
+SwifterKit 0.4.0 has not been run on physical hardware. This includes fast-path
 programs, DMA rings, host-shared data queues, wrapped or mapped host memory, and
 device I/O for every capability family: HID, USB and USB serial, PCI, serial,
 block storage, MIDI, Ethernet networking, audio, SCSI, video, interrupts,
 memory and DMA, service operations, timers and watches, and IOReporting.
 
 Unit tests model the extension's event notifications with mock connections.
-IOKit port selection depends on the running operating system and needs a macOS
-10.15 host for runtime coverage.
 
 For a smaller Swift-only cycle:
 

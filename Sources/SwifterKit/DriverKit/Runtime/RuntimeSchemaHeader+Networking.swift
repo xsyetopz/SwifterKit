@@ -1,4 +1,4 @@
-/// Renders the networking schema declarations under the native names the extension uses.
+// Renders the networking schema declarations under the native names the extension uses.
 extension RuntimeSchemaHeader {
   static func networkSections() -> [[String]] {
     let network = RuntimeNetworkLimits.self

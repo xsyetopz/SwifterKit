@@ -1,22 +1,22 @@
 import Foundation
 
-/// Renames the native runtime for one personality of a multi-personality extension.
-///
-/// Every personality compiles its own copy of the runtime, so each copy prefixes the identifiers
-/// and file names that start with `SwifterKit` with the personality name:
-/// `SwifterKitRuntimeService` becomes `SwifterKit<Name>RuntimeService`. String and character
-/// literals keep their text, except `#include` paths, which name renamed files.
+// Renames the native runtime for one personality of a multi-personality extension.
+//
+// Every personality compiles its own copy of the runtime, so each copy prefixes the identifiers
+// and file names that start with `SwifterKit` with the personality name:
+// `SwifterKitRuntimeService` becomes `SwifterKit<Name>RuntimeService`. String and character
+// literals keep their text, except `#include` paths, which name renamed files.
 enum DriverExtensionPersonalityRenaming {
   private static let prefix = Array("SwifterKit".utf8)
 
-  /// The runtime class or file name `name` takes in `personality`'s copy of the runtime.
+  // The runtime class or file name that `name` takes in the personality's copy of the runtime.
   static func renamed(_ name: String, personality: String) -> String {
     let bytes = Array(name.utf8)
     let offsets = bytes.indices.filter { startsIdentifier(bytes, at: $0) }
     return inserting(personality, after: offsets, in: name)
   }
 
-  /// `source` with every `SwifterKit` identifier outside string and character literals renamed.
+  // `source` with every `SwifterKit` identifier outside string and character literals renamed.
   static func renamedSource(_ source: String, personality: String) -> String {
     let bytes = Array(source.utf8)
     var offsets: [Int] = []
@@ -55,7 +55,7 @@ enum DriverExtensionPersonalityRenaming {
     return inserting(personality, after: offsets, in: source)
   }
 
-  /// Writes `personality`'s renamed copy of every file in `sources` into `destination`.
+  // Writes the personality's renamed copy of every file in `sources` into `destination`.
   static func renameSources(at sources: URL, into destination: URL, personality: String) throws {
     let fileManager = FileManager.default
     for name in try fileManager.contentsOfDirectory(atPath: sources.path).sorted() {
@@ -91,8 +91,10 @@ enum DriverExtensionPersonalityRenaming {
   private static let backslash = UInt8(ascii: "\\")
   private static let underscore = UInt8(ascii: "_")
 
-  /// `text` with `personality` inserted after the `SwifterKit` that starts at each UTF-8 offset in
-  /// ascending `offsets`. The insertion points follow ASCII, so they are character boundaries.
+  // Returns `text` with the personality inserted after each `SwifterKit` at the given offsets.
+  //
+  // The offsets are UTF-8 offsets in ascending order. The insertion points follow ASCII, so they
+  // are character boundaries.
   private static func inserting(
     _ personality: String,
     after offsets: [Int],
@@ -111,8 +113,10 @@ enum DriverExtensionPersonalityRenaming {
     return result + text[copied...]
   }
 
-  /// Whether `SwifterKit` starts an identifier or file name at `index`. Text after `/` is part
-  /// of a package path, such as the generated-header comments' Swift source paths.
+  // Whether `SwifterKit` starts an identifier or file name at `index`.
+  //
+  // Text after `/` is part of a package path, such as the generated-header comments' Swift
+  // source paths.
   private static func startsIdentifier(_ bytes: [UInt8], at index: Int) -> Bool {
     guard index + prefix.count <= bytes.count, bytes[index] == prefix[0] else { return false }
     if index > 0,
@@ -123,7 +127,7 @@ enum DriverExtensionPersonalityRenaming {
     return bytes[index..<index + prefix.count].elementsEqual(prefix)
   }
 
-  /// Whether the line starting at `lineStart` is an `#include` or `#import` directive.
+  // Whether the line starting at `lineStart` is an `#include` or `#import` directive.
   private static func isInclude(_ bytes: [UInt8], lineStart: Int) -> Bool {
     var index = lineStart
     while index < bytes.count, bytes[index] == UInt8(ascii: " ") || bytes[index] == 9 { index += 1 }

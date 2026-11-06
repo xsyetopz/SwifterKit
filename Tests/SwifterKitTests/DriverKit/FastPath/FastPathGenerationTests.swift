@@ -109,7 +109,7 @@ struct FastPathGenerationTests {
     #expect(Set(RuntimeFastPathOpcode.allCases.map(\.rawValue)).count == 13)
   }
 
-  /// Every operation kind, register width, operand kind, and condition, repeated to fill a program.
+  // Every operation kind, register width, operand kind, and condition, repeated to fill a program.
   private static let everyOperation: [FastPathOp] = [
     .read(FastPathRegister(bar: 0, offset: 0, width: .bits32), into: .v0),
     .write(FastPathRegister(bar: 0, offset: 4, width: .bits8), .constant(0xFF)),
@@ -136,7 +136,7 @@ struct FastPathGenerationTests {
     .enqueue(0xFF_FFFF, slots: FastPathSlot.allCases), .enqueue(1, slots: [.v3]),
   ]
 
-  /// The most data queues, with the smallest and largest capacities and entry sizes, both ways.
+  // The most data queues, with the smallest and largest capacities and entry sizes, both ways.
   private static let dataQueues = (0..<UInt32(FastPathLimits.maximumDataQueues)).map { index in
     switch index {
     case 0:
@@ -157,7 +157,7 @@ struct FastPathGenerationTests {
     }
   }
 
-  /// The most rings, with the smallest and largest entry sizes and counts.
+  // The most rings, with the smallest and largest entry sizes and counts.
   private static let rings = (0..<UInt32(FastPathLimits.maximumRings)).map { id in
     switch id {
     case 3: FastPathRing(id: id, entrySize: 8, entryCount: 65_536, direction: .deviceWrites)
@@ -166,7 +166,7 @@ struct FastPathGenerationTests {
     }
   }
 
-  /// The most programs, each with the most operations, over every trigger and delivery.
+  // The most programs, each with the most operations, over every trigger and delivery.
   static let maximal: FastPathConfiguration = {
     let triggers: [(Int) -> FastPathTrigger] = [
       { _ in .start }, { _ in .stop }, { _ in .command },
@@ -231,4 +231,6 @@ struct FastPathGenerationTests {
   }
 }
 
-private extension FastPathOp { var isSkip: Bool { if case .skip = self { true } else { false } } }
+extension FastPathOp {
+  fileprivate var isSkip: Bool { if case .skip = self { true } else { false } }
+}

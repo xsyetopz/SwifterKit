@@ -67,7 +67,9 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
   public let minimumTransferUnit: UInt32
   /// Feature flags added to the family's `getFeatureFlags` result.
   public let featureFlags: EthernetFeatureFlags
-  /// Segmentation limits. Required when ``hardwareAssists`` includes TSO.
+  /// Segmentation limits.
+  ///
+  /// Required when ``hardwareAssists`` includes TSO.
   public let tsoOptions: EthernetTSOOptions?
   /// Whether the interface supports software VLAN tagging.
   public let supportsSoftwareVLAN: Bool
@@ -91,8 +93,10 @@ public struct EthernetDeviceConfiguration: Sendable, Hashable {
   public let receivePacketCount: UInt32?
   /// Hybrid-polling parameters, or nil for interrupt-driven operation only.
   public let packetPolling: EthernetPacketPolling?
-  /// Service class of the transmit submission queue, or nil for none. Applied on DriverKit 24
-  /// and later through `IOUserNetworkTxSubmissionQueue::Create(pool, owner, serviceClass, ...)`.
+  /// Service class of the transmit submission queue, or nil for none.
+  ///
+  /// Applied on DriverKit 24 and later through `IOUserNetworkTxSubmissionQueue::Create(pool, owner,
+  /// serviceClass, ...)`.
   public let transmitServiceClass: EthernetServiceClass?
 
   /// The ``hardwareAssists`` bits as a typed set.

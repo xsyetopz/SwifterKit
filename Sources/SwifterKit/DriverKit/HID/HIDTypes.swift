@@ -32,7 +32,9 @@ public struct HIDReport: Sendable, Hashable {
   public let timestamp: UInt64
   /// The report direction and semantics.
   public let type: HIDReportType
-  /// HIDDriverKit option bits. The low byte may contain the report identifier.
+  /// HIDDriverKit option bits.
+  ///
+  /// The low byte may contain the report identifier.
   public let options: UInt32
   /// The complete report bytes expected by the report descriptor.
   public let bytes: [UInt8]
@@ -171,8 +173,8 @@ public struct HIDDeviceConfiguration: Sendable, Hashable {
     self.answeredReportTypes = answeredReportTypes
   }
 
-  /// Whether the descriptor is present, the report-type masks are known, and every string is
-  /// non-empty and free of NUL. Callers add their own descriptor size limit.
+  // Whether the descriptor is present, the report-type masks are known, and every string is
+  // non-empty and free of NUL. Callers add their own descriptor size limit.
   var hasValidFields: Bool {
     let strings = [transport, manufacturer, product, serialNumber]
     return !reportDescriptor.isEmpty && acceptedHostReportTypes.subtracting(.all).isEmpty

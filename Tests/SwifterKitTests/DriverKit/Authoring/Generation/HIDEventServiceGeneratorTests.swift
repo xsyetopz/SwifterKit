@@ -82,7 +82,6 @@ struct HIDEventServiceGeneratorTests {
   func rejectsInvalidEventServices() {
     let valid = HIDEventServiceConfiguration(usagePairs: [HIDUsagePair(usagePage: 1)])
     let cases: [(DriverConfiguration, DriverExtensionGenerationOptions)] = [
-      (Self.eventConfiguration(.eventService, service: valid), DriverExtensionGenerationOptions()),
       (
         Self.eventConfiguration(.eventService, providerClass: "IOService", service: valid),
         Self.options

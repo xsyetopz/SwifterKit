@@ -3,11 +3,11 @@ import Testing
 
 @testable import SwifterKit
 
-/// The portable data queue host ring: geometry checks, wrap, empty and full rings, and indices or
-/// sizes a corrupt producer wrote.
+// The portable data queue host ring: geometry checks, wrap, empty and full rings, and indices or
+// sizes a corrupt producer wrote.
 @Suite
 struct FastPathDataQueueRingTests {
-  /// 4096 bytes of 16-byte records (8-byte entries), so 256 records.
+  // 4096 bytes of 16-byte records (8-byte entries), so 256 records.
   private static let queue = FastPathDataQueue(
     id: 3,
     capacityBytes: 4096,
@@ -15,7 +15,7 @@ struct FastPathDataQueueRingTests {
     direction: .toHost
   )
 
-  /// A zeroed host ring with the header the extension writes at start.
+  // A zeroed host ring with the header the extension writes at start.
   private final class Ring: @unchecked Sendable {
     let pointer: UnsafeMutableRawBufferPointer
     let memory: DriverSharedMemory
@@ -45,7 +45,7 @@ struct FastPathDataQueueRingTests {
       UInt32(littleEndian: pointer.loadUnaligned(fromByteOffset: offset, as: UInt32.self))
     }
 
-    /// Produces one entry as the extension does.
+    // Produces one entry as the extension does.
     func produce(_ value: UInt64) throws {
       let ring = try FastPathDataQueueRing(
         header: UnsafeRawBufferPointer(pointer),
@@ -135,7 +135,7 @@ struct FastPathDataQueueRingTests {
     }
   }
 
-  /// 4096 bytes of 64-byte records (32-byte entries) the host produces, so 64 records.
+  // 4096 bytes of 64-byte records (32-byte entries) the host produces, so 64 records.
   private static let inbound = FastPathDataQueue(
     id: 4,
     capacityBytes: 4096,

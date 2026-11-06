@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKit
 
-/// Bounds, byte order, read-only refusal, and exactly-once unmapping of shared memory.
+// Bounds, byte order, read-only refusal, and exactly-once unmapping of shared memory.
 @Suite
 struct DriverSharedMemoryTests {
   @Test

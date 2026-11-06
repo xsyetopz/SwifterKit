@@ -39,7 +39,9 @@ public struct ServiceMatchNotification: Sendable, Hashable {
   public let watch: ServiceWatch
   /// Whether the service matched or terminated.
   public let kind: Kind
-  /// The watch's notification count, from 1. A gap means lossy events were dropped.
+  /// The watch's notification count, from 1.
+  ///
+  /// A gap means lossy events were dropped.
   public let sequence: UInt64
   /// The service's `IORegistryEntry` identifier.
   public let registryEntryID: UInt64
@@ -67,12 +69,15 @@ public struct ServiceMatchNotification: Sendable, Hashable {
 }
 
 /// A system state item that changed, from `IOServiceStateNotificationDispatchSource`.
+///
 /// The extension re-arms the source with
 /// `IOServiceStateNotificationDispatchSource::StateNotificationBegin`.
 public struct SystemStateNotification: Sendable, Hashable {
   /// The watch that observed the item.
   public let watch: ServiceWatch
-  /// The watch's notification count, from 1. A gap means lossy events were dropped.
+  /// The watch's notification count, from 1.
+  ///
+  /// A gap means lossy events were dropped.
   public let sequence: UInt64
   /// The item's name.
   public let item: String
@@ -109,8 +114,8 @@ public struct SystemStateNotification: Sendable, Hashable {
 }
 
 extension DriverCommand {
-  /// The matching key that carries a user class to the extension. The extension replaces it with
-  /// the entries `IOService::CreateUserClassMatchingDictionary` writes.
+  // The matching key that carries a user class to the extension. The extension replaces it with
+  // the entries `IOService::CreateUserClassMatchingDictionary` writes.
   static let userClassTransportKey = "IOUserClass"
 
   /// Creates a service watch through `IOServiceNotificationDispatchSource::Create`.
@@ -160,9 +165,10 @@ extension DriverCommand {
 }
 
 extension DriverContext {
-  /// Watches for services that match `criteria`. Each match and termination arrives as an event
-  /// that ``DriverEvent/serviceMatchNotification()`` decodes, starting with services that
-  /// already match.
+  /// Watches for services that match `criteria`.
+  ///
+  /// Each match and termination arrives as an event that ``DriverEvent/serviceMatchNotification()``
+  /// decodes, starting with services that already match.
   ///
   /// A ``DriverServiceMatch/userClass`` matches through
   /// `IOService::CreateUserClassMatchingDictionary`, which the extension calls. A criteria
@@ -176,6 +182,7 @@ extension DriverContext {
   }
 
   /// Watches system state items such as those ``createSystemStateItem(named:value:)`` creates.
+  ///
   /// Each change arrives as an event that ``DriverEvent/systemStateNotification()`` decodes.
   public func watchSystemState(items: [String]) async throws -> ServiceWatch {
     let reply = try await execute(try .watchSystemState(items: items))

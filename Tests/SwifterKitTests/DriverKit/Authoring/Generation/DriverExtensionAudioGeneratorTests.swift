@@ -107,7 +107,7 @@ struct AudioGeneratorTests {
   }
 
   @Test
-  func rejectsMissingInvalidOldAndConflictingConfiguration() {
+  func rejectsMissingInvalidAndConflictingConfiguration() {
     let root = FileManager.default.temporaryDirectory
     let missing = DriverConfiguration(
       bundleIdentifier: "com.example.audio",
@@ -178,20 +178,6 @@ struct AudioGeneratorTests {
       try DriverExtensionGenerator.generate(
         configuration: invalidControlConfiguration,
         options: DriverExtensionGenerationOptions(deploymentTarget: "21.0"),
-        at: root.appendingPathComponent(UUID().uuidString)
-      )
-    }
-
-    let valid = DriverConfiguration(
-      bundleIdentifier: "com.example.audio",
-      providerClass: "IOUserResources",
-      capabilities: .audio,
-      audioDevice: deviceConfiguration
-    )
-    #expect(throws: DriverExtensionGenerationError.invalidAudioConfiguration) {
-      try DriverExtensionGenerator.generate(
-        configuration: valid,
-        options: DriverExtensionGenerationOptions(deploymentTarget: "20.0"),
         at: root.appendingPathComponent(UUID().uuidString)
       )
     }
@@ -267,7 +253,7 @@ struct AudioGeneratorTests {
     return lead + Self.selectorSliderAndPanControls(selectorName: "Input")
   }
 
-  /// A data-source selector (identifier 3), a slider (4), and a stereo pan (5).
+  // A data-source selector (identifier 3), a slider (4), and a stereo pan (5).
   static func selectorSliderAndPanControls(selectorName: String) -> [AudioControlConfiguration] {
     [
       .selector(

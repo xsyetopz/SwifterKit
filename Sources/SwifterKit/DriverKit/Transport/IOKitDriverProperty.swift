@@ -3,10 +3,10 @@
   import Foundation
 
   extension DriverProperty {
-    /// Decodes an I/O Registry property-list value.
-    ///
-    /// Booleans and numbers are identified by CoreFoundation type because bridged numbers 0 and
-    /// 1 also cast to `Bool`. IOKit publishes integers as signed CoreFoundation numbers.
+    // Decodes an I/O Registry property-list value.
+    //
+    // Booleans and numbers are identified by CoreFoundation type because bridged numbers 0 and
+    // 1 also cast to `Bool`. IOKit publishes integers as signed CoreFoundation numbers.
     static func decode(_ value: Any) -> Self? {
       let object = value as CFTypeRef
       let type = CFGetTypeID(object)

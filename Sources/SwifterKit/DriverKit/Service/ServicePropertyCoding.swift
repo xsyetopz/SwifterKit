@@ -1,29 +1,29 @@
 import Foundation
 
-/// The tagged registry-property encoding shared with `SwifterKitRuntimeServiceProtocol.h`.
-///
-/// Values are little-endian and nest at most ``maximumDepth`` levels. DriverKit's `OSNumber` is
-/// unsigned and has no floating-point form, so `.integer` travels as its 64-bit pattern and
-/// decodes as `.unsignedInteger`, and `.real` cannot be encoded.
+// The tagged registry-property encoding shared with `SwifterKitRuntimeServiceProtocol.h`.
+//
+// Values are little-endian and nest at most ``maximumDepth`` levels. DriverKit's `OSNumber` is
+// unsigned and has no floating-point form, so `.integer` travels as its 64-bit pattern and
+// decodes as `.unsignedInteger`, and `.real` cannot be encoded.
 enum ServicePropertyCoding {
   typealias Tag = RuntimePropertyTag
 
-  /// The deepest nesting either side accepts. A top-level value is at depth 1.
+  // The deepest nesting either side accepts. A top-level value is at depth 1.
   static let maximumDepth = RuntimePropertyLimits.maximumDepth
-  /// The longest registry name, which DriverKit stores with a NUL in 128 bytes.
+  // The longest registry name, which DriverKit stores with a NUL in 128 bytes.
   static let maximumNameLength = RuntimePropertyLimits.nameMaximumLength
-  /// The largest command payload that fits one runtime message.
+  // The largest command payload that fits one runtime message.
   static let maximumPayloadSize =
     RuntimeSchema.maximumMessageSize - RuntimeSchema.headerSize - RuntimeSchema.commandHeaderSize
 
-  /// Encodes one value.
+  // Encodes one value.
   static func encode(_ value: DriverProperty) throws -> Data {
     var data = Data()
     try encode(value, into: &data, depth: 1)
     return data
   }
 
-  /// Returns a registry name's UTF-8 bytes after checking its length and that it has no NUL.
+  // Returns a registry name's UTF-8 bytes after checking its length and that it has no NUL.
   static func nameBytes(_ name: String) throws -> Data {
     let bytes = Data(name.utf8)
     guard !bytes.isEmpty, bytes.count <= maximumNameLength, !bytes.contains(0) else {
@@ -32,7 +32,7 @@ enum ServicePropertyCoding {
     return bytes
   }
 
-  /// Decodes exactly one value, rejecting malformed input and trailing bytes.
+  // Decodes exactly one value, rejecting malformed input and trailing bytes.
   static func decode(_ data: Data) throws -> DriverProperty {
     var reader = Reader(bytes: [UInt8](data))
     let value = try reader.value(depth: 1)

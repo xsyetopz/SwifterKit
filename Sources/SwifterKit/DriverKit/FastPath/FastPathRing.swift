@@ -10,8 +10,9 @@ import Foundation
 /// ``FastPathOperand/ringDeviceAddress(_:_:)``. Swift maps the same buffer with
 /// ``DriverContext/mapRing(_:)``.
 public struct FastPathRing: Sendable, Hashable {
-  /// The ring's identifier, unique in its configuration and at most `0xFF_FFFF`. Operations and
-  /// ``DriverContext/mapRing(_:)`` name the ring by it.
+  /// The ring's identifier, unique in its configuration and at most `0xFF_FFFF`.
+  ///
+  /// Operations and ``DriverContext/mapRing(_:)`` name the ring by it.
   public let id: UInt32
   /// The bytes of one entry, a power of two from 8 through 4096.
   public let entrySize: UInt32
@@ -54,7 +55,7 @@ public enum FastPathRingLayout {
   /// The offset of the entry count.
   public static let entryCountOffset = RuntimeFastPathLimits.ringEntryCountOffset
 
-  /// The offset of entry `index`'s first byte.
+  /// The offset of the first byte of entry `index`.
   public static func entryOffset(_ index: UInt32, of ring: FastPathRing) -> Int {
     headerSize + Int(index & (ring.entryCount &- 1)) * Int(ring.entrySize)
   }

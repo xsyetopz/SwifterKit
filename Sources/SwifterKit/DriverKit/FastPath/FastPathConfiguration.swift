@@ -58,17 +58,25 @@ public enum FastPathLimits {
   public static let maximumEmittedSlots = RuntimeFastPathLimits.slotCount
   /// The most rings in one configuration.
   public static let maximumRings = RuntimeFastPathLimits.maximumRings
-  /// The allowed entry sizes of a ring, in bytes. Each is a power of two.
+  /// The allowed entry sizes of a ring, in bytes.
+  ///
+  /// Each is a power of two.
   public static let ringEntrySizes = RuntimeFastPathLimits.ringEntrySizes
-  /// The allowed entry counts of a ring. Each is a power of two.
+  /// The allowed entry counts of a ring.
+  ///
+  /// Each is a power of two.
   public static let ringEntryCounts = RuntimeFastPathLimits.ringEntryCounts
   /// The most bytes every ring of a configuration occupies together, headers included.
   public static let maximumRingBytes = RuntimeFastPathLimits.maximumRingBytes
   /// The most data queues in one configuration.
   public static let maximumDataQueues = RuntimeFastPathLimits.maximumDataQueues
-  /// The allowed host ring capacities of a data queue, in bytes. Each is a power of two.
+  /// The allowed host ring capacities of a data queue, in bytes.
+  ///
+  /// Each is a power of two.
   public static let dataQueueCapacities = RuntimeFastPathLimits.dataQueueCapacities
-  /// The allowed maximum entry sizes of a data queue, in bytes. Each is a multiple of 8.
+  /// The allowed maximum entry sizes of a data queue, in bytes.
+  ///
+  /// Each is a multiple of 8.
   public static let dataQueueEntrySizes = RuntimeFastPathLimits.dataQueueEntrySizes
   /// The most bytes every data queue host ring occupies together, headers included.
   public static let maximumDataQueueBytes = RuntimeFastPathLimits.maximumDataQueueBytes

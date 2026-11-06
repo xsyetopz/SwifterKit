@@ -6,38 +6,40 @@
 // RuntimeSchemaTests`. Packed payload layouts stay hand-written in `SwifterKitRuntimeProtocol.h`,
 // which checks its fixed sizes against the sizes declared here.
 
-/// Fixed wire-protocol values shared by the Swift host and the native extension.
+// Fixed wire-protocol values shared by the Swift host and the native extension.
 enum RuntimeSchema {
-  /// The value that begins every runtime message.
+  // The value that begins every runtime message.
   static let magic: UInt32 = 0x5357_4B54
-  /// The oldest protocol version either side speaks.
+  // The oldest protocol version either side speaks.
   static let minimumVersion: UInt16 = 2
-  /// The newest protocol version either side speaks.
+  // The newest protocol version either side speaks.
   static let maximumVersion: UInt16 = 2
-  /// The largest complete message, header included, accepted in either direction.
+  // The largest complete message, header included, accepted in either direction.
   static let maximumMessageSize = 65_536
-  /// The fixed message header size.
+  // The fixed message header size.
   static let headerSize = 24
-  /// The fixed command header size that precedes command payload bytes.
+  // The fixed command header size that precedes command payload bytes.
   static let commandHeaderSize = 16
-  /// The handshake request payload size: minimum version, maximum version, reserved bits.
+  // The handshake request payload size: minimum version, maximum version, reserved bits.
   static let handshakeRequestSize = 8
-  /// The handshake response payload size: version, reserved bits, capabilities.
+  // The handshake response payload size: version, reserved bits, capabilities.
   static let handshakeResponseSize = 16
 }
 
-/// Flags that modify runtime message handling.
-enum RuntimeMessageFlag: UInt32, CaseIterable { case expectsResponse = 0x1 }
+// Flags that modify runtime message handling.
+enum RuntimeMessageFlag: UInt32, CaseIterable {
+  case expectsResponse = 0x1
+}
 
-/// IOKit external-method selectors the runtime user client accepts.
+// IOKit external-method selectors the runtime user client accepts.
 enum RuntimeSelector: UInt32, CaseIterable {
-  /// A synchronous runtime message exchange through `IOConnectCallStructMethod`.
+  // A synchronous runtime message exchange through `IOConnectCallStructMethod`.
   case transact = 0
-  /// An asynchronous registration whose completion the extension signals when events are pending.
+  // An asynchronous registration whose completion the extension signals when events are pending.
   case eventNotification = 1
 }
 
-/// Capability bits advertised by the native extension during the handshake.
+// Capability bits advertised by the native extension during the handshake.
 enum RuntimeCapability: UInt64, CaseIterable {
   case memory = 0x1
   case interrupts = 0x2
@@ -53,7 +55,7 @@ enum RuntimeCapability: UInt64, CaseIterable {
   case video = 0x800
 }
 
-/// Operations the native extension executes for a command message.
+// Operations the native extension executes for a command message.
 enum RuntimeOpcode: UInt32, CaseIterable {
   case ping = 0
   case pollEvent = 1
@@ -313,7 +315,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case fastPathDataQueueNotify = 0x0F02
 }
 
-/// Types of events the native extension queues for the Swift host.
+// Types of events the native extension queues for the Swift host.
 enum RuntimeEventType: UInt32, CaseIterable {
   case interrupt = 0x0100
   case usbPipeIO = 0x0200

@@ -1,6 +1,6 @@
 import Foundation
 
-/// The classes and member functions one DriverKit SDK declares in its `.iig` headers.
+// The classes and member functions one DriverKit SDK declares in its `.iig` headers.
 struct SDKSurface {
   struct DeclaredClass {
     let framework: String
@@ -22,7 +22,7 @@ struct SDKSurface {
     }
   }
 
-  /// Reads every framework header under a `DriverKit.sdk` directory.
+  // Reads every framework header under a `DriverKit.sdk` directory.
   init(sdk: URL) throws {
     let settingsURL = sdk.appendingPathComponent("SDKSettings.json")
     guard let data = try? Data(contentsOf: settingsURL),

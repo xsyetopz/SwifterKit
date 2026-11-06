@@ -22,12 +22,12 @@ import Foundation
 /// Accesses through ``withUnsafeMutableBytes(_:)`` race with the device like any shared DMA
 /// memory, so order them with the device's own protocol.
 public final class DriverHostMemory: @unchecked Sendable {
-  /// The allocation's first byte, on a page boundary.
+  // The allocation's first byte, on a page boundary.
   private let base: UnsafeMutableRawPointer
   /// The allocation's size in bytes, a whole number of pages.
   public let length: Int
   private let lock = NSLock()
-  /// Wraps whose release the extension has not confirmed.
+  // Wraps whose release the extension has not confirmed.
   private var wraps = 0
 
   /// Allocates at least `minimumLength` zeroed bytes, rounded up to whole pages.
@@ -58,14 +58,14 @@ public final class DriverHostMemory: @unchecked Sendable {
     try await context.wrapHostMemory(self, direction: direction)
   }
 
-  /// Records a wrap the extension answered.
+  // Records a wrap the extension answered.
   func beginWrap() {
     lock.lock()
     wraps += 1
     lock.unlock()
   }
 
-  /// Records that the extension released a wrap's handle.
+  // Records that the extension released a wrap's handle.
   func endWrap() {
     lock.lock()
     wraps -= 1

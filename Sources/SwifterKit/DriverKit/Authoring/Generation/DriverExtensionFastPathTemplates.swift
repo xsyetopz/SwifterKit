@@ -1,8 +1,8 @@
 extension DriverExtensionGenerator {
-  /// Native fast-path tables in the row layouts of `RuntimeFastPathRow`.
-  ///
-  /// Each program indexes a run of the shared operation table and has one trigger row. Arrays
-  /// hold at least one element so the tables stay valid C++ when they are empty.
+  // Native fast-path tables in the row layouts of `RuntimeFastPathRow`.
+  //
+  // Each program indexes a run of the shared operation table and has one trigger row. Arrays
+  // hold at least one element so the tables stay valid C++ when they are empty.
   static func fastPathDeclarations(_ fastPath: FastPathConfiguration?) -> String {
     let programs = fastPath?.programs ?? []
     let rings = fastPath?.rings ?? []
@@ -97,7 +97,7 @@ extension DriverExtensionGenerator {
     return row(["\(kind.rawValue)", "\(source)", "\(delivery)", "\(program)"])
   }
 
-  /// One `SwifterKitFastPathOperation` row, in the field use `RuntimeFastPathOpcode` documents.
+  // One `SwifterKitFastPathOperation` row, in the field use `RuntimeFastPathOpcode` documents.
   private static func fastPathRow(
     _ operation: FastPathOp,
     rings: [UInt32: UInt32],

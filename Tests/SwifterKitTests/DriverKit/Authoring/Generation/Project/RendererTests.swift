@@ -175,7 +175,7 @@ struct DriverExtensionProjectTests {
     }
     return
       ([
-        "com.swifterkit.Runtime", "DRIVERKIT_DEPLOYMENT_TARGET = 19.0;",
+        "com.swifterkit.Runtime", "DRIVERKIT_DEPLOYMENT_TARGET = 21.0;",
         "DEVELOPMENT_TEAM = 9PQP6CDMQT;",
       ] + records).joined(separator: "\n")
   }

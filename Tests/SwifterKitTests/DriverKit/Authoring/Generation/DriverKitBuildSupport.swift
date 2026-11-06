@@ -3,17 +3,17 @@ import Testing
 
 @testable import SwifterKit
 
-/// The DriverKit SDK used for generated-extension builds, when one is installed.
-///
-/// `SWIFTERKIT_DRIVERKIT_DEVELOPER_DIR` selects an older Xcode, such as Xcode 16.3 whose
-/// DriverKit 24.4 SDK still accepts the 19.0 default. Otherwise `DEVELOPER_DIR` applies.
+// The DriverKit SDK used for generated-extension builds, when one is installed.
+//
+// `SWIFTERKIT_DRIVERKIT_DEVELOPER_DIR` selects another Xcode for the DriverKit SDK. Otherwise
+// `DEVELOPER_DIR` applies.
 struct DriverKitSDK: Sendable {
   let minimumDeploymentTarget: DriverKitDeploymentVersion
   let maximumDeploymentTarget: DriverKitDeploymentVersion
 
   static let current: Self? = locate()
 
-  /// Returns whether the selected SDK can build a project with `deploymentTarget`.
+  // Returns whether the selected SDK can build a project with `deploymentTarget`.
   static func supports(deploymentTarget: String) -> Bool {
     guard let sdk = current, let target = DriverKitDeploymentVersion(deploymentTarget) else {
       return false
@@ -43,12 +43,12 @@ struct DriverKitSDK: Sendable {
   }
 }
 
-/// Builds a generated extension unsigned for arm64 and x86_64 when the selected SDK can.
-///
-/// Projects older than the SDK minimum build at that minimum so the generated sources still
-/// compile against the installed SDK. A project newer than the SDK records an issue. Gate such
-/// tests with ``DriverKitSDK/supports(deploymentTarget:)`` so they report as skipped. CI sets
-/// `SWIFTERKIT_REQUIRE_DRIVERKIT` so a missing SDK fails ``DriverKitSDKTests``.
+// Builds a generated extension unsigned for arm64 and x86_64 when the selected SDK can.
+//
+// Projects older than the SDK minimum build at that minimum so the generated sources still
+// compile against the installed SDK. A project newer than the SDK records an issue. Gate such
+// tests with ``DriverKitSDK/supports(deploymentTarget:)`` so they report as skipped. CI sets
+// `SWIFTERKIT_REQUIRE_DRIVERKIT` so a missing SDK fails ``DriverKitSDKTests``.
 @discardableResult
 func expectGeneratedExtensionBuilds(
   at directory: URL,
@@ -90,8 +90,8 @@ func expectGeneratedExtensionBuilds(
   return build.status == 0
 }
 
-/// Copies a built tree's sources, IIG-generated headers, and deployment target so
-/// `scripts/ci/validate-native.sh` can analyze every family configuration the build tests cover.
+// Copies a built tree's sources, IIG-generated headers, and deployment target so
+// `scripts/ci/validate-native.sh` can analyze every family configuration the build tests cover.
 private func captureForNativeAnalysis(
   _ directory: URL,
   derivedData: URL,
@@ -115,17 +115,17 @@ private func captureForNativeAnalysis(
   )
 }
 
-/// How long a host harness may run. They finish in seconds, so reaching this means it is stuck.
+// How long a host harness may run. They finish in seconds, so reaching this means it is stuck.
 let hostHarnessTimeout: TimeInterval = 300
 
-/// Runs a tool with the DriverKit Xcode and without the caller's `TOOLCHAINS` override, so
-/// Xcode uses its own compilers. Host builds pass `driverKitXcode: false` to keep the selected
-/// Xcode, because an older Xcode's host runtimes, such as its sanitizers, may not run on a newer
-/// macOS.
-///
-/// A tool still running after `timeout` seconds is killed. The result then carries a nonzero
-/// status and says so, so a stuck host harness fails its test instead of hanging the run. Output
-/// goes through a file rather than a pipe, so no read blocks on a stuck process.
+// Runs a tool with the DriverKit Xcode and without the caller's `TOOLCHAINS` override, so
+// Xcode uses its own compilers. Host builds pass `driverKitXcode: false` to keep the selected
+// Xcode, because an older Xcode's host runtimes, such as its sanitizers, may not run on a newer
+// macOS.
+//
+// A tool still running after `timeout` seconds is killed. The result then carries a nonzero
+// status and says so, so a stuck host harness fails its test instead of hanging the run. Output
+// goes through a file rather than a pipe, so no read blocks on a stuck process.
 func runTool(
   _ executable: String,
   _ arguments: [String],

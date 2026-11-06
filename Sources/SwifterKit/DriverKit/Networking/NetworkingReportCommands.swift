@@ -115,17 +115,22 @@ extension DriverContext {
     _ = try await execute(.reportEthernetDataBandwidths(bandwidths))
   }
 
-  /// Adds hardware counters to the interface statistics. Reset them after this returns.
+  /// Adds hardware counters to the interface statistics.
+  ///
+  /// Reset them after this returns.
   public func addEthernetHardwareCounts(_ counts: EthernetHardwareCounts) async throws {
     _ = try await execute(.addEthernetHardwareCounts(counts))
   }
 
-  /// Reports NIC proxy capacities. Requires ``EthernetFeatureFlags/nicProxy``.
+  /// Reports NIC proxy capacities.
+  ///
+  /// Requires ``EthernetFeatureFlags/nicProxy``.
   public func reportEthernetNICProxyLimits(_ limits: EthernetNICProxyLimits) async throws {
     _ = try await execute(.reportEthernetNICProxyLimits(limits))
   }
 
   /// Enables or disables the configured packet poller.
+  ///
   /// It calls `IOUserNetworkPacketPoller::enable`, `IOUserNetworkPacketPoller::disable`.
   public func setEthernetPolling(enabled: Bool) async throws {
     _ = try await execute(.setEthernetPolling(enabled: enabled))

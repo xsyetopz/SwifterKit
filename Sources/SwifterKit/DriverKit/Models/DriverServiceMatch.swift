@@ -6,9 +6,11 @@ public struct DriverServiceMatch: Sendable, Hashable {
   public let name: String?
   /// Required registry properties.
   public let registryProperties: [String: DriverProperty]
-  /// An optional user-space class name, such as a DriverKit driver class. The extension turns it
-  /// into matching entries with `IOService::CreateUserClassMatchingDictionary` in
-  /// ``DriverContext/watchServices(matching:)``. Other lookups ignore it.
+  /// An optional user-space class name, such as a DriverKit driver class.
+  ///
+  /// The extension turns it into matching entries with
+  /// `IOService::CreateUserClassMatchingDictionary` in ``DriverContext/watchServices(matching:)``.
+  /// Other lookups ignore it.
   public let userClass: String?
 
   /// Creates DriverKit service-matching criteria.

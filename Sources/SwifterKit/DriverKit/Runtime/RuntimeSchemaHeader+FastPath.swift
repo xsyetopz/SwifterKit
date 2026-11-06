@@ -1,10 +1,10 @@
-/// Renders the fast-path schema, under the native names the extension uses, as its own header so
-/// neither generated header outgrows the source size limit.
+// Renders the fast-path schema, under the native names the extension uses, as its own header so
+// neither generated header outgrows the source size limit.
 extension RuntimeSchemaHeader {
-  /// The fast-path header's file name inside the native extension's `Sources` directory.
+  // The fast-path header's file name inside the native extension's `Sources` directory.
   static let fastPathFileName = "SwifterKitRuntimeFastPathSchema.h"
 
-  /// Returns the complete clang-format-clean fast-path header text.
+  // Returns the complete clang-format-clean fast-path header text.
   static func renderFastPath() -> String {
     var lines = [
       "// Generated from Sources/SwifterKit/DriverKit/Runtime/RuntimeSchema+FastPath.swift.",
@@ -127,7 +127,7 @@ extension RuntimeSchemaHeader {
     ] + RuntimeFastPathRow.all.map(structure)
   }
 
-  /// A plain C++ structure with a size assertion.
+  // A plain C++ structure with a size assertion.
   private static func structure(_ row: RuntimeFastPathRow) -> [String] {
     ["struct \(row.name) {"] + row.fields.map { "    \($0.type) \($0.name);" } + [
       "};", "static_assert(sizeof(\(row.name)) == \(row.size));",

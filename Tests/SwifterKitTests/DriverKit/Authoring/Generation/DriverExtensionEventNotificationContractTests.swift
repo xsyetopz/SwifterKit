@@ -3,8 +3,9 @@ import Testing
 
 @testable import SwifterKit
 
-/// Source-level checks of the extension's event-notification contract. The generated-extension
-/// build tests compile this code per family. No test here runs it.
+// Source-level checks of the extension's event-notification contract.
+//
+// The generated-extension build tests compile this code per family. No test here runs it.
 @Suite
 struct DriverExtensionEventNotificationContractTests {
   @Test
