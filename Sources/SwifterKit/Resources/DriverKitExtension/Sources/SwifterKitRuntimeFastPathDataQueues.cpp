@@ -195,7 +195,7 @@ namespace {
             result = queue->buffer->CreateMapping(0, 0, 0, bytes, 0, &queue->map);
         }
         if (result != kIOReturnSuccess || queue->buffer == nullptr || queue->map == nullptr
-            || queue->map->GetAddress() == 0) {
+            || queue->map->GetAddress() == 0 || queue->map->GetLength() < bytes) {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
         }
         queue->address = queue->map->GetAddress();

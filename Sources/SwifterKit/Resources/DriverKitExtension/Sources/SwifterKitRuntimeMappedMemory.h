@@ -1,7 +1,17 @@
 #ifndef SwifterKitRuntimeMappedMemory_h
 #define SwifterKitRuntimeMappedMemory_h
 
+#include <DriverKit/IOMemoryDescriptor.h>
 #include <stdint.h>
+
+// Returns the allocation direction for a buffer the extension fills through its own mapping.
+//
+// DriverKit describes kIOMemoryDirectionOut memory as readable only (IOMemoryDescriptor.h), so an
+// output buffer the runtime writes is allocated InOut. Callers keep the requested direction for
+// their own checks.
+inline uint64_t SwifterKitWritableDirection(uint64_t direction) {
+    return direction == kIOMemoryDirectionOut ? kIOMemoryDirectionInOut : direction;
+}
 
 // Returns a pointer to mapped memory at `address`.
 //

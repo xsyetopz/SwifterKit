@@ -197,7 +197,8 @@ namespace {
         ReadDescriptor(IOBufferMemoryDescriptor* buffer, uint32_t length, OSData** response) {
         IOMemoryMap* map = nullptr;
         kern_return_t result = buffer->CreateMapping(kIOMemoryMapReadOnly, 0, 0, length, 0, &map);
-        if (result == kIOReturnSuccess && (map == nullptr || map->GetAddress() == 0)) {
+        if (result == kIOReturnSuccess
+            && (map == nullptr || map->GetAddress() == 0 || map->GetLength() < length)) {
             result = kIOReturnNoMemory;
         }
         if (result == kIOReturnSuccess) {
@@ -248,14 +249,16 @@ kern_return_t SwifterKitRuntimeService::HIDCommand(
         if (result != kIOReturnSuccess || buffer == nullptr) {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
         }
-        (void)buffer->SetLength(request.length);
         uint32_t transferred = 0;
-        result = IOUserUSBHostHIDDevice::getReport(
-            buffer,
-            static_cast<IOHIDReportType>(request.reportType),
-            request.options | request.reportID,
-            request.timeout,
-            &transferred);
+        result = buffer->SetLength(request.length);
+        if (result == kIOReturnSuccess) {
+            result = IOUserUSBHostHIDDevice::getReport(
+                buffer,
+                static_cast<IOHIDReportType>(request.reportType),
+                request.options | request.reportID,
+                request.timeout,
+                &transferred);
+        }
         if (result == kIOReturnSuccess) {
             result = transferred > request.length ? kIOReturnOverrun
                                                   : ReadDescriptor(buffer, transferred, response);

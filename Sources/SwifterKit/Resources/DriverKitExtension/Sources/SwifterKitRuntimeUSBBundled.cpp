@@ -96,7 +96,9 @@ namespace {
                 result = kIOReturnNoMemory;
             }
             if (result == kIOReturnSuccess) {
-                (void)entry.buffer->SetLength(request.bufferLength);
+                result = entry.buffer->SetLength(request.bufferLength);
+            }
+            if (result == kIOReturnSuccess) {
                 result = entry.buffer->CreateMapping(0, 0, 0, request.bufferLength, 0, &entry.map);
             }
             if (result == kIOReturnSuccess

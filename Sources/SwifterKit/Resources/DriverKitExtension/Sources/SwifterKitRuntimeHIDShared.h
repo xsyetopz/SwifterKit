@@ -137,7 +137,7 @@ inline kern_return_t SwifterKitHIDCopyDescriptorBytes(
         return result;
     }
     const uint64_t address = map->GetAddress();
-    if (address == 0
+    if (address == 0 || map->GetLength() < length
         || !destination->appendBytes(SwifterKitMappedPointer<const void>(address), length)) {
         result = kIOReturnNoMemory;
     }
@@ -151,7 +151,8 @@ inline kern_return_t SwifterKitHIDCopyIntoDescriptor(
     uint32_t length) {
     IOMemoryMap* map = nullptr;
     kern_return_t result = report->CreateMapping(0, 0, 0, length, 0, &map);
-    if (result == kIOReturnSuccess && (map == nullptr || map->GetAddress() == 0)) {
+    if (result == kIOReturnSuccess
+        && (map == nullptr || map->GetAddress() == 0 || map->GetLength() < length)) {
         result = kIOReturnNoMemory;
     }
     if (result == kIOReturnSuccess) {
@@ -171,8 +172,10 @@ inline kern_return_t SwifterKitHIDCreateReportBuffer(
     if (result != kIOReturnSuccess || *buffer == nullptr) {
         return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
     }
-    (void)(*buffer)->SetLength(length);
-    result = SwifterKitHIDCopyIntoDescriptor(*buffer, bytes, length);
+    result = (*buffer)->SetLength(length);
+    if (result == kIOReturnSuccess) {
+        result = SwifterKitHIDCopyIntoDescriptor(*buffer, bytes, length);
+    }
     if (result != kIOReturnSuccess) {
         OSSafeReleaseNULL(*buffer);
     }

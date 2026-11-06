@@ -239,9 +239,12 @@ namespace {
             return result;
         }
         // Read and write need an extension mapping. DMA and host mapping do not, so an entry
-        // DriverKit cannot map here stays usable for them.
-        if (entry->composed->CreateMapping(0, 0, 0, length, 0, &entry->map) != kIOReturnSuccess
-            || entry->map == nullptr || entry->map->GetAddress() == 0) {
+        // DriverKit cannot map here stays usable for them. An Out descriptor is readable only.
+        const uint64_t mapOptions = direction == kIOMemoryDirectionOut ? kIOMemoryMapReadOnly : 0;
+        if (entry->composed->CreateMapping(mapOptions, 0, 0, length, 0, &entry->map)
+                != kIOReturnSuccess
+            || entry->map == nullptr || entry->map->GetAddress() == 0
+            || entry->map->GetLength() < length) {
             OSSafeReleaseNULL(entry->map);
         }
         entry->owner = owner;
@@ -547,8 +550,10 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
                 return kIOReturnNoResources;
             }
 
+            // The backing is writable for MemoryWrite. entry->direction keeps the author's
+            // direction for composition.
             kern_return_t result = IOBufferMemoryDescriptor::Create(
-                header->direction,
+                SwifterKitWritableDirection(header->direction),
                 header->capacity,
                 header->alignment,
                 &entry->descriptor);
@@ -562,8 +567,8 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
                 result =
                     entry->descriptor->CreateMapping(0, 0, 0, header->capacity, 0, &entry->map);
             }
-            if (result == kIOReturnSuccess && entry->map != nullptr
-                && entry->map->GetAddress() != 0) {
+            if (result == kIOReturnSuccess && entry->map != nullptr && entry->map->GetAddress() != 0
+                && entry->map->GetLength() >= header->capacity) {
                 result = entry->descriptor->SetLength(header->length);
             } else if (result == kIOReturnSuccess) {
                 result = kIOReturnNoMemory;
@@ -672,6 +677,11 @@ kern_return_t SwifterKitRuntimeService::MemoryCommand(
             // A composed entry the extension could not map is reachable by DMA and the host only.
             if (entry->map == nullptr || entry->map->GetAddress() == 0) {
                 return kIOReturnUnsupported;
+            }
+            // A composed Out entry is mapped read-only.
+            if (write && entry->descriptor == nullptr
+                && entry->direction == kIOMemoryDirectionOut) {
+                return kIOReturnNotWritable;
             }
 
             auto* address = SwifterKitMappedPointer(entry->map->GetAddress() + header->offset);

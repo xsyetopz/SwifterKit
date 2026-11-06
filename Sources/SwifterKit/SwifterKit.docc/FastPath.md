@@ -77,7 +77,7 @@ A PCI reset through ``DriverContext`` can move BARs. The next program therefore 
 
 ``FastPathConfiguration/rings`` declares up to eight ``FastPathRing`` descriptor rings that a program shares with the device.
 
-The extension allocates the rings after the tables and BARs pass their checks, and before the start programs run. It allocates each ring as one `IOBufferMemoryDescriptor`, maps it, and prepares it for DMA with an `IODMACommand` on the PCI device. When the DMA preparation cannot describe a ring as a single segment, the whole fast path is refused with `kIOReturnNoResources`. The rings stay allocated until the stop programs have run. A start program can therefore give the device a ring's address, and a stop program can quiesce it first.
+The extension allocates the rings after the tables and BARs pass their checks, and before the start programs run. It allocates each ring as one `IOBufferMemoryDescriptor`, maps it, and prepares it for DMA with an `IODMACommand` on the PCI device. When a ring cannot be allocated, mapped at its full length, or described for DMA as a single segment, the whole fast path is refused with `kIOReturnNoResources`. The rings stay allocated until the stop programs have run. A start program can therefore give the device a ring's address, and a stop program can quiesce it first.
 
 ``FastPathRingLayout`` describes a ring's bytes. A 64-byte header comes first, then the entries. The header holds these little-endian 32-bit values:
 
