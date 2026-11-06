@@ -3,8 +3,8 @@ import Testing
 
 @testable import SwifterKit
 
-/// Checks the native asynchronous-control, bundled-I/O, endpoint-policy, and USB serial rules in
-/// the generated sources.
+// Checks the native asynchronous-control, bundled-I/O, endpoint-policy, and USB serial rules in
+// the generated sources.
 @Suite
 struct USBAsyncRuntimeContractTests {
   @Test

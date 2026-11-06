@@ -1,13 +1,15 @@
 import Foundation
 
-/// A header reduced to declaration text, with the preprocessor conditions active on each line.
-///
-/// Comments and `@iig implementation` blocks are removed, and preprocessor directives are
-/// replaced by empty lines, so line numbers match the original header.
+// A header reduced to declaration text, with the preprocessor conditions active on each line.
+//
+// Comments and `@iig implementation` blocks are removed, and preprocessor directives are
+// replaced by empty lines, so line numbers match the original header.
 struct IIGSource: Equatable {
-  /// Declaration text without comments or directives.
+  // Declaration text without comments or directives.
   let lines: [String]
-  /// The conditions enclosing each line, outermost first. Include guards are omitted.
+  // The conditions enclosing each line, outermost first.
+  //
+  // Include guards are omitted.
   let conditions: [[String]]
 
   init(_ text: String) {
@@ -60,7 +62,7 @@ struct IIGSource: Equatable {
     return (String(body[..<space]), body[space...].trimmed)
   }
 
-  /// Removes `/* */` and `//` comments, keeping newlines so line numbers stay stable.
+  // Removes `/* */` and `//` comments, keeping newlines so line numbers stay stable.
   static func removingComments(_ text: String) -> String {
     var result = ""
     result.reserveCapacity(text.utf8.count)
@@ -103,7 +105,7 @@ struct IIGSource: Equatable {
     return result
   }
 
-  /// Blanks `@iig implementation` … `@iig end` blocks, which hold kernel-side includes.
+  // Blanks `@iig implementation` … `@iig end` blocks, which hold kernel-side includes.
   static func removingIIGBlocks(_ text: String) -> String {
     var inBlock = false
     return text.split(separator: "\n", omittingEmptySubsequences: false).map { line in
@@ -121,4 +123,6 @@ struct IIGSource: Equatable {
   }
 }
 
-extension StringProtocol { var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) } }
+extension StringProtocol {
+  var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
+}

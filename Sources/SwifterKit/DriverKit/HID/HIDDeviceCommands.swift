@@ -73,7 +73,9 @@ public enum HIDIdlePolicyTarget: UInt32, Sendable, Hashable {
 }
 
 extension DriverCommand {
-  /// Answers a host get-report request. A failure status carries no bytes.
+  /// Answers a host get-report request.
+  ///
+  /// A failure status carries no bytes.
   public static func completeHIDGetReport(
     _ request: HIDGetReportRequest,
     bytes: [UInt8],
@@ -156,7 +158,9 @@ extension DriverCommand {
 }
 
 extension DriverContext {
-  /// Answers a host get-report request. A failure status carries no bytes.
+  /// Answers a host get-report request.
+  ///
+  /// A failure status carries no bytes.
   public func completeHIDGetReport(
     _ request: HIDGetReportRequest,
     bytes: [UInt8],

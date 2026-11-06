@@ -3,12 +3,12 @@ import Foundation
 @testable import SwifterKit
 
 // @unchecked Sendable: `lock` guards `value`.
-/// Counts how often in-memory mappings were removed.
+// Counts how often in-memory mappings were removed.
 final class UnmapCounter: @unchecked Sendable {
   private let lock = NSLock()
   private var value = 0
 
-  /// The number of unmaps so far.
+  // The number of unmaps so far.
   var total: Int {
     lock.lock()
     defer { lock.unlock() }
@@ -22,10 +22,10 @@ final class UnmapCounter: @unchecked Sendable {
   }
 }
 
-/// The in-memory stand-in for `IOConnectMapMemory64` that mock connections share: zeroed
-/// allocations, one live instance per memory type, and every mapping unmapped on close.
+// The in-memory stand-in for `IOConnectMapMemory64` that mock connections share: zeroed
+// allocations, one live instance per memory type, and every mapping unmapped on close.
 struct InMemoryMappings {
-  /// Bytes each new mapping gets.
+  // Bytes each new mapping gets.
   var length = 64
   let unmaps = UnmapCounter()
   private(set) var types: [UInt32] = []
@@ -54,5 +54,5 @@ struct InMemoryMappings {
   private struct WeakMapping { weak var memory: DriverSharedMemory? }
 }
 
-/// Thrown by mock connections whose tests do not map memory.
+// Thrown by mock connections whose tests do not map memory.
 struct MappingUnsupported: Error {}

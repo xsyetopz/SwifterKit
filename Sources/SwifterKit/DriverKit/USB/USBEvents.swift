@@ -6,13 +6,17 @@ public struct USBPipeIOCompletion: Sendable, Hashable {
   public let requestID: UInt32
   /// The endpoint address of the pipe.
   public let endpoint: UInt8
-  /// The `IOReturn` status. Zero is success. `kIOReturnAborted` follows an abort.
+  /// The `IOReturn` status.
+  ///
+  /// Zero is success. `kIOReturnAborted` follows an abort.
   public let status: Int32
   /// The number of bytes transferred.
   public let bytesTransferred: UInt32
   /// The completion time, in mach absolute time units.
   public let timestamp: UInt64
-  /// Bytes read by an IN transfer. Empty for an OUT transfer.
+  /// Bytes read by an IN transfer.
+  ///
+  /// Empty for an OUT transfer.
   public let data: [UInt8]
 
   /// Whether the transfer completed successfully.
@@ -55,8 +59,10 @@ public struct USBIsochronousCompletion: Sendable, Hashable {
   public let status: Int32
   /// Per-frame results in submission order.
   public let frames: [USBIsochronousFrameResult]
-  /// For an IN transfer, the whole data buffer. Frame `n` starts after the `requestCount`
-  /// bytes of every earlier frame, and its first `completeCount` bytes are valid.
+  /// For an IN transfer, the whole data buffer.
+  ///
+  /// Frame `n` starts after the `requestCount` bytes of every earlier frame, and its first
+  /// `completeCount` bytes are valid.
   public let data: [UInt8]
 
   /// Whether the transfer completed successfully.
@@ -107,11 +113,15 @@ public struct USBDeviceRequestCompletion: Sendable, Hashable {
   public let requestID: UInt32
   /// The request's `bmRequestType`.
   public let requestType: UInt8
-  /// The `IOReturn` status. Zero is success. `kIOReturnAborted` follows an abort.
+  /// The `IOReturn` status.
+  ///
+  /// Zero is success. `kIOReturnAborted` follows an abort.
   public let status: Int32
   /// The number of bytes the data stage transferred.
   public let bytesTransferred: UInt32
-  /// Bytes an IN request read. Empty for an OUT request.
+  /// Bytes an IN request read.
+  ///
+  /// Empty for an OUT request.
   public let data: [UInt8]
 
   /// Whether the request completed successfully.
@@ -141,7 +151,9 @@ public struct USBBundledIOCompletion: Sendable, Hashable {
   public let status: Int32
   /// The number of bytes transferred.
   public let bytesTransferred: UInt32
-  /// Bytes an IN transfer read. Empty for an OUT transfer.
+  /// Bytes an IN transfer read.
+  ///
+  /// Empty for an OUT transfer.
   public let data: [UInt8]
 
   /// Whether the transfer completed successfully.

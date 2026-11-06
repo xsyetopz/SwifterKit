@@ -19,6 +19,7 @@ symbol_graph_dir=".build/SwifterKitSymbolGraph"
 rm -rf "$symbol_graph_dir"
 mkdir -p "$symbol_graph_dir"
 cp "$symbol_graph" "$symbol_graph_dir/"
+./scripts/ci/audit_docs.py "$symbol_graph_dir"
 xcrun docc convert Sources/SwifterKit/SwifterKit.docc \
 	--additional-symbol-graph-dir "$symbol_graph_dir" \
 	--fallback-display-name SwifterKit \
@@ -31,9 +32,9 @@ native_project="Sources/SwifterKit/Resources/DriverKitExtension/SwifterKitRuntim
 native_sources="Sources/SwifterKit/Resources/DriverKitExtension/Sources"
 xcrun clang-format --dry-run --Werror "$native_sources"/*.{cpp,h,iig}
 
-# The checked-in project targets DriverKit 19.0 and links every family framework, including
-# VideoDriverKit, so it needs the newest SDK. Newer SDKs raise their minimum (21.0 in the Xcode 27
-# SDK), so build at the oldest target the selected SDK accepts.
+# The checked-in project targets DriverKit 21.0 and links every family framework, including
+# VideoDriverKit, so it needs the newest SDK. A newer SDK can raise its minimum, so build at the
+# oldest target the selected SDK accepts.
 driverkit_settings="$(xcrun --sdk driverkit --show-sdk-path)/SDKSettings.json"
 driverkit_target="$(plutil -extract SupportedTargets.driverkit.MinimumDeploymentTarget raw -o - "$driverkit_settings")"
 export SWIFTERKIT_DRIVERKIT_TARGET="$driverkit_target"

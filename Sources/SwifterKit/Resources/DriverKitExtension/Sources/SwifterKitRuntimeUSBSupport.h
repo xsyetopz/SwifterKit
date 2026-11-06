@@ -81,8 +81,10 @@ kern_return_t SwifterKitCreateUSBBuffer(
     if (result != kIOReturnSuccess || *descriptor == nullptr) {
         return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
     }
-    (void)(*descriptor)->SetLength(length);
-    result = (*descriptor)->CreateMapping(0, 0, 0, length, 0, map);
+    result = (*descriptor)->SetLength(length);
+    if (result == kIOReturnSuccess) {
+        result = (*descriptor)->CreateMapping(0, 0, 0, length, 0, map);
+    }
     if (result != kIOReturnSuccess || *map == nullptr || (*map)->GetAddress() == 0
         || (*map)->GetLength() < length) {
         return result == kIOReturnSuccess ? kIOReturnNoMemory : result;

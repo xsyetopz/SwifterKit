@@ -3,14 +3,14 @@ import Testing
 
 @testable import SwifterKit
 
-/// The checked-in native sources, located relative to this file: the six parents are
-/// Generation, Authoring, DriverKit, SwifterKitTests, Tests, and the package root.
+// The checked-in native sources, located relative to this file: the six parents are
+// Generation, Authoring, DriverKit, SwifterKitTests, Tests, and the package root.
 let checkedInNativeSources = (0..<6).reduce(URL(fileURLWithPath: #filePath)) { url, _ in
   url.deletingLastPathComponent()
 }.appendingPathComponent("Sources/SwifterKit/Resources/DriverKitExtension/Sources")
 
-/// Generates `configuration` into a fresh temporary directory, then runs `body` with the
-/// extension directory named `name` and the temporary root, which is removed afterwards.
+// Generates `configuration` into a fresh temporary directory, then runs `body` with the
+// extension directory named `name` and the temporary root, which is removed afterwards.
 @discardableResult
 func withTemporaryExtension<Result>(
   named name: String,
@@ -28,7 +28,7 @@ func withTemporaryExtension<Result>(
   return try body(output, root)
 }
 
-/// Reads the generated native source `name` from the extension at `output`.
+// Reads the generated native source `name` from the extension at `output`.
 func source(_ name: String, in output: URL) throws -> String {
   try String(
     contentsOf: output.appendingPathComponent("Sources").appendingPathComponent(name),
@@ -36,7 +36,7 @@ func source(_ name: String, in output: URL) throws -> String {
   )
 }
 
-/// Returns `text` from the first `start` up to the next `end` after it.
+// Returns `text` from the first `start` up to the next `end` after it.
 func section(
   of text: String,
   from start: String,
@@ -51,7 +51,7 @@ func section(
   return text[lower..<upper]
 }
 
-/// Requires each fragment to appear, in order, within `text`.
+// Requires each fragment to appear, in order, within `text`.
 func expectOrder(
   in text: Substring,
   _ fragments: String...,

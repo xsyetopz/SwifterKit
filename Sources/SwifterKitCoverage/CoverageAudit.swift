@@ -1,12 +1,14 @@
 import Foundation
 
-/// The DriverKit members SwifterKit's documentation names, written `` `Class::member` `` in a
-/// `///` comment. Naming a member there claims that the documented Swift API reaches it.
+// The DriverKit members that SwifterKit's documentation names in documentation comments.
+//
+// A member is written `` `Class::member` `` in a `///` comment. Naming a member there claims that
+// the documented Swift API reaches it.
 struct DocumentedMembers {
   struct Mention: Hashable, Comparable {
     let className: String
     let member: String
-    /// `File.swift:line`.
+    // `File.swift:line`.
     let location: String
 
     static func < (lhs: Self, rhs: Self) -> Bool {
@@ -45,8 +47,10 @@ struct DocumentedMembers {
     }
   }
 
-  /// The members each mention names: every overload of the member in the nearest class, from
-  /// the named one up, that declares it. Mentions of classes no SDK declares are ignored.
+  // The members each mention names.
+  //
+  // A mention names every overload of the member in the nearest class that declares it, from the
+  // named class up. Mentions of classes no SDK declares are ignored.
   func resolved(in coverage: Coverage) -> [Mention: [CoverageEvidence.MemberKey]] {
     let classes = Dictionary(coverage.classes.map { ($0.name, $0) }) { first, _ in first }
     var result: [Mention: [CoverageEvidence.MemberKey]] = [:]
@@ -67,13 +71,15 @@ struct DocumentedMembers {
   }
 }
 
-/// Checks SwifterKit's claims about DriverKit members against Apple's headers and clang's
-/// evidence.
+// Checks SwifterKit's claims about DriverKit members against Apple's headers and clang's
+// evidence.
 enum CoverageAudit {
-  /// Returns documentation mentions and exclusions that the headers or the evidence do not
-  /// support. Without `evidence`, only the header facts are checked. Without `requireDeclared`,
-  /// members the headers do not declare are not reported, because `coverage` lacks an SDK that
-  /// may declare them.
+  // Returns documentation mentions and exclusions that the headers or the evidence do not
+  // support.
+  //
+  // Without `evidence`, only the header facts are checked. Without `requireDeclared`, members the
+  // headers do not declare are not reported, because `coverage` lacks an SDK that may declare
+  // them.
   static func problems(
     _ coverage: Coverage,
     documented: [DocumentedMembers.Mention: [CoverageEvidence.MemberKey]],
@@ -118,11 +124,11 @@ enum CoverageAudit {
     return problems
   }
 
-  /// Words that describe intent rather than what the sources do, which an exclusion reason
-  /// must not use.
+  // Words that describe intent rather than what the sources do, which an exclusion reason
+  // must not use.
   private static let provisionalPattern = #"\b(deferred|planned|not yet|hard|today|TODO)\b"#
 
-  /// Returns the first provisional word in `note`, if any.
+  // Returns the first provisional word in `note`, if any.
   static func provisionalWord(in note: String) -> String? {
     note.range(of: provisionalPattern, options: [.regularExpression, .caseInsensitive]).map {
       String(note[$0])

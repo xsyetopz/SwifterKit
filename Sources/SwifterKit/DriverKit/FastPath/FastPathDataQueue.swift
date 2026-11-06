@@ -26,8 +26,9 @@ import Foundation
 /// `IODataQueueDispatchSource::GetDataQueueEntryHeaderSize` and checks it with
 /// `IODataQueueDispatchSource::CanEnqueueData`.
 public struct FastPathDataQueue: Sendable, Hashable {
-  /// The queue's identifier, unique in its configuration and at most `0xFF_FFFF`. Operations and
-  /// ``DriverContext/mapDataQueue(_:)`` name the queue by it.
+  /// The queue's identifier, unique in its configuration and at most `0xFF_FFFF`.
+  ///
+  /// Operations and ``DriverContext/mapDataQueue(_:)`` name the queue by it.
   public let id: UInt32
   /// The bytes of the host ring's records, a power of two from 4096 through 1 MiB.
   public let capacityBytes: UInt32
@@ -149,12 +150,15 @@ public struct FastPathDataQueueEvent: Sendable, Hashable {
 /// How the extension answered ``DriverContext/notifyDataQueue(_:)``.
 public struct FastPathDataQueueNotification: Sendable, Hashable {
   /// `kIOReturnSuccess` (zero), or `kIOReturnIOError` when the host ring's indices or a record's
-  /// size broke the ring's layout. The extension then took nothing more from the ring.
+  /// size broke the ring's layout.
+  ///
+  /// The extension then took nothing more from the ring.
   public let status: Int32
   /// The entries the extension took from the host ring.
   public let movedEntries: UInt32
-  /// The entries still in the host ring because the extension's staging queue is full. The
-  /// extension takes them once it frees space, then queues a ``FastPathDataQueueEvent``.
+  /// The entries still in the host ring because the extension's staging queue is full.
+  ///
+  /// The extension takes them once it frees space, then queues a ``FastPathDataQueueEvent``.
   ///
   /// The extension takes them after `IODataQueueDispatchSource::SendDataServiced` runs the handler
   /// set with `IODataQueueDispatchSource::SetDataServicedHandler`.
@@ -249,7 +253,7 @@ extension DriverEvent {
 }
 
 extension FastPathConfiguration {
-  /// Checks the data queue declarations and returns them keyed by identifier.
+  // Checks the data queue declarations and returns them keyed by identifier.
   func validatedDataQueues() throws(FastPathError) -> [UInt32: FastPathDataQueue] {
     guard dataQueues.count <= FastPathLimits.maximumDataQueues else {
       throw .tooManyDataQueues(count: dataQueues.count)

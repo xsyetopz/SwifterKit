@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKit
 
-/// Checks the native HID runtime's trust-boundary and completion rules in the generated sources.
+// Checks the native HID runtime's trust-boundary and completion rules in the generated sources.
 @Suite
 struct HIDRuntimeContractTests {
   @Test

@@ -259,22 +259,29 @@ namespace {
         uint64_t direction,
         const uint8_t* bytes,
         uint32_t length,
-        IOBufferMemoryDescriptor** buffer) {
-        kern_return_t result = IOBufferMemoryDescriptor::Create(direction, length, 0, buffer);
+        IOBufferMemoryDescriptor** buffer,
+        IOMemoryMap** map) {
+        kern_return_t result = IOBufferMemoryDescriptor::Create(
+            SwifterKitWritableDirection(direction),
+            length,
+            0,
+            buffer);
         if (result != kIOReturnSuccess || *buffer == nullptr) {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
         }
-        (void)(*buffer)->SetLength(length);
-        uint64_t address = 0;
-        uint64_t mappedLength = 0;
-        result = (*buffer)->Map(0, 0, 0, 0, &address, &mappedLength);
-        if (result == kIOReturnSuccess && (address == 0 || mappedLength < length)) {
+        result = (*buffer)->SetLength(length);
+        if (result == kIOReturnSuccess) {
+            result = (*buffer)->CreateMapping(0, 0, 0, length, 0, map);
+        }
+        if (result == kIOReturnSuccess
+            && (*map == nullptr || (*map)->GetAddress() == 0 || (*map)->GetLength() < length)) {
             result = kIOReturnNoMemory;
         }
         if (result == kIOReturnSuccess && bytes != nullptr) {
-            memcpy(SwifterKitMappedPointer<void>(address), bytes, length);
+            memcpy(SwifterKitMappedPointer<void>((*map)->GetAddress()), bytes, length);
         }
         if (result != kIOReturnSuccess) {
+            OSSafeReleaseNULL(*map);
             OSSafeReleaseNULL(*buffer);
         }
         return result;
@@ -296,11 +303,13 @@ namespace {
             return kIOReturnNotReady;
         }
         IOBufferMemoryDescriptor* buffer = nullptr;
+        IOMemoryMap* map = nullptr;
         kern_return_t result = CreateReportBuffer(
             isSet ? kIOMemoryDirectionOut : kIOMemoryDirectionIn,
             isSet ? payload + sizeof(request) : nullptr,
             request.length,
-            &buffer);
+            &buffer,
+            &map);
         if (result != kIOReturnSuccess) {
             return result;
         }
@@ -309,17 +318,14 @@ namespace {
             result = interface->SetReport(buffer, type, request.reportID, request.options);
         } else {
             result = interface->GetReport(buffer, type, request.reportID, request.options);
-            uint64_t address = 0;
-            uint64_t length = 0;
             if (result == kIOReturnSuccess) {
-                result = buffer->Map(0, 0, 0, 0, &address, &length);
-            }
-            if (result == kIOReturnSuccess) {
-                *response =
-                    OSData::withBytes(SwifterKitMappedPointer<const void>(address), request.length);
+                *response = OSData::withBytes(
+                    SwifterKitMappedPointer<const void>(map->GetAddress()),
+                    request.length);
                 result = *response == nullptr ? kIOReturnNoMemory : kIOReturnSuccess;
             }
         }
+        map->release();
         buffer->release();
         return result;
     }

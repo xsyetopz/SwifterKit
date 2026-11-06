@@ -176,8 +176,10 @@ namespace {
         if (result != kIOReturnSuccess || transfer->frames == nullptr) {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
         }
-        (void)transfer->frames->SetLength(length);
-        result = transfer->frames->CreateMapping(0, 0, 0, length, 0, &transfer->frameMap);
+        result = transfer->frames->SetLength(length);
+        if (result == kIOReturnSuccess) {
+            result = transfer->frames->CreateMapping(0, 0, 0, length, 0, &transfer->frameMap);
+        }
         if (result != kIOReturnSuccess || transfer->frameMap == nullptr
             || transfer->frameMap->GetAddress() == 0 || transfer->frameMap->GetLength() < length) {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;

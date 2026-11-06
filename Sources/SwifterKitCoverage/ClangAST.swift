@@ -1,31 +1,38 @@
 import Foundation
 
-/// A DriverKit member that SwifterKit's native sources call or override, as clang resolved it.
+// A DriverKit member that SwifterKit's native sources call or override, as clang resolved it.
 struct NativeUse: Hashable, Comparable {
-  enum Kind: String { case call, override }
+  enum Kind: String {
+    case call
+    case override
+  }
 
-  /// The class that declares the called member, or the base class of the SwifterKit class that
-  /// overrides it. The base is read per translation unit, because a renamed runtime class's base
-  /// depends on the extension's role.
+  // The class that declares the called member, or the base class of the SwifterKit class that
+  // overrides it.
+  //
+  // The base is read per translation unit, because a renamed runtime class's base depends on the
+  // extension's role.
   let className: String
   let method: String
-  /// Normalized parameter types, or `nil` for an IIG `Name_Impl` override, whose parameters are
-  /// the IIG argument structure.
+  // Normalized parameter types, or `nil` for an IIG `Name_Impl` override, whose parameters are
+  // the IIG argument structure.
   let parameters: [String]?
   let kind: Kind
-  /// The source file name, without directories.
+  // The source file name, without directories.
   let file: String
-  /// The function whose body contains the use.
+  // The function whose body contains the use.
   let function: String
-  /// The class of the object a call goes through, with SwifterKit's classes replaced by their
-  /// DriverKit base, or `nil` when the call names no object. IIG declares an override only as
-  /// `Name_Impl`, so clang names the base's declaration even when the object's class overrides it.
+  // The class of the object a call goes through, with SwifterKit's classes replaced by their
+  // DriverKit base, or `nil` when the call names no object.
+  //
+  // IIG declares an override only as `Name_Impl`, so clang names the base's declaration even when
+  // the object's class overrides it.
   var receiver: String?
-  /// Whether the call goes through a pointer whose class is a DriverKit class, so the object can
-  /// be of any subclass and the call reaches that subclass's override.
+  // Whether the call goes through a pointer whose class is a DriverKit class, so the object can
+  // be of any subclass and the call reaches that subclass's override.
   var dispatched = false
 
-  /// Where the use is, as `File: Class::function`.
+  // Where the use is, as `File: Class::function`.
   var evidence: String { "\(file): \(function)" }
 
   static func < (lhs: Self, rhs: Self) -> Bool {
@@ -35,29 +42,29 @@ struct NativeUse: Hashable, Comparable {
   }
 }
 
-/// Reads the uses of DriverKit members from clang's JSON AST dump of one translation unit.
-///
-/// Clang omits a location's file and line when they match the previously written location, so
-/// locations are read in the order clang writes them: `loc`, `range.begin`, `range.end`, then
-/// `inner`, with a macro location's spelling before its expansion.
+// Reads the uses of DriverKit members from clang's JSON AST dump of one translation unit.
+//
+// Clang omits a location's file and line when they match the previously written location, so
+// locations are read in the order clang writes them: `loc`, `range.begin`, `range.end`, then
+// `inner`, with a macro location's spelling before its expansion.
 struct ClangAST {
   private(set) var uses: [NativeUse] = []
-  /// The first base class of every class definition in the translation unit.
+  // The first base class of every class definition in the translation unit.
   private(set) var bases: [String: String] = [:]
 
   private struct MethodDecl {
     let owner: String
     let name: String
     let type: String
-    /// Whether a call reaches the object's override: the member is virtual, or IIG declares it
-    /// with a trailing `OSDispatchMethod` and sends it to the object's implementation.
+    // Whether a call reaches the object's override: the member is virtual, or IIG declares it
+    // with a trailing `OSDispatchMethod` and sends it to the object's implementation.
     let dispatches: Bool
   }
 
   private struct Reference {
     let declaration: String
-    /// The type of the object the call goes through, resolved once the whole unit is read,
-    /// because a template can name a class's member alias declared after it.
+    // The type of the object the call goes through, resolved once the whole unit is read,
+    // because a template can name a class's member alias declared after it.
     let receiverType: String?
     let file: String
     let function: String
@@ -67,17 +74,18 @@ struct ClangAST {
   private let isTree: (String) -> Bool
   private var file = ""
   private var records: [String: String] = [:]
-  /// The classes defined, not only declared, in the tree.
+  // The classes defined, not only declared, in the tree.
   private var sourceRecords: Set<String> = []
-  /// Type aliases declared in classes, keyed `Class::Alias`, and the types they name.
+  // Type aliases declared in classes, keyed `Class::Alias`, and the types they name.
   private var aliases: [String: String] = [:]
   private var methods: [String: MethodDecl] = [:]
   private var overriding: Set<String> = []
   private var references: [Reference] = []
 
-  /// Parses `json`, keeping uses located in files for which `isSource` returns `true`. Classes
-  /// defined in files for which `isTree` returns `true` are SwifterKit's own, as are those in
-  /// source files; IIG writes a class's definition outside the sources.
+  // Parses `json`, keeping uses located in files for which `isSource` returns `true`.
+  //
+  // Classes defined in files for which `isTree` returns `true` are SwifterKit's own, as are those
+  // in source files; IIG writes a class's definition outside the sources.
   init(json: Data, isTree: ((String) -> Bool)? = nil, isSource: @escaping (String) -> Bool) throws {
     self.isSource = isSource
     self.isTree = isTree ?? isSource
@@ -102,7 +110,7 @@ struct ClangAST {
     }
   }
 
-  /// `name`, or for a class defined in a source file, its nearest base that is not.
+  // `name`, or for a class defined in a source file, its nearest base that is not.
   private func driverKitClass(_ name: String) -> String {
     var name = name
     var visited: Set<String> = []
@@ -214,8 +222,10 @@ struct ClangAST {
     )
   }
 
-  /// Reads one source location and returns the file of its expansion. Only the file matters,
-  /// because evidence names functions rather than lines that move with every edit.
+  // Reads one source location and returns the file of its expansion.
+  //
+  // Only the file matters, because evidence names functions rather than lines that move with
+  // every edit.
   @discardableResult
   private mutating func consume(_ location: [String: Any]) -> String {
     if let spelling = location["spellingLoc"] as? [String: Any] { consume(spelling) }
@@ -224,10 +234,12 @@ struct ClangAST {
     return file
   }
 
-  /// The class an object or pointer type names, as in `const IOTimerDispatchSource *`, or as a
-  /// template's `typename Family::Object *` names through the class's member alias.
-  /// A template's alias can name itself, as `typename Family::State` does, so `visited` stops at
-  /// an alias already followed.
+  // The class that an object or pointer type names.
+  //
+  // The type may name it directly, as in `const IOTimerDispatchSource *`, or through the class's
+  // member alias, as a template's `typename Family::Object *` does.
+  // A template's alias can name itself, as `typename Family::State` does, so `visited` stops at
+  // an alias already followed.
   private func className(ofType type: String, visited: Set<String> = []) -> String? {
     let words = type.split { $0.isWhitespace || $0 == "*" || $0 == "&" }.filter {
       !["const", "volatile", "struct", "class"].contains($0)
@@ -243,8 +255,8 @@ struct ClangAST {
     return String(name)
   }
 
-  /// The normalized parameter types of a function type or member signature, without IIG's
-  /// trailing `OSDispatchMethod` dispatch parameter.
+  // The normalized parameter types of a function type or member signature, without IIG's
+  // trailing `OSDispatchMethod` dispatch parameter.
   static func parameters(ofType type: String) -> [String] {
     var text = Substring(type.trimmingCharacters(in: .whitespaces))
     // A trailing return type, as in `auto (uint64_t) -> kern_return_t`, follows the parameters.
@@ -290,7 +302,7 @@ struct ClangAST {
     return normalized.last == "OSDispatchMethod" ? normalized.dropLast() : normalized
   }
 
-  /// Whether a member's function type ends with IIG's `OSDispatchMethod` dispatch parameter.
+  // Whether a member's function type ends with IIG's `OSDispatchMethod` dispatch parameter.
   private static func isIIGMethod(_ type: String) -> Bool {
     var parameters = type
     if let close = parameters.lastIndex(of: ")") { parameters = String(parameters[..<close]) }

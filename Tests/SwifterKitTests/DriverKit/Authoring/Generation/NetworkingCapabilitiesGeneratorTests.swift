@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKit
 
-/// Checks the generated Ethernet capability constants, overrides, and native rules.
+// Checks the generated Ethernet capability constants, overrides, and native rules.
 @Suite
 struct NetworkingCapabilitiesGeneratorTests {
   @Test

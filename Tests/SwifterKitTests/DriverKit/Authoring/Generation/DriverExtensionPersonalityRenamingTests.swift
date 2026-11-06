@@ -94,8 +94,8 @@ struct DriverExtensionPersonalityRenamingTests {
     }
   }
 
-  /// Each personality compiles only its own families, so a command for any other family must
-  /// reach the `#else` branch that reports `kIOReturnUnsupported`.
+  // Each personality compiles only its own families, so a command for any other family must
+  // reach the `#else` branch that reports `kIOReturnUnsupported`.
   @Test
   func familyDispatchersRejectFamiliesThatAreNotCompiled() throws {
     let dispatch = try String(

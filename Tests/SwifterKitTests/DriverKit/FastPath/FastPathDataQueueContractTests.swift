@@ -3,11 +3,13 @@ import Testing
 
 @testable import SwifterKit
 
-/// The extension's data queue wiring:
-/// - Staging sizing and self-check.
-/// - Lossy coalesced enqueues, signalled once per run.
-/// - A complete drain, under the fast-path lock.
-/// - Teardown order.
+// Checks the extension's data queue wiring.
+//
+// The wiring covers:
+// - Staging sizing and self-check.
+// - Lossy coalesced enqueues, signalled once per run.
+// - A complete drain, under the fast-path lock.
+// - Teardown order.
 @Suite
 struct FastPathDataQueueContractTests {
   private static func checkedIn(_ name: String) throws -> String {

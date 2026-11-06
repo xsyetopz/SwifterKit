@@ -28,6 +28,7 @@ SwifterKit is a Swift 6 wrapper for DriverKit. Driver authors use Swift APIs; th
 - `Sources/SwifterKit/Resources/DriverKitExtension` is the single native extension source tree. Do not add a second generated or hand-maintained copy.
 - Driver authors must not need application-owned C++, C, Objective-C, or IIG glue. Native changes belong inside SwifterKit and need a typed Swift surface.
 - Source and test files must stay below 800 formatted lines; aim for 500. Markdown does not count. `scripts/ci/audit_loc.py` must remain a LOC-only helper.
+- `///` documents only public API, including implicitly public enum cases and protocol requirements. Use `//` elsewhere; `scripts/ci/audit_docs.py` enforces it.
 - Fix source rather than weakening `.swift-format`, `.swiftlint.yml`, `.clang-format`, or `.clang-tidy`.
 - Keep secrets, signing identities, provisioning profiles, `.env` files, private keys, and device data out of source and output.
 

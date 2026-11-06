@@ -100,6 +100,7 @@ public struct EthernetLROFlags: OptionSet, Sendable, Hashable {
 }
 
 /// Everything the networking stack recorded on an outgoing `IOUserNetworkPacket`.
+///
 /// The runtime reads it with `IOUserNetworkPacket::getDataOff`,
 /// `IOUserNetworkPacket::getLinkHeaderLength`, `IOUserNetworkPacket::getServiceClass`,
 /// `IOUserNetworkPacket::getTraceID`, `IOUserNetworkPacket::isLinkMulticast`,
@@ -194,6 +195,7 @@ public struct EthernetTransmitMetadata: Sendable, Hashable {
 }
 
 /// Per-frame state a driver sets on a received `IOUserNetworkPacket`.
+///
 /// The runtime applies it to each received packet with `IOUserNetworkPacket::setDataOffAndLen`,
 /// `IOUserNetworkPacket::setDataOffsetAndLength`, `IOUserNetworkPacket::setIsLinkMulticast`,
 /// `IOUserNetworkPacket::setRxChecksumInfo`, `IOUserNetworkPacket::setLROInfo`,
@@ -211,9 +213,13 @@ public struct EthernetReceiveMetadata: Sendable, Hashable {
   public var checksumFlags: EthernetReceiveChecksumFlags
   /// Data checksum when ``checksumFlags`` contains ``EthernetReceiveChecksumFlags/dataValid``.
   public var checksumValue: UInt16
-  /// Coalesced segments (`setLROInfo`). Empty when the frame is not coalesced.
+  /// Coalesced segments (`setLROInfo`).
+  ///
+  /// Empty when the frame is not coalesced.
   public var lroFlags: EthernetLROFlags
-  /// Number of coalesced segments. Nonzero exactly when ``lroFlags`` is not empty.
+  /// Number of coalesced segments.
+  ///
+  /// Nonzero exactly when ``lroFlags`` is not empty.
   public var lroSegmentCount: UInt8
   /// Receive timestamp (`setTimestamp`), or nil to clear it (`clearTimestamp`).
   public var timestamp: UInt64?
@@ -280,6 +286,7 @@ public struct EthernetReceiveMetadata: Sendable, Hashable {
 }
 
 /// A received frame and the metadata to set on its packet.
+///
 /// The runtime enqueues the filled packets through `IOUserNetworkPacketQueue::EnqueuePackets`.
 public struct EthernetReceivedFrame: Sendable, Hashable {
   /// Complete Ethernet frame.
@@ -295,12 +302,15 @@ public struct EthernetReceivedFrame: Sendable, Hashable {
 }
 
 /// The outcome of one transmit, recorded on its packet before it returns to the stack.
+///
 /// The runtime records it on the packet with `IOUserNetworkPacket::setCompletionStatus`,
 /// `IOUserNetworkPacket::setTimestamp`, `IOUserNetworkPacket::traceEvent`.
 public struct EthernetTransmitCompletion: Sendable, Hashable {
   /// Identifier from ``EthernetTransmitRequest/requestID``.
   public let requestID: UInt32
-  /// `IOReturn` status (`setCompletionStatus`). Zero for success.
+  /// `IOReturn` status (`setCompletionStatus`).
+  ///
+  /// Zero for success.
   public let status: Int32
   /// Transmit timestamp (`setTimestamp`), typically when the stack requested one.
   public let timestamp: UInt64?

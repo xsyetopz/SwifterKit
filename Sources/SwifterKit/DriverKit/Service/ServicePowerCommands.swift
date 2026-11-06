@@ -109,8 +109,9 @@ extension DriverContext {
     _ = try await execute(try .completePowerState(requestID: requestID))
   }
 
-  /// Adds `delta` to the service's busy state. Moving to or from zero also changes the
-  /// provider's busy state by one.
+  /// Adds `delta` to the service's busy state.
+  ///
+  /// Moving to or from zero also changes the provider's busy state by one.
   public func adjustBusy(by delta: Int32) async throws {
     _ = try await execute(try .adjustBusy(by: delta))
   }
@@ -122,14 +123,16 @@ extension DriverContext {
     return try reply.readRuntimeInteger(at: 0)
   }
 
-  /// Limits system power saving so memory accesses stall no longer than `stall`. Pass
-  /// ``ServiceBusStall/none`` when the time-critical transfer ends.
+  /// Limits system power saving so memory accesses stall no longer than `stall`.
+  ///
+  /// Pass ``ServiceBusStall/none`` when the time-critical transfer ends.
   public func requireMaxBusStall(_ stall: ServiceBusStall) async throws {
     _ = try await execute(.requireMaxBusStall(stall))
   }
 
-  /// Starts asynchronous termination of the generated service. DriverKit then stops it and
-  /// closes this connection.
+  /// Starts asynchronous termination of the generated service.
+  ///
+  /// DriverKit then stops it and closes this connection.
   public func terminateService() async throws { _ = try await execute(.terminateService) }
 }
 

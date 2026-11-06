@@ -16,11 +16,11 @@ concurrency:
 
 jobs:
   compatibility:
-    name: Swift 6.1 / macOS 10.15
-    runs-on: macos-15
+    name: Swift 6.4 / macOS 12
+    runs-on: xcode-27
     timeout-minutes: 20
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.3.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.0.app/Contents/Developer
       SWIFTERKIT_REQUIRE_DRIVERKIT: "1"
     steps:
       - name: Checkout
@@ -28,13 +28,13 @@ jobs:
 
       - name: Verify compatibility toolchain
         run: |
-          test "$(head -n 1 Package.swift)" = "// swift-tools-version: 6.1"
-          swift --version | grep -E "Swift version 6\.1([ .(]|$)"
+          test "$(head -n 1 Package.swift)" = "// swift-tools-version:6.4.0"
+          swift --version | grep -E "Swift version 6\.4([ .(]|$)"
           xcodebuild -version
 
       - name: Verify deployment floor
         run: |
-          swift package dump-package | jq -e 'any(.platforms[]; .platformName == "macos" and .version == "10.15")'
+          swift package dump-package | jq -e 'any(.platforms[]; .platformName == "macos" and .version == "12.0")'
 
       - name: Test package
         run: swift test -Xswiftc -warnings-as-errors
@@ -49,10 +49,10 @@ jobs:
             --article Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md
 
   linux:
-    name: Swift 6.1 / Linux
+    name: Swift 6.4 / Linux
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    container: swift:6.1
+    container: swift:6.4
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -62,10 +62,10 @@ jobs:
 
   validate:
     name: Swift 6 and DriverKit
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 60
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
       SWIFTERKIT_REQUIRE_DRIVERKIT: "1"
     steps:
       - name: Checkout
@@ -73,9 +73,9 @@ jobs:
 
       - name: Toolchain
         run: |
-          grep -E "^6\.3([.]|$)" .swift-version
+          grep -E "^6\.4([.]|$)" .swift-version
           sw_vers
-          swift --version | grep -E "Swift version 6\.3([ .(]|$)"
+          swift --version | grep -E "Swift version 6\.4([ .(]|$)"
           xcodebuild -version
 
       - name: Install validation tools

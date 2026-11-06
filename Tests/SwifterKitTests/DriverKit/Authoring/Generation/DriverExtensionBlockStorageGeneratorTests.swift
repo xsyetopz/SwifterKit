@@ -122,25 +122,6 @@ struct BlockStorageGeneratorTests {
     }
   }
 
-  @Test
-  func rejectsDeploymentTargetBeforeBlockStorageDriverKit() {
-    let configuration = DriverConfiguration(
-      bundleIdentifier: "com.example.block",
-      providerClass: "IOPCIDevice",
-      capabilities: [.blockStorage, .pci],
-      pciDevice: PCIDeviceConfiguration(vendorID: 0x1234, deviceIDs: [0x5678]),
-      blockStorageDevice: deviceConfiguration
-    )
-
-    #expect(throws: DriverExtensionGenerationError.invalidBlockStorageConfiguration) {
-      try DriverExtensionGenerator.generate(
-        configuration: configuration,
-        options: DriverExtensionGenerationOptions(deploymentTarget: "20.9"),
-        at: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-      )
-    }
-  }
-
   private var deviceConfiguration: BlockStorageDeviceConfiguration {
     BlockStorageDeviceConfiguration(
       blockCount: 1_048_576,

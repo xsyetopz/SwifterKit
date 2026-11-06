@@ -9,7 +9,9 @@ public struct HIDDeviceFactoryConfiguration: Sendable, Hashable {
   /// The valid range of ``maximumDevices``.
   public static let deviceLimit = 1...RuntimeHIDLimits.maximumFactoryDevices
 
-  /// The number of devices that may exist at once. Creating one more fails.
+  /// The number of devices that may exist at once.
+  ///
+  /// Creating one more fails.
   public let maximumDevices: Int
 
   /// Creates a factory configuration.
@@ -28,7 +30,7 @@ public struct HIDDeviceHandle: Sendable, Hashable {
     self.rawValue = rawValue
   }
 
-  /// Decodes a `hidFactoryCreateDevice` reply: the handle and a reserved zero word.
+  // Decodes a `hidFactoryCreateDevice` reply: the handle and a reserved zero word.
   init(runtimeReply data: Data) throws {
     guard data.count == RuntimeHIDLimits.factoryHandleSize,
       try data.readRuntimeInteger(at: 4) as UInt32 == 0
@@ -58,8 +60,8 @@ public struct HIDDeviceGetReportRequest: Sendable, Hashable {
 }
 
 extension HIDDeviceConfiguration {
-  /// The `hidFactoryCreateDevice` payload: a 64-byte header, the UTF-8 transport,
-  /// manufacturer, product, and serial number, then the report descriptor.
+  // The `hidFactoryCreateDevice` payload: a 64-byte header, the UTF-8 transport,
+  // manufacturer, product, and serial number, then the report descriptor.
   func encodedFactoryPayload() throws -> Data {
     let strings = [transport, manufacturer, product, serialNumber].map { Array($0.utf8) }
     let size =
@@ -117,8 +119,9 @@ extension DriverCommand {
     )
   }
 
-  /// Answers a host get-report request for a device the factory created. A failure status
-  /// carries no bytes.
+  /// Answers a host get-report request for a device the factory created.
+  ///
+  /// A failure status carries no bytes.
   public static func completeHIDGetReport(
     _ request: HIDDeviceGetReportRequest,
     bytes: [UInt8],
@@ -149,16 +152,18 @@ extension DriverCommand {
 extension DriverContext {
   /// Creates a virtual HID device and returns its handle.
   ///
-  /// Only the client that receives events may create devices. The factory terminates every
-  /// device a client created when that client detaches, closes, or crashes.
+  /// The factory creates the device with `IOService::Create`. Only the client that receives
+  /// events may create devices. The factory terminates every device a client created when that
+  /// client detaches, closes, or crashes.
   public func createHIDDevice(
     _ configuration: HIDDeviceConfiguration
   ) async throws -> HIDDeviceHandle {
     try HIDDeviceHandle(runtimeReply: await execute(.createHIDDevice(configuration)))
   }
 
-  /// Terminates a device the factory created. Its pending get-report requests complete with
-  /// `kIOReturnAborted`.
+  /// Terminates a device the factory created.
+  ///
+  /// Its pending get-report requests complete with `kIOReturnAborted`.
   public func terminateHIDDevice(_ device: HIDDeviceHandle) async throws {
     _ = try await execute(.terminateHIDDevice(device))
   }

@@ -1,7 +1,7 @@
 import Foundation
 
 extension DriverExtensionGenerator {
-  /// Renders the box and clock-device tables that `StartVideoObjects` creates objects from.
+  // Renders the box and clock-device tables that `StartVideoObjects` creates objects from.
   static func videoTopologyDeclarations(_ video: VideoDeviceConfiguration?) -> String {
     let boxes = video?.boxes ?? []
     let clocks = video?.clockDevices ?? []

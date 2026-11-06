@@ -1,5 +1,4 @@
-// swift-tools-version: 6.1
-
+// swift-tools-version:6.4.0
 import Foundation
 import PackageDescription
 
@@ -14,7 +13,7 @@ let testingRuntime = "\(developerDirectory)/Platforms/MacOSX.platform/Developer/
 
 let package = Package(
   name: "SwifterKit",
-  platforms: [.macOS(.v10_15)],
+  platforms: [.macOS(.v12)],
   products: [.library(name: "SwifterKit", targets: ["SwifterKit"])],
   targets: [
     .target(

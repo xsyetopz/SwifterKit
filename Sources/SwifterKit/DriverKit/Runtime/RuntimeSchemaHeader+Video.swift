@@ -1,4 +1,4 @@
-/// Renders the video schema declarations under the native names the extension uses.
+// Renders the video schema declarations under the native names the extension uses.
 extension RuntimeSchemaHeader {
   static func videoSections() -> [[String]] {
     let video = RuntimeVideoLimits.self

@@ -1,10 +1,10 @@
-/// Renders the HID schema as its own header so neither generated header outgrows the source size
-/// limit.
+// Renders the HID schema as its own header so neither generated header outgrows the source size
+// limit.
 extension RuntimeSchemaHeader {
-  /// The HID header's file name inside the native extension's `Sources` directory.
+  // The HID header's file name inside the native extension's `Sources` directory.
   static let hidFileName = "SwifterKitRuntimeHIDSchema.h"
 
-  /// Returns the complete clang-format-clean HID header text.
+  // Returns the complete clang-format-clean HID header text.
   static func renderHID() -> String {
     var lines = [
       "// Generated from Sources/SwifterKit/DriverKit/Runtime/RuntimeSchema+HID.swift.",

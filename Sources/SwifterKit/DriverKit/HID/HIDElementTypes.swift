@@ -82,7 +82,9 @@ public struct HIDElement: Sendable, Hashable {
   public let parentCookie: UInt32?
   /// The element type.
   public let type: HIDElementType
-  /// The collection type. Meaningful when ``type`` is ``HIDElementType/collection``.
+  /// The collection type.
+  ///
+  /// Meaningful when ``type`` is ``HIDElementType/collection``.
   public let collectionType: HIDElementCollectionType
   /// The usage page.
   public let usagePage: UInt32
@@ -162,13 +164,13 @@ public struct HIDElementPage: Sendable, Hashable {
 
 /// An element's value read through `IOHIDElement`.
 public struct HIDElementValue: Sendable, Hashable {
-  /// `getValue`'s result.
+  /// The result of `getValue`.
   public let value: UInt32
-  /// `getScaledValue`'s result for the requested scale.
+  /// The result of `getScaledValue` for the requested scale.
   public let scaledValue: UInt32
-  /// `getScaledFixedValue`'s result for the requested scale.
+  /// The result of `getScaledFixedValue` for the requested scale.
   public let scaledFixedValue: Double
-  /// `getTimeStamp`'s result, in mach absolute time.
+  /// The result of `getTimeStamp`, in mach absolute time.
   public let timestamp: UInt64
 
   init(runtimePayload data: Data) throws {
@@ -209,7 +211,7 @@ public struct HIDElementValues: Sendable, Hashable {
   }
 }
 
-/// Conversions between `Double` and DriverKit's 16.16 `IOFixed`.
+// Conversions between `Double` and DriverKit's 16.16 `IOFixed`.
 enum HIDFixed {
   static func raw(_ value: Double) throws -> Int32 {
     let scaled = (value * 65_536).rounded()

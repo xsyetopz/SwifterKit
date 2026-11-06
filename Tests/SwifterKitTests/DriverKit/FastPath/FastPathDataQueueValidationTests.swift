@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKit
 
-/// Data queue declarations and `enqueue` operations against every limit.
+// Data queue declarations and `enqueue` operations against every limit.
 @Suite
 struct FastPathDataQueueValidationTests {
   private static func queue(

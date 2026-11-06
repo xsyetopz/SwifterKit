@@ -4,14 +4,11 @@ Choose a ``RuntimeCapabilities`` value and the matching configuration metadata i
 
 ## Deployment requirements
 
-The Swift package requires Swift 6.1 (Xcode 16.3) or later. It supports macOS 10.15 and later. IOKit transport is available only on Apple platforms. Configuration and generation also build on Linux. ``DriverExtensionGenerationOptions/deploymentTarget`` controls the generated extension separately. It defaults to DriverKit 19.0.
+The Swift package requires Swift 6.4 (Xcode 27.0) or later. It supports macOS 12 and later. IOKit transport is available only on Apple platforms. Configuration and generation also build on Linux. ``DriverExtensionGenerationOptions/deploymentTarget`` controls the generated extension separately. It defaults to DriverKit 21.0, the oldest target it accepts.
 
 | Capability | Minimum DriverKit target | Earliest host release |
 | --- | ---: | --- |
-| Base runtime, HID device, HID device factory, USB HID device, USB, serial, interrupts, memory | 19.0 | macOS 10.15 |
-| PCI | 19.0 | macOS 11.1 |
-| SCSI controller | 20.4 | macOS 11.3 |
-| Block storage, audio, HID event service | 21.0 | macOS 12 |
+| Base runtime, HID device, HID device factory, USB HID device, USB, serial, interrupts, memory, PCI, SCSI controller, block storage, audio, HID event service | 21.0 | macOS 12 |
 | Networking, SCSI peripheral | 22.0 | macOS 13 |
 | MIDI | 24.0 | macOS 15 |
 | Video | 25.5 | macOS 26.5 |
@@ -107,7 +104,7 @@ Device-control operations change device state, so each one is an explicit call w
 
 To allocate MSI, MSI-X, or legacy vectors, set ``PCIDeviceConfiguration/interrupts`` to a ``PCIInterruptConfiguration`` and enable `.interrupts`. The extension calls `IOPCIDevice::ConfigureInterrupts` while starting, after it opens the provider and before it creates any interrupt source. That call allocates the vectors the sources use. Every ``InterruptSourceConfiguration/index`` must be below ``PCIInterruptConfiguration/requiredVectorCount``, the only vectors DriverKit guarantees. The generator and the extension both reject other indices. MSI allows 32 vectors, MSI-X 2,048, and legacy one. DriverKit documents that interrupt dispatch sources support only MSI for `IOPCIDevice` providers, so prefer ``PCIInterruptType/msi`` or ``PCIInterruptType/msiX``. Check the assigned type with ``DriverContext/interruptType(index:)`` and ``PCIInterruptType/init(interruptTypeFlags:)``.
 
-The SDK headers declare every `IOPCIDevice` member used here in DriverKit 24.4 and later, without an availability attribute. The generator applies no deployment floor beyond the PCI row above. An older system can still return an error for an operation it does not implement.
+The SDK headers declare every `IOPCIDevice` member used here in DriverKit 24.4 and later, without an availability attribute. The generator applies no deployment floor beyond DriverKit 21.0. An older system can still return an error for an operation it does not implement.
 
 ### Serial and block storage
 
@@ -208,6 +205,9 @@ Use `.memory` with ``MemoryPoolConfiguration``. Allocate ``DriverMemoryHandle`` 
 - ``DriverContext/memoryChain(_:direction:)`` concatenates 1 to 32 entries into one. A composed entry retains its sources.
 - ``DriverContext/releaseMemory(_:)`` refuses a source with ``DriverMemoryError/inUse`` until every subrange and chain built from it is released.
 - A composed entry's direction may narrow but never widen theirs.
+- A composed entry the extension cannot map at its full length still prepares for DMA and maps into the host. Reading or writing it through ``DriverContext`` fails with `kIOReturnUnsupported`.
+- A composed ``DriverMemoryDirection/deviceReads`` entry is mapped read-only in the extension. Writing it through ``DriverContext`` fails with `kIOReturnNotWritable`. Reading it works.
+- A pool buffer allocated as ``DriverMemoryDirection/deviceReads`` is backed by writable memory, so the extension can write and read it. Its ``DriverDMAMapping/flags`` come from that backing and can include the writable bit. Subranges and chains still check the direction it was allocated with.
 
 #### Mapping into the host
 

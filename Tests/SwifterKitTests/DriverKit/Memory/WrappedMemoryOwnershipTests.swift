@@ -3,10 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-/// How Swift reports the extension refusing memory another connection wrapped:
-/// - Every command that names a handle throws ``DriverMemoryError/notOwner``.
-/// - A release still throws ``DriverMemoryError/inUse`` for its own status.
-/// - A wrap's own refusal is not relabeled.
+// How Swift reports the extension refusing memory another connection wrapped:
+// - Every command that names a handle throws ``DriverMemoryError/notOwner``.
+// - A release still throws ``DriverMemoryError/inUse`` for its own status.
+// - A wrap's own refusal is not relabeled.
 @Suite
 struct WrappedMemoryOwnershipTests {
   private static let foreign = DriverMemoryHandle(rawValue: 7)
@@ -62,10 +62,10 @@ struct WrappedMemoryOwnershipTests {
   }
 }
 
-/// A runtime connection whose handle 7 another connection wrapped: every command that names it
-/// answers kIOReturnNotPermitted. Handle 1 has a dependent, so its release
-/// answers kIOReturnBusy, and a wrap answers kIOReturnNotPermitted as a refused
-/// CreateMemoryDescriptorFromClient would.
+// A runtime connection whose handle 7 another connection wrapped: every command that names it
+// answers kIOReturnNotPermitted. Handle 1 has a dependent, so its release
+// answers kIOReturnBusy, and a wrap answers kIOReturnNotPermitted as a refused
+// CreateMemoryDescriptorFromClient would.
 private actor ForeignMemoryConnection: DriverConnection {
   func call(_ request: DriverRequest) throws -> DriverResponse {
     let message = try RuntimeMessage(decoding: request.structureInput)

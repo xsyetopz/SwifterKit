@@ -23,7 +23,7 @@ struct SCSIGeneratorTests {
 
     try DriverExtensionGenerator.generate(
       configuration: configuration,
-      options: DriverExtensionGenerationOptions(deploymentTarget: "20.4"),
+      options: DriverExtensionGenerationOptions(deploymentTarget: "21.0"),
       at: output
     )
 
@@ -155,25 +155,6 @@ struct SCSIGeneratorTests {
       try DriverExtensionGenerator.generate(
         configuration: conflicting,
         at: root.appendingPathComponent(UUID().uuidString)
-      )
-    }
-  }
-
-  @Test
-  func rejectsDeploymentTargetBeforeSCSIControllerDriverKit() {
-    let configuration = DriverConfiguration(
-      bundleIdentifier: "com.example.scsi",
-      providerClass: "IOPCIDevice",
-      capabilities: [.scsi, .pci],
-      pciDevice: PCIDeviceConfiguration(vendorID: 0x1234, deviceIDs: [0x5678]),
-      scsiController: controller
-    )
-
-    #expect(throws: DriverExtensionGenerationError.invalidSCSIConfiguration) {
-      try DriverExtensionGenerator.generate(
-        configuration: configuration,
-        options: DriverExtensionGenerationOptions(deploymentTarget: "20.3"),
-        at: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
       )
     }
   }

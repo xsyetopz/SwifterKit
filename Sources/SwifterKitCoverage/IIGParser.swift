@@ -1,37 +1,41 @@
 import Foundation
 
-/// A class declared in a DriverKit `.iig` header.
+// A class declared in a DriverKit `.iig` header.
 struct IIGClass: Equatable {
   let name: String
   let superclass: String?
   let isKernel: Bool
-  /// Whether the class is a private `class EXTENDS (Base) Name` extension of `superclass`.
+  // Whether the class is a private `class EXTENDS (Base) Name` extension of `superclass`.
   let isExtension: Bool
   let methods: [IIGMethod]
 }
 
-/// A member function declared in a DriverKit class.
+// A member function declared in a DriverKit class.
 struct IIGMethod: Equatable {
-  enum Access: String, Codable { case `public`, protected, `private` }
+  enum Access: String, Codable {
+    case `public`
+    case protected
+    case `private`
+  }
 
   let name: String
-  /// The declaration with parameter names removed, used to tell overloads apart.
+  // The declaration with parameter names removed, used to tell overloads apart.
   let signature: String
   let access: Access
   let isStatic: Bool
-  /// IIG annotations such as `LOCAL`, `LOCALONLY`, or `QUEUENAME(Default)`.
+  // IIG annotations such as `LOCAL`, `LOCALONLY`, or `QUEUENAME(Default)`.
   let annotations: [String]
-  /// Preprocessor conditions enclosing the declaration.
+  // Preprocessor conditions enclosing the declaration.
   let conditions: [String]
-  /// The DriverKit version from the declaration's availability attribute, if any.
+  // The DriverKit version from the declaration's availability attribute, if any.
   var introduced: String?
-  /// The DriverKit version that deprecated the declaration, if any.
+  // The DriverKit version that deprecated the declaration, if any.
   var deprecated: String?
 }
 
-/// Extracts classes and member functions from `.iig` header text.
+// Extracts classes and member functions from `.iig` header text.
 enum IIGParser {
-  /// Reduces a parameter list to its types, as used in member signatures.
+  // Reduces a parameter list to its types, as used in member signatures.
   static func normalizedParameters(_ parameters: String) -> String {
     Scanner.normalized(parameters)
   }
@@ -90,7 +94,7 @@ enum IIGParser {
       return result
     }
 
-    /// Returns whether `class` at `start` is an `enum class` or a template parameter.
+    // Returns whether `class` at `start` is an `enum class` or a template parameter.
     private func isTemplateOrEnumClass(at start: Int) -> Bool {
       var index = start - 1
       while index >= 0, characters[index].isWhitespace { index -= 1 }
@@ -101,7 +105,7 @@ enum IIGParser {
       return String(characters[(index + 1)..<end]) == "enum"
     }
 
-    /// Returns the `{` that opens a class body, or nil for a forward declaration.
+    // Returns the `{` that opens a class body, or nil for a forward declaration.
     private func declarationBrace(from start: Int) -> Int? {
       var index = start
       while index < characters.count {
@@ -164,7 +168,7 @@ enum IIGParser {
       return (name, superclass, isKernel, false)
     }
 
-    /// Splits a class body into top-level statements and keeps the member functions.
+    // Splits a class body into top-level statements and keeps the member functions.
     private func members(from start: Int, to end: Int) -> [IIGMethod] {
       var methods: [IIGMethod] = []
       // IIG publishes methods declared before any access specifier through the generated
@@ -270,7 +274,7 @@ enum IIGParser {
       )
     }
 
-    /// Removes `__attribute__((availability(driverkit, ...)))` and returns its version fields.
+    // Removes `__attribute__((availability(driverkit, ...)))` and returns its version fields.
     static func availability(in trailing: String) -> (String, [String: String]) {
       let marker = "__attribute__((availability("
       guard let start = trailing.range(of: marker),
@@ -305,7 +309,7 @@ enum IIGParser {
       return nil
     }
 
-    /// Normalizes parameters to their types so renamed parameters keep the same key.
+    // Normalizes parameters to their types so renamed parameters keep the same key.
     static func normalized(_ parameters: String) -> String {
       splitTopLevel(parameters).map(parameterType).filter { !$0.isEmpty && $0 != "void" }.joined(
         separator: ", "
@@ -369,4 +373,6 @@ enum IIGParser {
   }
 }
 
-private extension Character { var isIdentifier: Bool { isLetter || isNumber || self == "_" } }
+extension Character {
+  fileprivate var isIdentifier: Bool { isLetter || isNumber || self == "_" }
+}

@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKit
 
-/// Subrange and chain commands: their payloads, Swift-side bounds, and handle decoding.
+// Subrange and chain commands: their payloads, Swift-side bounds, and handle decoding.
 @Suite
 struct MemoryCompositionTests {
   private static let handle = DriverMemoryHandle(rawValue: 5)

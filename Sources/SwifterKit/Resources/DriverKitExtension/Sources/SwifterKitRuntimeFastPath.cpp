@@ -277,8 +277,11 @@ namespace {
         SwifterKitFastPathRingState* ring) {
         const uint64_t bytes =
             kSwifterKitFastPathRingHeaderSize + uint64_t {row.entrySize} * row.entryCount;
-        kern_return_t result =
-            IOBufferMemoryDescriptor::Create(row.direction, bytes, kRingAlignment, &ring->buffer);
+        kern_return_t result = IOBufferMemoryDescriptor::Create(
+            SwifterKitWritableDirection(row.direction),
+            bytes,
+            kRingAlignment,
+            &ring->buffer);
         if (result == kIOReturnSuccess && ring->buffer != nullptr) {
             result = ring->buffer->SetLength(bytes);
         }
@@ -286,7 +289,7 @@ namespace {
             result = ring->buffer->CreateMapping(0, 0, 0, bytes, 0, &ring->map);
         }
         if (result != kIOReturnSuccess || ring->buffer == nullptr || ring->map == nullptr
-            || ring->map->GetAddress() == 0) {
+            || ring->map->GetAddress() == 0 || ring->map->GetLength() < bytes) {
             return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
         }
         ring->address = ring->map->GetAddress();

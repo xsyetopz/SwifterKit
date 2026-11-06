@@ -7,7 +7,7 @@ import Testing
 struct DriverExtensionRuntimeContractTests {
   private static let bundleIdentifier = "com.example.contract-block"
 
-  /// A PCI block-storage extension, which enables the shared request and event paths.
+  // A PCI block-storage extension, which enables the shared request and event paths.
   static func configuration(bundleIdentifier: String) -> DriverConfiguration {
     DriverConfiguration(
       bundleIdentifier: bundleIdentifier,

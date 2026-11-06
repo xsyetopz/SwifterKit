@@ -21,7 +21,9 @@ public struct DriverEventSequence: AsyncSequence, Sendable {
     self.notifications = notifications
   }
 
-  /// Creates an iterator. Iterate a sequence from one task at a time.
+  /// Creates an iterator for this sequence.
+  ///
+  /// Iterate a sequence from one task at a time.
   public func makeAsyncIterator() -> Iterator {
     Iterator(runtime: runtime, notifications: notifications.makeAsyncIterator())
   }
@@ -51,7 +53,7 @@ public struct DriverEventSequence: AsyncSequence, Sendable {
       }
     }
 
-    /// Whether `error` reports a connection that closed, possibly while a request was in flight.
+    // Whether `error` reports a connection that closed, possibly while a request was in flight.
     private static func isClosed(_ error: any Error) -> Bool {
       if let error = error as? DriverRuntimeError { return error == .closed }
       if let error = error as? DriverKitError { return error.kind == .sessionClosed }

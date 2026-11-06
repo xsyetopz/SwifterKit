@@ -5,8 +5,10 @@ import Testing
 
 @Suite
 struct ClangASTTests {
-  /// A reduced `-ast-dump=json` of a runtime class that overrides `Start` through IIG and calls
-  /// `Notify` on its provider. Like clang, later locations omit a file that repeats.
+  // A reduced `-ast-dump=json` of a runtime class that overrides `Start` through IIG and calls
+  // `Notify` on its provider.
+  //
+  // Like clang, later locations omit a file that repeats.
   private let dump = """
     {"kind": "TranslationUnitDecl", "inner": [
       {"id": "0x1", "kind": "CXXRecordDecl", "name": "IOExample",
@@ -82,11 +84,11 @@ struct ClangASTTests {
     )
   }
 
-  /// A reduced dump in which `Runtime::Poll` calls `IOBase::Cancel` through an `IOTimer *` that
-  /// clang converts to its base, through `this` inside an array initializer whose elements clang
-  /// writes under `array_filler`, and through a
-  /// template's `typename Family::Object *`, whose class only the member alias that
-  /// follows names, and through an alias that names itself.
+  // A reduced dump in which `Runtime::Poll` calls `IOBase::Cancel` through an `IOTimer *` that
+  // clang converts to its base, through `this` inside an array initializer whose elements clang
+  // writes under `array_filler`, and through a
+  // template's `typename Family::Object *`, whose class only the member alias that
+  // follows names, and through an alias that names itself.
   private let receivers = """
     {"kind": "TranslationUnitDecl", "inner": [
       {"id": "0x1", "kind": "CXXRecordDecl", "name": "IOBase", "loc": {"file": "/sdk/IOBase.h"},

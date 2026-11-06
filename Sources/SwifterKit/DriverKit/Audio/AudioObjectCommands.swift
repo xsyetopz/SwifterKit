@@ -300,6 +300,7 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Reads the identity of an AudioDriverKit object.
+  ///
   /// Calls `IOUserAudioBox::GetTransportType`, `IOUserAudioBox::GetUID`,
   /// `IOUserAudioClockDevice::GetUID`, `IOUserAudioDriver::GetAudioObjectForObjectID`,
   /// `IOUserAudioDriver::GetBaseClassID`, `IOUserAudioDriver::GetClassID`,
@@ -312,12 +313,14 @@ extension DriverContext {
   }
 
   /// Renames an AudioDriverKit object.
+  ///
   /// Calls `IOUserAudioObject::SetName`.
   public func audioSetObjectName(_ target: AudioObjectTarget, name: String) async throws {
     _ = try await execute(.audioSetObjectName(target, name: name))
   }
 
   /// Reads an element name, category name, or number name.
+  ///
   /// Calls `IOUserAudioObject::GetElementCategoryName`, `IOUserAudioObject::GetElementName` and
   /// `IOUserAudioObject::GetElementNumberName`.
   public func audioElementName(
@@ -349,11 +352,13 @@ extension DriverContext {
   }
 
   /// Tells the host that properties of an object changed.
+  ///
   /// Calls `IOUserAudioDriver::PropertiesChanged`.
   public func audioPropertiesChanged(_ target: AudioObjectTarget, selectors: [UInt32]) async throws
   { _ = try await execute(.audioPropertiesChanged(target, selectors: selectors)) }
 
   /// Reads a box's state.
+  ///
   /// Calls `IOUserAudioBox::GetAcquisitionFailure`, `IOUserAudioBox::HasAudio`,
   /// `IOUserAudioBox::HasMIDI`, `IOUserAudioBox::HasVideo`, `IOUserAudioBox::IsAcquirable`,
   /// `IOUserAudioBox::IsAcquired` and `IOUserAudioBox::IsProtected`.
@@ -362,6 +367,7 @@ extension DriverContext {
   }
 
   /// Changes one box property.
+  ///
   /// Calls `IOUserAudioBox::SetAcquisitionFailure`, `IOUserAudioBox::SetHasAudio`,
   /// `IOUserAudioBox::SetHasMIDI`, `IOUserAudioBox::SetHasVideo`,
   /// `IOUserAudioBox::SetIsAcquirable`, `IOUserAudioBox::SetIsAcquired`,
@@ -371,6 +377,7 @@ extension DriverContext {
   }
 
   /// Adds the device or a clock device to a box, or removes it.
+  ///
   /// Calls `IOUserAudioBox::AddClockDevice`, `IOUserAudioBox::AddDevice`,
   /// `IOUserAudioBox::RemoveClockDevice` and `IOUserAudioBox::RemoveDevice`.
   public func audioSetBoxOwnership(
@@ -380,6 +387,7 @@ extension DriverContext {
   ) async throws { _ = try await execute(.audioSetBoxOwnership(box, target: target, owned: owned)) }
 
   /// Reads the clock state of the audio device or a clock device.
+  ///
   /// Calls `IOUserAudioClockDevice::GetAvailableSampleRates`,
   /// `IOUserAudioClockDevice::GetClockAlgorithm`, `IOUserAudioClockDevice::GetClockDomain`,
   /// `IOUserAudioClockDevice::GetClockIsStable`,
@@ -399,6 +407,7 @@ extension DriverContext {
   }
 
   /// Changes one clock-device property.
+  ///
   /// Calls `IOUserAudioClockDevice::SetClockAlgorithm`, `IOUserAudioClockDevice::SetClockDomain`,
   /// `IOUserAudioClockDevice::SetClockIsStable`, `IOUserAudioClockDevice::SetDeviceIsAlive`,
   /// `IOUserAudioClockDevice::SetInputLatency`, `IOUserAudioClockDevice::SetIsHidden`,
@@ -411,12 +420,14 @@ extension DriverContext {
   ) async throws { _ = try await execute(.audioSetClockDeviceProperty(index, property)) }
 
   /// Replaces a clock device's available sample rates.
+  ///
   /// Calls `IOUserAudioClockDevice::SetAvailableSampleRates`.
   public func audioSetClockSampleRates(_ index: UInt32, _ sampleRates: [Double]) async throws {
     _ = try await execute(.audioSetClockSampleRates(index, sampleRates))
   }
 
   /// Reports a hardware-derived zero timestamp for a clock device.
+  ///
   /// Calls `IOUserAudioClockDevice::UpdateCurrentZeroTimestamp`.
   public func audioUpdateClockTimestamp(
     _ index: UInt32,
@@ -429,6 +440,7 @@ extension DriverContext {
   }
 
   /// Requests a host-coordinated sample-rate change on a clock device.
+  ///
   /// Calls `IOUserAudioClockDevice::AbortDeviceConfigurationChange`,
   /// `IOUserAudioClockDevice::PerformDeviceConfigurationChange`,
   /// `IOUserAudioClockDevice::RequestDeviceConfigurationChange` and

@@ -174,18 +174,21 @@ extension DriverContext {
   }
 
   /// Returns information about a PCI base-address register.
+  ///
   /// The extension calls `IOPCIDevice::GetBARInfo`.
   public func pciBaseAddressInfo(index: UInt8) async throws -> PCIBaseAddressInfo {
     try await PCIBaseAddressInfo(runtimePayload: execute(try .pciBaseAddressInfo(index: index)))
   }
 
   /// Returns the device's PCI bus/device/function address.
+  ///
   /// The extension calls `IOPCIDevice::GetBusDeviceFunction`.
   public func pciLocation() async throws -> PCILocation {
     try await PCILocation(runtimePayload: execute(.pciLocation))
   }
 
   /// Finds the next matching PCI capability offset.
+  ///
   /// The extension calls `IOPCIDevice::FindPCICapability`.
   public func pciFindCapability(
     identifier: UInt32,

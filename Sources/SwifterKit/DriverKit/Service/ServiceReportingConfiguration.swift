@@ -21,6 +21,7 @@ public struct ReportingConfiguration: Sendable, Hashable {
 }
 
 /// One `IOReporter` and its legend entry.
+///
 /// The extension creates the reporter with `IOSimpleReporter::with`, `IOStateReporter::with`,
 /// `IOHistogramReporter::with` and sets state IDs with `IOStateReporter::setStateID`.
 public struct ReporterConfiguration: Sendable, Hashable {
@@ -40,7 +41,9 @@ public struct ReporterConfiguration: Sendable, Hashable {
   public let group: String
   /// The legend subgroup, `IOReportSubGroupName`, if any.
   public let subgroup: String?
-  /// The reporter's channels. A histogram has exactly one.
+  /// The reporter's channels.
+  ///
+  /// A histogram has exactly one.
   public let channels: [ReportChannel]
   /// The categories clients filter by.
   public let categories: ReportCategories
@@ -70,6 +73,7 @@ public struct ReporterConfiguration: Sendable, Hashable {
 }
 
 /// A reporter channel: a nonzero identifier unique within the service, and a name.
+///
 /// The extension adds a simple or state reporter's channel with `IOReporter::addChannel`.
 public struct ReportChannel: Sendable, Hashable {
   /// The channel identifier. `IOREPORT_MAKEID` packs up to eight ASCII bytes into one.
@@ -193,7 +197,7 @@ public enum ReportingLimits {
 }
 
 extension ReportingConfiguration {
-  /// Returns whether every reporter fits the runtime's limits and channel IDs are unique.
+  // Returns whether every reporter fits the runtime's limits and channel IDs are unique.
   var isValid: Bool {
     let ids = reporters.flatMap { $0.channels.map(\.id) }
     return (1...ReportingLimits.maximumReporters).contains(reporters.count)

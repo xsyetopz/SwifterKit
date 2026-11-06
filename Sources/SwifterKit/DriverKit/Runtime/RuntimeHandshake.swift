@@ -1,6 +1,6 @@
 import Foundation
 
-/// The handshake request payload: the protocol versions the host can speak.
+// The handshake request payload: the protocol versions the host can speak.
 struct RuntimeHandshakeOffer: Equatable {
   let versions: ClosedRange<RuntimeProtocolVersion>
 
@@ -26,7 +26,7 @@ struct RuntimeHandshakeOffer: Equatable {
   }
 }
 
-/// The handshake response payload: the selected protocol version and advertised capabilities.
+// The handshake response payload: the selected protocol version and advertised capabilities.
 struct RuntimeHandshakeAcceptance: Equatable {
   let version: RuntimeProtocolVersion
   let capabilities: RuntimeCapabilities

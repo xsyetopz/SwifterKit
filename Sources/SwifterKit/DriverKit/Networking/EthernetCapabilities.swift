@@ -15,9 +15,13 @@ public struct EthernetHardwareAssists: OptionSet, Sendable, Hashable {
   public static let transmitUDPChecksum = Self(rawValue: 0x0000_0004)
   /// Software VLAN tagging with a VLAN-sized MTU.
   public static let softwareVLAN = Self(rawValue: 0x0002_0000)
-  /// IPv4 TCP segmentation offload. Requires ``EthernetTSOOptions``.
+  /// IPv4 TCP segmentation offload.
+  ///
+  /// Requires ``EthernetTSOOptions``.
   public static let tso4 = Self(rawValue: 0x0020_0000)
-  /// IPv6 TCP segmentation offload. Requires ``EthernetTSOOptions``.
+  /// IPv6 TCP segmentation offload.
+  ///
+  /// Requires ``EthernetTSOOptions``.
   public static let tso6 = Self(rawValue: 0x0040_0000)
   /// Hardware packet timestamps.
   public static let hardwareTimestamp = Self(rawValue: 0x0100_0000)
@@ -57,7 +61,9 @@ public struct EthernetFeatureFlags: OptionSet, Sendable, Hashable {
   public static let softwareTimestamp = Self(rawValue: 0x0200_0000)
   /// Wake on magic packet.
   public static let wakeOnMagicPacket = Self(rawValue: 0x0400_0000)
-  /// NIC proxy offload. The family then sends ``EthernetEvent/nicProxyConfiguration(_:)``.
+  /// NIC proxy offload.
+  ///
+  /// The family then sends ``EthernetEvent/nicProxyConfiguration(_:)``.
   public static let nicProxy = Self(rawValue: 0x0800_0000)
 
   /// Every flag NetworkingDriverKit defines.
@@ -112,7 +118,9 @@ public struct EthernetPacketPoolFlags: OptionSet, Sendable, Hashable {
   /// Maps the pool into device I/O space.
   public static let mapToDevice = Self(rawValue: 0x2000_0000)
 
-  /// Every flag a SwifterKit pool may add. The runtime always maps pools into the extension.
+  /// Every flag a SwifterKit pool may add.
+  ///
+  /// The runtime always maps pools into the extension.
   public static let all: Self = [
     .singleMemorySegment, .ioDirectionIn, .ioDirectionOut, .virtualDevice, .mapToDevice,
   ]
@@ -124,7 +132,9 @@ public struct EthernetPacketPoolOptions: Sendable, Hashable {
   public let bufferCount: UInt32?
   /// Bytes in each backing memory segment, or 0 for the family default.
   public let memorySegmentSize: UInt32
-  /// Extra pool flags. The runtime always adds `PoolFlagMapToDext`.
+  /// Extra pool flags.
+  ///
+  /// The runtime always adds `PoolFlagMapToDext`.
   public let flags: EthernetPacketPoolFlags
   /// Widest DMA address the device can generate, from 32 through 64 bits.
   public let maximumAddressBits: UInt8
@@ -223,7 +233,9 @@ public struct EthernetDataBandwidths: Sendable, Hashable {
   /// Transmit rate the link currently achieves.
   public let effectiveOutput: UInt64
 
-  /// Creates bandwidths. An effective rate may not exceed its maximum.
+  /// Creates bandwidths.
+  ///
+  /// An effective rate may not exceed its maximum.
   public init(
     maximumInput: UInt64,
     maximumOutput: UInt64,
@@ -311,7 +323,7 @@ public struct EthernetNICProxyConfiguration: Sendable, Hashable {
   /// `NIC_PROXY_FLAGS_*` bits, such as wake on magic packet (0x40) and wake on link (0x80).
   public let flags: UInt8
 
-  /// Smallest `nicproxy_info_t`: its fixed header.
+  // Smallest `nicproxy_info_t`: its fixed header.
   static let minimumLength = 80
 
   init(data: Data) throws {

@@ -83,7 +83,7 @@ extension DriverCommand {
     )
   }
 
-  /// Encodes a control request header, the timeout, a reserved word, then any OUT data.
+  // Encodes a control request header, the timeout, a reserved word, then any OUT data.
   static func usbControlRequestPayload(
     _ request: USBControlRequest,
     data: [UInt8],
@@ -101,7 +101,7 @@ extension DriverCommand {
     return payload
   }
 
-  /// Encodes a pipe endpoint, the transfer length, the timeout, a reserved word, then any OUT data.
+  // Encodes a pipe endpoint, the transfer length, the timeout, a reserved word, then any OUT data.
   static func usbPipeIOPayload(endpoint: UInt8, length: Int, data: [UInt8], timeout: UInt32) -> Data
   {
     var payload = Data(capacity: 16 + data.count)
@@ -134,9 +134,10 @@ extension DriverCommand {
 }
 
 extension DriverContext {
-  /// Performs a synchronous control transfer through USBDriverKit. Calls
-  /// `IOUSBHostDevice::DeviceRequest` or `IOUSBHostInterface::DeviceRequest`, depending on the
-  /// provider.
+  /// Performs a synchronous control transfer through USBDriverKit.
+  ///
+  /// Calls `IOUSBHostDevice::DeviceRequest` or `IOUSBHostInterface::DeviceRequest`, depending on
+  /// the provider.
   public func usbControlTransfer(
     _ request: USBControlRequest,
     data: [UInt8] = [],
@@ -146,7 +147,9 @@ extension DriverContext {
     return try USBTransferResult(runtimePayload: response)
   }
 
-  /// Reads from a bulk or interrupt IN endpoint. Calls `IOUSBHostPipe::IO`.
+  /// Reads from a bulk or interrupt IN endpoint.
+  ///
+  /// Calls `IOUSBHostPipe::IO`.
   public func usbRead(
     endpoint: UInt8,
     length: Int,
@@ -170,13 +173,16 @@ extension DriverContext {
     return try USBTransferResult(runtimePayload: response)
   }
 
-  /// Clears a USB endpoint halt condition. Calls `IOUSBHostPipe::ClearStall`.
+  /// Clears a USB endpoint halt condition.
+  ///
+  /// Calls `IOUSBHostPipe::ClearStall`.
   public func usbClearStall(endpoint: UInt8, withRequest: Bool = true) async throws {
     _ = try await execute(.usbClearStall(endpoint: endpoint, withRequest: withRequest))
   }
 
-  /// Selects the active alternate setting for the matched USB interface. Calls
-  /// `IOUSBHostInterface::SelectAlternateSetting`.
+  /// Selects the active alternate setting for the matched USB interface.
+  ///
+  /// Calls `IOUSBHostInterface::SelectAlternateSetting`.
   public func usbSelectAlternateSetting(_ alternateSetting: UInt8) async throws {
     _ = try await execute(.usbSelectAlternateSetting(alternateSetting))
   }

@@ -3,8 +3,8 @@ import Testing
 
 @testable import SwifterKit
 
-/// The to-extension doorbell: its payload, the identifier checks Swift makes before sending, and
-/// the reply it decodes.
+// The to-extension doorbell: its payload, the identifier checks Swift makes before sending, and
+// the reply it decodes.
 @Suite
 struct FastPathDataQueueNotifyTests {
   private static let configuration = FastPathConfiguration(

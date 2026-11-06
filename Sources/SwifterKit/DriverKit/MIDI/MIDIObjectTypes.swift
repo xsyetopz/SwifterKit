@@ -72,7 +72,9 @@ public enum MIDIPropertyType: UInt32, Sendable, Hashable {
 
 /// Identity metadata read from a MIDIDriverKit object or the driver.
 public struct MIDIObjectInfo: Sendable, Hashable {
-  /// The object's `IOUserMIDIObjectID`. The driver is always `1`.
+  /// The object's `IOUserMIDIObjectID`.
+  ///
+  /// The driver is always `1`.
   public let objectID: UInt32
   /// The owning object's ID, or zero for the driver.
   public let ownerObjectID: UInt32
@@ -161,9 +163,9 @@ public enum MIDIMember: Sendable, Hashable {
   }
 }
 
-/// Decodes `u32 value, u32 count, count × u32 object ID` responses.
+// Decodes `u32 value, u32 count, count × u32 object ID` responses.
 enum MIDIObjectIDList {
-  /// The most object IDs one list response carries.
+  // The most object IDs one list response carries.
   static let maximumCount = RuntimeMIDIObjectLimits.maximumListedObjects
 
   static func decode(_ payload: Data) throws -> (UInt32, [UInt32]) {

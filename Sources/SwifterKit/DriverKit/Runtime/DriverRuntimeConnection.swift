@@ -13,8 +13,8 @@ public actor DriverRuntimeConnection {
   private var session: DriverSession?
   private var nextRequestID: UInt64 = 1
   private let maximumResponseSize: Int
-  /// Host allocations wrapped through this connection, by handle, held until a release of the
-  /// handle succeeds.
+  // Host allocations wrapped through this connection, by handle, held until a release of the
+  // handle succeeds.
   private var wrappedHostMemory: [UInt64: DriverHostMemory] = [:]
 
   private init(session: DriverSession, maximumResponseSize: Int) {
@@ -66,11 +66,11 @@ public actor DriverRuntimeConnection {
     return response.payload
   }
 
-  /// Wraps `memory` and holds it until a release of the returned handle succeeds.
-  ///
-  /// Closing the connection drops the hold without ending the wrap. The extension releases the
-  /// entry only when DriverKit later stops the user client. The host cannot observe that event,
-  /// so the allocation keeps its pages.
+  // Wraps `memory` and holds it until a release of the returned handle succeeds.
+  //
+  // Closing the connection drops the hold without ending the wrap. The extension releases the
+  // entry only when DriverKit later stops the user client. The host cannot observe that event,
+  // so the allocation keeps its pages.
   func wrapHostMemory(
     _ memory: DriverHostMemory,
     direction: DriverMemoryDirection
@@ -100,10 +100,10 @@ public actor DriverRuntimeConnection {
     return DriverEventSequence(runtime: self, notifications: notifications)
   }
 
-  /// Takes one queued event from the internal runtime.
-  ///
-  /// A nil result means no event was queued when the extension handled the request. The
-  /// extension then notifies the registered host when the next event is queued.
+  // Takes one queued event from the internal runtime.
+  //
+  // A nil result means no event was queued when the extension handled the request. The
+  // extension then notifies the registered host when the next event is queued.
   func nextEvent() async throws -> DriverEvent? {
     let response = try await transact(
       kind: .command,
@@ -123,7 +123,7 @@ public actor DriverRuntimeConnection {
     )
   }
 
-  /// Maps a runtime client-memory type after enforcing the capability that provides it.
+  // Maps a runtime client-memory type after enforcing the capability that provides it.
   func mapMemory(
     _ type: RuntimeClientMemoryType,
     readOnly: Bool,

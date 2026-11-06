@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKit
 
-/// Checks the native USB runtime's trust-boundary rules in the generated sources.
+// Checks the native USB runtime's trust-boundary rules in the generated sources.
 @Suite
 struct DriverExtensionUSBContractTests {
   @Test

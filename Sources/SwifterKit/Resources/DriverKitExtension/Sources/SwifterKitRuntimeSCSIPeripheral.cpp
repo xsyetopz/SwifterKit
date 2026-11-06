@@ -40,8 +40,11 @@ namespace {
             if (length == 0) {
                 return kIOReturnSuccess;
             }
-            kern_return_t result =
-                IOBufferMemoryDescriptor::Create(direction, length, 0, &descriptor_);
+            kern_return_t result = IOBufferMemoryDescriptor::Create(
+                SwifterKitWritableDirection(direction),
+                length,
+                0,
+                &descriptor_);
             if (result != kIOReturnSuccess || descriptor_ == nullptr) {
                 return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
             }
@@ -49,7 +52,8 @@ namespace {
             if (result == kIOReturnSuccess) {
                 result = descriptor_->CreateMapping(0, 0, 0, length, 0, &map_);
             }
-            if (result != kIOReturnSuccess || map_ == nullptr || map_->GetAddress() == 0) {
+            if (result != kIOReturnSuccess || map_ == nullptr || map_->GetAddress() == 0
+                || map_->GetLength() < length) {
                 return result == kIOReturnSuccess ? kIOReturnNoMemory : result;
             }
             if (initialBytes != nullptr) {

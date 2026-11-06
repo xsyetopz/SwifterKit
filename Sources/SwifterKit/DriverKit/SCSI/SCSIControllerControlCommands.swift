@@ -177,6 +177,7 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Returns whether DriverKit reports a target present for `target`.
+  ///
   /// The extension calls `IOUserSCSIParallelInterfaceController::UserTargetPresentForID`.
   public func scsiTargetPresent(_ target: UInt64) async throws -> Bool {
     let payload = try await execute(.scsiTargetPresent(target))
@@ -188,8 +189,9 @@ extension DriverContext {
     }
   }
 
-  /// Requests a target. Returns once the extension has validated the properties and queued the
-  /// create.
+  /// Requests a target.
+  ///
+  /// Returns once the extension has validated the properties and queued the create.
   ///
   /// The extension runs `UserCreateTargetForID` on its own queue. DriverKit probes the
   /// new target with parallel tasks that Swift completes through the same connection. Keep
@@ -208,24 +210,28 @@ extension DriverContext {
   ) async throws { _ = try await execute(try .scsiCreateTarget(target, properties: properties)) }
 
   /// Destroys a target created by ``scsiCreateTarget(_:properties:)``.
+  ///
   /// The extension calls `IOUserSCSIParallelInterfaceController::UserDestroyTargetForID`.
   public func scsiDestroyTarget(_ target: UInt64) async throws {
     _ = try await execute(.scsiDestroyTarget(target))
   }
 
   /// Sets HBA registry properties.
+  ///
   /// The extension calls `IOUserSCSIParallelInterfaceController::UserSetHBAProperties`.
   public func scsiSetControllerProperties(
     _ properties: [SCSIProtocolPropertyKey: String]
   ) async throws { _ = try await execute(try .scsiSetControllerProperties(properties)) }
 
   /// Removes HBA registry properties.
+  ///
   /// The extension calls `IOUserSCSIParallelInterfaceController::UserRemoveHBAProperties`.
   public func scsiRemoveControllerProperties(_ keys: [SCSIProtocolPropertyKey]) async throws {
     _ = try await execute(try .scsiRemoveControllerProperties(keys))
   }
 
   /// Sets registry properties on one target.
+  ///
   /// The extension calls `IOUserSCSIParallelInterfaceController::UserSetTargetProperties`.
   public func scsiSetTargetProperties(
     _ properties: [SCSIProtocolPropertyKey: String],
@@ -233,6 +239,7 @@ extension DriverContext {
   ) async throws { _ = try await execute(try .scsiSetTargetProperties(properties, for: target)) }
 
   /// Removes registry properties from one target.
+  ///
   /// The extension calls `IOUserSCSIParallelInterfaceController::UserRemoveTargetProperties`.
   public func scsiRemoveTargetProperties(
     _ keys: [SCSIProtocolPropertyKey],
@@ -240,6 +247,7 @@ extension DriverContext {
   ) async throws { _ = try await execute(try .scsiRemoveTargetProperties(keys, for: target)) }
 
   /// Tells DriverKit that media parameters changed.
+  ///
   /// The extension calls
   /// `IOUserSCSIParallelInterfaceController::UserCallMediaParametersHaveChanged`.
   public func scsiMediaParametersChanged() async throws {

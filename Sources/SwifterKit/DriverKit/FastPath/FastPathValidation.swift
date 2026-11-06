@@ -49,7 +49,7 @@ extension FastPathConfiguration {
 }
 
 extension FastPathConfiguration {
-  /// Checks the ring declarations and returns them keyed by identifier.
+  // Checks the ring declarations and returns them keyed by identifier.
   func validatedRings() throws(FastPathError) -> [UInt32: FastPathRing] {
     guard rings.count <= FastPathLimits.maximumRings else {
       throw .tooManyRings(count: rings.count)
@@ -75,8 +75,8 @@ extension FastPathConfiguration {
 }
 
 extension FastPathProgram {
-  /// The most time the program waits in `delay` operations and `poll` intervals, in
-  /// microseconds. Call after each operation is within its own limits.
+  // The most time the program waits in `delay` operations and `poll` intervals, in
+  // microseconds. Call after each operation is within its own limits.
   var delayBudgetMicroseconds: UInt64 {
     operations.reduce(0) { total, operation in
       switch operation {
@@ -124,7 +124,7 @@ extension FastPathProgram {
 }
 
 extension FastPathOp {
-  /// The register the operation accesses, if any.
+  // The register the operation accesses, if any.
   var register: FastPathRegister? {
     switch self {
     case .read(let register, _), .write(let register, _), .modify(let register, _, _),
@@ -134,7 +134,7 @@ extension FastPathOp {
     }
   }
 
-  /// The rings the operation and its operand name.
+  // The rings the operation and its operand name.
   var ringIDs: [UInt32] {
     var ids: [UInt32] = []
     var operand: FastPathOperand?
@@ -156,7 +156,7 @@ extension FastPathOp {
     return ids
   }
 
-  /// The ring field an entry access names, if any.
+  // The ring field an entry access names, if any.
   var ringField: (ring: UInt32, offset: UInt32, width: FastPathRegister.Width)? {
     switch self {
     case .ringLoad(let ring, _, let offset, let width, _),

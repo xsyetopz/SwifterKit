@@ -3,10 +3,10 @@ import Testing
 
 @testable import SwifterKit
 
-/// Wrapped host memory belongs to the user client that wrapped it:
-/// - Every command and host mapping from another client is refused with kIOReturnNotPermitted.
-/// - A subrange or chain of it inherits the owner.
-/// - The owner's Stop releases its entries, compositions first.
+// Wrapped host memory belongs to the user client that wrapped it:
+// - Every command and host mapping from another client is refused with kIOReturnNotPermitted.
+// - A subrange or chain of it inherits the owner.
+// - The owner's Stop releases its entries, compositions first.
 @Suite
 struct ClientMemoryOwnershipContractTests {
   private static func checkedIn(_ name: String) throws -> String {

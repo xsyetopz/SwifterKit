@@ -103,7 +103,7 @@ struct DriverExtensionGeneratorValidationTests {
     }
   }
 
-  @Test(arguments: ["", ".19", "18.9", "19.", "19..0", "nineteen"])
+  @Test(arguments: ["", ".19", "19.0", "20.9", "21.", "21..0", "twenty-one"])
   func rejectsInvalidOrPreDriverKitDeploymentTargets(target: String) {
     #expect(throws: DriverExtensionGenerationError.invalidDeploymentTarget) {
       try DriverExtensionGenerator.generate(

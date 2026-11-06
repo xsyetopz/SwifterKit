@@ -1,9 +1,9 @@
-/// Renders ``RuntimeSchema`` as the native `SwifterKitRuntimeSchema.h` header.
+// Renders ``RuntimeSchema`` as the native `SwifterKitRuntimeSchema.h` header.
 enum RuntimeSchemaHeader {
-  /// The header's file name inside the native extension's `Sources` directory.
+  // The header's file name inside the native extension's `Sources` directory.
   static let fileName = "SwifterKitRuntimeSchema.h"
 
-  /// Returns the complete clang-format-clean header text.
+  // Returns the complete clang-format-clean header text.
   static func render() -> String {
     let wire: [(type: String, name: String, value: String)] = [
       ("uint32_t", "Magic", hex(RuntimeSchema.magic, digits: 8)),
@@ -63,7 +63,7 @@ enum RuntimeSchemaHeader {
 
   private static let acronyms: Set<String> = ["usb", "hid", "pci", "midi", "scsi", "led", "nic"]
 
-  /// Converts a Swift case name such as `pciGetBARInfo` to a native name such as `PCIGetBARInfo`.
+  // Converts a Swift case name such as `pciGetBARInfo` to a native name such as `PCIGetBARInfo`.
   static func nativeName(_ value: some Any) -> String {
     let name = String(describing: value)
     let prefix = String(name.prefix { $0.isLowercase })

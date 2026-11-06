@@ -3,11 +3,11 @@ import Testing
 
 @testable import SwifterKit
 
-/// Runs the native interpreter on the host:
-/// - The generator emits these programs' tables.
-/// - The host `clang++` compiles `SwifterKitRuntimeFastPathInterpreter.h` with a fake register
-///   file and the address and undefined-behavior sanitizers.
-/// - The test checks every transcript line.
+// Runs the native interpreter on the host:
+// - The generator emits these programs' tables.
+// - The host `clang++` compiles `SwifterKitRuntimeFastPathInterpreter.h` with a fake register
+//   file and the address and undefined-behavior sanitizers.
+// - The test checks every transcript line.
 @Suite
 struct FastPathInterpreterTests {
   private static func bar0(_ offset: UInt64, _ width: FastPathRegister.Width) -> FastPathRegister {
@@ -17,7 +17,7 @@ struct FastPathInterpreterTests {
     FastPathRegister(bar: 2, offset: offset, width: width)
   }
 
-  /// One program per behavior. The harness addresses them by index.
+  // One program per behavior. The harness addresses them by index.
   static let programs = FastPathConfiguration(
     programs: [
       FastPathProgram(
@@ -134,7 +134,7 @@ struct FastPathInterpreterTests {
     ]
   )
 
-  /// The transcript of each valid run: status, emit flag, slots, then accesses in order.
+  // The transcript of each valid run: status, emit flag, slots, then accesses in order.
   static let runs = [
     "read-write status=0 emitted=0 slots=12345,1122334455667788,DEADBEEF,1122334455667788,0,0,0,0"
       + " log=R0+8/4=DEADBEEF W0+C/2=2345 W2+0/1=AB W0+10/8=1122334455667788"
@@ -237,7 +237,7 @@ struct FastPathInterpreterTests {
     )
   }
 
-  /// Compiles and runs the harness, returning its lines keyed by their first word.
+  // Compiles and runs the harness, returning its lines keyed by their first word.
   private static func runHarness() throws -> [String: String] {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
       UUID().uuidString,

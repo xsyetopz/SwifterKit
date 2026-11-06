@@ -5,11 +5,11 @@
   actor IOKitDriverConnection: DriverConnection {
     private var connection: io_connect_t
     private let serviceID: UInt64
-    /// Created by the first registration. Releasing it tears the port down.
+    // Created by the first registration. Releasing it tears the port down.
     private var notificationPort: IOKitNotificationPort?
-    /// Live mappings by memory type, unmapped before the connection closes.
+    // Live mappings by memory type, unmapped before the connection closes.
     private var mappings: [UInt32: WeakSharedMemory] = [:]
-    /// Lets a mapping's unmap reach the connection only while it is open.
+    // Lets a mapping's unmap reach the connection only while it is open.
     private let mappingGate = IOKitMappingGate()
 
     init(connection: io_connect_t, serviceID: UInt64) {
@@ -193,8 +193,8 @@
   private struct WeakSharedMemory { weak var memory: DriverSharedMemory? }
 
   // @unchecked Sendable: `lock` guards `isOpen`, and `whileOpen` runs its body while holding it.
-  /// Serializes each mapping's unmap with the connection's close, so no unmap reaches a closed
-  /// connection whose port name the process may have reused.
+  // Serializes each mapping's unmap with the connection's close, so no unmap reaches a closed
+  // connection whose port name the process may have reused.
   private final class IOKitMappingGate: @unchecked Sendable {
     private let lock = NSLock()
     private var isOpen = true

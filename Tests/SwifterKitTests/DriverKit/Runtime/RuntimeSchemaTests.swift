@@ -5,10 +5,10 @@ import Testing
 
 @Suite
 struct RuntimeSchemaTests {
-  /// The checked-in native sources.
+  // The checked-in native sources.
   private static let directory = checkedInNativeSources
 
-  /// Each generated header's file name and rendered text.
+  // Each generated header's file name and rendered text.
   private static let headers = [
     (RuntimeSchemaHeader.fileName, RuntimeSchemaHeader.render()),
     (RuntimeSchemaHeader.fastPathFileName, RuntimeSchemaHeader.renderFastPath()),

@@ -119,7 +119,7 @@ extension DriverCommand {
     return payload
   }
 
-  /// Encodes a stream index and an output entry after checking both against the runtime tables.
+  // Encodes a stream index and an output entry after checking both against the runtime tables.
   static func videoOutputEntryPayload(
     streamIndex: UInt32,
     entry: VideoBufferQueueEntry

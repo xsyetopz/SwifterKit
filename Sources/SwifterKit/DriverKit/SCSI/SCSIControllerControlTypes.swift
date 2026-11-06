@@ -6,21 +6,37 @@ import Foundation
 /// `UserSetHBAProperties`, `UserRemoveHBAProperties`, and `UserSetTargetProperties`. Every value
 /// is an `OSString`.
 public struct SCSIProtocolPropertyKey: RawRepresentable, Sendable, Hashable {
-  /// `kIOPropertyVendorNameKey`. HBA only.
+  /// `kIOPropertyVendorNameKey`.
+  ///
+  /// HBA only.
   public static let vendorName = Self(rawValue: "Vendor Name")
-  /// `kIOPropertyProductNameKey`. HBA only.
+  /// `kIOPropertyProductNameKey`.
+  ///
+  /// HBA only.
   public static let productName = Self(rawValue: "Product Name")
-  /// `kIOPropertyProductRevisionLevelKey`. HBA only.
+  /// `kIOPropertyProductRevisionLevelKey`.
+  ///
+  /// HBA only.
   public static let productRevisionLevel = Self(rawValue: "Product Revision Level")
-  /// `kIOPropertyPortDescriptionKey`. HBA only.
+  /// `kIOPropertyPortDescriptionKey`.
+  ///
+  /// HBA only.
   public static let portDescription = Self(rawValue: "Port Description")
-  /// `kIOPropertyPortSpeedKey`. HBA only.
+  /// `kIOPropertyPortSpeedKey`.
+  ///
+  /// HBA only.
   public static let portSpeed = Self(rawValue: "Port Speed")
-  /// `kIOPropertyPortTopologyKey`. HBA only.
+  /// `kIOPropertyPortTopologyKey`.
+  ///
+  /// HBA only.
   public static let portTopology = Self(rawValue: "Port Topology")
-  /// `kIOPropertySCSIParallelSignalingTypeKey`. HBA only.
+  /// `kIOPropertySCSIParallelSignalingTypeKey`.
+  ///
+  /// HBA only.
   public static let parallelSignalingType = Self(rawValue: "SCSI Parallel Signaling Type")
-  /// `kIOPropertyFibreChannelCableDescriptionKey`. HBA only.
+  /// `kIOPropertyFibreChannelCableDescriptionKey`.
+  ///
+  /// HBA only.
   public static let fibreChannelCableDescription = Self(rawValue: "Fibre Channel Cabling Type")
   /// `kIOPropertyFibreChannelNodeWorldWideNameKey`.
   public static let fibreChannelNodeWorldWideName = Self(rawValue: "Node World Wide Name")
@@ -63,7 +79,9 @@ public struct SCSIControllerConstraints: Sendable, Hashable {
   /// Reports `kIOHierarchicalLogicalUnitSupportKey` as true when set.
   public let supportsHierarchicalLogicalUnits: Bool
 
-  /// Creates controller I/O constraints. The generator validates them.
+  /// Creates controller I/O constraints.
+  ///
+  /// The generator validates them.
   public init(
     maximumSegmentCountRead: UInt64,
     maximumSegmentCountWrite: UInt64,
@@ -114,7 +132,9 @@ public enum SCSIControllerLimits {
 public struct SCSITargetCreationResult: Sendable, Hashable {
   /// The target identifier passed to ``DriverContext/scsiCreateTarget(_:properties:)``.
   public let target: UInt64
-  /// The `IOReturn` status of `UserCreateTargetForID`. Zero is success.
+  /// The `IOReturn` status of `UserCreateTargetForID`.
+  ///
+  /// Zero is success.
   public let status: Int32
 
   /// Whether DriverKit created the target.

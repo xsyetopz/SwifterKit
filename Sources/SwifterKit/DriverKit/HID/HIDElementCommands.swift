@@ -1,24 +1,24 @@
 import Foundation
 
-/// Limits shared by the HID command encoders. The native runtime enforces the same bounds,
-/// which ``RuntimeHIDLimits`` declares for both sides.
+// Limits shared by the HID command encoders. The native runtime enforces the same bounds,
+// which ``RuntimeHIDLimits`` declares for both sides.
 @usableFromInline
 enum HIDLimits {
-  /// The most element descriptors one page carries.
+  // The most element descriptors one page carries.
   @usableFromInline
   static let maximumElementPage = UInt32(RuntimeHIDLimits.maximumElementPage)
-  /// The most cookies one commit names.
+  // The most cookies one commit names.
   static let maximumCommitCookies = RuntimeHIDLimits.maximumCookies
-  /// The most elements one digitizer collection names.
+  // The most elements one digitizer collection names.
   static let maximumCollectionElements = RuntimeHIDLimits.maximumCollectionElements
-  /// The most touches one dispatch carries.
+  // The most touches one dispatch carries.
   static let maximumTouches = RuntimeHIDLimits.maximumTouches
-  /// Command payload bytes that fit one runtime message.
+  // Command payload bytes that fit one runtime message.
   static let maximumPayload =
     RuntimeSchema.maximumMessageSize - RuntimeSchema.headerSize - RuntimeSchema.commandHeaderSize
-  /// Report bytes that fit after a 32-byte report request.
+  // Report bytes that fit after a 32-byte report request.
   static let maximumReportLength = maximumPayload - 32
-  /// Report bytes Swift can return for a host get-report request.
+  // Report bytes Swift can return for a host get-report request.
   static let maximumAnsweredReport = maximumPayload - 16
 
   static func reportRequest(
@@ -102,7 +102,9 @@ extension DriverCommand {
     )
   }
 
-  /// Sets one element's integer value. Commit it to reach the device.
+  /// Sets one element's integer value.
+  ///
+  /// Commit it to reach the device.
   public static func setHIDElementValue(_ value: UInt32, cookie: UInt32) throws -> Self {
     Self(
       opcode: .hidSetElementValue,
@@ -114,7 +116,9 @@ extension DriverCommand {
     )
   }
 
-  /// Sets one element's data value. Commit it to reach the device.
+  /// Sets one element's data value.
+  ///
+  /// Commit it to reach the device.
   public static func setHIDElementData(_ bytes: [UInt8], cookie: UInt32) throws -> Self {
     guard !bytes.isEmpty, bytes.count <= HIDLimits.maximumPayload - 16 else {
       throw HIDRuntimeError.invalidReportLength
@@ -290,12 +294,16 @@ extension DriverContext {
     return reply.isEmpty ? nil : [UInt8](reply)
   }
 
-  /// Sets one element's integer value. Commit it to reach the device.
+  /// Sets one element's integer value.
+  ///
+  /// Commit it to reach the device.
   public func setHIDElementValue(_ value: UInt32, cookie: UInt32) async throws {
     _ = try await execute(.setHIDElementValue(value, cookie: cookie))
   }
 
-  /// Sets one element's data value. Commit it to reach the device.
+  /// Sets one element's data value.
+  ///
+  /// Commit it to reach the device.
   public func setHIDElementData(_ bytes: [UInt8], cookie: UInt32) async throws {
     _ = try await execute(.setHIDElementData(bytes, cookie: cookie))
   }

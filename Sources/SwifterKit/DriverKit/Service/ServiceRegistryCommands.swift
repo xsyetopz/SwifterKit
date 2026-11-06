@@ -88,8 +88,8 @@ extension DriverCommand {
     payload: [String: DriverProperty]
   ) throws -> Self { try namedValue(.serviceSendCoreAnalyticsEvent, name: name, value: payload) }
 
-  /// A command that needs no capability. `responseSize` is its payload bound, or `nil` for one
-  /// full message.
+  // A command that needs no capability. `responseSize` is its payload bound, or `nil` for one
+  // full message.
   static func service(
     _ opcode: RuntimeOpcode,
     payload: Data = Data(),
@@ -208,6 +208,7 @@ extension DriverContext {
   }
 
   /// Creates a system state item on the system state notification service.
+  ///
   /// The extension calls `IOService::StateNotificationItemCreate`.
   public func createSystemStateItem(
     named name: String,
@@ -215,6 +216,7 @@ extension DriverContext {
   ) async throws { _ = try await execute(try .createSystemStateItem(named: name, value: value)) }
 
   /// Sets the value of a system state item on the system state notification service.
+  ///
   /// The extension calls `IOService::StateNotificationItemSet`.
   public func setSystemStateItem(named name: String, value: [String: DriverProperty]) async throws {
     _ = try await execute(try .setSystemStateItem(named: name, value: value))

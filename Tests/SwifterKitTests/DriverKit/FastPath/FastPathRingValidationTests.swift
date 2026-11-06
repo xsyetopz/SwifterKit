@@ -3,7 +3,7 @@ import Testing
 
 @testable import SwifterKit
 
-/// Ring declarations, ring operations, and ring operands against every limit.
+// Ring declarations, ring operations, and ring operands against every limit.
 @Suite
 struct FastPathRingValidationTests {
   private static let ring = FastPathRing(

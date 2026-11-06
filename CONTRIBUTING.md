@@ -14,7 +14,7 @@ Bug reports should include the Swift and Xcode versions, macOS version, affected
 
 ## Development setup
 
-The checked-in package manifest requires Swift 6.1. Local development uses the latest passing Swift version recorded in `.swift-version`; check the floor with Xcode 16.3's toolchain before submitting. Generated extension builds require Xcode with the DriverKit SDK. Keep IOKit-only code behind `#if canImport(IOKit)` so the package still builds on Linux. Install SwiftLint and LLVM tools when they are not already available:
+The checked-in package manifest requires Swift 6.4. Local development uses the latest passing Swift version recorded in `.swift-version`; check the floor with Xcode 27.0's toolchain before submitting. Generated extension builds require Xcode with the DriverKit SDK. Keep IOKit-only code behind `#if canImport(IOKit)` so the package still builds on Linux. Install SwiftLint and LLVM tools when they are not already available:
 
 ```sh
 brew install swiftlint llvm
@@ -50,7 +50,7 @@ Directories below `Tests/SwifterKitTests` mirror the corresponding `Sources/Swif
 
 ## Swift and native boundaries
 
-Public Swift APIs require documentation and Swift 6 concurrency-safe behavior. Preserve error types, diagnostics, payload layouts, request identifiers, and completion ownership.
+Public Swift APIs require documentation and Swift 6 concurrency-safe behavior. Write `///` documentation only for what clients see: `open` and `public` declarations, and the enum cases and protocol requirements they make public. Use `//` for any other comment. `./scripts/ci/validate.sh` runs `scripts/ci/audit_docs.py` against the public symbol graph, which rejects `///` on any other declaration. Preserve error types, diagnostics, payload layouts, request identifiers, and completion ownership.
 
 `Sources/SwifterKit/Resources/DriverKitExtension` is the only native extension source tree. Native code uses C++20, warnings as errors, const-correctness, and the repository Clang checks. Keep ABI-required IIG declarations and explicit DriverKit types when modernization would change generated interfaces or framework contracts.
 

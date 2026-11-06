@@ -1,7 +1,7 @@
 import Foundation
 
-/// Renders the DocC article that tells driver authors how much of Apple's DriverKit surface a
-/// Swift driver controls.
+// Renders the DocC article that tells driver authors how much of Apple's DriverKit surface a
+// Swift driver controls.
 enum CoverageArticle {
   static let exclusionsTitle = "### Members SwifterKit does not expose"
 
@@ -60,8 +60,10 @@ enum CoverageArticle {
     return lines.joined(separator: "\n") + "\n"
   }
 
-  /// Reads the exclusion lines `` - `Class` `signature`: reason `` from `text`. In an article,
-  /// only the lines under "Members SwifterKit does not expose" count.
+  // Reads the exclusion lines from the text.
+  //
+  // A line has the form `` - `Class` `signature`: reason ``. In an article, only the lines under
+  // "Members SwifterKit does not expose" count.
   static func exclusions(in text: String, article: Bool) -> Set<Coverage.Exclusion> {
     var result: Set<Coverage.Exclusion> = []
     var inSection = !article
@@ -84,7 +86,7 @@ enum CoverageArticle {
     return result
   }
 
-  /// The SDK versions an article names, or `nil` when it names none.
+  // The SDK versions an article names, or `nil` when it names none.
   static func sdks(in text: String) -> [String]? {
     guard let start = text.range(of: "headers of the DriverKit "),
       let end = text[start.upperBound...].range(of: " SDKs")
@@ -92,7 +94,7 @@ enum CoverageArticle {
     return text[start.upperBound..<end.lowerBound].components(separatedBy: ", ")
   }
 
-  /// The SDK versions an article names that `versions` lacks.
+  // The SDK versions an article names that `versions` lacks.
   static func missingSDKs(in text: String, from versions: [String]) -> [String] {
     (sdks(in: text) ?? []).filter { !versions.contains($0) }
   }
@@ -122,8 +124,8 @@ enum CoverageArticle {
     }
   }
 
-  /// One subsection per framework listing, through `format`, each class's members with `status`
-  /// and, for exclusions, `source`.
+  // One subsection per framework listing, through `format`, each class's members with `status`
+  // and, for exclusions, `source`.
   private static func listing(
     _ coverage: Coverage,
     _ status: CoverageStatus,

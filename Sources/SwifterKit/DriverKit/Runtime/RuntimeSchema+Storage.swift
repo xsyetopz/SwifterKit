@@ -5,8 +5,9 @@
 // `SwifterKitRuntimeBlockStorage.cpp`, `SwifterKitRuntimeSerial.cpp`, and
 // `SwifterKitRuntimeUSBSerial.cpp` read, so neither side spells a value twice.
 
-/// The task-management call a `scsiManagement` event forwards. See
-/// `SwifterKitSCSIManagementEvent`.
+// The task-management call a SCSI management event forwards.
+//
+// See `SwifterKitSCSIManagementEvent`.
 enum RuntimeSCSIManagementKind: UInt32, CaseIterable {
   case initializeTarget = 1
   case abortTask = 2
@@ -17,24 +18,28 @@ enum RuntimeSCSIManagementKind: UInt32, CaseIterable {
   case targetReset = 7
 }
 
-/// Bounds of the SCSI controller property commands.
+// Bounds of the SCSI controller property commands.
 enum RuntimeSCSILimits {
-  /// The most properties one set or remove command carries.
+  // The most properties one set or remove command carries.
   static let maximumPropertyCount = 32
-  /// The longest property key, in UTF-8 bytes. The wire carries it in a `u16`.
+  // The longest property key, in UTF-8 bytes.
+  //
+  // The wire carries it in a `u16`.
   static let propertyKeyMaximumLength = 127
-  /// The longest property value, in UTF-8 bytes. The wire carries it in a `u16`.
+  // The longest property value, in UTF-8 bytes.
+  //
+  // The wire carries it in a `u16`.
   static let propertyValueMaximumLength = 1_024
-  /// The most parallel-feature requests or results one task carries,
-  /// `kSCSIParallelFeature_TotalFeatureCount`.
+  // The most parallel-feature requests or results one task carries,
+  // `kSCSIParallelFeature_TotalFeatureCount`.
   static let maximumFeatureRequests = 5
-  /// The longest Command Descriptor Block, `kSCSICDBSize_Maximum`.
+  // The longest Command Descriptor Block, `kSCSICDBSize_Maximum`.
   static let commandDescriptorBlockMaximumSize = 16
-  /// The most data bytes one peripheral CDB command moves through a runtime message.
+  // The most data bytes one peripheral CDB command moves through a runtime message.
   static let peripheralMaximumDataLength = 61_440
 }
 
-/// The `IOUserBlockStorageDevice` call a `blockStorage` event forwards.
+// The `IOUserBlockStorageDevice` call a `blockStorage` event forwards.
 enum RuntimeBlockStorageRequestKind: UInt32, CaseIterable {
   case eject = 1
   case synchronize = 2
@@ -43,7 +48,7 @@ enum RuntimeBlockStorageRequestKind: UInt32, CaseIterable {
   case write = 5
 }
 
-/// The `IOUserSerial` callback a `serial` event reports.
+// The `IOUserSerial` callback a `serial` event reports.
 enum RuntimeSerialEventKind: UInt32, CaseIterable {
   case activate = 1
   case deactivate = 2
@@ -58,10 +63,10 @@ enum RuntimeSerialEventKind: UInt32, CaseIterable {
   case programFlowControl = 11
 }
 
-/// The `IOUserUSBSerial` hook a `usbSerialPacket` event copies.
+// The `IOUserUSBSerial` hook a `usbSerialPacket` event copies.
 enum RuntimeUSBSerialPacketKind: UInt32, CaseIterable {
-  /// `handleRxPacket`, a completed bulk IN transfer.
+  // `handleRxPacket`, a completed bulk IN transfer.
   case received = 1
-  /// `handleInterruptPacket`, a completed interrupt IN transfer.
+  // `handleInterruptPacket`, a completed interrupt IN transfer.
   case interrupt = 2
 }

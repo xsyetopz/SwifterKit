@@ -102,11 +102,15 @@ public struct HIDEventServiceConfiguration: Sendable, Hashable {
 
   /// The generated superclass.
   public let serviceClass: HIDEventServiceClass
-  /// `DeviceUsagePairs` matching. Empty matches on vendor and product only.
+  /// `DeviceUsagePairs` matching.
+  ///
+  /// Empty matches on vendor and product only.
   public let usagePairs: [HIDUsagePair]
   /// The `VendorID` to match, if any.
   public let vendorID: UInt32?
-  /// The `ProductID` to match, if any. Requires ``vendorID``.
+  /// The `ProductID` to match, if any.
+  ///
+  /// Requires ``vendorID``.
   public let productID: UInt32?
   /// Report data forwarded to Swift.
   public let delivery: HIDEventDelivery
@@ -174,7 +178,7 @@ public struct USBHIDDeviceConfiguration: Sendable, Hashable {
     self.deliversInputReports = deliversInputReports
   }
 
-  /// The tagged encoding of ``deviceProperties``, or `nil` when it cannot be encoded.
+  // The tagged encoding of ``deviceProperties``, or `nil` when it cannot be encoded.
   var encodedDeviceProperties: [UInt8]? {
     guard !deviceProperties.isEmpty else { return [] }
     guard deviceProperties.keys.allSatisfy({ (try? ServicePropertyCoding.nameBytes($0)) != nil }),

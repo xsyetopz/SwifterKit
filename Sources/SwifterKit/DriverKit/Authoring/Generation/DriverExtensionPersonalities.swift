@@ -44,8 +44,8 @@ extension DriverExtensionGenerator {
     }
   }
 
-  /// Validates every personality on its own and their names, then returns the personalities
-  /// sorted by name.
+  // Validates every personality on its own and their names, then returns the personalities
+  // sorted by name.
   static func validate(
     extension driverExtension: DriverExtensionConfiguration,
     options: DriverExtensionGenerationOptions
@@ -64,7 +64,7 @@ extension DriverExtensionGenerator {
     return personalities
   }
 
-  /// Whether `name` is an ASCII letter followed by ASCII letters and digits.
+  // Whether `name` is an ASCII letter followed by ASCII letters and digits.
   private static func isPersonalityName(_ name: String) -> Bool {
     guard let first = name.unicodeScalars.first, first.isASCII, first.properties.isAlphabetic else {
       return false
@@ -74,15 +74,17 @@ extension DriverExtensionGenerator {
     }
   }
 
-  /// Whether one name starts the other, ignoring case. Renamed classes and files of such names
-  /// could collide, and file names on a case-insensitive volume would.
+  // Whether one name starts the other, ignoring case.
+  //
+  // Renamed classes and files of such names could collide, and file names on a case-insensitive
+  // volume would.
   private static func overlaps(_ lhs: String, _ rhs: String) -> Bool {
     let lhs = lhs.lowercased()
     let rhs = rhs.lowercased()
     return lhs.hasPrefix(rhs) || rhs.hasPrefix(lhs)
   }
 
-  /// Replaces the staged runtime sources with each personality's configured, renamed copy.
+  // Replaces the staged runtime sources with each personality's configured, renamed copy.
   private static func renameSources(
     in staging: URL,
     personalities: [(String, DriverConfiguration)]
@@ -106,8 +108,8 @@ extension DriverExtensionGenerator {
     try fileManager.moveItem(at: renamed, to: sources)
   }
 
-  /// `entry` with every SwifterKit `IOUserClass`, including nested user-client and device
-  /// properties, renamed for `personality`.
+  // `entry` with every SwifterKit `IOUserClass`, including nested user-client and device
+  // properties, renamed for `personality`.
   private static func renamingClasses(in entry: [String: Any], personality: String) -> [String: Any]
   {
     entry.reduce(into: [:]) { result, element in
@@ -124,7 +126,7 @@ extension DriverExtensionGenerator {
     }
   }
 
-  /// Adds `entitlements` to `union`: booleans are OR'd and arrays keep each distinct entry.
+  // Adds `entitlements` to `union`: booleans are OR'd and arrays keep each distinct entry.
   private static func merge(entitlements: [String: Any], into union: inout [String: Any]) {
     for (key, value) in entitlements {
       switch (union[key], value) {
@@ -140,7 +142,7 @@ extension DriverExtensionGenerator {
     }
   }
 
-  /// Compares property-list values structurally, without the Objective-C bridge Linux lacks.
+  // Compares property-list values structurally, without the Objective-C bridge Linux lacks.
   private static func isEqual(_ lhs: Any, _ rhs: Any) -> Bool {
     switch (lhs, rhs) {
     case (let lhs as [Any], let rhs as [Any]):

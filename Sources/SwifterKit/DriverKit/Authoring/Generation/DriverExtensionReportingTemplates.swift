@@ -1,8 +1,8 @@
 extension DriverExtensionGenerator {
-  /// Native reporter tables for `SwifterKitRuntimeReporting.cpp`.
-  ///
-  /// Each reporter indexes runs of the shared channel, state, and segment tables. Arrays hold at
-  /// least one element so the tables stay valid C++ when they are empty.
+  // Native reporter tables for `SwifterKitRuntimeReporting.cpp`.
+  //
+  // Each reporter indexes runs of the shared channel, state, and segment tables. Arrays hold at
+  // least one element so the tables stay valid C++ when they are empty.
   static func reportingDeclarations(_ reporting: ReportingConfiguration?) -> String {
     let reporters = reporting?.reporters ?? []
     var channels: [String] = []

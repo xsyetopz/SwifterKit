@@ -1,9 +1,9 @@
 extension DriverExtensionGenerator {
-  /// IOService registry, power, system-state, timer, and watch methods every generated service
-  /// declares.
-  ///
-  /// They follow the event-client methods so they stay public for every superclass. The
-  /// `SetPowerState` override matches `IOService` and `IOUserNetworkEthernet` alike.
+  // IOService registry, power, system-state, timer, and watch methods every generated service
+  // declares.
+  //
+  // They follow the event-client methods so they stay public for every superclass. The
+  // `SetPowerState` override matches `IOService` and `IOUserNetworkEthernet` alike.
   static let serviceControlMethods = """
         virtual kern_return_t SetPowerState(uint32_t powerFlags) override;
         virtual void PowerStateTimerOccurred(

@@ -3,8 +3,8 @@ import Testing
 
 @testable import SwifterKit
 
-/// Checks the HID device factory's trust-boundary, lifetime, and completion rules in the
-/// generated native sources.
+// Checks the HID device factory's trust-boundary, lifetime, and completion rules in the
+// generated native sources.
 @Suite
 struct HIDDeviceFactoryRuntimeContractTests {
   private func withFactoryExtension(_ body: (URL) throws -> Void) throws {

@@ -93,7 +93,7 @@ public struct PCIPowerManagementSupport: OptionSet, Sendable, Hashable {
   /// The function can signal PME from D3cold, `kPCIPMCPMESupportFromD3Cold`.
   public static let pmeFromD3Cold = Self(rawValue: 0x8000)
 
-  /// Decodes the runtime's support answer: 1 when DriverKit reported success, otherwise 0.
+  // Decodes the runtime's support answer: 1 when DriverKit reported success, otherwise 0.
   static func isSupported(runtimePayload: Data) throws -> Bool {
     guard runtimePayload.count == 4 else { throw PCIRuntimeError.invalidResponse }
     let value: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)

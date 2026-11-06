@@ -148,6 +148,7 @@ extension DriverContext {
   }
 
   /// Moves a state reporter channel to `state`, one of the reporter's configured state IDs.
+  ///
   /// DriverKit accounts residency in mach absolute time.
   public func setReportState(_ state: UInt64, reporter: Int, channel: UInt64) async throws {
     _ = try await execute(try .setReportState(state, reporter: reporter, channel: channel))
@@ -215,6 +216,7 @@ extension DriverContext {
   }
 
   /// Returns a state reporter channel's statistics for `state`.
+  ///
   /// The extension reads it with `IOStateReporter::getStateInTransitions`,
   /// `IOStateReporter::getStateResidencyTime`, `IOStateReporter::getStateLastTransitionTime`.
   public func reportStateStatistics(

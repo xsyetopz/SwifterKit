@@ -75,7 +75,7 @@ extension DriverExtensionGenerator {
     }
   }
 
-  /// Whether a configured name fits the extension's name buffers: non-empty and NUL-free.
+  // Whether a configured name fits the extension's name buffers: non-empty and NUL-free.
   static func isValidAudioName(_ name: String) -> Bool {
     !name.isEmpty && !name.contains("\0") && name.utf8.count <= RuntimeAudioLimits.nameMaximumLength
   }

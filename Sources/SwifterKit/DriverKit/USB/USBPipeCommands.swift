@@ -87,8 +87,9 @@ extension DriverCommand {
     )
   }
 
-  /// Creates a command that asynchronously aborts every request on a pipe. Each aborted
-  /// request still completes, with `kIOReturnAborted`.
+  /// Creates a command that asynchronously aborts every request on a pipe.
+  ///
+  /// Each aborted request still completes, with `kIOReturnAborted`.
   public static func usbAbortPipe(endpoint: UInt8) -> Self {
     usbPipeRequest(.usbPipeAbort, endpoint: endpoint)
   }
@@ -126,9 +127,9 @@ extension DriverCommand {
     usbPipeRequest(.usbPipeGetDeviceAddress, endpoint: endpoint, response: 4)
   }
 
-  /// An event payload after the runtime header and the four-byte event type.
+  // An event payload after the runtime header and the four-byte event type.
   static let usbMaximumEventPayload = RuntimeMessage.maximumSize - RuntimeMessage.headerSize - 4
-  /// A command payload after the runtime and command headers.
+  // A command payload after the runtime and command headers.
   static let usbMaximumCommandPayload =
     RuntimeMessage.maximumSize - RuntimeMessage.headerSize - RuntimeSchema.commandHeaderSize
 
@@ -187,6 +188,7 @@ extension DriverCommand {
 
 extension DriverContext {
   /// Enqueues an asynchronous bulk or interrupt IN transfer and returns its request identifier.
+  ///
   /// Calls `IOUSBHostPipe::AsyncIO`.
   ///
   /// The data arrives in a ``USBPipeIOCompletion`` event, decoded with ``DriverEvent/usb()``.
@@ -213,8 +215,9 @@ extension DriverContext {
     try await usbRequestID(.usbEnqueueWrite(endpoint: endpoint, data: data, timeout: timeout))
   }
 
-  /// Enqueues an isochronous IN transfer and returns its request identifier. Calls
-  /// `IOUSBHostPipe::IsochIO`.
+  /// Enqueues an isochronous IN transfer and returns its request identifier.
+  ///
+  /// Calls `IOUSBHostPipe::IsochIO`.
   ///
   /// The result arrives in a ``USBIsochronousCompletion`` event.
   public func usbEnqueueIsochronousRead(
@@ -244,24 +247,31 @@ extension DriverContext {
     )
   }
 
-  /// Asynchronously aborts every request on a pipe. Each aborted request still completes, with
-  /// `kIOReturnAborted`. Calls `IOUSBHostPipe::Abort`.
+  /// Asynchronously aborts every request on a pipe.
+  ///
+  /// Each aborted request still completes, with `kIOReturnAborted`. Calls
+  /// `IOUSBHostPipe::Abort`.
   public func usbAbortPipe(endpoint: UInt8) async throws {
     _ = try await execute(.usbAbortPipe(endpoint: endpoint))
   }
 
-  /// Sets how long, in milliseconds, a pipe stays busy after I/O before it counts as idle. Calls
-  /// `IOUSBHostPipe::SetIdlePolicy`.
+  /// Sets how long, in milliseconds, a pipe stays busy after I/O before it counts as idle.
+  ///
+  /// Calls `IOUSBHostPipe::SetIdlePolicy`.
   public func usbSetPipeIdlePolicy(endpoint: UInt8, timeout: UInt32) async throws {
     _ = try await execute(.usbSetPipeIdlePolicy(endpoint: endpoint, timeout: timeout))
   }
 
-  /// Returns a pipe's idle timeout in milliseconds. Calls `IOUSBHostPipe::GetIdlePolicy`.
+  /// Returns a pipe's idle timeout in milliseconds.
+  ///
+  /// Calls `IOUSBHostPipe::GetIdlePolicy`.
   public func usbPipeIdlePolicy(endpoint: UInt8) async throws -> UInt32 {
     try await usbValue(.usbPipeIdlePolicy(endpoint: endpoint))
   }
 
-  /// Returns the descriptors describing a pipe's endpoint. Calls `IOUSBHostPipe::GetDescriptors`.
+  /// Returns the descriptors describing a pipe's endpoint.
+  ///
+  /// Calls `IOUSBHostPipe::GetDescriptors`.
   public func usbPipeDescriptors(
     endpoint: UInt8,
     policy: USBPipeDescriptorPolicy = .original
@@ -271,14 +281,18 @@ extension DriverContext {
     )
   }
 
-  /// Returns the operating speed reported by a pipe. Calls `IOUSBHostPipe::GetSpeed`.
+  /// Returns the operating speed reported by a pipe.
+  ///
+  /// Calls `IOUSBHostPipe::GetSpeed`.
   public func usbPipeSpeed(endpoint: UInt8) async throws -> USBDeviceSpeed {
     USBDeviceSpeed(
       rawValue: UInt8(truncatingIfNeeded: try await usbValue(.usbPipeSpeed(endpoint: endpoint)))
     )
   }
 
-  /// Returns the device address reported by a pipe. Calls `IOUSBHostPipe::GetDeviceAddress`.
+  /// Returns the device address reported by a pipe.
+  ///
+  /// Calls `IOUSBHostPipe::GetDeviceAddress`.
   public func usbPipeDeviceAddress(endpoint: UInt8) async throws -> UInt8 {
     UInt8(truncatingIfNeeded: try await usbValue(.usbPipeDeviceAddress(endpoint: endpoint)))
   }

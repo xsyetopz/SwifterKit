@@ -43,7 +43,7 @@ add_tree() {
 	done
 }
 
-add_tree "$native_sources" "$derived_sources" "${SWIFTERKIT_DRIVERKIT_TARGET:-19.0}" \
+add_tree "$native_sources" "$derived_sources" "${SWIFTERKIT_DRIVERKIT_TARGET:-21.0}" \
 	".*/$native_sources/.*"
 
 if [[ -n "$generated_trees" ]]; then

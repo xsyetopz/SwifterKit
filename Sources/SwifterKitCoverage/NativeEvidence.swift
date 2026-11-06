@@ -1,10 +1,10 @@
 import Foundation
 
-/// The DriverKit members that SwifterKit's native runtime calls or overrides, read from clang's
-/// AST of every generated extension tree the build tests capture.
+// The DriverKit members that SwifterKit's native runtime calls or overrides, read from clang's
+// AST of every generated extension tree the build tests capture.
 struct NativeEvidence {
   private(set) var uses: Set<NativeUse> = []
-  /// The first base class of every class the trees define or include.
+  // The first base class of every class the trees define or include.
   private(set) var bases: [String: String] = [:]
 
   enum Failure: Error, CustomStringConvertible {
@@ -20,11 +20,11 @@ struct NativeEvidence {
     }
   }
 
-  /// Compiles each `.cpp` file of each tree in `trees` with the selected Xcode's clang.
-  ///
-  /// A tree holds `Sources`, `DerivedSources`, and `DeploymentTarget`, as the build tests write
-  /// them under `SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE`. Trees of multi-personality extensions
-  /// rename the runtime classes and files, so they are skipped; they compile the same sources.
+  // Compiles each `.cpp` file of each tree in `trees` with the selected Xcode's clang.
+  //
+  // A tree holds `Sources`, `DerivedSources`, and `DeploymentTarget`, as the build tests write
+  // them under `SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE`. Trees of multi-personality extensions
+  // rename the runtime classes and files, so they are skipped; they compile the same sources.
   init(trees: URL) throws {
     let fileManager = FileManager.default
     var pending: [(sources: URL, derived: URL, target: String, file: URL)] = []
@@ -66,9 +66,11 @@ struct NativeEvidence {
     bases = results.bases
   }
 
-  /// Runs `body` in its own autorelease pool. On Darwin, Foundation autoreleases each dump's
-  /// data and JSON objects, and nothing drains a `concurrentPerform` iteration's pool on the main
-  /// thread of a process without a run loop, so every dump would stay in memory until exit.
+  // Runs `body` in its own autorelease pool.
+  //
+  // On Darwin, Foundation autoreleases each dump's
+  // data and JSON objects, and nothing drains a `concurrentPerform` iteration's pool on the main
+  // thread of a process without a run loop, so every dump would stay in memory until exit.
   private static func drainingAutoreleased(_ body: () -> Void) {
     #if canImport(ObjectiveC)
       autoreleasepool(invoking: body)
@@ -77,7 +79,7 @@ struct NativeEvidence {
     #endif
   }
 
-  /// Compiles one translation unit and adds the uses its AST shows to `results`.
+  // Compiles one translation unit and adds the uses its AST shows to `results`.
   private static func compile(
     _ job: (sources: URL, derived: URL, target: String, file: URL),
     sdk: String,
@@ -104,15 +106,17 @@ struct NativeEvidence {
     self.bases = bases
   }
 
-  /// The DriverKit member an IIG action method implements, as its `TYPE(Class::Method)` names it.
+  // The DriverKit member an IIG action method implements, as its `TYPE(Class::Method)` names it.
   struct Action: Equatable {
     let className: String
     let method: String
   }
 
-  /// The action methods that `.iig` text declares with `TYPE(Class::Method)`, keyed
-  /// `Class::action`. Clang compiles `TYPE` to nothing, so the AST reads an action's `_Impl` as
-  /// an override of a member that the class's base does not declare.
+  // The action methods that `.iig` text declares with `TYPE(Class::Method)`, keyed
+  // `Class::action`.
+  //
+  // Clang compiles `TYPE` to nothing, so the AST reads an action's `_Impl` as
+  // an override of a member that the class's base does not declare.
   static func actions(inIIG text: String) -> [String: Action] {
     var actions: [String: Action] = [:]
     for declared in IIGParser.parse(text) {
@@ -131,7 +135,7 @@ struct NativeEvidence {
     return actions
   }
 
-  /// `uses` with each action's `_Impl` attributed to the member that the action's `TYPE` names.
+  // `uses` with each action's `_Impl` attributed to the member that the action's `TYPE` names.
   static func resolvingActions(
     _ uses: Set<NativeUse>,
     _ actions: [String: Action]
@@ -153,11 +157,11 @@ struct NativeEvidence {
     )
   }
 
-  /// Parses `json`, keeping uses in files under `sourcePrefix` and taking the classes defined
-  /// under `treePrefix` as SwifterKit's own.
-  ///
-  /// `ClangAST` recurses once per AST level, and a function's nested statements overflow the
-  /// 512 KB stack of a dispatch worker or test thread, so the parse runs on its own thread.
+  // Parses `json`, keeping uses in files under `sourcePrefix` and taking the classes defined
+  // under `treePrefix` as SwifterKit's own.
+  //
+  // `ClangAST` recurses once per AST level, and a function's nested statements overflow the
+  // 512 KB stack of a dispatch worker or test thread, so the parse runs on its own thread.
   static func parse(_ json: Data, treePrefix: String, sourcePrefix: String) throws -> ClangAST {
     let parsed = Parsed()
     let thread = Thread {
@@ -176,14 +180,14 @@ struct NativeEvidence {
     return try parsed.result.get()
   }
 
-  /// Hands a parse result from its thread to the waiting caller, which reads it only after
-  /// `done` is signaled.
+  // Hands a parse result from its thread to the waiting caller, which reads it only after
+  // `done` is signaled.
   private final class Parsed: @unchecked Sendable {
     let done = DispatchSemaphore(value: 0)
     var result: Result<ClangAST, Error> = .failure(CocoaError(.coderReadCorrupt))
   }
 
-  /// Collects the translation units' results across `concurrentPerform` iterations.
+  // Collects the translation units' results across `concurrentPerform` iterations.
   private final class Results: @unchecked Sendable {
     private let lock = NSLock()
     private(set) var uses: Set<NativeUse> = []
@@ -204,8 +208,10 @@ struct NativeEvidence {
     }
   }
 
-  /// Runs `xcrun` with `arguments` and returns its standard output. Standard error goes to a
-  /// file, because a full pipe would stall the process while its output is read.
+  // Runs `xcrun` with `arguments` and returns its standard output.
+  //
+  // Standard error goes to a
+  // file, because a full pipe would stall the process while its output is read.
   private static func run(_ arguments: [String]) throws -> Data {
     let errorFile = FileManager.default.temporaryDirectory.appendingPathComponent(
       "swifterkit-coverage-\(UUID().uuidString).log"
