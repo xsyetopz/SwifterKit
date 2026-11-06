@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SwifterKit}",
+            "name": "Debug SwifterKitCoverage",
+            "target": "SwifterKitCoverage",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug SwifterKitCoverage"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SwifterKit}",
+            "name": "Release SwifterKitCoverage",
+            "target": "SwifterKitCoverage",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release SwifterKitCoverage"
+        }
+    ]
+}
