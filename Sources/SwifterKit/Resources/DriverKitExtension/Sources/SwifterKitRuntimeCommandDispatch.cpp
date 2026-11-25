@@ -153,6 +153,25 @@ namespace {
 #endif
     }
 
+    kern_return_t DispatchUSBSelectInterfaceAlternateSetting(
+        [[maybe_unused]] const CommandContext& context) {
+#if SWIFTERKIT_ENABLE_USB
+        const uint8_t* payload = context.payload;
+        if (context.service == nullptr || context.payloadLength != 4 || payload[2] != 0
+            || payload[3] != 0) {
+            return kIOReturnBadArgument;
+        }
+        const kern_return_t result =
+            context.service->USBSelectInterfaceAlternateSetting(payload[0], payload[1]);
+        if (result != kIOReturnSuccess) {
+            return result;
+        }
+        return RespondEmpty(context);
+#else
+        return kIOReturnUnsupported;
+#endif
+    }
+
     kern_return_t DispatchUSBCommand([[maybe_unused]] const CommandContext& context) {
 #if SWIFTERKIT_ENABLE_USB
         if (context.service == nullptr) {
@@ -476,6 +495,8 @@ namespace {
                 return DispatchUSBClearStall(context);
             case SwifterKitRuntimeOpcode::USBSelectAlternateSetting:
                 return DispatchUSBSelectAlternateSetting(context);
+            case SwifterKitRuntimeOpcode::USBSelectInterfaceAlternateSetting:
+                return DispatchUSBSelectInterfaceAlternateSetting(context);
             case SwifterKitRuntimeOpcode::USBDeviceSetConfiguration:
             case SwifterKitRuntimeOpcode::USBDeviceReset:
             case SwifterKitRuntimeOpcode::USBGetDeviceSpeed:

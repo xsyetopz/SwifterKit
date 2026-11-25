@@ -51,6 +51,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     USBPipeTransfer = 0x0201,
     USBClearStall = 0x0202,
     USBSelectAlternateSetting = 0x0203,
+    USBSelectInterfaceAlternateSetting = 0x0204,
     USBDeviceSetConfiguration = 0x0210,
     USBDeviceReset = 0x0211,
     USBGetDeviceSpeed = 0x0212,

@@ -64,6 +64,20 @@ extension DriverCommand {
     )
   }
 
+  /// Creates a command that selects an alternate setting of interface `interfaceNumber` of the
+  /// matched device.
+  public static func usbSelectAlternateSetting(
+    _ alternateSetting: UInt8,
+    ofInterface interfaceNumber: UInt8
+  ) -> Self {
+    Self(
+      opcode: .usbSelectInterfaceAlternateSetting,
+      requiredCapabilities: .usb,
+      payload: Data([interfaceNumber, alternateSetting, 0, 0]),
+      maximumResponseSize: RuntimeMessage.headerSize
+    )
+  }
+
   private static func usbPipeTransfer(
     endpoint: UInt8,
     length: Int,
@@ -185,5 +199,22 @@ extension DriverContext {
   /// Calls `IOUSBHostInterface::SelectAlternateSetting`.
   public func usbSelectAlternateSetting(_ alternateSetting: UInt8) async throws {
     _ = try await execute(.usbSelectAlternateSetting(alternateSetting))
+  }
+
+  /// Selects the active alternate setting of interface `interfaceNumber` of the matched device.
+  ///
+  /// For the matched interface this is ``usbSelectAlternateSetting(_:)``. Another interface of the
+  /// device is found with `IOUSBHostDevice::CopyInterface`, opened, set with
+  /// `IOUSBHostInterface::SelectAlternateSetting`, and closed; the device keeps the setting.
+  ///
+  /// - Throws: The runtime call's error, with the status `kIOReturnNotFound` when the device has no
+  ///   such interface and the status of `IOUSBHostInterface::Open` when another client holds it.
+  public func usbSelectAlternateSetting(
+    _ alternateSetting: UInt8,
+    ofInterface interfaceNumber: UInt8
+  ) async throws {
+    _ = try await execute(
+      .usbSelectAlternateSetting(alternateSetting, ofInterface: interfaceNumber)
+    )
   }
 }

@@ -66,6 +66,7 @@ enum RuntimeOpcode: UInt32, CaseIterable {
   case usbPipeTransfer = 0x0201
   case usbClearStall = 0x0202
   case usbSelectAlternateSetting = 0x0203
+  case usbSelectInterfaceAlternateSetting = 0x0204
   case usbDeviceSetConfiguration = 0x0210
   case usbDeviceReset = 0x0211
   case usbGetDeviceSpeed = 0x0212

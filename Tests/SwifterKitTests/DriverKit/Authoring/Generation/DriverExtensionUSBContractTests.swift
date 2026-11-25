@@ -97,6 +97,7 @@ struct DriverExtensionUSBContractTests {
       let usb = try source("SwifterKitRuntimeUSB.cpp", in: output)
       for method in [
         "USBControlTransfer(", "USBPipeTransfer(", "USBClearStall(", "USBSelectAlternateSetting(",
+        "USBSelectInterfaceAlternateSetting(",
       ] {
         let body = try #require(usb.range(of: "SwifterKitRuntimeService::" + method))
         let next = usb.range(of: "\n}\n", range: body.upperBound..<usb.endIndex)?.lowerBound

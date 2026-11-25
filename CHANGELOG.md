@@ -2,6 +2,17 @@
 
 SwifterKit records user-visible changes in this file.
 
+## Unreleased
+
+### Added
+
+- `DriverContext.usbSelectAlternateSetting(_:ofInterface:)` and
+  `DriverCommand.usbSelectAlternateSetting(_:ofInterface:)` select an
+  alternate setting of any interface of the matched USB device, such as the
+  audio interface of a pad whose driver matched interface 0. The runtime opens
+  that interface for the call and closes it afterwards. The runtime opcode is
+  `0x0204`.
+
 ## 0.4.0
 
 ### Changed

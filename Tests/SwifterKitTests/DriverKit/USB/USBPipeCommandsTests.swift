@@ -146,6 +146,19 @@ struct USBPipeCommandsTests {
   }
 
   @Test
+  func encodesAlternateSettingSelections() {
+    let own = DriverCommand.usbSelectAlternateSetting(2)
+    #expect(own.opcode == 0x0203)
+    #expect(own.payload == Data([2, 0, 0, 0]))
+
+    let other = DriverCommand.usbSelectAlternateSetting(0, ofInterface: 1)
+    #expect(other.opcode == 0x0204)
+    #expect(other.requiredCapabilities == .usb)
+    #expect(other.payload == Data([1, 0, 0, 0]))
+    #expect(other.maximumResponseSize == RuntimeMessage.headerSize)
+  }
+
+  @Test
   func decodesPipeCompletions() throws {
     let read = DriverEvent(
       type: 0x0200,

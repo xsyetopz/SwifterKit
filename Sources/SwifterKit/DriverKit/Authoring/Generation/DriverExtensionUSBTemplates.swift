@@ -39,6 +39,9 @@ extension DriverExtensionGenerator {
               OSData** response) LOCALONLY;
           kern_return_t USBClearStall(uint8_t endpoint, bool withRequest) LOCALONLY;
           kern_return_t USBSelectAlternateSetting(uint8_t alternateSetting) LOCALONLY;
+          kern_return_t USBSelectInterfaceAlternateSetting(
+              uint8_t interfaceNumber,
+              uint8_t alternateSetting) LOCALONLY;
           kern_return_t USBCommand(
               uint32_t opcode,
               const uint8_t* payload,

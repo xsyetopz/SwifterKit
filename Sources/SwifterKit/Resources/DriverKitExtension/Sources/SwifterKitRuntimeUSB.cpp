@@ -6,6 +6,7 @@
     #include <DriverKit/IOMemoryMap.h>
     #include <DriverKit/OSData.h>
     #include <USBDriverKit/IOUSBHostDevice.h>
+    #include <USBDriverKit/IOUSBHostInterface.h>
     #include <USBDriverKit/IOUSBHostPipe.h>
     #include <USBDriverKit/USBDriverKitDefs.h>
 
@@ -68,6 +69,47 @@ namespace {
 
     bool ValidOutputPayload(bool input, uint32_t expectedLength, uint32_t payloadLength) {
         return input ? payloadLength == 0 : payloadLength == expectedLength;
+    }
+    bool HasInterfaceNumber(IOUSBHostInterface* interface, uint8_t interfaceNumber) {
+        const IOUSBConfigurationDescriptor* configuration =
+            interface->CopyConfigurationDescriptor();
+        if (configuration == nullptr) {
+            return false;
+        }
+        const IOUSBInterfaceDescriptor* descriptor =
+            interface->GetInterfaceDescriptor(configuration);
+        const bool matches =
+            descriptor != nullptr && descriptor->bInterfaceNumber == interfaceNumber;
+        IOUSBHostFreeDescriptor(configuration);
+        return matches;
+    }
+
+    kern_return_t CopyInterface(
+        IOUSBHostDevice* device,
+        uint8_t interfaceNumber,
+        IOUSBHostInterface** found) {
+        uintptr_t iterator = 0;
+        kern_return_t result = device->CreateInterfaceIterator(&iterator);
+        if (result != kIOReturnSuccess) {
+            return result;
+        }
+        while (*found == nullptr) {
+            IOUSBHostInterface* interface = nullptr;
+            result = device->CopyInterface(iterator, &interface);
+            if (result != kIOReturnSuccess || interface == nullptr) {
+                break;
+            }
+            if (HasInterfaceNumber(interface, interfaceNumber)) {
+                *found = interface;
+            } else {
+                interface->release();
+            }
+        }
+        (void)device->DestroyInterfaceIterator(iterator);
+        if (*found != nullptr) {
+            return kIOReturnSuccess;
+        }
+        return result == kIOReturnSuccess ? kIOReturnNotFound : result;
     }
 }  // namespace
 
@@ -266,6 +308,46 @@ kern_return_t SwifterKitRuntimeService::USBSelectAlternateSetting(uint8_t altern
                                                                : kIOReturnNotReady;
     }
     return ivars->usbInterface->SelectAlternateSetting(alternateSetting);
+}
+
+kern_return_t SwifterKitRuntimeService::USBSelectInterfaceAlternateSetting(
+    uint8_t interfaceNumber,
+    uint8_t alternateSetting) {
+    // Retry completions that the required queue rejected earlier.
+    DeliverUSBCompletions();
+    if (ivars == nullptr || (ivars->usbInterface == nullptr && ivars->usbDevice == nullptr)) {
+        return kIOReturnNotReady;
+    }
+    if (ivars->usbInterface != nullptr
+        && HasInterfaceNumber(ivars->usbInterface, interfaceNumber)) {
+        return ivars->usbInterface->SelectAlternateSetting(alternateSetting);
+    }
+
+    IOUSBHostDevice* device = ivars->usbDevice;
+    kern_return_t result = kIOReturnSuccess;
+    if (device != nullptr) {
+        device->retain();
+    } else {
+        result = ivars->usbInterface->CopyDevice(&device);
+    }
+    IOUSBHostInterface* interface = nullptr;
+    if (result == kIOReturnSuccess && device != nullptr) {
+        result = CopyInterface(device, interfaceNumber, &interface);
+    }
+    OSSafeReleaseNULL(device);
+    if (result != kIOReturnSuccess || interface == nullptr) {
+        OSSafeReleaseNULL(interface);
+        return result == kIOReturnSuccess ? kIOReturnNotFound : result;
+    }
+
+    // Selecting a setting needs an open interface; one another driver holds fails here.
+    result = interface->Open(this, 0, nullptr);
+    if (result == kIOReturnSuccess) {
+        result = interface->SelectAlternateSetting(alternateSetting);
+        (void)interface->Close(this, 0);
+    }
+    interface->release();
+    return result;
 }
 
 #endif
