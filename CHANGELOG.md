@@ -2,6 +2,17 @@
 
 SwifterKit records user-visible changes in this file.
 
+## 0.5.1
+
+### Fixed
+
+- A package that imports SwifterKit builds without C++ interoperability again.
+  0.5.0 built its Swift targets with C++ interoperability, so each client
+  failed with "module 'SwifterKit' was built with C++ interoperability
+  enabled". SwifterKit has no C++ target; its native sources are resources.
+- The tests compile on Linux again, where `String(format:)` is not an unsafe
+  call.
+
 ## 0.5.0
 
 ### Breaking

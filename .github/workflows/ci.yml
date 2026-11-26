@@ -80,7 +80,7 @@ jobs:
           xcodebuild -version
 
       - name: Install validation tools
-        run: brew install just swiftlint llvm
+        run: brew install just swiftlint llvm markdownlint-cli2
 
       - name: Install pinned tools
         run: just setup

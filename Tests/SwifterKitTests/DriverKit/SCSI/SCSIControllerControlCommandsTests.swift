@@ -94,10 +94,10 @@ struct SCSIControllerControlCommandsTests {
       try DriverCommand.scsiSetTargetProperties(many, for: 1)
     }
     let largest = Dictionary(
-      uniqueKeysWithValues: (0..<32).map {
-        unsafe (
+      uniqueKeysWithValues: (UInt(0)..<32).map {
+        (
           SCSIProtocolPropertyKey(
-            rawValue: String(format: "%03d", $0) + String(repeating: "k", count: 124)
+            rawValue: $0.zeroPadded(width: 3) + String(repeating: "k", count: 124)
           ), String(repeating: "v", count: 1_024)
         )
       }
