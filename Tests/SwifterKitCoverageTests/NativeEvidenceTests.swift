@@ -25,13 +25,13 @@ struct NativeEvidenceTests {
         kind: .override,
         in: "SwifterKitRuntimeService::USBPipeIOComplete_Impl"
       ),
-      use("IOService", "Start", nil, kind: .override, in: "SwifterKitRuntimeService::Start_Impl"),
+      use("IOService", "Start", nil, kind: .override, in: "SwifterKitRuntimeService::Start_Impl")
     ]
     let resolved = NativeEvidence.resolvingActions(uses, actions)
     #expect(
       Set(resolved.map { "\($0.className)::\($0.method) \($0.function)" }) == [
         "IOUSBHostPipe::CompleteAsyncIO SwifterKitRuntimeService::USBPipeIOComplete_Impl",
-        "IOService::Start SwifterKitRuntimeService::Start_Impl",
+        "IOService::Start SwifterKitRuntimeService::Start_Impl"
       ]
     )
   }

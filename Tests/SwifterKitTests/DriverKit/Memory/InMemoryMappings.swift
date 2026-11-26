@@ -35,11 +35,12 @@ struct InMemoryMappings {
     if let existing = live[type]?.memory, existing.isMapped { return existing }
     types.append(type)
     let base = UnsafeMutableRawPointer.allocate(byteCount: length, alignment: 16)
-    base.initializeMemory(as: UInt8.self, repeating: 0, count: length)
+    unsafe base.initializeMemory(as: UInt8.self, repeating: 0, count: length)
     let address = UInt(bitPattern: base)
     let unmaps = self.unmaps
-    let memory = DriverSharedMemory(baseAddress: base, length: length, isReadOnly: readOnly) {
-      UnsafeMutableRawPointer(bitPattern: address)?.deallocate()
+    let memory = unsafe DriverSharedMemory(baseAddress: base, length: length, isReadOnly: readOnly)
+    {
+      unsafe UnsafeMutableRawPointer(bitPattern: address)?.deallocate()
       unmaps.increment()
     }
     live[type] = WeakMapping(memory: memory)

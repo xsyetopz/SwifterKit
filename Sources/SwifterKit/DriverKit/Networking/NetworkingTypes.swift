@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// A six-octet Ethernet hardware address.
 public struct EthernetAddress: Sendable, Hashable {

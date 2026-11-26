@@ -110,7 +110,7 @@ extension DriverCommand {
       opcode: .hidSetElementValue,
       requiredCapabilities: .hid,
       payload: HIDLimits.words([
-        try HIDLimits.validCookie(cookie), RuntimeHIDElementWriteKind.value.rawValue, value, 0,
+        try HIDLimits.validCookie(cookie), RuntimeHIDElementWriteKind.value.rawValue, value, 0
       ]),
       maximumResponseSize: RuntimeMessage.headerSize
     )
@@ -125,7 +125,7 @@ extension DriverCommand {
     }
     var payload = HIDLimits.words([
       try HIDLimits.validCookie(cookie), RuntimeHIDElementWriteKind.data.rawValue, 0,
-      UInt32(bytes.count),
+      UInt32(bytes.count)
     ])
     payload.append(contentsOf: bytes)
     return Self(

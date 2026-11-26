@@ -235,7 +235,7 @@ struct AudioDeviceCommandsTests {
     #expect(selector.sliderRange == nil && selector.panningChannels == nil)
     #expect(
       selector.selectorItems == [
-        AudioSelectorValue(value: 1, name: "Line"), AudioSelectorValue(value: 2, name: "Mic"),
+        AudioSelectorValue(value: 1, name: "Line"), AudioSelectorValue(value: 2, name: "Mic")
       ]
     )
     #expect(throws: AudioRuntimeError.invalidPayload) {

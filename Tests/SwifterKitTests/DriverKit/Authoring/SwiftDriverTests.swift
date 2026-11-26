@@ -42,7 +42,7 @@ private struct ExampleDriver: SwiftDriver {
     capabilities: [.hid]
   )
 
-  func handle(event: DriverEvent, context: DriverContext) async throws {
+  func handle(event _: DriverEvent, context: DriverContext) async throws {
     await Task.yield()
     try context.require(.hid)
   }

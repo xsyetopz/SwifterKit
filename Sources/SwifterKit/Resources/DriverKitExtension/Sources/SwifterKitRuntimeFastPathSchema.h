@@ -57,29 +57,29 @@ enum class SwifterKitFastPathOpcode : uint32_t {
     RingLoad = 10,
     RingStore = 11,
     RingAdvance = 12,
-    Enqueue = 13,
+    Enqueue = 13
 };
 
 enum class SwifterKitFastPathOperandKind : uint32_t {
     Constant = 0,
     Value = 1,
     RingDeviceAddress = 2,
-    RingIndex = 3,
+    RingIndex = 3
 };
 
 enum class SwifterKitFastPathRingAddressHalf : uint32_t {
     Low = 0,
-    High = 1,
+    High = 1
 };
 
 enum class SwifterKitFastPathRingIndex : uint32_t {
     Producer = 0,
-    Consumer = 1,
+    Consumer = 1
 };
 
 enum class SwifterKitFastPathDataQueueDirection : uint32_t {
     ToHost = 0,
-    ToExtension = 1,
+    ToExtension = 1
 };
 
 enum class SwifterKitFastPathComputeOperation : uint32_t {
@@ -89,12 +89,12 @@ enum class SwifterKitFastPathComputeOperation : uint32_t {
     ShiftLeft = 4,
     ShiftRight = 5,
     Add = 6,
-    Subtract = 7,
+    Subtract = 7
 };
 
 enum class SwifterKitFastPathConditionTest : uint32_t {
     Zero = 0,
-    Nonzero = 1,
+    Nonzero = 1
 };
 
 enum class SwifterKitFastPathTriggerKind : uint32_t {
@@ -102,13 +102,13 @@ enum class SwifterKitFastPathTriggerKind : uint32_t {
     Stop = 2,
     Interrupt = 3,
     Command = 4,
-    DataAvailable = 5,
+    DataAvailable = 5
 };
 
 enum class SwifterKitFastPathInterruptDelivery : uint32_t {
     Always = 1,
     Never = 2,
-    WhenProgramEmits = 3,
+    WhenProgramEmits = 3
 };
 
 enum class SwifterKitFastPathStatus : uint32_t {
@@ -117,7 +117,7 @@ enum class SwifterKitFastPathStatus : uint32_t {
     Rejected = 0xE00002C2,
     Timeout = 0xE00002D6,
     NotReady = 0xE00002D8,
-    Corrupt = 0xE00002CA,
+    Corrupt = 0xE00002CA
 };
 
 struct SwifterKitFastPathProgram {
@@ -232,19 +232,19 @@ static constexpr uint32_t kSwifterKitClientMemoryIdentifierMask = 0xFFFFFF;
 
 enum class SwifterKitMemoryStatus : uint32_t {
     InUse = 0xE00002D5,
-    NotOwner = 0xE00002E2,
+    NotOwner = 0xE00002E2
 };
 
 enum class SwifterKitClientMemoryKind : uint32_t {
     MemoryBuffer = 1,
     PacketPool = 2,
     Ring = 3,
-    DataQueue = 4,
+    DataQueue = 4
 };
 
 enum class SwifterKitPacketPool : uint32_t {
     Transmit = 0,
-    Receive = 1,
+    Receive = 1
 };
 
 #endif

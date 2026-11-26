@@ -38,7 +38,7 @@ struct SCSIControllerRuntimeContractTests {
         "UserSetHBAProperties(properties)", "UserSetTargetProperties(target, properties)",
         "UserRemoveHBAProperties(keys)", "UserRemoveTargetProperties(target, keys)",
         "UserCallMediaParametersHaveChanged()",
-        "UserGetDataBuffer(request->fTargetID, request->fControllerTaskIdentifier, buffer)",
+        "UserGetDataBuffer(request->fTargetID, request->fControllerTaskIdentifier, buffer)"
       ] { #expect(control.contains(call)) }
       // Controller-wide properties reject a target identifier.
       #expect(control.contains("target == 0 ? UserSetHBAProperties(properties)"))
@@ -156,7 +156,7 @@ struct SCSIControllerRuntimeContractTests {
         "kIOMaximumSegmentCountReadKey", "kIOMaximumSegmentCountWriteKey",
         "kIOMaximumSegmentByteCountReadKey", "kIOMaximumSegmentByteCountWriteKey",
         "kIOMinimumSegmentAlignmentByteCountKey", "kIOMaximumSegmentAddressableBitCountKey",
-        "kIOMinimumHBADataAlignmentMaskKey", "kIOHierarchicalLogicalUnitSupportKey",
+        "kIOMinimumHBADataAlignmentMaskKey", "kIOHierarchicalLogicalUnitSupportKey"
       ] { #expect(constraints.contains(key)) }
     }
   }

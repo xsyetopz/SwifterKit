@@ -13,7 +13,7 @@ struct FastPathGenerationTests {
           .read(FastPathRegister(bar: 2, offset: 0x40, width: .bits32), into: .v1),
           .skip(count: 1, if: FastPathCondition(.v1, mask: 0x8000_0000, is: .zero)),
           .emit([.v1, .v0]),
-          .write(FastPathRegister(bar: 2, offset: 0x40, width: .bits32), .value(.v1)),
+          .write(FastPathRegister(bar: 2, offset: 0x40, width: .bits32), .value(.v1))
         ]
       ),
       FastPathProgram(
@@ -28,9 +28,9 @@ struct FastPathGenerationTests {
             equals: 0,
             maxIterations: 20,
             intervalMicroseconds: 50
-          ), .delay(microseconds: 10), .fail(status: Int32(bitPattern: 0xE000_02D6)),
+          ), .delay(microseconds: 10), .fail(status: Int32(bitPattern: 0xE000_02D6))
         ]
-      ),
+      )
     ],
     barSizes: [2: 0x100, 0: 0x10]
   )
@@ -93,7 +93,7 @@ struct FastPathGenerationTests {
       ("MaximumPollIntervalMicroseconds", FastPathLimits.maximumPollIntervalMicroseconds),
       ("MaximumDelayMicroseconds", FastPathLimits.maximumDelayMicroseconds),
       ("MaximumDelayBudgetMicroseconds", FastPathLimits.maximumDelayBudgetMicroseconds),
-      ("BARCount", Int(FastPathLimits.maximumBAR) + 1), ("SlotCount", FastPathSlot.allCases.count),
+      ("BARCount", Int(FastPathLimits.maximumBAR) + 1), ("SlotCount", FastPathSlot.allCases.count)
     ] { #expect(header.contains("kSwifterKitFastPath\(name) = \(value);")) }
     #expect(header.contains("    Fail = 9,\n"))
     #expect(header.contains("static_assert(sizeof(SwifterKitFastPathOperation) == 40);"))
@@ -101,7 +101,7 @@ struct FastPathGenerationTests {
     #expect(header.contains("kSwifterKitFastPathMaximumRings = 8;"))
     #expect(header.contains("kSwifterKitFastPathRingHeaderSize = 64;"))
     #expect(header.contains("static_assert(sizeof(SwifterKitFastPathRing) == 16);"))
-    #expect(header.contains("    Enqueue = 13,\n"))
+    #expect(header.declaresEnumerator("Enqueue", 13))
     #expect(header.contains("kSwifterKitFastPathMaximumDataQueues = 8;"))
     #expect(header.contains("kSwifterKitFastPathDataQueueHeaderSize = 64;"))
     #expect(header.contains("static_assert(sizeof(SwifterKitFastPathDataQueue) == 16);"))
@@ -133,7 +133,7 @@ struct FastPathGenerationTests {
     .ringLoad(7, entry: .v1, fieldOffset: 4088, width: .bits64, into: .v2),
     .ringAdvance(3, .consumer, by: .ringIndex(3, .producer)),
     .write(FastPathRegister(bar: 0, offset: 8, width: .bits32), .ringDeviceAddress(7, .high)),
-    .enqueue(0xFF_FFFF, slots: FastPathSlot.allCases), .enqueue(1, slots: [.v3]),
+    .enqueue(0xFF_FFFF, slots: FastPathSlot.allCases), .enqueue(1, slots: [.v3])
   ]
 
   // The most data queues, with the smallest and largest capacities and entry sizes, both ways.
@@ -174,7 +174,7 @@ struct FastPathGenerationTests {
       { .interrupt(sourceIndex: UInt32($0), delivery: .never) },
       { .interrupt(sourceIndex: UInt32($0), delivery: .whenProgramEmits) },
       // A distinct to-extension queue, ids 2 onward, for each data-available program.
-      { .dataAvailable(2 + UInt32($0 / 7)) },
+      { .dataAvailable(2 + UInt32($0 / 7)) }
     ]
     let operations = (0..<FastPathLimits.maximumOperations).map {
       everyOperation[$0 % everyOperation.count]

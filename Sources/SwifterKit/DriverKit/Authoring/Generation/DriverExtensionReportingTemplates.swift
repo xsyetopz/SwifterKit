@@ -35,6 +35,8 @@ extension DriverExtensionGenerator {
     func table(_ rows: [String]) -> String {
       rows.isEmpty ? "{}" : "{\n" + rows.joined(separator: ",\n") + "\n}"
     }
+    let stateValues = states.isEmpty ? "0" : states.joined(separator: ", ")
+    let legendPublic = reporting?.isLegendPublic == true ? "true" : "false"
     return """
       struct SwifterKitReportChannelConfiguration {
           uint64_t identifier;
@@ -60,15 +62,13 @@ extension DriverExtensionGenerator {
       };
       static constexpr SwifterKitReportChannelConfiguration
           kSwifterKitReportChannels[\(max(channels.count, 1))] = \(table(channels));
-      static constexpr uint64_t kSwifterKitReportStates[\(max(states.count, 1))] = {\(
-        states.isEmpty ? "0" : states.joined(separator: ", "))};
+      static constexpr uint64_t kSwifterKitReportStates[\(max(states.count, 1))] = {\(stateValues)};
       static constexpr SwifterKitHistogramSegmentConfiguration
           kSwifterKitHistogramSegments[\(max(segments.count, 1))] = \(table(segments));
       static constexpr SwifterKitReporterConfiguration
           kSwifterKitReporters[\(max(entries.count, 1))] = \(table(entries));
       static constexpr uint32_t kSwifterKitReporterCount = \(entries.count);
-      static constexpr bool kSwifterKitReportLegendPublic = \(
-        reporting?.isLegendPublic == true ? "true" : "false");
+      static constexpr bool kSwifterKitReportLegendPublic = \(legendPublic);
       """
   }
 

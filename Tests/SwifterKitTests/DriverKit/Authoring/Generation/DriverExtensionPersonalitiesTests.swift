@@ -197,7 +197,7 @@ struct DriverExtensionPersonalitiesTests {
     #expect(
       usb.serviceMatch.registryProperties == [
         "CFBundleIdentifier": .string(Self.bundleIdentifier),
-        "IOUserClass": .string("SwifterKitXboxUSBRuntimeService"),
+        "IOUserClass": .string("SwifterKitXboxUSBRuntimeService")
       ]
     )
     #expect(usb != Self.usbInterface)
@@ -270,7 +270,7 @@ struct DriverExtensionPersonalitiesTests {
       bundleIdentifier: Self.bundleIdentifier,
       personalities: [
         "HIDFactory": Self.factory(bundleIdentifier: "com.example.other"),
-        "XboxUSB": Self.usbInterface,
+        "XboxUSB": Self.usbInterface
       ]
     )
     #expect(throws: DriverExtensionGenerationError.invalidBundleIdentifier("com.example.other")) {

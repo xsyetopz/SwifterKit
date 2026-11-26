@@ -87,9 +87,9 @@ private actor ForeignMemoryConnection: DriverConnection {
     return try response(message.requestID, Data())
   }
 
-  func notifications(selector: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
+  func notifications(selector _: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
 
-  func mapMemory(type: UInt32, readOnly: Bool) throws -> DriverSharedMemory {
+  func mapMemory(type _: UInt32, readOnly _: Bool) throws -> DriverSharedMemory {
     throw MappingUnsupported()
   }
 

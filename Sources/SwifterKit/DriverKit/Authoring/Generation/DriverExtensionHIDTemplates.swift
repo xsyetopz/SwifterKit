@@ -67,7 +67,7 @@ extension DriverExtensionGenerator {
     let capabilities = configuration.capabilities
     let roles = [
       configuration.hidDevice != nil, configuration.hidEventService != nil,
-      configuration.usbHIDDevice != nil, configuration.hidDeviceFactory != nil,
+      configuration.usbHIDDevice != nil, configuration.hidDeviceFactory != nil
     ].filter { $0 }.count
     guard capabilities.contains(.hid) else {
       if roles > 0 { throw DriverExtensionGenerationError.capabilityConfigurationMismatch(.hid) }
@@ -89,7 +89,7 @@ extension DriverExtensionGenerator {
       guard HIDDeviceFactoryConfiguration.deviceLimit.contains(factory.maximumDevices),
         capabilities.isDisjoint(with: [
           .usb, .pci, .interrupts, .serial, .networking, .audio, .midi, .blockStorage, .scsi,
-          .video,
+          .video
         ])
       else { throw DriverExtensionGenerationError.invalidHIDConfiguration }
     }
@@ -122,7 +122,7 @@ extension DriverExtensionGenerator {
     let mode = HIDRuntimeMode(configuration)
     if mode == .deviceFactory {
       personality[hidDevicePropertiesKey] = [
-        "IOClass": "AppleUserHIDDevice", "IOUserClass": "SwifterKitRuntimeHIDDevice",
+        "IOClass": "AppleUserHIDDevice", "IOUserClass": "SwifterKitRuntimeHIDDevice"
       ]
     }
     guard let kernelClass = mode.kernelClass else { return }

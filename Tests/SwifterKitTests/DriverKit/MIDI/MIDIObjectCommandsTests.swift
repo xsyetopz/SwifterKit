@@ -115,7 +115,7 @@ struct MIDIObjectCommandsTests {
   func roundTripsPropertyValues() throws {
     let value = MIDIPropertyValue.dictionary([
       "name": .string("Pad"), "id": .number(-5, bits: 64), "small": .number(-1, bits: 8),
-      "blob": .data(Data([1, 2])), "entities": .array([.dictionary(["x": .int32(Int32.min)])]),
+      "blob": .data(Data([1, 2])), "entities": .array([.dictionary(["x": .int32(Int32.min)])])
     ])
     #expect(try MIDIPropertyValue(runtimePayload: value.runtimePayload()) == value)
   }
@@ -126,7 +126,7 @@ struct MIDIObjectCommandsTests {
       bytes(u32(9), u32(0)), bytes(u32(0), u32(4), Data("ab".utf8)),
       bytes(u32(1), u32(16), u32(32), u32(0), u64(0x1_0000_0000)),
       bytes(u32(1), u32(16), u32(12), u32(0), u64(0)), bytes(u32(2), u32(8), u32(1), u32(0)),
-      bytes(u32(3), u32(1), Data([1, 2])), bytes(u32(2), u32(8), u32(0), u32(1)),
+      bytes(u32(3), u32(1), Data([1, 2])), bytes(u32(2), u32(8), u32(0), u32(1))
     ]
     for payload in malformed {
       #expect(throws: MIDIRuntimeError.self) { try MIDIPropertyValue(runtimePayload: payload) }
@@ -177,7 +177,7 @@ struct MIDIObjectCommandsTests {
       bytes(u32(2), u32(0), u32(.max), u32(.max), u32(0), u32(0)),
       bytes(u32(7), u32(4), u32(1), u32(3), u32(4), u32(0), Data("Out".utf8)),
       bytes(u32(0), u32(4), u32(1), u32(3), u32(0), u32(0)),
-      bytes(u32(7), u32(4), u32(1), u32(3), u32(0), u32(1)),
+      bytes(u32(7), u32(4), u32(1), u32(3), u32(0), u32(1))
     ]
     for payload in malformed {
       #expect(throws: MIDIRuntimeError.invalidPayload) {

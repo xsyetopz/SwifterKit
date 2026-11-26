@@ -197,7 +197,7 @@ struct USBAsyncRuntimeContractTests {
   private func withGeneratedExtension(_ body: (URL) throws -> Void) throws {
     try withTemporaryExtension(
       named: "USBAsyncContract",
-      configuration: USBSerialGeneratorTests.configuration(),
+      configuration: USBSerialGeneratorTests.configuration()
     ) { output, _ in try body(output) }
   }
 }

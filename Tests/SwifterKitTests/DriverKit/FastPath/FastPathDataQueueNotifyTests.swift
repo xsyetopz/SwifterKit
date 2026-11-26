@@ -17,7 +17,7 @@ struct FastPathDataQueueNotifyTests {
     ],
     dataQueues: [
       FastPathDataQueue(id: 3, capacityBytes: 4096, maximumEntrySize: 8, direction: .toHost),
-      FastPathDataQueue(id: 4, capacityBytes: 4096, maximumEntrySize: 8, direction: .toExtension),
+      FastPathDataQueue(id: 4, capacityBytes: 4096, maximumEntrySize: 8, direction: .toExtension)
     ]
   )
 
@@ -81,7 +81,7 @@ struct FastPathDataQueueNotifyTests {
   @Test
   func replyRejectsMalformedPayloads() {
     for payload in [
-      Self.reply().dropLast(), Self.reply(reserved: 1), Self.reply(status: 0xE000_02C2),
+      Self.reply().dropLast(), Self.reply(reserved: 1), Self.reply(status: 0xE000_02C2)
     ] {
       #expect(throws: FastPathRuntimeError.invalidPayload) {
         try FastPathDataQueueNotification(runtimePayload: Data(payload))

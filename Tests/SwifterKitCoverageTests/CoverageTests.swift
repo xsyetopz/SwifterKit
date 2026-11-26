@@ -87,7 +87,7 @@ struct CoverageTests {
   }
 
   @Test
-  func appliesEvidenceToTheDeclaringClassAndOverload() throws {
+  func appliesEvidenceToTheDeclaringClassAndOverload() {
     let header = """
       class KERNEL IOExample : public IOService
       {
@@ -108,7 +108,7 @@ struct CoverageTests {
       uses: [
         use("IOExample", "Start", nil, kind: .override, in: "Runtime::Start_Impl"),
         use("IOExampleChild", "Notify", ["uint64_t", "bool"]), use("IOExample", "Notify", ["int"]),
-        use("IOExample", "Missing", []), use("OSObject", "retain", []),
+        use("IOExample", "Missing", []), use("OSObject", "retain", [])
       ],
       bases: [:]
     )
@@ -151,7 +151,7 @@ struct CoverageTests {
         className: "IOExample",
         signature: "kern_return_t Start(IOService*)",
         reason: "Owned"
-      ), Coverage.Exclusion(className: "IOExample", signature: "void _Plumbing()", reason: "Owned"),
+      ), Coverage.Exclusion(className: "IOExample", signature: "void _Plumbing()", reason: "Owned")
     ]
     let applied = coverage.applying(
       CoverageEvidence(coverage: coverage, native: native),
@@ -187,7 +187,7 @@ struct CoverageTests {
     // resolves calls through a class pointer to that declaration.
     let native = NativeEvidence(
       uses: [
-        use("IOExampleInterface", "getUsage", []), use("IOExampleInterfaceInterface", "open", []),
+        use("IOExampleInterface", "getUsage", []), use("IOExampleInterfaceInterface", "open", [])
       ],
       bases: [:]
     )
@@ -229,7 +229,7 @@ struct CoverageTests {
     #expect(
       evidence.members.keys.map { "\($0.className)::\($0.signature)" }.sorted() == [
         "IOSource::kern_return_t Cancel(IOCancelHandler)", "IOSource::kern_return_t Enable(bool)",
-        "IOTimerSource::kern_return_t Cancel(IOCancelHandler)",
+        "IOTimerSource::kern_return_t Cancel(IOCancelHandler)"
       ]
     )
     #expect(
@@ -283,13 +283,13 @@ struct CoverageTests {
 
     #expect(
       evidence.members[.init("IOObject", setProperties)] == [
-        "Runtime.cpp: Runtime::Set", "Runtime.cpp: Runtime::Own", "Runtime.cpp: Entity::Set_Impl",
+        "Runtime.cpp: Runtime::Set", "Runtime.cpp: Runtime::Own", "Runtime.cpp: Entity::Set_Impl"
       ]
     )
     #expect(evidence.members[.init("IODevice", setProperties)] == ["Runtime.cpp: Runtime::Set"])
     #expect(
       evidence.members[.init("IOEntity", setProperties)] == [
-        "Runtime.cpp: Runtime::Set", "Runtime.cpp: Entity::Set_Impl",
+        "Runtime.cpp: Runtime::Set", "Runtime.cpp: Entity::Set_Impl"
       ]
     )
     #expect(evidence.members[.init("IOUnused", setProperties)] == nil)

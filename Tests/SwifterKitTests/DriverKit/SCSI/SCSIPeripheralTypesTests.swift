@@ -15,7 +15,7 @@ struct SCSIPeripheralTypesTests {
 
     #expect(
       constraints.registryProperties == [
-        "IOMaximumBlockCountRead": 32, "IOMaximumSegmentCountWrite": 8, "IOMaximumSwapWrite": 1,
+        "IOMaximumBlockCountRead": 32, "IOMaximumSegmentCountWrite": 8, "IOMaximumSwapWrite": 1
       ]
     )
   }

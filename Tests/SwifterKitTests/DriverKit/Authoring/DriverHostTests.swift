@@ -32,7 +32,7 @@ struct DriverHostTests {
     #expect(await recorder.started)
     #expect(
       await recorder.events == [
-        DriverEvent(type: 5, payload: [6]), DriverEvent(type: 7, payload: [8]),
+        DriverEvent(type: 5, payload: [6]), DriverEvent(type: 7, payload: [8])
       ]
     )
     #expect(await recorder.stopped)
@@ -121,7 +121,7 @@ private struct HostedDriver: SwiftDriver {
     await recorder.record(event)
   }
 
-  func stop(context: DriverContext) async { await recorder.recordStop() }
+  func stop(context _: DriverContext) async { await recorder.recordStop() }
 }
 
 private actor HostRecorder {
@@ -145,15 +145,15 @@ private actor HostTransport: DriverTransport {
     self.connection = connection
   }
 
-  func services(matching criteria: DriverServiceMatch) -> [DriverService] { [service] }
+  func services(matching _: DriverServiceMatch) -> [DriverService] { [service] }
 
-  func open(_ service: DriverService, type: UInt32) -> any DriverConnection { connection }
+  func open(_ _: DriverService, type _: UInt32) -> any DriverConnection { connection }
 }
 
 private actor EmptyHostTransport: DriverTransport {
-  func services(matching criteria: DriverServiceMatch) -> [DriverService] { [] }
+  func services(matching _: DriverServiceMatch) -> [DriverService] { [] }
 
-  func open(_ service: DriverService, type: UInt32) throws -> any DriverConnection {
+  func open(_ _: DriverService, type _: UInt32) throws -> any DriverConnection {
     throw DriverHostError.serviceNotFound(DriverServiceMatch(serviceClass: "Missing"))
   }
 }

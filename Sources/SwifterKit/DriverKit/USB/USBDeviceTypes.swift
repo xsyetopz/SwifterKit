@@ -161,13 +161,13 @@ public struct USBPipeDescriptors: Sendable, Hashable {
     bytes += [
       7, 0x05, endpoint.address, endpoint.attributes,
       UInt8(truncatingIfNeeded: endpoint.maxPacketSize),
-      UInt8(truncatingIfNeeded: endpoint.maxPacketSize >> 8), endpoint.interval,
+      UInt8(truncatingIfNeeded: endpoint.maxPacketSize >> 8), endpoint.interval
     ]
     if let companion = superSpeedCompanion {
       bytes += [
         6, 0x30, companion.maxBurst, companion.attributes,
         UInt8(truncatingIfNeeded: companion.bytesPerInterval),
-        UInt8(truncatingIfNeeded: companion.bytesPerInterval >> 8),
+        UInt8(truncatingIfNeeded: companion.bytesPerInterval >> 8)
       ]
     } else {
       bytes += [UInt8](repeating: 0, count: 6)
@@ -182,11 +182,12 @@ public struct USBPipeDescriptors: Sendable, Hashable {
 
   init(runtimePayload: Data) throws {
     let bytes = [UInt8](runtimePayload)
-    guard bytes.count == 23, let endpoint = USBEndpointDescriptor(descriptor: bytes[2..<9]) else {
+    guard bytes.count == 23, let decodedEndpoint = USBEndpointDescriptor(descriptor: bytes[2..<9])
+    else {
       throw USBRuntimeError.invalidResponse
     }
     usbRelease = UInt16(bytes[0]) | UInt16(bytes[1]) << 8
-    self.endpoint = endpoint
+    endpoint = decodedEndpoint
     superSpeedCompanion =
       bytes[9] >= 6 && bytes[10] == 0x30
       ? USBSuperSpeedEndpointCompanion(

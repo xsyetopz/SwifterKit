@@ -62,10 +62,13 @@ jobs:
           fetch-depth: 0
 
       - name: Install validation tools
-        run: brew install swiftlint llvm
+        run: brew install just swiftlint llvm
+
+      - name: Install pinned tools
+        run: just setup
 
       - name: Validate
-        run: ./scripts/ci/validate.sh
+        run: just verify
 
       - name: Create release tag
         if: steps.release.outputs.create == 'true'
@@ -76,7 +79,7 @@ jobs:
       - name: Build source archive
         env:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
-        run: ./scripts/release/archive-source.sh
+        run: just release-archive "$RELEASE_TAG"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7.0.2

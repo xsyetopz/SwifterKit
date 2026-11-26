@@ -137,13 +137,13 @@ public struct FastPathDataQueueEvent: Sendable, Hashable {
     guard runtimePayload.count == RuntimeFastPathRow.dataQueueEvent.size else {
       throw FastPathRuntimeError.invalidPayload
     }
-    let queue: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
+    let queueID: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
     let published: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
     let dropped: UInt64 = try runtimePayload.readRuntimeInteger(at: 8)
-    guard queue <= RuntimeClientMemoryType.identifierMask, published != 0 else {
+    guard queueID <= RuntimeClientMemoryType.identifierMask, published != 0 else {
       throw FastPathRuntimeError.invalidPayload
     }
-    self.init(queue: queue, publishedEntries: published, droppedEntries: dropped)
+    self.init(queue: queueID, publishedEntries: published, droppedEntries: dropped)
   }
 }
 
@@ -181,13 +181,13 @@ public struct FastPathDataQueueNotification: Sendable, Hashable {
     guard runtimePayload.count == RuntimeFastPathRow.dataQueueNotifyReply.size,
       try runtimePayload.readRuntimeInteger(at: 12) as UInt32 == 0
     else { throw FastPathRuntimeError.invalidPayload }
-    let status: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
+    let rawStatus: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
     guard
-      status == RuntimeFastPathStatus.success.rawValue
-        || status == RuntimeFastPathStatus.corrupt.rawValue
+      rawStatus == RuntimeFastPathStatus.success.rawValue
+        || rawStatus == RuntimeFastPathStatus.corrupt.rawValue
     else { throw FastPathRuntimeError.invalidPayload }
     self.init(
-      status: Int32(bitPattern: status),
+      status: Int32(bitPattern: rawStatus),
       movedEntries: try runtimePayload.readRuntimeInteger(at: 4),
       waitingEntries: try runtimePayload.readRuntimeInteger(at: 8),
       refusals: try runtimePayload.readRuntimeInteger(at: 16)

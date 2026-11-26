@@ -62,8 +62,9 @@ struct ServiceRuntimeContractTests {
       for tag in [ServicePropertyCoding.Tag.boolean, .number, .string, .data, .array, .dictionary] {
         let name = String(describing: tag)
         #expect(
-          protocolHeader.contains(
-            "\(name.prefix(1).uppercased() + name.dropFirst()) = \(tag.rawValue),"
+          protocolHeader.declaresEnumerator(
+            name.prefix(1).uppercased() + name.dropFirst(),
+            tag.rawValue
           )
         )
       }
@@ -101,7 +102,7 @@ struct ServiceRuntimeContractTests {
     try withGeneratedExtension { output in
       let control = try source("SwifterKitRuntimeServiceControl.cpp", in: output)
       for (name, option) in [
-        ("CPU", ServicePMAssertionOptions.cpu), ("ForceFullWakeup", .forceFullWakeup),
+        ("CPU", ServicePMAssertionOptions.cpu), ("ForceFullWakeup", .forceFullWakeup)
       ] {
         #expect(control.contains("kPMAssertion\(name) = 0x\(String(option.rawValue, radix: 16));"))
       }
@@ -215,7 +216,7 @@ struct ServiceRuntimeContractTests {
         ethernetDevice: EthernetDeviceConfiguration(
           hardwareAddress: EthernetAddress(2, 3, 4, 5, 6, 7)
         )
-      ),
+      )
     ]
     let checkedIn = try String(
       contentsOf: checkedInNativeSources.appendingPathComponent("SwifterKitRuntimeService.iig"),

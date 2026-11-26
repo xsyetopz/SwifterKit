@@ -60,7 +60,7 @@ struct HIDDispatchCommandsTests {
 
     let touches = try DriverCommand.dispatchHIDTouchEvent([
       HIDTouch(identifier: 1, x: 0, y: 0.5, state: [.touch, .touchValid]),
-      HIDTouch(identifier: 2, x: 1, y: 1, state: .inRange),
+      HIDTouch(identifier: 2, x: 1, y: 1, state: .inRange)
     ])
     #expect(touches.payload.count == 48)
     #expect(try words(touches.payload, from: 8) == [2, 0, 1, 0, 32_768, 6, 2, 65_536, 65_536, 1])

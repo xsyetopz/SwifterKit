@@ -38,7 +38,7 @@ enum class SwifterKitRuntimeMessageKind : uint16_t {
     Command = 2,
     Response = 3,
     Event = 4,
-    Error = 5,
+    Error = 5
 };
 
 enum class SwifterKitRuntimeOpcode : uint32_t {
@@ -298,7 +298,7 @@ enum class SwifterKitRuntimeOpcode : uint32_t {
     ReporterRead = 0x0E21,
     FastPathRun = 0x0F00,
     FastPathStatus = 0x0F01,
-    FastPathDataQueueNotify = 0x0F02,
+    FastPathDataQueueNotify = 0x0F02
 };
 
 static constexpr uint32_t kSwifterKitEventInterrupt = 0x0100;
@@ -342,7 +342,7 @@ static constexpr uint64_t kSwifterKitTimerMaximumNanoseconds = 86400000000000ULL
 
 enum class SwifterKitServiceWatchKind : uint32_t {
     Terminated = 0,
-    Matched = 1,
+    Matched = 1
 };
 
 static constexpr uint32_t kSwifterKitMaximumReporters = 16;
@@ -354,7 +354,7 @@ static constexpr uint32_t kSwifterKitMaximumHistogramBuckets = 128;
 enum class SwifterKitReporterKind : uint32_t {
     Simple = 1,
     State = 2,
-    Histogram = 3,
+    Histogram = 3
 };
 
 enum class SwifterKitReporterOperation : uint32_t {
@@ -364,7 +364,7 @@ enum class SwifterKitReporterOperation : uint32_t {
     OverrideState = 4,
     IncrementState = 5,
     TallyValue = 6,
-    OverrideBucket = 7,
+    OverrideBucket = 7
 };
 
 enum class SwifterKitPropertyTag : uint8_t {
@@ -373,7 +373,7 @@ enum class SwifterKitPropertyTag : uint8_t {
     String = 3,
     Data = 4,
     Array = 5,
-    Dictionary = 6,
+    Dictionary = 6
 };
 static constexpr uint32_t kSwifterKitPropertyMaximumDepth = 8;
 static constexpr uint32_t kSwifterKitPropertyNameMaximumLength = 127;
@@ -385,7 +385,7 @@ enum class SwifterKitSCSIManagementKind : uint32_t {
     ClearACA = 4,
     ClearTaskSet = 5,
     LogicalUnitReset = 6,
-    TargetReset = 7,
+    TargetReset = 7
 };
 static constexpr uint32_t kSwifterKitSCSIMaximumPropertyCount = 32;
 static constexpr uint32_t kSwifterKitSCSIMaximumFeatureRequests = 5;
@@ -399,7 +399,7 @@ enum class SwifterKitBlockStorageRequestKind : uint32_t {
     Synchronize = 2,
     Unmap = 3,
     Read = 4,
-    Write = 5,
+    Write = 5
 };
 
 enum class SwifterKitSerialEventKind : uint32_t {
@@ -413,18 +413,18 @@ enum class SwifterKitSerialEventKind : uint32_t {
     ProgramBaudRate = 8,
     ProgramModemControl = 9,
     ProgramLatencyTimer = 10,
-    ProgramFlowControl = 11,
+    ProgramFlowControl = 11
 };
 
 enum class SwifterKitUSBSerialPacketKind : uint32_t {
     Received = 1,
-    Interrupt = 2,
+    Interrupt = 2
 };
 
 enum class SwifterKitMIDIEventKind : uint32_t {
     StartIO = 1,
     StopIO = 2,
-    Received = 3,
+    Received = 3
 };
 
 static constexpr uint32_t kSwifterKitMIDITargetDriver = 0;

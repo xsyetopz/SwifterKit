@@ -63,7 +63,7 @@ public struct HIDEventDriverCategories: OptionSet, Sendable, Hashable {
   public static let remaining = Self(rawValue: RuntimeHIDEventDriverCategory.remaining.rawValue)
   /// Every category.
   public static let all: Self = [
-    .keyboard, .pointer, .scroll, .led, .digitizer, .proximity, .gameController, .remaining,
+    .keyboard, .pointer, .scroll, .led, .digitizer, .proximity, .gameController, .remaining
   ]
 }
 

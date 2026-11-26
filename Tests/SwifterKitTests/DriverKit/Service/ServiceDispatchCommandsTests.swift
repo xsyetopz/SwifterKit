@@ -92,7 +92,7 @@ struct ServiceDispatchCommandsTests {
       try ServicePropertyCoding.decode(services.payload)
         == .dictionary([
           "IOProviderClass": .string("IOPCIDevice"), "IONameMatch": .string("display"),
-          "IOPropertyMatch": .dictionary(["vendor-id": .unsignedInteger(0x1234)]),
+          "IOPropertyMatch": .dictionary(["vendor-id": .unsignedInteger(0x1234)])
         ])
     )
 
@@ -154,7 +154,7 @@ struct ServiceDispatchCommandsTests {
 
     for invalid in [
       serviceEvent(kind: 2, name: "x"), payload.dropLast(), zeroed(payload, at: 0),
-      zeroed(payload, at: 8),
+      zeroed(payload, at: 8)
     ] { #expect(throws: ServiceRuntimeError.invalidPayload) { try serviceNotification(invalid) } }
   }
 
@@ -175,7 +175,7 @@ struct ServiceDispatchCommandsTests {
     let array = try ServicePropertyCoding.encode(.array([]))
     for invalid in [
       stateEvent(item: "", value: Data()), stateEvent(item: "x", value: array),
-      stateEvent(item: "x", value: value.dropLast()), payload.prefix(20),
+      stateEvent(item: "x", value: value.dropLast()), payload.prefix(20)
     ] { #expect(throws: ServiceRuntimeError.self) { try stateNotification(invalid) } }
     #expect(throws: ServiceRuntimeError.invalidPayload) {
       try stateNotification(zeroed(stateEvent(item: "x", value: Data()), at: 8))

@@ -89,7 +89,7 @@ struct NativeEvidence {
       let json = try Self.run([
         "clang++", "-x", "c++", "-std=c++20", "-fblocks", "-fno-exceptions", "-fno-rtti", "-target",
         "arm64-apple-driverkit\(job.target)", "-isysroot", sdk, "-I", job.sources.path, "-I",
-        job.derived.path, "-fsyntax-only", "-Xclang", "-ast-dump=json", job.file.path,
+        job.derived.path, "-fsyntax-only", "-Xclang", "-ast-dump=json", job.file.path
       ])
       results.add(
         try Self.parse(
@@ -184,7 +184,7 @@ struct NativeEvidence {
   // `done` is signaled.
   private final class Parsed: @unchecked Sendable {
     let done = DispatchSemaphore(value: 0)
-    var result: Result<ClangAST, Error> = .failure(CocoaError(.coderReadCorrupt))
+    var result: Result<ClangAST, any Error> = .failure(CocoaError(.coderReadCorrupt))
   }
 
   // Collects the translation units' results across `concurrentPerform` iterations.
@@ -192,7 +192,7 @@ struct NativeEvidence {
     private let lock = NSLock()
     private(set) var uses: Set<NativeUse> = []
     private(set) var bases: [String: String] = [:]
-    private(set) var failure: Error?
+    private(set) var failure: (any Error)?
 
     func add(_ ast: ClangAST) {
       lock.lock()
@@ -201,7 +201,7 @@ struct NativeEvidence {
       bases.merge(ast.bases) { current, _ in current }
     }
 
-    func fail(_ error: Error) {
+    func fail(_ error: any Error) {
       lock.lock()
       defer { lock.unlock() }
       if failure == nil { failure = error }

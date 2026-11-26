@@ -278,7 +278,7 @@ public struct HIDGameControllerState: Sendable, Hashable {
   var axes: [Double] {
     [
       dpadUp, dpadDown, dpadLeft, dpadRight, faceX, faceY, faceA, faceB, shoulderL1, shoulderR1,
-      shoulderL2, shoulderR2, joystickX, joystickY, joystickZ, joystickRz,
+      shoulderL2, shoulderR2, joystickX, joystickY, joystickZ, joystickRz
     ]
   }
 }

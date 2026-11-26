@@ -27,7 +27,7 @@ struct SDKSurface {
     let settingsURL = sdk.appendingPathComponent("SDKSettings.json")
     guard let data = try? Data(contentsOf: settingsURL),
       let settings = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-      let version = settings["Version"] as? String
+      let sdkVersion = settings["Version"] as? String
     else { throw Failure.unreadableSettings(settingsURL.path) }
 
     let frameworks = sdk.appendingPathComponent("System/DriverKit/System/Library/Frameworks")
@@ -35,19 +35,19 @@ struct SDKSurface {
     guard let names = try? fileManager.contentsOfDirectory(atPath: frameworks.path) else {
       throw Failure.missingFrameworks(frameworks.path)
     }
-    var classes: [DeclaredClass] = []
+    var declared: [DeclaredClass] = []
     for name in names.sorted() where name.hasSuffix(".framework") {
       let framework = String(name.dropLast(".framework".count))
       let headers = frameworks.appendingPathComponent(name).appendingPathComponent("Headers")
       let files = (try? fileManager.contentsOfDirectory(atPath: headers.path)) ?? []
       for file in files.sorted() where file.hasSuffix(".iig") {
         let text = try String(contentsOf: headers.appendingPathComponent(file), encoding: .utf8)
-        classes += IIGParser.parse(text).map {
+        declared += IIGParser.parse(text).map {
           DeclaredClass(framework: framework, declaration: $0)
         }
       }
     }
-    self.init(version: version, classes: classes)
+    self.init(version: sdkVersion, classes: declared)
   }
 
   init(version: String, classes: [DeclaredClass]) {

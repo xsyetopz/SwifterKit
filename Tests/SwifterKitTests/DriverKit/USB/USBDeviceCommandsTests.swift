@@ -20,7 +20,7 @@ struct USBDeviceCommandsTests {
       (.usbFrameNumber(), 0x0215, 16), (.usbCurrentMicroframe(), 0x0216, 16),
       (.usbReferenceMicroframe(), 0x0217, 16), (.usbDeviceDescriptor(), 0x0218, 22),
       (.usbInterfaces(), 0x021D, 4 + 256 * 9), (.usbInterfaceDescriptor(), 0x021E, 9),
-      (.usbIdlePolicy(), 0x0220, 4), (.usbAbortDeviceRequests(), 0x0221, 0),
+      (.usbIdlePolicy(), 0x0220, 4), (.usbAbortDeviceRequests(), 0x0221, 0)
     ]
     for (command, opcode, response) in empty {
       #expect(command.opcode == opcode)

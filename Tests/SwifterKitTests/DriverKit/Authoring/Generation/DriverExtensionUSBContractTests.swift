@@ -97,7 +97,7 @@ struct DriverExtensionUSBContractTests {
       let usb = try source("SwifterKitRuntimeUSB.cpp", in: output)
       for method in [
         "USBControlTransfer(", "USBPipeTransfer(", "USBClearStall(", "USBSelectAlternateSetting(",
-        "USBSelectInterfaceAlternateSetting(",
+        "USBSelectInterfaceAlternateSetting("
       ] {
         let body = try #require(usb.range(of: "SwifterKitRuntimeService::" + method))
         let next = usb.range(of: "\n}\n", range: body.upperBound..<usb.endIndex)?.lowerBound
@@ -113,7 +113,7 @@ struct DriverExtensionUSBContractTests {
     try withGeneratedExtension { output in
       for name in [
         "SwifterKitRuntimeUSB.cpp", "SwifterKitRuntimeUSBDevice.cpp",
-        "SwifterKitRuntimeUSBPipes.cpp",
+        "SwifterKitRuntimeUSBPipes.cpp"
       ] {
         let text = try source(name, in: output)
         #expect(!text.contains("kIOUSBAbortSynchronous"), "\(name) aborts synchronously")
@@ -174,7 +174,7 @@ struct DriverExtensionUSBContractTests {
         providerClass: USBDeviceConfiguration.interfaceProviderClass,
         capabilities: .usb,
         usbDevice: USBDeviceConfiguration(vendorID: 0x1234, interfaceClass: 0xFF)
-      ),
+      )
     ) { output, _ in try body(output) }
   }
 }

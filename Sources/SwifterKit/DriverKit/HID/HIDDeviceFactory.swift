@@ -72,7 +72,7 @@ extension HIDDeviceConfiguration {
     }
     let fields = [
       vendorID, productID, versionNumber, countryCode, locationID, primaryUsagePage, primaryUsage,
-      acceptedHostReportTypes.rawValue, answeredReportTypes.rawValue,
+      acceptedHostReportTypes.rawValue, answeredReportTypes.rawValue
     ]
     var payload = Data(capacity: size)
     payload.append(HIDLimits.words(fields + strings.map { UInt32($0.count) }))

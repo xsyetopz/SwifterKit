@@ -1,3 +1,5 @@
+import Foundation
+
 // Renders ``RuntimeSchema`` as the native `SwifterKitRuntimeSchema.h` header.
 enum RuntimeSchemaHeader {
   // The header's file name inside the native extension's `Sources` directory.
@@ -13,7 +15,7 @@ enum RuntimeSchemaHeader {
       ("uint32_t", "HeaderSize", "\(RuntimeSchema.headerSize)"),
       ("uint32_t", "CommandHeaderSize", "\(RuntimeSchema.commandHeaderSize)"),
       ("uint32_t", "HandshakeRequestSize", "\(RuntimeSchema.handshakeRequestSize)"),
-      ("uint32_t", "HandshakeResponseSize", "\(RuntimeSchema.handshakeResponseSize)"),
+      ("uint32_t", "HandshakeResponseSize", "\(RuntimeSchema.handshakeResponseSize)")
     ]
     var lines = preamble.components(separatedBy: "\n")
     lines += wire.map { constant($0.type, "kSwifterKitRuntime" + $0.name, $0.value) }
@@ -81,7 +83,9 @@ enum RuntimeSchemaHeader {
     type: String,
     cases: [(name: String, value: String)]
   ) -> [String] {
-    ["enum class \(name) : \(type) {"] + cases.map { "    \($0.name) = \($0.value)," } + ["};"]
+    // No comma after the last enumerator, as clang-format's `EnumTrailingComma: Remove` writes.
+    let enumerators = cases.map { "    \($0.name) = \($0.value)" }
+    return ["enum class \(name) : \(type) {", enumerators.joined(separator: ",\n"), "};"]
   }
 
   static func hex(_ value: some BinaryInteger, digits: Int) -> String {

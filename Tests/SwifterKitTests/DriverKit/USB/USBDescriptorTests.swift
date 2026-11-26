@@ -8,7 +8,7 @@ struct USBDescriptorTests {
   // A configuration with one vendor interface, a class-specific descriptor, and two endpoints.
   static let configuration: [UInt8] = [
     9, 0x02, 39, 0, 1, 1, 4, 0x80, 50, 9, 0x04, 0, 0, 2, 0xFF, 1, 2, 5, 5, 0x24, 0, 0, 0, 7, 0x05,
-    0x81, 0x02, 0x00, 0x02, 0, 7, 0x05, 0x02, 0x03, 0x40, 0x00, 4, 2, 0x30,
+    0x81, 0x02, 0x00, 0x02, 0, 7, 0x05, 0x02, 0x03, 0x40, 0x00, 4, 2, 0x30
   ]
 
   @Test
@@ -56,7 +56,7 @@ struct USBDescriptorTests {
   @Test
   func parsesDeviceDescriptor() throws {
     let bytes: [UInt8] = [
-      18, 0x01, 0x00, 0x02, 0xEF, 2, 1, 64, 0x34, 0x12, 0x78, 0x56, 0x00, 0x01, 1, 2, 3, 1,
+      18, 0x01, 0x00, 0x02, 0xEF, 2, 1, 64, 0x34, 0x12, 0x78, 0x56, 0x00, 0x01, 1, 2, 3, 1
     ]
     let descriptor = try USBDeviceDescriptor(descriptor: bytes)
 
@@ -93,7 +93,7 @@ struct USBDescriptorTests {
   func parsesCapabilityDescriptors() throws {
     let bytes: [UInt8] = [
       5, 0x0F, 22, 0, 2, 7, 0x10, 0x02, 0x02, 0, 0, 0, 10, 0x10, 0x03, 0, 0x0E, 0, 1, 10, 0xFF,
-      0x07,
+      0x07
     ]
     let descriptor = try USBCapabilityDescriptors(descriptor: bytes)
 

@@ -103,7 +103,7 @@ public struct PCIPowerManagementSupport: OptionSet, Sendable, Hashable {
 
   /// Every capability bit the runtime accepts.
   public static let all: Self = [
-    .d3, .d1, .d2, .pmeFromD0, .pmeFromD1, .pmeFromD2, .pmeFromD3Hot, .pmeFromD3Cold,
+    .d3, .d1, .d2, .pmeFromD0, .pmeFromD1, .pmeFromD2, .pmeFromD3Hot, .pmeFromD3Cold
   ]
 }
 

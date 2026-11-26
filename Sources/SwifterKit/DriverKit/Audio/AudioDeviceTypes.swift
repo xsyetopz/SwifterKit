@@ -176,10 +176,10 @@ public struct AudioStreamState: Sendable, Hashable {
     guard runtimePayload.count >= 80 else { throw AudioRuntimeError.invalidPayload }
     objectID = try runtimePayload.readRuntimeInteger(at: 0)
     let rawDirection: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
-    guard let direction = AudioStreamDirection(rawValue: rawDirection) else {
+    guard let decodedDirection = AudioStreamDirection(rawValue: rawDirection) else {
       throw AudioRuntimeError.invalidPayload
     }
-    self.direction = direction
+    direction = decodedDirection
     terminalType = AudioStreamTerminalType(rawValue: try runtimePayload.readRuntimeInteger(at: 8))
     startingChannel = try runtimePayload.readRuntimeInteger(at: 12)
     latency = try runtimePayload.readRuntimeInteger(at: 16)
@@ -284,10 +284,10 @@ public struct AudioControlInfo: Sendable, Hashable {
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 48 else { throw AudioRuntimeError.invalidPayload }
     objectID = try runtimePayload.readRuntimeInteger(at: 0)
-    guard let kind = Kind(rawValue: try runtimePayload.readRuntimeInteger(at: 4)) else {
+    guard let decodedKind = Kind(rawValue: try runtimePayload.readRuntimeInteger(at: 4)) else {
       throw AudioRuntimeError.invalidPayload
     }
-    self.kind = kind
+    kind = decodedKind
     scope = AudioObjectScope(rawValue: try runtimePayload.readRuntimeInteger(at: 8))
     element = try runtimePayload.readRuntimeInteger(at: 12)
     let settable: UInt32 = try runtimePayload.readRuntimeInteger(at: 16)
@@ -299,13 +299,14 @@ public struct AudioControlInfo: Sendable, Hashable {
     let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 40)
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 44)
     guard settable <= 1, attached <= 1, reserved == 0,
-      count <= RuntimeAudioLimits.maximumSelectorItems, kind == .selector || count == 0,
-      kind != .slider || minimum <= maximum
+      count <= RuntimeAudioLimits.maximumSelectorItems, decodedKind == .selector || count == 0,
+      decodedKind != .slider || minimum <= maximum
     else { throw AudioRuntimeError.invalidPayload }
     isSettable = settable == 1
     isAttached = attached == 1
-    sliderRange = kind == .slider ? minimum...maximum : nil
-    panningChannels = kind == .stereoPan ? AudioStereoChannels(left: left, right: right) : nil
+    sliderRange = decodedKind == .slider ? minimum...maximum : nil
+    panningChannels =
+      decodedKind == .stereoPan ? AudioStereoChannels(left: left, right: right) : nil
     var items: [AudioSelectorValue] = []
     var offset = 48
     for _ in 0..<count {
@@ -415,8 +416,8 @@ public struct AudioCustomPropertyInfo: Sendable, Hashable {
     )
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 20)
     guard reserved == 0,
-      let owner = AudioMemberOwner(rawValue: try runtimePayload.readRuntimeInteger(at: 16))
+      let decodedOwner = AudioMemberOwner(rawValue: try runtimePayload.readRuntimeInteger(at: 16))
     else { throw AudioRuntimeError.invalidPayload }
-    self.owner = owner
+    owner = decodedOwner
   }
 }

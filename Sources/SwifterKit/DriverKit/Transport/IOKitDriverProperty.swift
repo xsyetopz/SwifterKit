@@ -12,12 +12,12 @@
       let type = CFGetTypeID(object)
       switch type {
       case CFBooleanGetTypeID():
-        return .boolean(CFBooleanGetValue(unsafeDowncast(object, to: CFBoolean.self)))
-      case CFNumberGetTypeID(): return decode(unsafeDowncast(object, to: CFNumber.self))
+        return unsafe .boolean(CFBooleanGetValue(unsafeDowncast(object, to: CFBoolean.self)))
+      case CFNumberGetTypeID(): return unsafe decode(unsafeDowncast(object, to: CFNumber.self))
       default: break
       }
-      if let value = value as? String { return .string(value) }
-      if let value = value as? Data { return .data(value) }
+      if let string = value as? String { return .string(string) }
+      if let data = value as? Data { return .data(data) }
       if let values = value as? [Any] { return .array(values.compactMap(Self.decode)) }
       if let values = value as? [String: Any] {
         return .dictionary(values.compactMapValues(Self.decode))
@@ -28,10 +28,10 @@
     private static func decode(_ number: CFNumber) -> Self? {
       if CFNumberIsFloatType(number) {
         var value = 0.0
-        return CFNumberGetValue(number, .float64Type, &value) ? .real(value) : nil
+        return unsafe CFNumberGetValue(number, .float64Type, &value) ? .real(value) : nil
       }
       var value: Int64 = 0
-      return CFNumberGetValue(number, .sInt64Type, &value) ? .integer(value) : nil
+      return unsafe CFNumberGetValue(number, .sInt64Type, &value) ? .integer(value) : nil
     }
   }
 #endif

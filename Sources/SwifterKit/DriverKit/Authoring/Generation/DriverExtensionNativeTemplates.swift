@@ -135,7 +135,7 @@ extension DriverExtensionGenerator {
   }
 
   static func cString(_ value: String) -> String {
-    let literals = value.utf8.map { String(format: "\"\\x%02X\"", $0) }.joined()
+    let literals = value.utf8.map { "\"\\x\($0.zeroPadded(width: 2, radix: 16))\"" }.joined()
     return literals.isEmpty ? "\"\"" : literals
   }
 
@@ -351,6 +351,9 @@ extension DriverExtensionGenerator {
               OSData** response) LOCALONLY;
       """
     let interruptInclude = interrupts ? "#include <DriverKit/IOInterruptDispatchSource.iig>" : ""
+    let dataQueueInclude =
+      networking || configuration.fastPath != nil
+      ? "#include <DriverKit/IODataQueueDispatchSource.iig>" : ""
     let hidMethods = hidServiceMethods(hidMode)
 
     return """
@@ -367,8 +370,7 @@ extension DriverExtensionGenerator {
       \(interruptInclude)
       \(usb ? "#include <USBDriverKit/IOUSBHostDevice.iig>" : "")
       \(usb ? "#include <USBDriverKit/IOUSBHostPipe.iig>" : "")
-      \(networking || configuration.fastPath != nil
-        ? "#include <DriverKit/IODataQueueDispatchSource.iig>" : "")
+      \(dataQueueInclude)
 
       #include "SwifterKitRuntimeProtocol.h"
 

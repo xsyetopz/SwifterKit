@@ -11,7 +11,7 @@ extension RuntimeSchemaHeader {
       "// Do not edit.",
       "// Regenerate: SWIFTERKIT_UPDATE_SCHEMA=1 swift test --filter RuntimeSchemaTests", "",
       "#ifndef SwifterKitRuntimeHIDSchema_h", "#define SwifterKitRuntimeHIDSchema_h", "",
-      "#include <stdint.h>",
+      "#include <stdint.h>"
     ]
     for section in hidSections() { lines += [""] + section }
     lines += ["", "#endif"]

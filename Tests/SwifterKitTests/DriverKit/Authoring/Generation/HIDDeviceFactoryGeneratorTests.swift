@@ -99,7 +99,7 @@ struct HIDDeviceFactoryGeneratorTests {
     factoryConfiguration(maximumDevices: RuntimeHIDLimits.maximumFactoryDevices + 1),
     factoryConfiguration(hidDevice: device), factoryConfiguration(capabilities: [.hid, .usb]),
     factoryConfiguration(capabilities: [.hid, .audio]),
-    factoryConfiguration(capabilities: [.hid, .serial]),
+    factoryConfiguration(capabilities: [.hid, .serial])
   ])
   func rejectsInvalidFactories(_ configuration: DriverConfiguration) {
     #expect(throws: DriverExtensionGenerationError.invalidHIDConfiguration) {
@@ -128,7 +128,7 @@ struct HIDDeviceFactoryGeneratorTests {
   @Test
   func reservesTheChildPropertiesKey() {
     let configuration = Self.factoryConfiguration(matchingProperties: [
-      "IOResourceMatch": .string("IOKit"), "HIDDeviceProperties": .string("x"),
+      "IOResourceMatch": .string("IOKit"), "HIDDeviceProperties": .string("x")
     ])
     #expect(throws: DriverExtensionGenerationError.reservedMatchingProperty("HIDDeviceProperties"))
     { try generate(configuration) }

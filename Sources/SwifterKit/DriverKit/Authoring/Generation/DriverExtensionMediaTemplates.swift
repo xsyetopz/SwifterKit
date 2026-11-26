@@ -119,7 +119,7 @@ extension DriverExtensionGenerator {
       var selectorFields: [Int] = [0, 0, 0, 0]
       if let selector = control.selector {
         selectorFields = [
-          selectorStart, selector.values.count, initialStart, selector.initialValues.count,
+          selectorStart, selector.values.count, initialStart, selector.initialValues.count
         ]
         selectorStart += selector.values.count
         initialStart += selector.initialValues.count

@@ -108,11 +108,11 @@ public struct AudioStreamFormat: Sendable, Hashable {
     bitsPerChannel: UInt32 = 16
   ) -> Self {
     let bytesPerSample = (bitsPerChannel + 7) / 8
-    let bytesPerFrame = bytesPerSample * channels
+    let frameBytes = bytesPerSample * channels
     return Self(
       sampleRate: sampleRate,
-      bytesPerPacket: bytesPerFrame,
-      bytesPerFrame: bytesPerFrame,
+      bytesPerPacket: frameBytes,
+      bytesPerFrame: frameBytes,
       channelsPerFrame: channels,
       bitsPerChannel: bitsPerChannel
     )
@@ -242,10 +242,10 @@ public struct AudioIOState: Sendable, Hashable {
     guard runtimePayload.count == 32 else { throw AudioRuntimeError.invalidPayload }
     sequence = try runtimePayload.readRuntimeInteger(at: 0)
     let rawOperation: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
-    guard let operation = Operation(rawValue: rawOperation) else {
+    guard let decodedOperation = Operation(rawValue: rawOperation) else {
       throw AudioRuntimeError.invalidOperation(rawOperation)
     }
-    self.operation = operation
+    operation = decodedOperation
     frameCount = try runtimePayload.readRuntimeInteger(at: 12)
     sampleTime = try runtimePayload.readRuntimeInteger(at: 16)
     hostTime = try runtimePayload.readRuntimeInteger(at: 24)

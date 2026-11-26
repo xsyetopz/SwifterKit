@@ -53,7 +53,7 @@ struct HIDRuntimeContractTests {
         (
           "SwifterKitHIDReportRequest",
           try DriverCommand.hidInterfaceReport(type: .input, length: 1).payload.count
-        ),
+        )
       ]
       for (name, size) in sizes {
         #expect(limits.contains("static_assert(sizeof(\(name)) == \(size));"), "\(name)")

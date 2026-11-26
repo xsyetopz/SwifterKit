@@ -3,7 +3,7 @@ import Foundation
 extension Data {
   mutating func appendRuntimeInteger<T: FixedWidthInteger>(_ value: T) {
     var encoded = value.littleEndian
-    Swift.withUnsafeBytes(of: &encoded) { append(contentsOf: $0) }
+    Swift.withUnsafeBytes(of: &encoded) { unsafe append(contentsOf: $0) }
   }
 
   func readRuntimeInteger<T: FixedWidthInteger>(at offset: Int) throws -> T {

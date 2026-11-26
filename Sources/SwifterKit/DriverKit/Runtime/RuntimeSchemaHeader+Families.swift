@@ -33,7 +33,7 @@ extension RuntimeSchemaHeader {
   // with every bit set.
   static func bits<Value: CaseIterable & RawRepresentable>(
     _ prefix: String,
-    _ type: Value.Type,
+    _ _: Value.Type,
     all allName: String
   ) -> [String] where Value.RawValue: FixedWidthInteger {
     constants(
@@ -57,7 +57,7 @@ extension RuntimeSchemaHeader {
           [
             ("kSwifterKitMaximumTimers", "\(dispatch.maximumTimers)"),
             ("kSwifterKitMaximumServiceWatches", "\(dispatch.maximumServiceWatches)"),
-            ("kSwifterKitMaximumWatchedStateItems", "\(dispatch.maximumWatchedStateItems)"),
+            ("kSwifterKitMaximumWatchedStateItems", "\(dispatch.maximumWatchedStateItems)")
           ]
         ),
         constants(
@@ -66,7 +66,7 @@ extension RuntimeSchemaHeader {
             (
               "kSwifterKitTimerMinimumIntervalNanoseconds",
               "\(dispatch.timerMinimumIntervalNanoseconds)ULL"
-            ), ("kSwifterKitTimerMaximumNanoseconds", "\(dispatch.timerMaximumNanoseconds)ULL"),
+            ), ("kSwifterKitTimerMaximumNanoseconds", "\(dispatch.timerMaximumNanoseconds)ULL")
           ]
         )
       ),
@@ -82,7 +82,7 @@ extension RuntimeSchemaHeader {
           ("kSwifterKitMaximumReportChannels", "\(reporting.maximumReportChannels)"),
           ("kSwifterKitMaximumReportStates", "\(reporting.maximumReportStates)"),
           ("kSwifterKitMaximumHistogramSegments", "\(reporting.maximumHistogramSegments)"),
-          ("kSwifterKitMaximumHistogramBuckets", "\(reporting.maximumHistogramBuckets)"),
+          ("kSwifterKitMaximumHistogramBuckets", "\(reporting.maximumHistogramBuckets)")
         ]
       ), enumeration("SwifterKitReporterKind", type: "uint32_t", RuntimeReporterKind.allCases),
       enumeration(
@@ -96,10 +96,10 @@ extension RuntimeSchemaHeader {
           "uint32_t",
           [
             ("kSwifterKitPropertyMaximumDepth", "\(RuntimePropertyLimits.maximumDepth)"),
-            ("kSwifterKitPropertyNameMaximumLength", "\(RuntimePropertyLimits.nameMaximumLength)"),
+            ("kSwifterKitPropertyNameMaximumLength", "\(RuntimePropertyLimits.nameMaximumLength)")
           ]
         )
-      ),
+      )
     ]
   }
 
@@ -121,14 +121,14 @@ extension RuntimeSchemaHeader {
               "kSwifterKitSCSICommandDescriptorBlockMaximumSize",
               "\(scsi.commandDescriptorBlockMaximumSize)"
             ),
-            ("kSwifterKitSCSIPeripheralMaximumDataLength", "\(scsi.peripheralMaximumDataLength)"),
+            ("kSwifterKitSCSIPeripheralMaximumDataLength", "\(scsi.peripheralMaximumDataLength)")
           ]
         ),
         constants(
           "uint16_t",
           [
             ("kSwifterKitSCSIPropertyKeyMaximumLength", "\(scsi.propertyKeyMaximumLength)"),
-            ("kSwifterKitSCSIPropertyValueMaximumLength", "\(scsi.propertyValueMaximumLength)"),
+            ("kSwifterKitSCSIPropertyValueMaximumLength", "\(scsi.propertyValueMaximumLength)")
           ]
         )
       ),
@@ -142,7 +142,7 @@ extension RuntimeSchemaHeader {
         "SwifterKitUSBSerialPacketKind",
         type: "uint32_t",
         RuntimeUSBSerialPacketKind.allCases
-      ),
+      )
     ]
   }
 
@@ -159,7 +159,7 @@ extension RuntimeSchemaHeader {
           [
             ("kSwifterKitMIDIDriverClass", hex(objects.driverClass, digits: 8)),
             ("kSwifterKitMIDIMaximumListedObjects", "\(objects.maximumListedObjects)"),
-            ("kSwifterKitMIDINameMaximumLength", "\(objects.nameMaximumLength)"),
+            ("kSwifterKitMIDINameMaximumLength", "\(objects.nameMaximumLength)")
           ]
         )
       ),
@@ -170,10 +170,10 @@ extension RuntimeSchemaHeader {
           [
             ("kSwifterKitMIDIPropertyMaximumDepth", "\(properties.maximumDepth)"),
             ("kSwifterKitMIDIPropertyMaximumEntries", "\(properties.maximumEntries)"),
-            ("kSwifterKitMIDIPropertyKeyMaximumLength", "\(properties.keyMaximumLength)"),
+            ("kSwifterKitMIDIPropertyKeyMaximumLength", "\(properties.keyMaximumLength)")
           ]
         )
-      ),
+      )
     ]
   }
 
@@ -191,7 +191,7 @@ extension RuntimeSchemaHeader {
             ("kSwifterKitUSBMaximumBundleRings", "\(usb.maximumBundleRings)"),
             ("kSwifterKitUSBMaximumBundleRingEntries", "\(usb.maximumBundleRingEntries)"),
             ("kSwifterKitUSBMaximumBundleRingBytes", "\(usb.maximumBundleRingBytes)"),
-            ("kSwifterKitUSBMaximumBundledTransfers", "\(usb.maximumBundledTransfers)"),
+            ("kSwifterKitUSBMaximumBundledTransfers", "\(usb.maximumBundledTransfers)")
           ]
         ),
         ["static constexpr uint16_t kSwifterKitUSBSupportedReleases[] =", "    {\(releases)};"]
@@ -207,7 +207,7 @@ extension RuntimeSchemaHeader {
           type: "uint8_t",
           [RuntimeUSBPipeDescriptorPolicy.original, .currentPolicy]
         )
-      ),
+      )
     ]
   }
 
@@ -230,7 +230,7 @@ extension RuntimeSchemaHeader {
           ("kSwifterKitHIDMaximumCollectionElements", "\(hid.maximumCollectionElements)"),
           ("kSwifterKitHIDMaximumTouches", "\(hid.maximumTouches)"),
           ("kSwifterKitHIDMaximumEventValues", "\(hid.maximumEventValues)"),
-          ("kSwifterKitHIDLEDUsagePage", hex(hid.ledUsagePage, digits: 2)),
+          ("kSwifterKitHIDLEDUsagePage", hex(hid.ledUsagePage, digits: 2))
         ]
       ),
       enumeration(
@@ -277,7 +277,7 @@ extension RuntimeSchemaHeader {
           "uint32_t",
           [
             ("kSwifterKitHIDCollectionChangeShift", "\(hid.collectionChangeShift)"),
-            ("kSwifterKitHIDCollectionFlagsAll", hex(collectionAll, digits: 1)),
+            ("kSwifterKitHIDCollectionFlagsAll", hex(collectionAll, digits: 1))
           ]
         ),
         bits(
@@ -285,7 +285,7 @@ extension RuntimeSchemaHeader {
           RuntimeHIDGameControllerFlag.self,
           all: "kSwifterKitHIDGameControllerFlagsAll"
         )
-      ),
+      )
     ]
   }
 }

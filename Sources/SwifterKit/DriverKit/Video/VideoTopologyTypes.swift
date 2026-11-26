@@ -248,11 +248,11 @@ public struct VideoClockDeviceState: Sendable, Hashable {
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 72)
     let count = Int(try runtimePayload.readRuntimeInteger(at: 76) as UInt32)
     typealias Flag = RuntimeVideoClockState
-    guard let transportState = VideoDeviceTransportState(rawValue: rawState),
+    guard let decodedState = VideoDeviceTransportState(rawValue: rawState),
       flags & ~Flag.allBits == 0, reserved == 0, count <= Self.maximumSampleRates,
       runtimePayload.count == 80 + count * 8
     else { throw VideoRuntimeError.invalidPayload }
-    self.transportState = transportState
+    transportState = decodedState
     clockIsStable = flags & Flag.clockIsStable.rawValue != 0
     isAlive = flags & Flag.isAlive.rawValue != 0
     isRunning = flags & Flag.isRunning.rawValue != 0

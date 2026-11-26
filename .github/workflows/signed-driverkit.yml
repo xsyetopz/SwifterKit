@@ -25,15 +25,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
+      - name: Install just
+        run: brew install just
+
       - name: Import signing credentials
         id: signing
-        run: ./scripts/signing/import-ci-credentials.sh
+        run: just import-ci-signing
 
       - name: Build signed extension
         env:
           DEXT_PROVISIONING_PROFILE_SPECIFIER: ${{ steps.signing.outputs.profile-name }}
           SIGNING_KEYCHAIN: ${{ steps.signing.outputs.keychain-path }}
-        run: ./scripts/signing/build-driverkit.sh
+        run: just sign-driverkit
 
       - name: Verify signature and entitlements
         run: |

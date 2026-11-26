@@ -64,17 +64,22 @@ public struct HIDReport: Sendable, Hashable {
     guard runtimePayload.count >= 24 else { throw HIDRuntimeError.invalidReportPayload }
 
     let data = Data(runtimePayload)
-    let timestamp: UInt64 = try data.readRuntimeInteger(at: 0)
-    guard let type = HIDReportType(rawValue: try data.readRuntimeInteger(at: 8)) else {
+    let reportTimestamp: UInt64 = try data.readRuntimeInteger(at: 0)
+    guard let reportType = HIDReportType(rawValue: try data.readRuntimeInteger(at: 8)) else {
       throw HIDRuntimeError.invalidReportType
     }
-    let options: UInt32 = try data.readRuntimeInteger(at: 12)
+    let reportOptions: UInt32 = try data.readRuntimeInteger(at: 12)
     let length = Int(try data.readRuntimeInteger(at: 16) as UInt32)
     guard try data.readRuntimeInteger(at: 20) as UInt32 == 0, length == data.count - 24 else {
       throw HIDRuntimeError.invalidReportPayload
     }
 
-    self.init(bytes: Array(data.suffix(length)), type: type, options: options, timestamp: timestamp)
+    self.init(
+      bytes: Array(data.suffix(length)),
+      type: reportType,
+      options: reportOptions,
+      timestamp: reportTimestamp
+    )
   }
 }
 

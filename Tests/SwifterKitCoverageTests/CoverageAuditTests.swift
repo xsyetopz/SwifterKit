@@ -36,7 +36,7 @@ struct CoverageAuditTests {
     #expect(
       mentions.sorted().map { "\($0.className)::\($0.member) \($0.location)" } == [
         "IOExample::Notify Example.swift:4", "IOExample::Start Example.swift:1",
-        "IOExampleChild::Reset Example.swift:1",
+        "IOExampleChild::Reset Example.swift:1"
       ]
     )
   }
@@ -52,7 +52,7 @@ struct CoverageAuditTests {
     #expect(resolved.count == 2)
     #expect(
       resolved.first { $0.key.member == "Notify" }?.value.map(\.signature).sorted() == [
-        "void Notify(uint32_t)", "void Notify(uint64_t)",
+        "void Notify(uint32_t)", "void Notify(uint64_t)"
       ]
     )
     #expect(resolved.first { $0.key.member == "Missing" }?.value.isEmpty == true)
@@ -80,7 +80,7 @@ struct CoverageAuditTests {
     }
     let exclusions: Set = [
       exclusion("void Notify(uint32_t)"), exclusion("void Gone()"), exclusion("void _Plumbing()"),
-      exclusion("kern_return_t Start(IOService*)"), exclusion("void Notify(uint64_t)", "Not yet"),
+      exclusion("kern_return_t Start(IOService*)"), exclusion("void Notify(uint64_t)", "Not yet")
     ]
 
     #expect(
@@ -97,7 +97,7 @@ struct CoverageAuditTests {
         "excluded `IOExample` `void Notify(uint64_t)` says \"Not yet\"; "
           + "describe what SwifterKit does now",
         "excluded `IOExample` `void _Plumbing()` is already kept from DriverKit clients: "
-          + "declared private in the SDK header",
+          + "declared private in the SDK header"
       ]
     )
     // Without evidence, only the header facts are checked.
@@ -123,7 +123,7 @@ struct CoverageAuditTests {
         "excluded `IOExample` `void Notify(uint64_t)` says \"Not yet\"; "
           + "describe what SwifterKit does now",
         "excluded `IOExample` `void _Plumbing()` is already kept from DriverKit clients: "
-          + "declared private in the SDK header",
+          + "declared private in the SDK header"
       ]
     )
   }

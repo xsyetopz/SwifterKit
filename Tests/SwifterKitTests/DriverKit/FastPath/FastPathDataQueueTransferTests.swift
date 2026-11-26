@@ -21,13 +21,13 @@ struct FastPathDataQueueTransferTests {
         argumentCount: 3,
         operations: [
           .compute(.v3, .add, .value(.v0)), .compute(.v3, .add, .value(.v1)),
-          .enqueue(3, slots: [.v3, .v2]),
+          .enqueue(3, slots: [.v3, .v2])
         ]
       )
     ],
     dataQueues: [
       FastPathDataQueue(id: 3, capacityBytes: 4096, maximumEntrySize: 16, direction: .toHost),
-      FastPathDataQueue(id: 4, capacityBytes: 4096, maximumEntrySize: 32, direction: .toExtension),
+      FastPathDataQueue(id: 4, capacityBytes: 4096, maximumEntrySize: 32, direction: .toExtension)
     ]
   )
 
@@ -50,7 +50,7 @@ struct FastPathDataQueueTransferTests {
     "second-bad moved=1 waiting=0 blocked=0 corrupt=1 consumer=1 log=E8",
     // The header's geometry is the host's to write, so it is never used for addressing.
     "header-geometry moved=64 waiting=0 blocked=0 corrupt=0 consumer=64 log=64",
-    "wrapped moved=2 waiting=0 blocked=0 corrupt=0 consumer=1 log=E8,E8",
+    "wrapped moved=2 waiting=0 blocked=0 corrupt=0 consumer=1 log=E8,E8"
   ]
 
   @Test
@@ -87,7 +87,7 @@ struct FastPathDataQueueTransferTests {
         "--sdk", "macosx", "clang++", "-std=c++20", "-Wall", "-Wextra", "-Werror",
         "-fno-exceptions", "-fno-rtti", "-fsanitize=address,undefined", "-fno-sanitize-recover=all",
         "-I", checkedInNativeSources.path, "-I", directory.path, harness.path, "-o",
-        executable.path,
+        executable.path
       ],
       driverKitXcode: false
     )

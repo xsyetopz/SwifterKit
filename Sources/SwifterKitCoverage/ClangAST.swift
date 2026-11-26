@@ -142,8 +142,8 @@ struct ClangAST {
       if let location, isTree(location), node["completeDefinition"] as? Bool == true {
         sourceRecords.insert(name)
       }
-      let base = (node["bases"] as? [[String: Any]])?.first?["type"] as? [String: Any]
-      if let base = base?["qualType"] as? String { bases[name] = base }
+      let baseType = (node["bases"] as? [[String: Any]])?.first?["type"] as? [String: Any]
+      if let baseName = baseType?["qualType"] as? String { bases[name] = baseName }
     case "TypeAliasDecl", "TypedefDecl":
       if let record, let name = node["name"] as? String,
         let type = (node["type"] as? [String: Any])?["qualType"] as? String
@@ -230,7 +230,7 @@ struct ClangAST {
   private mutating func consume(_ location: [String: Any]) -> String {
     if let spelling = location["spellingLoc"] as? [String: Any] { consume(spelling) }
     if let expansion = location["expansionLoc"] as? [String: Any] { return consume(expansion) }
-    if let file = location["file"] as? String { self.file = file }
+    if let located = location["file"] as? String { file = located }
     return file
   }
 

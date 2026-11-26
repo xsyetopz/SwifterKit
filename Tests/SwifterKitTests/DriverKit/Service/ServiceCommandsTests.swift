@@ -9,13 +9,13 @@ struct ServiceCommandsTests {
   func typedValuesMatchDriverKitConstants() {
     #expect(
       [ServicePowerCapability.off, .on, .low, .lowPowerWake].map(\.rawValue) == [
-        0, 0x2, 0x1_0000, 0x2_0000,
+        0, 0x2, 0x1_0000, 0x2_0000
       ]
     )
     #expect(ServicePMAssertionOptions.all.rawValue == 0x801)
     #expect(
       ServiceBusStall.allCases.map(\.rawValue) == [
-        0, 5_000, 10_000, 20_000, 25_000, 30_000, 40_000,
+        0, 5_000, 10_000, 20_000, 25_000, 30_000, 40_000
       ]
     )
     #expect(ServicePropertySearchOptions.parents.rawValue == 0x1)

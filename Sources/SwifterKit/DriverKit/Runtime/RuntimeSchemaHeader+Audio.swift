@@ -27,14 +27,14 @@ extension RuntimeSchemaHeader {
             ("kSwifterKitAudioMaximumRingBufferSize", "\(audio.maximumRingBufferSize)"),
             ("kSwifterKitAudioMaximumReadLength", "\(audio.maximumReadLength)"),
             ("kSwifterKitAudioMaximumWriteLength", "\(audio.maximumWriteLength)"),
-            ("kSwifterKitAudioTransferHeaderSize", "\(audio.transferHeaderSize)"),
+            ("kSwifterKitAudioTransferHeaderSize", "\(audio.transferHeaderSize)")
           ]
         ),
         constants(
           "double",
           [
             ("kSwifterKitAudioMinimumSampleRate", "\(audio.minimumSampleRate)"),
-            ("kSwifterKitAudioMaximumSampleRate", "\(audio.maximumSampleRate)"),
+            ("kSwifterKitAudioMaximumSampleRate", "\(audio.maximumSampleRate)")
           ]
         )
       ),
@@ -110,7 +110,7 @@ extension RuntimeSchemaHeader {
           RuntimeAudioClockState.self,
           all: "kSwifterKitAudioClockStateAll"
         )
-      ),
+      )
     ]
   }
 }

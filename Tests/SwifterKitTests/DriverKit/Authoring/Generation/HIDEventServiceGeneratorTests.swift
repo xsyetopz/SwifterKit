@@ -29,7 +29,7 @@ struct HIDEventServiceGeneratorTests {
   static let options = DriverExtensionGenerationOptions(deploymentTarget: "21.0")
 
   @Test(arguments: [
-    HIDEventServiceClass.eventService, .eventDriver(categories: [.keyboard, .led]),
+    HIDEventServiceClass.eventService, .eventDriver(categories: [.keyboard, .led])
   ])
   func generatesAndBuildsEventService(_ serviceClass: HIDEventServiceClass) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
@@ -104,7 +104,7 @@ struct HIDEventServiceGeneratorTests {
         Self.eventConfiguration(
           .eventService,
           service: HIDEventServiceConfiguration(usagePairs: [
-            HIDUsagePair(usagePage: 1), HIDUsagePair(usagePage: 1),
+            HIDUsagePair(usagePage: 1), HIDUsagePair(usagePage: 1)
           ])
         ), Self.options
       ),
@@ -116,7 +116,7 @@ struct HIDEventServiceGeneratorTests {
             usagePairs: [HIDUsagePair(usagePage: 1)]
           )
         ), Self.options
-      ),
+      )
     ]
     for (configuration, options) in cases {
       #expect(throws: DriverExtensionGenerationError.invalidHIDConfiguration) {

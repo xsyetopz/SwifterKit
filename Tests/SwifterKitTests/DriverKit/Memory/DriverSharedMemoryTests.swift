@@ -18,8 +18,8 @@ struct DriverSharedMemoryTests {
     #expect(try memory.load(UInt64.self, fromByteOffset: 56) == .max)
     try memory.write([9, 8, 7], toByteOffset: 61)
     #expect(try memory.load(UInt8.self, fromByteOffset: 63) == 7)
-    #expect(try memory.withUnsafeBytes { $0.count } == 64)
-    try memory.withUnsafeMutableBytes { $0[0] = 0xAB }
+    unsafe #expect(try memory.withUnsafeBytes { $0.count } == 64)
+    unsafe try memory.withUnsafeMutableBytes { unsafe $0[0] = 0xAB }
     #expect(try memory.load(UInt8.self, fromByteOffset: 0) == 0xAB)
   }
 
@@ -52,7 +52,9 @@ struct DriverSharedMemoryTests {
       try memory.store(UInt8(1), toByteOffset: 0)
     }
     #expect(throws: DriverSharedMemoryError.readOnly) { try memory.write([1], toByteOffset: 0) }
-    #expect(throws: DriverSharedMemoryError.readOnly) { try memory.withUnsafeMutableBytes { _ in } }
+    #expect(throws: DriverSharedMemoryError.readOnly) {
+      unsafe try memory.withUnsafeMutableBytes { _ in }
+    }
     #expect(try memory.load(UInt8.self, fromByteOffset: 0) == 0)
   }
 
@@ -67,7 +69,7 @@ struct DriverSharedMemoryTests {
     #expect(throws: DriverSharedMemoryError.unmapped) {
       try memory.load(UInt8.self, fromByteOffset: 0)
     }
-    #expect(throws: DriverSharedMemoryError.unmapped) { try memory.withUnsafeBytes { _ in } }
+    #expect(throws: DriverSharedMemoryError.unmapped) { unsafe try memory.withUnsafeBytes { _ in } }
   }
 
   @Test
@@ -87,10 +89,10 @@ struct DriverSharedMemoryTests {
     var mappings = InMemoryMappings()
     let memory = mappings.map(type: 1, readOnly: false)
     let unmaps = mappings.unmaps
-    try memory.withUnsafeMutableBytes { bytes in
+    unsafe try memory.withUnsafeMutableBytes { bytes in
       memory.unmap()
       #expect(unmaps.total == 0)
-      bytes[0] = 1
+      unsafe bytes[0] = 1
       #expect(!memory.isMapped)
     }
     #expect(unmaps.total == 1)

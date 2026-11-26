@@ -110,7 +110,7 @@ struct DriverExtensionRuntimeContractTests {
         (
           "SwifterKitRuntimeBlockStorage.cpp",
           "payloadLength > kSwifterKitMaximumEventPayloadLength"
-        ),
+        )
       ]
       for (name, check) in checks {
         let text = try source(name, in: output)

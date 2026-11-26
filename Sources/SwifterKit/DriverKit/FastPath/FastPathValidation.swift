@@ -20,9 +20,9 @@ extension FastPathConfiguration {
     for (bar, size) in barSizes.sorted(by: { $0.key < $1.key })
     where bar > FastPathLimits.maximumBAR || size == 0 { throw .invalidBARSize(bar: bar) }
     let usesRegisters = programs.contains { $0.operations.contains { $0.register != nil } }
-    if (usesRegisters || !barSizes.isEmpty) && !hasPCIDevice { throw .registersWithoutPCIDevice }
+    if usesRegisters || !barSizes.isEmpty, !hasPCIDevice { throw .registersWithoutPCIDevice }
     let rings = try validatedRings()
-    if !rings.isEmpty && !hasPCIDevice { throw .ringsWithoutPCIDevice }
+    if !rings.isEmpty, !hasPCIDevice { throw .ringsWithoutPCIDevice }
     let dataQueues = try validatedDataQueues()
     var interruptTriggers: Set<UInt32> = []
     var dataAvailableTriggers: Set<UInt32> = []

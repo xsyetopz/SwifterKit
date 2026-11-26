@@ -129,13 +129,13 @@ public struct AudioObjectInfo: Sendable, Hashable {
     let maximum = RuntimeAudioLimits.nameMaximumLength
     guard reserved == 0, nameLength <= maximum, uidLength <= maximum,
       runtimePayload.count == 32 + nameLength + uidLength,
-      let name = String(
+      let decodedName = String(
         data: runtimePayload[(base + 32)..<(base + 32 + nameLength)],
         encoding: .utf8
-      ), let uid = String(data: runtimePayload.suffix(uidLength), encoding: .utf8)
+      ), let decodedUID = String(data: runtimePayload.suffix(uidLength), encoding: .utf8)
     else { throw AudioRuntimeError.invalidPayload }
-    self.name = name
-    self.uid = uid
+    name = decodedName
+    uid = decodedUID
   }
 }
 

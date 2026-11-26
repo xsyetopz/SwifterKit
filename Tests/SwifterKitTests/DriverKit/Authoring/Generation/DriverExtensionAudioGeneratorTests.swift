@@ -203,7 +203,7 @@ struct AudioGeneratorTests {
   private var deviceConfiguration: AudioDeviceConfiguration {
     let formats = [
       AudioStreamFormat.linearPCM(sampleRate: 44_100, channels: 2),
-      AudioStreamFormat.linearPCM(sampleRate: 48_000, channels: 2),
+      AudioStreamFormat.linearPCM(sampleRate: 48_000, channels: 2)
     ]
     let property = AudioCustomPropertyConfiguration(
       identifier: 20,
@@ -220,7 +220,7 @@ struct AudioGeneratorTests {
       initialSampleRate: 48_000,
       streams: [
         AudioStreamConfiguration(direction: .output, name: "Output", formats: formats),
-        AudioStreamConfiguration(direction: .input, name: "Input", formats: formats),
+        AudioStreamConfiguration(direction: .input, name: "Input", formats: formats)
       ],
       controls: audioControls,
       customProperties: [property]
@@ -248,7 +248,7 @@ struct AudioGeneratorTests {
           minimumDecibels: -96,
           maximumDecibels: 0
         )
-      ),
+      )
     ]
     return lead + Self.selectorSliderAndPanControls(selectorName: "Input")
   }
@@ -265,7 +265,7 @@ struct AudioGeneratorTests {
             controlClass: .dataSource
           ),
           values: [
-            AudioSelectorValue(value: 1, name: "Line"), AudioSelectorValue(value: 2, name: "Mic"),
+            AudioSelectorValue(value: 1, name: "Line"), AudioSelectorValue(value: 2, name: "Mic")
           ],
           initialValues: [1]
         )
@@ -289,7 +289,7 @@ struct AudioGeneratorTests {
           leftChannel: 1,
           rightChannel: 2
         )
-      ),
+      )
     ]
   }
 }

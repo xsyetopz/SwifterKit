@@ -251,7 +251,7 @@ struct DriverExtensionGeneratorTests {
       pciDevice: PCIDeviceConfiguration(vendorID: 0x1011, deviceIDs: [0x0026]),
       interruptSources: [
         InterruptSourceConfiguration(index: 0),
-        InterruptSourceConfiguration(index: 2, clock: .continuous),
+        InterruptSourceConfiguration(index: 2, clock: .continuous)
       ]
     )
 
@@ -279,7 +279,7 @@ struct DriverExtensionGeneratorTests {
       providerClass: "IOPCIDevice",
       capabilities: .interrupts,
       interruptSources: [
-        InterruptSourceConfiguration(index: 1), InterruptSourceConfiguration(index: 1),
+        InterruptSourceConfiguration(index: 1), InterruptSourceConfiguration(index: 1)
       ]
     )
     #expect(throws: DriverExtensionGenerationError.invalidInterruptConfiguration) {
@@ -414,7 +414,7 @@ struct DriverExtensionGeneratorTests {
     HIDDeviceConfiguration(
       reportDescriptor: [
         0x06, 0x00, 0xFF, 0x09, 0x01, 0xA1, 0x01, 0x15, 0x00, 0x26, 0xFF, 0x00, 0x75, 0x08, 0x95,
-        0x01, 0x09, 0x02, 0x81, 0x02, 0xC0,
+        0x01, 0x09, 0x02, 0x81, 0x02, 0xC0
       ],
       vendorID: 0x1234,
       productID: 0x5678,

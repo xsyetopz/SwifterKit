@@ -176,7 +176,7 @@ struct AudioObjectRuntimeContractTests {
       device(boxes: [box("A", ownsDevice: true), box("B", ownsDevice: true)]),
       device(boxes: (0..<5).map { box("B\($0)") }),
       device(clocks: [clock("C", rates: [48_000], initial: 44_100)]),
-      device(clocks: [clock("C", rates: [48_000], period: 8)]), device(clocks: [clock("")]),
+      device(clocks: [clock("C", rates: [48_000], period: 8)]), device(clocks: [clock("")])
     ]
     for configuration in invalid {
       #expect(!DriverExtensionGenerator.isValid(audio: configuration))
@@ -196,7 +196,7 @@ struct AudioObjectRuntimeContractTests {
           hasMIDI: true,
           ownsDevice: true,
           clockDevices: [1]
-        ), box("com.example.box.1", clocks: [0]),
+        ), box("com.example.box.1", clocks: [0])
       ],
       clocks: [
         AudioClockDeviceConfiguration(
@@ -212,7 +212,7 @@ struct AudioObjectRuntimeContractTests {
           inputLatency: 12,
           outputLatency: 34,
           wantsControlsRestored: true
-        ), clock("com.example.clock.1", rates: [96_000], initial: 96_000),
+        ), clock("com.example.clock.1", rates: [96_000], initial: 96_000)
       ]
     )
   }

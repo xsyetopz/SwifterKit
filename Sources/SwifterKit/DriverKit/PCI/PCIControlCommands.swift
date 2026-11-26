@@ -61,7 +61,7 @@ extension DriverCommand {
     func encode(_ value: Bool?) -> UInt8 { value.map { $0 ? 2 : 1 } ?? 0 }
     let payload = Data([
       encode(properties.configSpaceVolatile), encode(properties.sleepLinkDisable),
-      encode(properties.sleepReset), 0,
+      encode(properties.sleepReset), 0
     ])
     return pciControl(.pciSetProperties, payload: payload)
   }

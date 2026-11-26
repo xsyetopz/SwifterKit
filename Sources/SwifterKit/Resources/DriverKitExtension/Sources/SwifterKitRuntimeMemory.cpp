@@ -228,9 +228,9 @@ namespace {
         for (uint32_t index = 0; result == kIOReturnSuccess && index < sourceCount; ++index) {
             if (!entry->sources->setObject(sources[index])) {
                 result = kIOReturnNoMemory;
-            } else if (SwifterKitMemoryEntry* source =
-                           FindMemoryByDescriptor(state, sources[index]);
-                       source != nullptr) {
+            } else if (
+                SwifterKitMemoryEntry* source = FindMemoryByDescriptor(state, sources[index]);
+                source != nullptr) {
                 ++source->dependents;
             }
         }

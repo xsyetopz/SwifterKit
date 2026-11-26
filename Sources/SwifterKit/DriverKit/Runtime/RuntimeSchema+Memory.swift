@@ -99,7 +99,7 @@ extension RuntimeSchemaHeader {
             (
               "kSwifterKitClientMemoryIdentifierMask",
               hex(RuntimeClientMemoryType.identifierMask, digits: 6)
-            ),
+            )
           ]
         )
       ),
@@ -109,7 +109,7 @@ extension RuntimeSchemaHeader {
         cases: RuntimeMemoryStatus.allCases.map { (nativeName($0), hex($0.rawValue, digits: 8)) }
       ),
       enumeration("SwifterKitClientMemoryKind", type: "uint32_t", RuntimeClientMemoryKind.allCases),
-      enumeration("SwifterKitPacketPool", type: "uint32_t", RuntimePacketPool.allCases),
+      enumeration("SwifterKitPacketPool", type: "uint32_t", RuntimePacketPool.allCases)
     ]
   }
 }

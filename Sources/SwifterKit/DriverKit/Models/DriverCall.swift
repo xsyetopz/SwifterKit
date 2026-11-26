@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// A raw DriverKit user-client external-method request.
 public struct DriverRequest: Sendable, Equatable {

@@ -22,6 +22,7 @@ import Foundation
 ///
 /// The extension and the device may change the bytes at any time. Coordinate through the
 /// protocol that owns the memory, such as a DMA completion or runtime command.
+@safe
 public final class DriverSharedMemory: @unchecked Sendable {
   /// The mapped byte count.
   public let length: Int
@@ -48,7 +49,7 @@ public final class DriverSharedMemory: @unchecked Sendable {
     isReadOnly: Bool,
     unmap: @escaping @Sendable () -> Void
   ) {
-    self.baseAddress = baseAddress
+    unsafe self.baseAddress = baseAddress
     self.length = max(0, length)
     self.isReadOnly = isReadOnly
     self.release = unmap
@@ -80,34 +81,34 @@ public final class DriverSharedMemory: @unchecked Sendable {
 
   /// Reads a little-endian integer at `offset`.
   public func load<Value: FixedWidthInteger>(
-    _ type: Value.Type = Value.self,
+    _ _: Value.Type = Value.self,
     fromByteOffset offset: Int
   ) throws -> Value {
-    try access(offset: offset, count: MemoryLayout<Value>.size, writes: false) { pointer in
-      Value(littleEndian: pointer.loadUnaligned(as: Value.self))
+    unsafe try access(offset: offset, count: MemoryLayout<Value>.size, writes: false) { pointer in
+      unsafe Value(littleEndian: pointer.loadUnaligned(as: Value.self))
     }
   }
 
   /// Writes `value` as a little-endian integer at `offset`.
   public func store<Value: FixedWidthInteger>(_ value: Value, toByteOffset offset: Int) throws {
-    try access(offset: offset, count: MemoryLayout<Value>.size, writes: true) { pointer in
-      pointer.storeBytes(of: value.littleEndian, as: Value.self)
+    unsafe try access(offset: offset, count: MemoryLayout<Value>.size, writes: true) { pointer in
+      unsafe pointer.storeBytes(of: value.littleEndian, as: Value.self)
     }
   }
 
   /// Copies `count` bytes starting at `offset`.
   public func copyBytes(fromByteOffset offset: Int, count: Int) throws -> [UInt8] {
-    try access(offset: offset, count: count, writes: false) { pointer in
-      Array(UnsafeRawBufferPointer(start: pointer, count: count))
+    unsafe try access(offset: offset, count: count, writes: false) { pointer in
+      unsafe Array(UnsafeRawBufferPointer(start: pointer, count: count))
     }
   }
 
   /// Copies `bytes` into the memory starting at `offset`.
   public func write(_ bytes: [UInt8], toByteOffset offset: Int) throws {
-    try access(offset: offset, count: bytes.count, writes: true) { pointer in
+    unsafe try access(offset: offset, count: bytes.count, writes: true) { pointer in
       bytes.withUnsafeBytes { source in
         if let start = source.baseAddress {
-          pointer.copyMemory(from: start, byteCount: source.count)
+          unsafe pointer.copyMemory(from: start, byteCount: source.count)
         }
       }
     }
@@ -119,8 +120,8 @@ public final class DriverSharedMemory: @unchecked Sendable {
   public func withUnsafeBytes<Result>(
     _ body: (UnsafeRawBufferPointer) throws -> Result
   ) throws -> Result {
-    try access(offset: 0, count: length, writes: false) { pointer in
-      try body(UnsafeRawBufferPointer(start: pointer, count: length))
+    unsafe try access(offset: 0, count: length, writes: false) { pointer in
+      unsafe try body(UnsafeRawBufferPointer(start: pointer, count: length))
     }
   }
 
@@ -130,8 +131,8 @@ public final class DriverSharedMemory: @unchecked Sendable {
   public func withUnsafeMutableBytes<Result>(
     _ body: (UnsafeMutableRawBufferPointer) throws -> Result
   ) throws -> Result {
-    try access(offset: 0, count: length, writes: true) { pointer in
-      try body(UnsafeMutableRawBufferPointer(start: pointer, count: length))
+    unsafe try access(offset: 0, count: length, writes: true) { pointer in
+      unsafe try body(UnsafeMutableRawBufferPointer(start: pointer, count: length))
     }
   }
 
@@ -157,7 +158,7 @@ public final class DriverSharedMemory: @unchecked Sendable {
         release()
       }
     }
-    return try body(baseAddress + offset)
+    return unsafe try body(baseAddress + offset)
   }
 }
 

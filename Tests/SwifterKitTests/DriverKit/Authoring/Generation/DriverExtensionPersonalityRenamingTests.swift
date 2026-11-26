@@ -13,7 +13,7 @@ struct DriverExtensionPersonalityRenamingTests {
     ("SWIFTERKIT_ENABLE_USB", "SWIFTERKIT_ENABLE_USB"),
     ("_SwifterKitRuntime", "_SwifterKitRuntime"),
     ("Sources/SwifterKit/Runtime.swift", "Sources/SwifterKit/Runtime.swift"),
-    ("IOUserHIDDevice", "IOUserHIDDevice"),
+    ("IOUserHIDDevice", "IOUserHIDDevice")
   ])
   func renamesNamesThatStartWithSwifterKit(_ name: String, _ expected: String) {
     #expect(DriverExtensionPersonalityRenaming.renamed(name, personality: "Pad") == expected)

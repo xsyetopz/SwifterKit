@@ -85,8 +85,8 @@ public struct USBIsochronousCompletion: Sendable, Hashable {
     guard requestID != 0, frameCount > 0, runtimePayload.count == 16 + frameCount * 24 + dataLength
     else { throw USBRuntimeError.invalidResponse }
 
-    var frames: [USBIsochronousFrameResult] = []
-    frames.reserveCapacity(frameCount)
+    var results: [USBIsochronousFrameResult] = []
+    results.reserveCapacity(frameCount)
     var requested = 0
     for index in 0..<frameCount {
       let offset = 16 + index * 24
@@ -98,11 +98,11 @@ public struct USBIsochronousCompletion: Sendable, Hashable {
       )
       guard frame.completeCount <= frame.requestCount else { throw USBRuntimeError.invalidResponse }
       requested += Int(frame.requestCount)
-      frames.append(frame)
+      results.append(frame)
     }
     let input = USBTransferDirection(encodedByte: endpoint) == .in
     guard dataLength == (input ? requested : 0) else { throw USBRuntimeError.invalidResponse }
-    self.frames = frames
+    frames = results
     data = Array(runtimePayload.suffix(dataLength))
   }
 }
@@ -164,15 +164,16 @@ public struct USBBundledIOCompletion: Sendable, Hashable {
     endpoint = runtimePayload[runtimePayload.startIndex]
     let reserved: UInt8 = runtimePayload[runtimePayload.startIndex + 1]
     let reserved16: UInt16 = try runtimePayload.readRuntimeInteger(at: 2)
-    let index: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
+    let rawIndex: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
     status = try runtimePayload.readRuntimeInteger(at: 8)
     bytesTransferred = try runtimePayload.readRuntimeInteger(at: 12)
     data = Array(runtimePayload.dropFirst(16))
     let input = USBTransferDirection(encodedByte: endpoint) == .in
-    guard reserved == 0, reserved16 == 0, index < UInt32(DriverCommand.usbMaximumBundleRingEntries),
+    guard reserved == 0, reserved16 == 0,
+      rawIndex < UInt32(DriverCommand.usbMaximumBundleRingEntries),
       data.count == (input ? Int(bytesTransferred) : 0)
     else { throw USBRuntimeError.invalidResponse }
-    self.index = Int(index)
+    index = Int(rawIndex)
   }
 }
 

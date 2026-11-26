@@ -45,14 +45,14 @@
     }
 
     private func invokeCallout(_ reference: [UInt64]) {
-      let callout = unsafeBitCast(
+      let callout = unsafe unsafeBitCast(
         UInt(reference[Int(kIOAsyncCalloutFuncIndex)]),
         to: IOAsyncCallback.self
       )
-      let refcon = UnsafeMutableRawPointer(
+      let refcon = unsafe UnsafeMutableRawPointer(
         bitPattern: UInt(reference[Int(kIOAsyncCalloutRefconIndex)])
       )
-      callout(refcon, kIOReturnSuccess, nil, 0)
+      unsafe callout(refcon, kIOReturnSuccess, nil, 0)
     }
   }
 #endif

@@ -226,7 +226,7 @@ struct DriverExtensionEventNotificationContractTests {
     let declarations = [
       "virtual kern_return_t ClientCrashed(IOService* client, uint64_t options) override;",
       "kern_return_t AttachEventClient(IOService* client) LOCALONLY;",
-      "void DetachEventClient(IOService* client) LOCALONLY;",
+      "void DetachEventClient(IOService* client) LOCALONLY;"
     ]
     let checkedIn = try String(
       contentsOf: checkedInNativeSources.appendingPathComponent("SwifterKitRuntimeService.iig"),

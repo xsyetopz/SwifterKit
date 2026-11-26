@@ -26,13 +26,13 @@ struct DriverSessionTests {
 private actor CountingConnection: DriverConnection {
   var closeCount = 0
 
-  func call(_ request: DriverRequest) -> DriverResponse { DriverResponse() }
+  func call(_ _: DriverRequest) -> DriverResponse { DriverResponse() }
 
-  func notifications(selector: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
+  func notifications(selector _: UInt32) -> AsyncStream<Void> { AsyncStream { $0.finish() } }
 
   func close() { closeCount += 1 }
 
-  func mapMemory(type: UInt32, readOnly: Bool) throws -> DriverSharedMemory {
+  func mapMemory(type _: UInt32, readOnly _: Bool) throws -> DriverSharedMemory {
     throw MappingUnsupported()
   }
 }

@@ -23,25 +23,25 @@ brew install swiftlint llvm
 Run Swift tests during development:
 
 ```sh
-swift test -Xswiftc -warnings-as-errors
+just swift::test
 ```
 
 Run the full repository validation before submitting a pull request:
 
 ```sh
-./scripts/ci/validate.sh
+just setup
+just verify
 ```
 
-The full validation builds an unsigned DriverKit extension for arm64 and x86_64. Signed validation needs the Apple assets described in [docs/publishing.md](docs/publishing.md); ordinary pull requests do not need those assets.
+The full validation builds an unsigned DriverKit extension for arm64 and x86_64. Signed validation, `just sign-driverkit`, needs an Apple development certificate, a DriverKit provisioning profile, and approved entitlements; ordinary pull requests do not need those assets.
 
 ## Formatting and file layout
 
 Format Swift and native source with the checked-in configurations:
 
 ```sh
-xcrun swift-format format --in-place --recursive Sources Tests Package.swift
-xcrun clang-format -i Sources/SwifterKit/Resources/DriverKitExtension/Sources/*.{cpp,h,iig}
-swiftlint lint --strict
+just format
+just lint
 ```
 
 Fix source instead of weakening `.swift-format`, `.swiftlint.yml`, `.clang-format`, or `.clang-tidy`. Keep source and test files below 800 lines after formatting and aim for 500. Markdown is excluded from the LOC audit.
@@ -50,13 +50,13 @@ Directories below `Tests/SwifterKitTests` mirror the corresponding `Sources/Swif
 
 ## Swift and native boundaries
 
-Public Swift APIs require documentation and Swift 6 concurrency-safe behavior. Write `///` documentation only for what clients see: `open` and `public` declarations, and the enum cases and protocol requirements they make public. Use `//` for any other comment. `./scripts/ci/validate.sh` runs `scripts/ci/audit_docs.py` against the public symbol graph, which rejects `///` on any other declaration. Preserve error types, diagnostics, payload layouts, request identifiers, and completion ownership.
+Public Swift APIs require documentation and Swift 6 concurrency-safe behavior. Write `///` documentation only for what clients see: `open` and `public` declarations, and the enum cases and protocol requirements they make public. Use `//` for any other comment. `just docs` runs `scripts/ci/audit_docs.py` against the public symbol graph, which rejects `///` on any other declaration. Preserve error types, diagnostics, payload layouts, request identifiers, and completion ownership.
 
 `Sources/SwifterKit/Resources/DriverKitExtension` is the only native extension source tree. Native code uses C++20, warnings as errors, const-correctness, and the repository Clang checks. Keep ABI-required IIG declarations and explicit DriverKit types when modernization would change generated interfaces or framework contracts.
 
 Driver authors should not need to copy or maintain C++, C, Objective-C, or IIG glue. Add native work inside SwifterKit and expose it through typed Swift configuration, commands, events, and tests.
 
-When a change adds or removes support for a DriverKit member, name each member the Swift API reaches as `` `Class::member` `` in that API's `///` documentation, then regenerate `Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md` with `swift run SwifterKitCoverage docc --sdk DIR... --trees DIR --article Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md`, where `--trees` holds the trees that `SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE=DIR swift test` captures and `--sdk` names every installed `DriverKit.sdk`. A public member SwifterKit does not reach is a gap unless the article's "Members SwifterKit does not expose" section gives a reason on a `` - `Class` `signature`: reason `` line. A reason describes what SwifterKit does, never intent such as "planned" or "not yet". `./scripts/ci/validate.sh` checks the documentation and the reasons against clang's evidence and the headers, and compares the article.
+When a change adds or removes support for a DriverKit member, name each member the Swift API reaches as `` `Class::member` `` in that API's `///` documentation, then regenerate `Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md` with `swift run SwifterKitCoverage docc --sdk DIR... --trees DIR --article Sources/SwifterKit/SwifterKit.docc/DriverKitCoverage.md`, where `--trees` holds the trees that `SWIFTERKIT_NATIVE_ANALYSIS_CAPTURE=DIR swift test` captures and `--sdk` names every installed `DriverKit.sdk`. A public member SwifterKit does not reach is a gap unless the article's "Members SwifterKit does not expose" section gives a reason on a `` - `Class` `signature`: reason `` line. A reason describes what SwifterKit does, never intent such as "planned" or "not yet". `just coverage`, part of `just verify`, checks the documentation and the reasons against clang's evidence and the headers, and compares the article.
 
 ## Pull requests
 

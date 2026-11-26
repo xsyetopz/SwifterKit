@@ -47,12 +47,12 @@ struct VideoMemberRuntimeContractTests {
         "SwifterKitCopyDeviceState<VideoMemberFamily>(",
         "SwifterKitSetPreferredChannelLayout<VideoMemberFamily>(",
         "SwifterKitRemoveSelectorItems<VideoMemberFamily>(",
-        "SwifterKitCopyCustomPropertyInfo<VideoMemberFamily>(",
+        "SwifterKitCopyCustomPropertyInfo<VideoMemberFamily>("
       ] { #expect(native.contains(call), "missing \(call)") }
       let shared = try source("SwifterKitRuntimeMediaMembers.h", in: output)
       for call in [
         "SetPreferredInputChannelLayout(", "GetCurrentClientIOTime(false",
-        "RemoveControlValueDescriptions(", "GetCustomPropertyInfo()",
+        "RemoveControlValueDescriptions(", "GetCustomPropertyInfo()"
       ] { #expect(shared.contains(call), "missing \(call)") }
       // Stream detach runs in the device's PerformDeviceConfigurationChange.
       let device = try source("SwifterKitRuntimeVideoDevice.cpp", in: output)

@@ -2,7 +2,30 @@
 
 SwifterKit records user-visible changes in this file.
 
-## Unreleased
+## 0.5.0
+
+### Breaking
+
+- SwifterKit requires macOS 13 or later; 0.4 supported macOS 12. The package
+  manifest uses `swift-tools-version: 6.4`. Generated extensions keep their own
+  DriverKit deployment targets, so a DriverKit 21.0 extension still runs on
+  macOS 12.
+- The package builds every target in Swift 6 language mode with C++
+  interoperability, strict memory safety, warnings as errors, and the
+  upcoming features `ExistentialAny`, `InternalImportsByDefault`,
+  `MemberImportVisibility`, `InferIsolatedConformances`,
+  `NonisolatedNonsendingByDefault`, and `ImmutableWeakCaptures`. Public
+  declarations are unchanged; `DriverEventSequence.Iterator.next()` is marked
+  `@concurrent` so it keeps running off the caller's actor, as in 0.4.
+
+### Changed
+
+- Repository checks run through `just`: `just setup` installs the pinned
+  tools, `just verify` runs the full validation, and `just` lists the narrower
+  recipes. `scripts/ci/validate.sh`, `validate-native.sh`,
+  `scripts/release/archive-source.sh`, and `scripts/signing/*` are replaced by
+  `just verify`, `just native-tidy`, `just release-archive TAG`,
+  `just sign-driverkit`, and the CI-only signing import.
 
 ### Added
 

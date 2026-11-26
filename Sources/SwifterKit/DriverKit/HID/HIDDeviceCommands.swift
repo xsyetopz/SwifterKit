@@ -25,9 +25,10 @@ public struct HIDGetReportRequest: Sendable, Hashable {
       throw HIDRuntimeError.invalidEventPayload
     }
     requestID = try data.readRuntimeInteger(at: 0)
-    guard requestID != 0, let type = HIDReportType(rawValue: try data.readRuntimeInteger(at: 4))
+    guard requestID != 0,
+      let reportType = HIDReportType(rawValue: try data.readRuntimeInteger(at: 4))
     else { throw HIDRuntimeError.invalidEventPayload }
-    self.type = type
+    type = reportType
     options = try data.readRuntimeInteger(at: 8)
     capacity = try data.readRuntimeInteger(at: 12)
     timeout = try data.readRuntimeInteger(at: 16)

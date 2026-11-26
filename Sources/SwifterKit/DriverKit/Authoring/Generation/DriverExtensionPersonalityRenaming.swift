@@ -132,9 +132,9 @@ enum DriverExtensionPersonalityRenaming {
     var index = lineStart
     while index < bytes.count, bytes[index] == UInt8(ascii: " ") || bytes[index] == 9 { index += 1 }
     return ["#include", "#import"].contains { directive in
-      let directive = Array(directive.utf8)
-      return index + directive.count <= bytes.count
-        && bytes[index..<index + directive.count].elementsEqual(directive)
+      let directiveBytes = Array(directive.utf8)
+      return index + directiveBytes.count <= bytes.count
+        && bytes[index..<index + directiveBytes.count].elementsEqual(directiveBytes)
     }
   }
 

@@ -11,7 +11,7 @@ extension RuntimeSchemaHeader {
             ("kSwifterKitNetworkMaximumBatch", "\(network.maximumBatch)"),
             ("kSwifterKitNetworkEventHeaderSize", "\(network.eventHeaderSize)"),
             ("kSwifterKitNetworkTransmitMetadataSize", "\(network.transmitMetadataSize)"),
-            ("kSwifterKitNetworkQueueCount", "\(network.queueCount)"),
+            ("kSwifterKitNetworkQueueCount", "\(network.queueCount)")
           ]
         ),
         constants(
@@ -22,7 +22,7 @@ extension RuntimeSchemaHeader {
           "uint32_t",
           [
             ("kSwifterKitEthernetTapInput", "\(RuntimeNetworkTapMode.input.rawValue)"),
-            ("kSwifterKitEthernetTapOutput", "\(RuntimeNetworkTapMode.output.rawValue)"),
+            ("kSwifterKitEthernetTapOutput", "\(RuntimeNetworkTapMode.output.rawValue)")
           ]
         )
       ), constants("kSwifterKitNetworkEvent", type: "uint32_t", RuntimeNetworkEventKind.allCases),
@@ -35,9 +35,9 @@ extension RuntimeSchemaHeader {
           ("kSwifterKitNetworkReceiveFlags", hex(flag.receive, digits: 4)),
           ("kSwifterKitNetworkCompletionFlags", hex(flag.completion, digits: 4)),
           ("kSwifterKitNetworkRxChecksumFlags", hex(flag.receiveChecksum, digits: 4)),
-          ("kSwifterKitNetworkLROFlags", hex(flag.largeReceiveOffload, digits: 4)),
+          ("kSwifterKitNetworkLROFlags", hex(flag.largeReceiveOffload, digits: 4))
         ]
-      ),
+      )
     ]
   }
 }

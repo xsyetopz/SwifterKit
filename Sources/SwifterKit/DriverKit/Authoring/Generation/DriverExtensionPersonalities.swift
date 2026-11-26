@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 extension DriverExtensionGenerator {
   /// Generates a new extension directory with one IOKit personality per configuration in
@@ -79,9 +79,9 @@ extension DriverExtensionGenerator {
   // Renamed classes and files of such names could collide, and file names on a case-insensitive
   // volume would.
   private static func overlaps(_ lhs: String, _ rhs: String) -> Bool {
-    let lhs = lhs.lowercased()
-    let rhs = rhs.lowercased()
-    return lhs.hasPrefix(rhs) || rhs.hasPrefix(lhs)
+    let lowerLHS = lhs.lowercased()
+    let lowerRHS = rhs.lowercased()
+    return lowerLHS.hasPrefix(lowerRHS) || lowerRHS.hasPrefix(lowerLHS)
   }
 
   // Replaces the staged runtime sources with each personality's configured, renamed copy.

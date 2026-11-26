@@ -67,3 +67,12 @@ func expectOrder(
     cursor = range.upperBound
   }
 }
+
+extension String {
+  // Whether this C++ source declares the enumerator `name = value`. clang-format drops the
+  // comma after an enum's last enumerator, so the line ends in a comma or a newline.
+  func declaresEnumerator(_ name: String, _ value: some CustomStringConvertible) -> Bool {
+    let enumerator = "    \(name) = \(value)"
+    return contains(enumerator + ",\n") || contains(enumerator + "\n")
+  }
+}

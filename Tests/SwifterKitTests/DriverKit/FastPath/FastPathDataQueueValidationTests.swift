@@ -51,7 +51,7 @@ struct FastPathDataQueueValidationTests {
       queues: [
         Self.queue(0xFF_FFFF, capacity: 1_048_576, entry: 64),
         Self.queue(1, capacity: 1_048_576, entry: 8),
-        Self.queue(2, capacity: 1_048_576, entry: 8, direction: .toExtension),
+        Self.queue(2, capacity: 1_048_576, entry: 8, direction: .toExtension)
       ]
     )
   }
@@ -130,7 +130,7 @@ struct FastPathDataQueueValidationTests {
           trigger: .dataAvailable(4),
           argumentCount: 2,
           operations: [.enqueue(3, slots: [.v0, .v1])]
-        ),
+        )
       ],
       dataQueues: Self.queues
     )

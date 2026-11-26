@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 extension DriverCommand {
   /// The most frames one receive or completion batch carries.

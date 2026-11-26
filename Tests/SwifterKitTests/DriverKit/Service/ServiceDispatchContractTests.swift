@@ -27,13 +27,13 @@ struct ServiceDispatchContractTests {
       for kind in [ServiceMatchNotification.Kind.terminated, .matched] {
         let name = String(describing: kind)
         #expect(
-          header.contains("\(name.prefix(1).uppercased() + name.dropFirst()) = \(kind.rawValue),")
+          header.declaresEnumerator(name.prefix(1).uppercased() + name.dropFirst(), kind.rawValue)
         )
       }
       for size in [
         "SwifterKitTimerStart) == 24", "SwifterKitDispatchIdentifier) == 8",
         "SwifterKitTimerEvent) == 24", "SwifterKitServiceWatchEvent) == 32",
-        "SwifterKitSystemStateEvent) == 16",
+        "SwifterKitSystemStateEvent) == 16"
       ] { #expect(layouts.contains("static_assert(sizeof(\(size));")) }
     }
   }

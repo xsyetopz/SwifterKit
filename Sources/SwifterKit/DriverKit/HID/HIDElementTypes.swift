@@ -150,12 +150,12 @@ public struct HIDElementPage: Sendable, Hashable {
   public let elements: [HIDElement]
 
   init(runtimePayload data: Data, maximumCount: UInt32) throws {
-    let totalCount: UInt32 = try data.readRuntimeInteger(at: 0)
+    let total: UInt32 = try data.readRuntimeInteger(at: 0)
     let count: UInt32 = try data.readRuntimeInteger(at: 4)
-    guard count <= maximumCount, count <= totalCount,
+    guard count <= maximumCount, count <= total,
       data.count == 8 + Int(count) * HIDElement.encodedSize
     else { throw HIDRuntimeError.invalidElementPayload }
-    self.totalCount = totalCount
+    totalCount = total
     elements = try (0..<Int(count)).map {
       try HIDElement(runtimePayload: data, at: 8 + $0 * HIDElement.encodedSize)
     }
@@ -200,14 +200,14 @@ public struct HIDElementValues: Sendable, Hashable {
     let count = Int(try data.readRuntimeInteger(at: 12) as UInt32)
     guard count > 0, count <= RuntimeHIDLimits.maximumEventValues, data.count == 16 + count * 8
     else { throw HIDRuntimeError.invalidEventPayload }
-    var values: [UInt32: UInt32] = [:]
+    var decoded: [UInt32: UInt32] = [:]
     for index in 0..<count {
-      values[try data.readRuntimeInteger(at: 16 + index * 8)] = try data.readRuntimeInteger(
+      decoded[try data.readRuntimeInteger(at: 16 + index * 8)] = try data.readRuntimeInteger(
         at: 20 + index * 8
       )
     }
-    guard values.count == count else { throw HIDRuntimeError.invalidEventPayload }
-    self.values = values
+    guard decoded.count == count else { throw HIDRuntimeError.invalidEventPayload }
+    values = decoded
   }
 }
 

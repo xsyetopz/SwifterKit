@@ -20,7 +20,7 @@ static constexpr uint32_t kSwifterKitHIDLEDUsagePage = 0x08;
 
 enum class SwifterKitHIDElementWriteKind : uint32_t {
     Value = 0,
-    Data = 1,
+    Data = 1
 };
 
 static constexpr uint32_t kSwifterKitHIDHostReportOutput = 0x1;

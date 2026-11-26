@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// NetworkingDriverKit hardware assists (`kIOUserNetworkHWAssist*`) an Ethernet interface offers.
 public struct EthernetHardwareAssists: OptionSet, Sendable, Hashable {
@@ -42,7 +42,7 @@ public struct EthernetHardwareAssists: OptionSet, Sendable, Hashable {
   public static let all: Self = [
     .transmitIPv4HeaderChecksum, .transmitTCPChecksum, .transmitUDPChecksum, .softwareVLAN, .tso4,
     .tso6, .hardwareTimestamp, .softwareTimestamp, .wakeOnMagicPacket, .nicProxy, .lro,
-    .receiveChecksum, .lroSegmentCount,
+    .receiveChecksum, .lroSegmentCount
   ]
 }
 
@@ -68,7 +68,7 @@ public struct EthernetFeatureFlags: OptionSet, Sendable, Hashable {
 
   /// Every flag NetworkingDriverKit defines.
   public static let all: Self = [
-    .softwareVLAN, .hardwareTimestamp, .softwareTimestamp, .wakeOnMagicPacket, .nicProxy,
+    .softwareVLAN, .hardwareTimestamp, .softwareTimestamp, .wakeOnMagicPacket, .nicProxy
   ]
 }
 
@@ -122,7 +122,7 @@ public struct EthernetPacketPoolFlags: OptionSet, Sendable, Hashable {
   ///
   /// The runtime always maps pools into the extension.
   public static let all: Self = [
-    .singleMemorySegment, .ioDirectionIn, .ioDirectionOut, .virtualDevice, .mapToDevice,
+    .singleMemorySegment, .ioDirectionIn, .ioDirectionOut, .virtualDevice, .mapToDevice
   ]
 }
 
@@ -282,7 +282,7 @@ public struct EthernetHardwareCounts: Sendable, Hashable {
   var fields: [UInt64] {
     [
       packetsIn, bytesIn, multicastsIn, errorsIn, packetsOut, bytesOut, multicastsOut, errorsOut,
-      collisions, dropped, noProtocol,
+      collisions, dropped, noProtocol
     ]
   }
 }

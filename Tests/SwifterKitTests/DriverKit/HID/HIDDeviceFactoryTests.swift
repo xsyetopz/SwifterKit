@@ -37,7 +37,7 @@ struct HIDDeviceFactoryTests {
     #expect(command.requiredCapabilities == .hid)
     #expect(command.maximumResponseSize == RuntimeMessage.headerSize + 8)
     let header = HIDLimits.words([
-      0x045E, 0x02FD, 0x0408, 3, 0x1234, 1, 5, 1, 4, 9, 1, 3, 2, 4, 0, 0,
+      0x045E, 0x02FD, 0x0408, 3, 0x1234, 1, 5, 1, 4, 9, 1, 3, 2, 4, 0, 0
     ])
     #expect(header.count == RuntimeHIDLimits.factoryDeviceHeaderSize)
     let strings = Data("BluetoothMPadS1".utf8)
@@ -99,7 +99,7 @@ struct HIDDeviceFactoryTests {
         serialNumber: "S",
         primaryUsagePage: 1,
         primaryUsage: 5
-      ),
+      )
     ]
     for configuration in invalid {
       #expect(throws: HIDRuntimeError.invalidDeviceConfiguration) {
@@ -206,7 +206,7 @@ struct HIDDeviceFactoryTests {
       (.hidFactoryDeviceTerminated, HIDLimits.words([1, 0, 0])),
       (.hidFactoryDeviceTerminated, HIDLimits.words([1])),
       (.hidFactoryGetReportRequest, HIDLimits.words([1, 0, 0, 2, 0, 2, 0, 0])),
-      (.hidFactoryReport, HIDLimits.words([1, 0])),
+      (.hidFactoryReport, HIDLimits.words([1, 0]))
     ]
     for (type, payload) in malformed {
       let event = event(type, payload)

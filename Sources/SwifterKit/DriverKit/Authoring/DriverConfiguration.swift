@@ -124,7 +124,7 @@ public struct DriverConfiguration: Sendable, Hashable {
     DriverServiceMatch(
       serviceClass: "IOService",
       registryProperties: [
-        "CFBundleIdentifier": .string(bundleIdentifier), "IOUserClass": .string(serviceClass),
+        "CFBundleIdentifier": .string(bundleIdentifier), "IOUserClass": .string(serviceClass)
       ]
     )
   }

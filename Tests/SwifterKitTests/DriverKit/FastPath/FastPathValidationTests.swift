@@ -168,7 +168,7 @@ struct FastPathValidationTests {
     let quad = FastPathRegister(bar: 0, offset: 8, width: .bits64)
     let error = FastPathError.valueExceedsWidth(program: 0, operation: 0)
     accepts([
-      .write(byte, .constant(0xFF)), .write(quad, .constant(.max)), .write(byte, .value(.v7)),
+      .write(byte, .constant(0xFF)), .write(quad, .constant(.max)), .write(byte, .value(.v7))
     ])
     refuses([.write(byte, .constant(0x100))], with: error)
     accepts([.modify(byte, clear: 0xFF, set: 0xFF)])

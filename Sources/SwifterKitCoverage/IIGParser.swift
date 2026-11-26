@@ -53,18 +53,18 @@ enum IIGParser {
 
     init(source: IIGSource) {
       self.source = source
-      var characters: [Character] = []
-      var lineOfOffset: [Int] = []
+      var builtCharacters: [Character] = []
+      var builtOffsets: [Int] = []
       for (line, text) in source.lines.enumerated() {
         for character in text {
-          characters.append(character)
-          lineOfOffset.append(line)
+          builtCharacters.append(character)
+          builtOffsets.append(line)
         }
-        characters.append("\n")
-        lineOfOffset.append(line)
+        builtCharacters.append("\n")
+        builtOffsets.append(line)
       }
-      self.characters = characters
-      self.lineOfOffset = lineOfOffset
+      self.characters = builtCharacters
+      self.lineOfOffset = builtOffsets
     }
 
     func classes() -> [IIGClass] {

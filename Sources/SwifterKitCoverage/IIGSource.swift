@@ -14,24 +14,24 @@ struct IIGSource: Equatable {
 
   init(_ text: String) {
     let stripped = Self.removingIIGBlocks(Self.removingComments(text))
-    var lines: [String] = []
-    var conditions: [[String]] = []
+    var collectedLines: [String] = []
+    var collectedConditions: [[String]] = []
     var stack: [String?] = []
     let rawLines = stripped.split(separator: "\n", omittingEmptySubsequences: false).map(
       String.init
     )
     for (index, raw) in rawLines.enumerated() {
       let line = raw.trimmingCharacters(in: .whitespaces)
-      conditions.append(stack.compactMap { $0 })
+      collectedConditions.append(stack.compactMap { $0 })
       guard line.hasPrefix("#") else {
-        lines.append(raw)
+        collectedLines.append(raw)
         continue
       }
-      lines.append("")
+      collectedLines.append("")
       Self.apply(directive: line, next: Self.nextDirective(after: index, in: rawLines), to: &stack)
     }
-    self.lines = lines
-    self.conditions = conditions
+    self.lines = collectedLines
+    self.conditions = collectedConditions
   }
 
   private static func apply(directive: String, next: String?, to stack: inout [String?]) {

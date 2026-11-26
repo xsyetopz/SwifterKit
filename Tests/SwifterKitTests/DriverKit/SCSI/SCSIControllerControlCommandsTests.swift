@@ -95,7 +95,7 @@ struct SCSIControllerControlCommandsTests {
     }
     let largest = Dictionary(
       uniqueKeysWithValues: (0..<32).map {
-        (
+        unsafe (
           SCSIProtocolPropertyKey(
             rawValue: String(format: "%03d", $0) + String(repeating: "k", count: 124)
           ), String(repeating: "v", count: 1_024)

@@ -18,7 +18,7 @@ struct FastPathRuntimeContractTests {
           trigger: .command,
           argumentCount: 1,
           operations: [.write(Self.register, .value(.v0)), .read(Self.register, into: .v1)]
-        ), FastPathProgram(trigger: .stop, operations: [.modify(Self.register, clear: 1, set: 0)]),
+        ), FastPathProgram(trigger: .stop, operations: [.modify(Self.register, clear: 1, set: 0)])
       ],
       barSizes: [0: 0x100]
     )

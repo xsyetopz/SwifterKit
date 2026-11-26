@@ -98,8 +98,7 @@ struct ClientMemoryRuntimeContractTests {
     try expectOrder(
       in: finish,
       "if (!entry->sources->setObject(sources[index])) {",
-      "} else if (SwifterKitMemoryEntry* source =",
-      "FindMemoryByDescriptor(state, sources[index]);",
+      "SwifterKitMemoryEntry* source = FindMemoryByDescriptor(state, sources[index]);",
       "++source->dependents;",
       "AssignMemoryHandle(state, entry);"
     )
@@ -254,7 +253,7 @@ struct ClientMemoryRuntimeContractTests {
         (
           "kern_return_t CreateMemoryChain(", "}  // namespace",
           "IOMemoryDescriptor::CreateWithMemoryDescriptors("
-        ),
+        )
       ] {
         let body = try section(of: memory, from: start, to: end)
         try expectOrder(

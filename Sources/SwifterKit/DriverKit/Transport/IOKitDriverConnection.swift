@@ -1,6 +1,6 @@
 #if canImport(IOKit)
   import Foundation
-  @preconcurrency import IOKit
+  import IOKit
 
   actor IOKitDriverConnection: DriverConnection {
     private var connection: io_connect_t
@@ -34,7 +34,14 @@
       var address: mach_vm_address_t = 0
       var size: mach_vm_size_t = 0
       let options = IOOptionBits(kIOMapAnywhere) | (readOnly ? IOOptionBits(kIOMapReadOnly) : 0)
-      let result = IOConnectMapMemory64(connection, type, mach_task_self_, &address, &size, options)
+      let result = unsafe IOConnectMapMemory64(
+        connection,
+        type,
+        mach_task_self_,
+        &address,
+        &size,
+        options
+      )
       guard result == kIOReturnSuccess else {
         throw DriverKitError(kind: .ioReturn(result), operation: operation, serviceID: serviceID)
       }
@@ -42,10 +49,10 @@
       let mapped = address
       let gate = mappingGate
       let unmap: @Sendable () -> Void = {
-        gate.whileOpen { _ = IOConnectUnmapMemory64(connect, type, mach_task_self_, mapped) }
+        gate.whileOpen { _ = unsafe IOConnectUnmapMemory64(connect, type, mach_task_self_, mapped) }
       }
       guard size > 0, size <= UInt64(Int.max),
-        let base = UnsafeMutableRawPointer(bitPattern: UInt(address))
+        let base = unsafe UnsafeMutableRawPointer(bitPattern: UInt(address))
       else {
         unmap()
         throw DriverKitError(
@@ -54,7 +61,7 @@
           serviceID: serviceID
         )
       }
-      let memory = DriverSharedMemory(
+      let memory = unsafe DriverSharedMemory(
         baseAddress: base,
         length: Int(size),
         isReadOnly: readOnly,
@@ -83,7 +90,7 @@
         bufferingPolicy: .bufferingNewest(1)
       )
       var reference = port.register(continuation)
-      let result = IOConnectCallAsyncStructMethod(
+      let result = unsafe IOConnectCallAsyncStructMethod(
         connection,
         selector,
         port.machPort,
@@ -137,10 +144,10 @@
       var structureOutputSize = request.structureOutputCapacity
 
       let result = request.scalarInput.withUnsafeBufferPointer { scalarInput in
-        request.structureInput.withUnsafeBytes { structureInput in
+        unsafe request.structureInput.withUnsafeBytes { structureInput in
           scalarOutput.withUnsafeMutableBufferPointer { scalarOutput in
             structureOutput.withUnsafeMutableBytes { structureOutput in
-              IOConnectCallMethod(
+              unsafe IOConnectCallMethod(
                 connection,
                 request.selector,
                 scalarInput.baseAddress,
@@ -178,7 +185,7 @@
     private func validate(_ request: DriverRequest) throws {
       let capacities = [
         request.scalarInput.count, request.structureInput.count, request.scalarOutputCapacity,
-        request.structureOutputCapacity,
+        request.structureOutputCapacity
       ]
       guard capacities.allSatisfy({ $0 <= Int(UInt32.max) }) else {
         throw DriverKitError(

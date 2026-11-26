@@ -11,7 +11,7 @@ extension RuntimeSchemaHeader {
       "// Do not edit.",
       "// Regenerate: SWIFTERKIT_UPDATE_SCHEMA=1 swift test --filter RuntimeSchemaTests", "",
       "#ifndef SwifterKitRuntimeFastPathSchema_h", "#define SwifterKitRuntimeFastPathSchema_h", "",
-      "#include <stdint.h>",
+      "#include <stdint.h>"
     ]
     for section in fastPathSections() + memorySections() { lines += [""] + section }
     lines += ["", "#endif"]
@@ -76,7 +76,7 @@ extension RuntimeSchemaHeader {
             "\(limits.dataQueueMaximumEntrySizeOffset)"
           ), ("kSwifterKitFastPathDataQueueDirectionOffset", "\(limits.dataQueueDirectionOffset)"),
           ("kSwifterKitFastPathDataQueueDropsOffset", "\(limits.dataQueueDropsOffset)"),
-          ("kSwifterKitFastPathDataQueueRecordHeaderSize", "\(limits.dataQueueRecordHeaderSize)"),
+          ("kSwifterKitFastPathDataQueueRecordHeaderSize", "\(limits.dataQueueRecordHeaderSize)")
         ]
       ), enumeration("SwifterKitFastPathOpcode", type: "uint32_t", RuntimeFastPathOpcode.allCases),
       enumeration(
@@ -123,14 +123,14 @@ extension RuntimeSchemaHeader {
         "SwifterKitFastPathStatus",
         type: "uint32_t",
         cases: RuntimeFastPathStatus.allCases.map { (nativeName($0), hex($0.rawValue, digits: 8)) }
-      ),
+      )
     ] + RuntimeFastPathRow.all.map(structure)
   }
 
   // A plain C++ structure with a size assertion.
   private static func structure(_ row: RuntimeFastPathRow) -> [String] {
     ["struct \(row.name) {"] + row.fields.map { "    \($0.type) \($0.name);" } + [
-      "};", "static_assert(sizeof(\(row.name)) == \(row.size));",
+      "};", "static_assert(sizeof(\(row.name)) == \(row.size));"
     ]
   }
 }

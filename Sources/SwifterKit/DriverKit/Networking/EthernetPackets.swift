@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// A NetworkingDriverKit packet service class (`IOUserNetworkServiceClass`).
 public struct EthernetServiceClass: RawRepresentable, Sendable, Hashable {
@@ -29,7 +29,7 @@ public struct EthernetServiceClass: RawRepresentable, Sendable, Hashable {
   /// Every service class the SDK declares.
   public static let all: [Self] = [
     .backgroundSystem, .background, .bestEffort, .responsiveData, .operationsAndManagement,
-    .audioVideo, .responsiveAudioVideo, .interactiveVideo, .interactiveVoice, .networkControl,
+    .audioVideo, .responsiveAudioVideo, .interactiveVideo, .interactiveVoice, .networkControl
   ]
 }
 

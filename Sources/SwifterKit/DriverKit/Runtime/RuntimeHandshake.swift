@@ -49,11 +49,11 @@ struct RuntimeHandshakeAcceptance: Equatable {
     guard payload.count == RuntimeSchema.handshakeResponseSize else {
       throw DriverRuntimeError.invalidHandshake
     }
-    let version: UInt16 = try payload.readRuntimeInteger(at: 0)
+    let rawVersion: UInt16 = try payload.readRuntimeInteger(at: 0)
     let reserved16: UInt16 = try payload.readRuntimeInteger(at: 2)
     let reserved32: UInt32 = try payload.readRuntimeInteger(at: 4)
     guard reserved16 == 0, reserved32 == 0 else { throw DriverRuntimeError.invalidHandshake }
-    self.version = RuntimeProtocolVersion(rawValue: version)
+    self.version = RuntimeProtocolVersion(rawValue: rawVersion)
     capabilities = RuntimeCapabilities(rawValue: try payload.readRuntimeInteger(at: 8))
   }
 }

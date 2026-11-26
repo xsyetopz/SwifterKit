@@ -154,7 +154,7 @@ extension DriverExtensionGenerator {
     _ configuration: SCSIPeripheralConfiguration?
   ) -> String? {
     guard let type = configuration?.deviceType else { return nil }
-    let suffix = String(format: "%02d", type.rawValue)
+    let suffix = type.rawValue.zeroPadded(width: 2)
     return "#include <SCSIPeripheralsDriverKit/IOUserSCSIPeripheralDeviceType\(suffix).iig>"
   }
 

@@ -155,16 +155,16 @@ public enum BlockStorageRequest: Sendable, Hashable {
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 8 else { throw BlockStorageRuntimeError.invalidPayload }
     let kind: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
-    let requestID: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
+    let id: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
     let requestKind = RuntimeBlockStorageRequestKind(rawValue: kind)
     switch requestKind {
     case .eject?:
       guard runtimePayload.count == 8 else { throw BlockStorageRuntimeError.invalidPayload }
-      self = .eject(requestID: requestID)
+      self = .eject(requestID: id)
     case .synchronize?:
       guard runtimePayload.count == 24 else { throw BlockStorageRuntimeError.invalidPayload }
       self = .synchronize(
-        requestID: requestID,
+        requestID: id,
         startBlock: try runtimePayload.readRuntimeInteger(at: 8),
         blockCount: try runtimePayload.readRuntimeInteger(at: 16)
       )
@@ -184,7 +184,7 @@ public enum BlockStorageRequest: Sendable, Hashable {
           )
         )
       }
-      self = .unmap(requestID: requestID, ranges: ranges)
+      self = .unmap(requestID: id, ranges: ranges)
     case .read?, .write?:
       guard runtimePayload.count == 48 else { throw BlockStorageRuntimeError.invalidPayload }
       let options = BlockStorageOptions(
@@ -194,7 +194,7 @@ public enum BlockStorageRequest: Sendable, Hashable {
         try runtimePayload.readRuntimeInteger(at: 44) as UInt32 == 0
       else { throw BlockStorageRuntimeError.invalidPayload }
       let request = BlockStorageIORequest(
-        requestID: requestID,
+        requestID: id,
         dmaAddress: try runtimePayload.readRuntimeInteger(at: 8),
         byteCount: try runtimePayload.readRuntimeInteger(at: 16),
         startBlock: try runtimePayload.readRuntimeInteger(at: 24),

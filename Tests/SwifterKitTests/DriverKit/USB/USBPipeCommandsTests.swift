@@ -136,7 +136,7 @@ struct USBPipeCommandsTests {
         .usbPipeDescriptors(endpoint: 0x81, policy: .currentPolicy), 0x0234,
         [0x81, 1, 0, 0, 0, 0, 0, 0], 23
       ), (.usbPipeSpeed(endpoint: 0x81), 0x0235, [0x81, 0, 0, 0, 0, 0, 0, 0], 4),
-      (.usbPipeDeviceAddress(endpoint: 0x81), 0x0236, [0x81, 0, 0, 0, 0, 0, 0, 0], 4),
+      (.usbPipeDeviceAddress(endpoint: 0x81), 0x0236, [0x81, 0, 0, 0, 0, 0, 0, 0], 4)
     ]
     for (command, opcode, payload, response) in requests {
       #expect(command.opcode == opcode)

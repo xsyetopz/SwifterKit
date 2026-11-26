@@ -40,21 +40,21 @@ struct FastPathDataQueueRing {
     expecting queue: FastPathDataQueue?
   ) throws(FastPathDataQueueError) {
     guard bytes.count >= FastPathDataQueueLayout.headerSize else { throw .invalidGeometry }
-    let count = Self.load(bytes, FastPathDataQueueLayout.entryCountOffset)
-    let stride = Self.load(bytes, FastPathDataQueueLayout.strideOffset)
-    let maximum = Self.load(bytes, FastPathDataQueueLayout.maximumEntrySizeOffset)
-    let records = UInt64(count) * UInt64(stride)
-    guard count.nonzeroBitCount == 1, stride.nonzeroBitCount == 1, maximum != 0,
-      UInt64(maximum) + UInt64(FastPathDataQueueLayout.recordHeaderSize) <= UInt64(stride),
+    let count = unsafe Self.load(bytes, FastPathDataQueueLayout.entryCountOffset)
+    let recordStride = unsafe Self.load(bytes, FastPathDataQueueLayout.strideOffset)
+    let maximum = unsafe Self.load(bytes, FastPathDataQueueLayout.maximumEntrySizeOffset)
+    let records = UInt64(count) * UInt64(recordStride)
+    guard count.nonzeroBitCount == 1, recordStride.nonzeroBitCount == 1, maximum != 0,
+      UInt64(maximum) + UInt64(FastPathDataQueueLayout.recordHeaderSize) <= UInt64(recordStride),
       UInt64(FastPathDataQueueLayout.headerSize) + records <= UInt64(bytes.count)
     else { throw .invalidGeometry }
     if let queue {
-      guard count == queue.entryCount, stride == queue.recordStride,
+      guard count == queue.entryCount, recordStride == queue.recordStride,
         maximum == queue.maximumEntrySize
       else { throw .invalidGeometry }
     }
     entryCount = count
-    self.stride = stride
+    stride = recordStride
     maximumEntrySize = maximum
   }
 
@@ -64,22 +64,25 @@ struct FastPathDataQueueRing {
     _ bytes: UnsafeMutableRawBufferPointer,
     _ body: (UnsafeRawBufferPointer) throws -> Result
   ) throws -> Result? {
-    let producer = Self.acquire(
+    let producer = unsafe Self.acquire(
       UnsafeRawBufferPointer(bytes),
       FastPathDataQueueLayout.producerOffset
     )
-    let consumer = Self.load(UnsafeRawBufferPointer(bytes), FastPathDataQueueLayout.consumerOffset)
+    let consumer = unsafe Self.load(
+      UnsafeRawBufferPointer(bytes),
+      FastPathDataQueueLayout.consumerOffset
+    )
     let used = producer &- consumer
     guard used <= entryCount else {
       throw FastPathDataQueueError.invalidIndices(producer: producer, consumer: consumer)
     }
     guard used != 0 else { return nil }
     let record = recordOffset(consumer)
-    let size = Self.load(UnsafeRawBufferPointer(bytes), record)
+    let size = unsafe Self.load(UnsafeRawBufferPointer(bytes), record)
     guard size <= maximumEntrySize else { throw FastPathDataQueueError.invalidEntrySize(size) }
     let start = record + FastPathDataQueueLayout.recordHeaderSize
-    let result = try body(UnsafeRawBufferPointer(rebasing: bytes[start..<start + Int(size)]))
-    Self.release(bytes, FastPathDataQueueLayout.consumerOffset, consumer &+ 1)
+    let result = unsafe try body(UnsafeRawBufferPointer(rebasing: bytes[start..<start + Int(size)]))
+    unsafe Self.release(bytes, FastPathDataQueueLayout.consumerOffset, consumer &+ 1)
     return result
   }
 
@@ -88,11 +91,14 @@ struct FastPathDataQueueRing {
     _ bytes: UnsafeMutableRawBufferPointer,
     _ payload: UnsafeRawBufferPointer
   ) throws(FastPathDataQueueError) {
-    guard !payload.isEmpty, payload.count <= Int(maximumEntrySize) else {
+    guard unsafe !payload.isEmpty, payload.count <= Int(maximumEntrySize) else {
       throw .invalidEntry(byteCount: payload.count)
     }
-    let producer = Self.load(UnsafeRawBufferPointer(bytes), FastPathDataQueueLayout.producerOffset)
-    let consumer = Self.acquire(
+    let producer = unsafe Self.load(
+      UnsafeRawBufferPointer(bytes),
+      FastPathDataQueueLayout.producerOffset
+    )
+    let consumer = unsafe Self.acquire(
       UnsafeRawBufferPointer(bytes),
       FastPathDataQueueLayout.consumerOffset
     )
@@ -100,19 +106,19 @@ struct FastPathDataQueueRing {
     guard used <= entryCount else { throw .invalidIndices(producer: producer, consumer: consumer) }
     guard used < entryCount else { throw .full }
     let record = recordOffset(producer)
-    Self.store(bytes, record, UInt32(payload.count))
-    Self.store(bytes, record + 4, 0)
+    unsafe Self.store(bytes, record, UInt32(payload.count))
+    unsafe Self.store(bytes, record + 4, 0)
     let start = record + FastPathDataQueueLayout.recordHeaderSize
-    UnsafeMutableRawBufferPointer(rebasing: bytes[start..<start + payload.count]).copyMemory(
+    unsafe UnsafeMutableRawBufferPointer(rebasing: bytes[start..<start + payload.count]).copyMemory(
       from: payload
     )
-    Self.release(bytes, FastPathDataQueueLayout.producerOffset, producer &+ 1)
+    unsafe Self.release(bytes, FastPathDataQueueLayout.producerOffset, producer &+ 1)
   }
 
   // The records waiting for the consumer, or nil when the indices are corrupt.
   func pending(_ bytes: UnsafeRawBufferPointer) -> UInt32? {
     let used =
-      Self.acquire(bytes, FastPathDataQueueLayout.producerOffset)
+      unsafe Self.acquire(bytes, FastPathDataQueueLayout.producerOffset)
       &- Self.load(bytes, FastPathDataQueueLayout.consumerOffset)
     return used <= entryCount ? used : nil
   }
@@ -122,16 +128,16 @@ struct FastPathDataQueueRing {
   }
 
   static func load(_ bytes: UnsafeRawBufferPointer, _ offset: Int) -> UInt32 {
-    UInt32(littleEndian: bytes.loadUnaligned(fromByteOffset: offset, as: UInt32.self))
+    unsafe UInt32(littleEndian: bytes.loadUnaligned(fromByteOffset: offset, as: UInt32.self))
   }
 
   static func store(_ bytes: UnsafeMutableRawBufferPointer, _ offset: Int, _ value: UInt32) {
-    bytes.storeBytes(of: value.littleEndian, toByteOffset: offset, as: UInt32.self)
+    unsafe bytes.storeBytes(of: value.littleEndian, toByteOffset: offset, as: UInt32.self)
   }
 
   // Loads the other side's index, ordering later record reads after it.
   private static func acquire(_ bytes: UnsafeRawBufferPointer, _ offset: Int) -> UInt32 {
-    let value = load(bytes, offset)
+    let value = unsafe load(bytes, offset)
     fence()
     return value
   }
@@ -143,7 +149,7 @@ struct FastPathDataQueueRing {
     _ value: UInt32
   ) {
     fence()
-    store(bytes, offset, value)
+    unsafe store(bytes, offset, value)
   }
 
   private static func fence() {
@@ -176,9 +182,12 @@ public final class DriverDataQueue: Sendable {
   /// Returns nil when the ring is empty. The buffer must not escape `body`. The entry is released
   /// when `body` returns.
   public func dequeue<Result>(_ body: (UnsafeRawBufferPointer) throws -> Result) throws -> Result? {
-    try memory.withUnsafeMutableBytes { bytes in
-      let ring = try FastPathDataQueueRing(header: UnsafeRawBufferPointer(bytes), expecting: queue)
-      return try ring.dequeue(bytes, body)
+    unsafe try memory.withUnsafeMutableBytes { bytes in
+      let ring = unsafe try FastPathDataQueueRing(
+        header: UnsafeRawBufferPointer(bytes),
+        expecting: queue
+      )
+      return unsafe try ring.dequeue(bytes, body)
     }
   }
 
@@ -186,9 +195,9 @@ public final class DriverDataQueue: Sendable {
   ///
   /// Returns nil when the ring is empty. Trailing bytes that do not fill a word are dropped.
   public func dequeueValues() throws -> [UInt64]? {
-    try dequeue { payload in
+    unsafe try dequeue { payload in
       stride(from: 0, to: payload.count / 8 * 8, by: 8).map {
-        UInt64(littleEndian: payload.loadUnaligned(fromByteOffset: $0, as: UInt64.self))
+        unsafe UInt64(littleEndian: payload.loadUnaligned(fromByteOffset: $0, as: UInt64.self))
       }
     }
   }
@@ -200,15 +209,18 @@ public final class DriverDataQueue: Sendable {
   /// yet, and refuses an empty entry or one above the maximum entry size. Use one writer per queue:
   /// the ring has a single producer.
   public func enqueue(_ payload: UnsafeRawBufferPointer) throws {
-    try memory.withUnsafeMutableBytes { bytes in
-      let ring = try FastPathDataQueueRing(header: UnsafeRawBufferPointer(bytes), expecting: queue)
+    unsafe try memory.withUnsafeMutableBytes { bytes in
+      let ring = unsafe try FastPathDataQueueRing(
+        header: UnsafeRawBufferPointer(bytes),
+        expecting: queue
+      )
       guard
-        FastPathDataQueueRing.load(
+        unsafe FastPathDataQueueRing.load(
           UnsafeRawBufferPointer(bytes),
           FastPathDataQueueLayout.directionOffset
         ) == RuntimeFastPathDataQueueDirection.toExtension.rawValue
       else { throw FastPathDataQueueError.notProducer }
-      try ring.enqueue(bytes, payload)
+      unsafe try ring.enqueue(bytes, payload)
     }
   }
 
@@ -216,8 +228,8 @@ public final class DriverDataQueue: Sendable {
   ///
   /// See ``enqueue(_:)``.
   public func enqueueValues(_ values: [UInt64]) throws {
-    let bytes = values.flatMap { withUnsafeBytes(of: $0.littleEndian, Array.init) }
-    try bytes.withUnsafeBytes { try enqueue($0) }
+    let bytes = values.flatMap { unsafe withUnsafeBytes(of: $0.littleEndian, Array.init) }
+    try bytes.withUnsafeBytes { unsafe try enqueue($0) }
   }
 
   /// The entries the extension dropped because the staging queue or this ring was full.

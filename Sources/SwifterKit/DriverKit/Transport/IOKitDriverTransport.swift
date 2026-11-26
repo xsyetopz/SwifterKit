@@ -1,7 +1,7 @@
 #if canImport(IOKit)
   import CoreFoundation
   import Foundation
-  @preconcurrency import IOKit
+  import IOKit
 
   var defaultIOKitMainPort: mach_port_t {
     kIOMainPortDefault
@@ -14,7 +14,8 @@
 
     /// Returns services matching the supplied registry criteria.
     public func services(matching criteria: DriverServiceMatch) throws -> [DriverService] {
-      guard !criteria.serviceClass.isEmpty, IOServiceMatching(criteria.serviceClass) != nil else {
+      guard !criteria.serviceClass.isEmpty, unsafe IOServiceMatching(criteria.serviceClass) != nil
+      else {
         throw DriverKitError(kind: .invalidServiceClass, operation: "IOServiceMatching")
       }
 
@@ -25,7 +26,7 @@
       }
 
       var iterator: io_iterator_t = 0
-      let result = IOServiceGetMatchingServices(
+      let result = unsafe IOServiceGetMatchingServices(
         defaultIOKitMainPort,
         matching as CFDictionary,
         &iterator
@@ -59,7 +60,7 @@
       defer { IOObjectRelease(entry) }
 
       var connection: io_connect_t = 0
-      let result = IOServiceOpen(entry, mach_task_self_, type, &connection)
+      let result = unsafe IOServiceOpen(entry, mach_task_self_, type, &connection)
       guard result == kIOReturnSuccess else {
         throw DriverKitError(
           kind: .ioReturn(result),
@@ -72,14 +73,14 @@
 
     private func describe(_ entry: io_registry_entry_t) -> DriverService {
       var identifier: UInt64 = 0
-      IORegistryEntryGetRegistryEntryID(entry, &identifier)
+      unsafe IORegistryEntryGetRegistryEntryID(entry, &identifier)
 
       var nameBuffer = [CChar](repeating: 0, count: 128)
-      let nameResult = IORegistryEntryGetName(entry, &nameBuffer)
+      let nameResult = unsafe IORegistryEntryGetName(entry, &nameBuffer)
       let name = nameResult == kIOReturnSuccess ? decodeCString(nameBuffer) ?? "Unknown" : "Unknown"
 
       var pathBuffer = [CChar](repeating: 0, count: 1_024)
-      let pathResult = IORegistryEntryGetPath(entry, kIOServicePlane, &pathBuffer)
+      let pathResult = unsafe IORegistryEntryGetPath(entry, kIOServicePlane, &pathBuffer)
       let path = pathResult == kIOReturnSuccess ? decodeCString(pathBuffer) : nil
 
       return DriverService(
@@ -97,10 +98,19 @@
 
     private func properties(of entry: io_registry_entry_t) -> [String: DriverProperty] {
       var rawProperties: Unmanaged<CFMutableDictionary>?
-      let result = IORegistryEntryCreateCFProperties(entry, &rawProperties, kCFAllocatorDefault, 0)
-      guard result == kIOReturnSuccess, let rawProperties else { return [:] }
+      let result = unsafe IORegistryEntryCreateCFProperties(
+        entry,
+        &rawProperties,
+        kCFAllocatorDefault,
+        0
+      )
+      guard result == kIOReturnSuccess, let createdProperties = unsafe rawProperties else {
+        return [:]
+      }
 
-      guard let dictionary = rawProperties.takeRetainedValue() as? [String: Any] else { return [:] }
+      guard let dictionary = unsafe createdProperties.takeRetainedValue() as? [String: Any] else {
+        return [:]
+      }
       return dictionary.compactMapValues(DriverProperty.decode)
     }
   }

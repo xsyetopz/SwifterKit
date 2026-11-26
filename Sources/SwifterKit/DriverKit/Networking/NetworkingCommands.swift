@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 extension DriverCommand {
   /// Injects one hardware-received Ethernet frame into the networking stack.

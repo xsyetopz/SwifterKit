@@ -125,7 +125,7 @@ struct Coverage: Equatable {
   static func headerReason(_ method: Method) -> String? {
     if method.access == .private { return "declared private in the SDK header" }
     let excluded: Set = [
-      "KERNEL", "defined(KERNEL)", "0", "!(TARGET_OS_DRIVERKIT)", "!defined(TARGET_OS_DRIVERKIT)",
+      "KERNEL", "defined(KERNEL)", "0", "!(TARGET_OS_DRIVERKIT)", "!defined(TARGET_OS_DRIVERKIT)"
     ]
     for condition in method.conditions
     where excluded.contains(condition)

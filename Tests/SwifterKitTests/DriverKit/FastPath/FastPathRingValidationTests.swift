@@ -47,7 +47,7 @@ struct FastPathRingValidationTests {
       .ringLoad(7, entry: .v1, fieldOffset: 12, width: .bits32, into: .v2),
       .ringAdvance(7, .consumer, by: .ringIndex(7, .producer)),
       .compute(.v3, .add, .ringIndex(7, .consumer)),
-      .compute(.v4, .or, .ringDeviceAddress(7, .high)),
+      .compute(.v4, .or, .ringDeviceAddress(7, .high))
     ])
   }
 

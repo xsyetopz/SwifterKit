@@ -79,7 +79,7 @@ public struct SCSIPeripheralTransferConstraints: Sendable, Hashable {
       ("IOMinimumSegmentAlignmentByteCount", minimumSegmentAlignmentByteCount),
       ("IOMaximumSegmentAddressableBitCount", maximumSegmentAddressableBitCount),
       ("IOMinimumSaturationByteCount", minimumSaturationByteCount),
-      ("IOMaximumSwapWrite", maximumSwapWrite),
+      ("IOMaximumSwapWrite", maximumSwapWrite)
     ]
     return Dictionary(
       uniqueKeysWithValues: values.compactMap { key, value in value.map { (key, $0) } }

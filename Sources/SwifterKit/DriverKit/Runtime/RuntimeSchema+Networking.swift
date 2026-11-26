@@ -63,11 +63,11 @@ enum RuntimeNetworkPacketFlag: UInt32, CaseIterable {
   // The bits transmit metadata may carry.
   static let transmit = bits([
     .linkMulticast, .linkBroadcast, .timestampRequested, .trafficBackground, .trafficRealtime,
-    .hasTimestamp, .hasExpiryTime, .hasVLANTag,
+    .hasTimestamp, .hasExpiryTime, .hasVLANTag
   ])
   // The bits a received packet may carry.
   static let receive = bits([
-    .linkMulticast, .hasTimestamp, .hasVLANTag, .hasDataOffset, .hasLRO, .hasTraceEvent, .wake,
+    .linkMulticast, .hasTimestamp, .hasVLANTag, .hasDataOffset, .hasLRO, .hasTraceEvent, .wake
   ])
   // The bits a transmit completion may carry.
   static let completion = bits([.hasTimestamp, .hasTraceEvent])

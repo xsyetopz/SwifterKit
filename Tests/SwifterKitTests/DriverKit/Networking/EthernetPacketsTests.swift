@@ -122,7 +122,7 @@ struct EthernetPacketsTests {
     #expect(batch.payload == expected)
     #expect(throws: EthernetRuntimeError.invalidBatch) {
       try DriverCommand.completeEthernetTransmits([
-        EthernetTransmitCompletion(requestID: 3), EthernetTransmitCompletion(requestID: 3),
+        EthernetTransmitCompletion(requestID: 3), EthernetTransmitCompletion(requestID: 3)
       ])
     }
 

@@ -98,20 +98,20 @@ public struct MIDIObjectInfo: Sendable, Hashable {
     guard reserved == 0, objectID != 0, nameLength <= RuntimeMIDIObjectLimits.nameMaximumLength,
       runtimePayload.count == 24 + nameLength,
       (rawClass == Self.driverClass) == (rawBase == Self.driverClass),
-      let name = String(data: runtimePayload.suffix(nameLength), encoding: .utf8)
+      let decodedName = String(data: runtimePayload.suffix(nameLength), encoding: .utf8)
     else { throw MIDIRuntimeError.invalidPayload }
     if rawClass == Self.driverClass {
       guard objectID == 1, ownerObjectID == 0 else { throw MIDIRuntimeError.invalidPayload }
       classID = nil
       baseClassID = nil
     } else {
-      guard let classID = MIDIClassID(rawValue: rawClass),
-        let baseClassID = MIDIClassID(rawValue: rawBase)
+      guard let decodedClass = MIDIClassID(rawValue: rawClass),
+        let decodedBase = MIDIClassID(rawValue: rawBase)
       else { throw MIDIRuntimeError.invalidPayload }
-      self.classID = classID
-      self.baseClassID = baseClassID
+      classID = decodedClass
+      baseClassID = decodedBase
     }
-    self.name = name
+    name = decodedName
   }
 }
 

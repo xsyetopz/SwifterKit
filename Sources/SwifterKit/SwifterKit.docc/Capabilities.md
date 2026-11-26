@@ -4,7 +4,7 @@ Choose a ``RuntimeCapabilities`` value and the matching configuration metadata i
 
 ## Deployment requirements
 
-The Swift package requires Swift 6.4 (Xcode 27.0) or later. It supports macOS 12 and later. IOKit transport is available only on Apple platforms. Configuration and generation also build on Linux. ``DriverExtensionGenerationOptions/deploymentTarget`` controls the generated extension separately. It defaults to DriverKit 21.0, the oldest target it accepts.
+The Swift package requires Swift 6.4 (Xcode 27.0) or later. It supports macOS 13 and later. IOKit transport is available only on Apple platforms. Configuration and generation also build on Linux. ``DriverExtensionGenerationOptions/deploymentTarget`` controls the generated extension separately. It defaults to DriverKit 21.0, the oldest target it accepts.
 
 | Capability | Minimum DriverKit target | Earliest host release |
 | --- | ---: | --- |

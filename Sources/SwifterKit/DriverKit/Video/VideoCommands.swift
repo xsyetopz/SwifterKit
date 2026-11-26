@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 extension DriverCommand {
   /// Reads bytes from a native video buffer plane.
@@ -138,7 +138,7 @@ extension DriverCommand {
     var payload = Data(capacity: 32)
     for value in [
       entry.bufferIndex, entry.dataOffset, entry.dataLength, entry.controlOffset,
-      entry.controlLength, 0, 0, 0,
+      entry.controlLength, 0, 0, 0
     ] { payload.appendRuntimeInteger(value) }
     return payload
   }

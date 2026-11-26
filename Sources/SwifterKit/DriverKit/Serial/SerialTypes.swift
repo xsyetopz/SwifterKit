@@ -47,7 +47,7 @@ public struct SerialModemStatus: Sendable, Hashable {
 
   var runtimePayload: Data {
     Data([
-      clearToSend ? 1 : 0, dataSetReady ? 1 : 0, ringIndicator ? 1 : 0, dataCarrierDetect ? 1 : 0,
+      clearToSend ? 1 : 0, dataSetReady ? 1 : 0, ringIndicator ? 1 : 0, dataCarrierDetect ? 1 : 0
     ])
   }
 }

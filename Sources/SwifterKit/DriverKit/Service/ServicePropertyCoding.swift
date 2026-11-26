@@ -117,8 +117,8 @@ enum ServicePropertyCoding {
         }
         return .unsignedInteger(number)
       case .string:
-        let bytes = try take(Int(integer(UInt32.self)))
-        guard !bytes.contains(0), let string = String(bytes: bytes, encoding: .utf8) else {
+        let raw = try take(Int(integer(UInt32.self)))
+        guard !raw.contains(0), let string = String(bytes: raw, encoding: .utf8) else {
           throw ServiceRuntimeError.invalidPayload
         }
         return .string(string)
@@ -137,8 +137,9 @@ enum ServicePropertyCoding {
       guard count <= remaining / 7 else { throw ServiceRuntimeError.invalidPayload }
       var entries: [String: DriverProperty] = [:]
       for _ in 0..<count {
-        let bytes = try take(Int(integer(UInt32.self)))
-        guard !bytes.isEmpty, !bytes.contains(0), let key = String(bytes: bytes, encoding: .utf8),
+        let keyBytes = try take(Int(integer(UInt32.self)))
+        guard !keyBytes.isEmpty, !keyBytes.contains(0),
+          let key = String(bytes: keyBytes, encoding: .utf8),
           entries[key] == nil
         else { throw ServiceRuntimeError.invalidPayload }
         entries[key] = try value(depth: depth + 1)

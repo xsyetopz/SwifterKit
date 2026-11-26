@@ -26,7 +26,7 @@ struct VideoObjectRuntimeContractTests {
       for name in [
         "SwifterKitRuntimeVideoBox.iig", "SwifterKitRuntimeVideoBox.cpp",
         "SwifterKitRuntimeVideoClockDevice.iig", "SwifterKitRuntimeVideoClockDevice.cpp",
-        "SwifterKitRuntimeVideoObjects.cpp", "SwifterKitRuntimeVideoRequests.cpp",
+        "SwifterKitRuntimeVideoObjects.cpp", "SwifterKitRuntimeVideoRequests.cpp"
       ] { #expect(project.contains("\(name) in Sources")) }
     }
   }
@@ -214,7 +214,7 @@ struct VideoObjectRuntimeContractTests {
       device(clocks: [clock("C", rates: [60], initial: 30)]),
       device(clocks: [clock("C", rates: [0])]), device(clocks: [clock("C", rates: [.nan])]),
       device(clocks: [clock("C", rates: (1...17).map(Double.init), initial: 1)]),
-      device(clocks: [clock("")]),
+      device(clocks: [clock("")])
     ]
     for configuration in invalid {
       #expect(!DriverExtensionGenerator.isValid(video: configuration))
@@ -233,7 +233,7 @@ struct VideoObjectRuntimeContractTests {
           isAcquired: false,
           ownsDevice: true,
           clockDevices: [1]
-        ), box("com.example.box.1", clocks: [0]),
+        ), box("com.example.box.1", clocks: [0])
       ],
       clocks: [
         VideoClockDeviceConfiguration(
@@ -248,7 +248,7 @@ struct VideoObjectRuntimeContractTests {
           isHidden: true,
           inputLatency: 12,
           outputLatency: 34
-        ), clock("com.example.clock.1", rates: [120], initial: 120),
+        ), clock("com.example.clock.1", rates: [120], initial: 120)
       ]
     )
   }

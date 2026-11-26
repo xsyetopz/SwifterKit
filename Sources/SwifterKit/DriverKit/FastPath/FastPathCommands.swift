@@ -47,16 +47,16 @@ public struct FastPathEvent: Sendable, Hashable {
     guard runtimePayload.count == RuntimeFastPathRow.event.size else {
       throw FastPathRuntimeError.invalidPayload
     }
-    let program: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
+    let programIndex: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
     let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
-    let values: [UInt64] = try (0..<FastPathLimits.maximumEmittedSlots).map {
+    let emitted: [UInt64] = try (0..<FastPathLimits.maximumEmittedSlots).map {
       try runtimePayload.readRuntimeInteger(at: 8 + 8 * $0)
     }
-    guard program < FastPathLimits.maximumPrograms,
+    guard programIndex < FastPathLimits.maximumPrograms,
       (1...FastPathLimits.maximumEmittedSlots).contains(Int(count)),
-      values[Int(count)...].allSatisfy({ $0 == 0 })
+      emitted[Int(count)...].allSatisfy({ $0 == 0 })
     else { throw FastPathRuntimeError.invalidPayload }
-    self.init(program: Int(program), values: Array(values.prefix(Int(count))))
+    self.init(program: Int(programIndex), values: Array(emitted.prefix(Int(count))))
   }
 }
 

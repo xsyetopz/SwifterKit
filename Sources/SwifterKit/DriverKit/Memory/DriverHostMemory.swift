@@ -21,6 +21,7 @@ import Foundation
 ///
 /// Accesses through ``withUnsafeMutableBytes(_:)`` race with the device like any shared DMA
 /// memory, so order them with the device's own protocol.
+@safe
 public final class DriverHostMemory: @unchecked Sendable {
   // The allocation's first byte, on a page boundary.
   private let base: UnsafeMutableRawPointer
@@ -37,13 +38,13 @@ public final class DriverHostMemory: @unchecked Sendable {
     let page = Self.pageSize
     guard minimumLength > 0, minimumLength <= Int.max - (page - 1) else { return nil }
     length = (minimumLength + page - 1) / page * page
-    base = UnsafeMutableRawPointer.allocate(byteCount: length, alignment: page)
-    base.initializeMemory(as: UInt8.self, repeating: 0, count: length)
+    unsafe base = UnsafeMutableRawPointer.allocate(byteCount: length, alignment: page)
+    unsafe base.initializeMemory(as: UInt8.self, repeating: 0, count: length)
   }
 
   deinit {
     // An unreleased wrap may still be described by the extension. See the type's discussion.
-    if wraps == 0 { base.deallocate() }
+    if wraps == 0 { unsafe base.deallocate() }
   }
 
   /// Wraps the whole allocation as a runtime memory entry with
@@ -81,13 +82,18 @@ public final class DriverHostMemory: @unchecked Sendable {
 
   /// The segment covering the whole allocation.
   public var segment: DriverClientMemorySegment {
-    DriverClientMemorySegment(address: UInt64(UInt(bitPattern: base)), length: UInt64(length))
+    unsafe DriverClientMemorySegment(
+      address: UInt64(UInt(bitPattern: base)),
+      length: UInt64(length)
+    )
   }
 
   /// Runs `body` with the allocation's bytes.
   public func withUnsafeMutableBytes<Result>(
     _ body: (UnsafeMutableRawBufferPointer) throws -> Result
-  ) rethrows -> Result { try body(UnsafeMutableRawBufferPointer(start: base, count: length)) }
+  ) rethrows -> Result {
+    unsafe try body(UnsafeMutableRawBufferPointer(start: base, count: length))
+  }
 
   /// This process's virtual-memory page size.
   public static var pageSize: Int {

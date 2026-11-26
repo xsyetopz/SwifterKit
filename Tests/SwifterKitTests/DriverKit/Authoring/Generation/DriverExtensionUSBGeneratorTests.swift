@@ -96,7 +96,7 @@ struct DriverExtensionUSBGeneratorTests {
       USBDeviceConfiguration(vendorID: 0x1234, interfaceNumber: 0),
       USBDeviceConfiguration(vendorID: 0x1234, interfaceClass: 0xFF),
       USBDeviceConfiguration(vendorID: 0x1234, interfaceSubclass: 1),
-      USBDeviceConfiguration(vendorID: 0x1234, interfaceProtocol: 1),
+      USBDeviceConfiguration(vendorID: 0x1234, interfaceProtocol: 1)
     ]
     for usb in interfaceKeys {
       #expect(throws: DriverExtensionGenerationError.invalidUSBConfiguration) {

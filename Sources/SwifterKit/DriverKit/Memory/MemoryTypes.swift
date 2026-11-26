@@ -78,13 +78,15 @@ public struct DriverMemoryInfo: Sendable, Hashable {
 
   init(runtimePayload: Data) throws {
     guard runtimePayload.count == 32,
-      let direction = DriverMemoryDirection(rawValue: try runtimePayload.readRuntimeInteger(at: 24))
+      let decodedDirection = DriverMemoryDirection(
+        rawValue: try runtimePayload.readRuntimeInteger(at: 24)
+      )
     else { throw DriverMemoryError.invalidPayload }
     self.init(
       handle: DriverMemoryHandle(rawValue: try runtimePayload.readRuntimeInteger(at: 0)),
       capacity: try runtimePayload.readRuntimeInteger(at: 8),
       length: try runtimePayload.readRuntimeInteger(at: 16),
-      direction: direction,
+      direction: decodedDirection,
       alignment: try runtimePayload.readRuntimeInteger(at: 28)
     )
   }
@@ -119,24 +121,24 @@ public struct DriverDMAMapping: Sendable, Hashable {
 
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 16 else { throw DriverMemoryError.invalidPayload }
-    let flags: UInt64 = try runtimePayload.readRuntimeInteger(at: 0)
+    let rawFlags: UInt64 = try runtimePayload.readRuntimeInteger(at: 0)
     let count = Int(try runtimePayload.readRuntimeInteger(at: 8) as UInt32)
     guard try runtimePayload.readRuntimeInteger(at: 12) as UInt32 == 0, count <= 32,
       runtimePayload.count == 16 + count * 16
     else { throw DriverMemoryError.invalidPayload }
 
-    var segments: [DriverDMASegment] = []
-    segments.reserveCapacity(count)
+    var decoded: [DriverDMASegment] = []
+    decoded.reserveCapacity(count)
     for index in 0..<count {
       let offset = 16 + index * 16
-      segments.append(
+      decoded.append(
         DriverDMASegment(
           address: try runtimePayload.readRuntimeInteger(at: offset),
           length: try runtimePayload.readRuntimeInteger(at: offset + 8)
         )
       )
     }
-    self.init(flags: flags, segments: segments)
+    self.init(flags: rawFlags, segments: decoded)
   }
 }
 

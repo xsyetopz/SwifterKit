@@ -20,7 +20,7 @@ extension DriverExtensionGenerator {
       programRows.append(
         row([
           "\(operations.count)", "\(program.operations.count)", "\(program.argumentCount)",
-          "\(program.delayBudgetMicroseconds)",
+          "\(program.delayBudgetMicroseconds)"
         ])
       )
       operations += program.operations.map {
@@ -57,10 +57,10 @@ extension DriverExtensionGenerator {
           let direction: RuntimeFastPathDataQueueDirection =
             $0.direction == .toHost ? .toHost : .toExtension
           return row([
-            "\($0.id)", "\($0.capacityBytes)", "\($0.maximumEntrySize)", "\(direction.rawValue)",
+            "\($0.id)", "\($0.capacityBytes)", "\($0.maximumEntrySize)", "\(direction.rawValue)"
           ])
         }
-      ),
+      )
     ].joined(separator: "\n")
   }
 

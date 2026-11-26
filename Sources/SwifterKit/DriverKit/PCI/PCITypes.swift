@@ -31,7 +31,9 @@ public struct PCIDeviceConfiguration: Sendable, Hashable {
 
   /// Creates primary vendor/device matching.
   public init(vendorID: UInt16, deviceIDs: [UInt16], interrupts: PCIInterruptConfiguration? = nil) {
-    let expressions = deviceIDs.map { String(format: "0x%04X%04X", $0, vendorID) }
+    let expressions = deviceIDs.map {
+      "0x\($0.zeroPadded(width: 4, radix: 16))\(vendorID.zeroPadded(width: 4, radix: 16))"
+    }
     self.init(matches: [.primary: expressions.joined(separator: " ")], interrupts: interrupts)
   }
 
@@ -80,8 +82,8 @@ public struct PCIBaseAddressInfo: Sendable, Hashable {
     guard runtimePayload.count == 12, runtimePayload[2] == 0, runtimePayload[3] == 0 else {
       throw PCIRuntimeError.invalidResponse
     }
-    let size: UInt64 = try runtimePayload.readRuntimeInteger(at: 4)
-    self.init(memoryIndex: runtimePayload[0], type: runtimePayload[1], size: size)
+    let regionSize: UInt64 = try runtimePayload.readRuntimeInteger(at: 4)
+    self.init(memoryIndex: runtimePayload[0], type: runtimePayload[1], size: regionSize)
   }
 }
 

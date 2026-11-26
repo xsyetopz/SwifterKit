@@ -6,7 +6,7 @@ enum DriverExtensionProject {
     (.pci, "PCIDriverKit.framework"), (.serial, "SerialDriverKit.framework"),
     (.blockStorage, "BlockStorageDeviceDriverKit.framework"), (.midi, "MIDIDriverKit.framework"),
     (.networking, "NetworkingDriverKit.framework"), (.audio, "AudioDriverKit.framework"),
-    (.video, "VideoDriverKit.framework"),
+    (.video, "VideoDriverKit.framework")
   ]
 
   private static let scsiControllerFramework = "SCSIControllerDriverKit.framework"
@@ -51,7 +51,7 @@ enum DriverExtensionProject {
     template: String
   ) throws -> String {
     let allFrameworks = Set(frameworksByCapability.map { $0.1 }).union([
-      scsiControllerFramework, scsiPeripheralFramework, usbSerialFramework,
+      scsiControllerFramework, scsiPeripheralFramework, usbSerialFramework
     ])
     var occurrenceCounts: [String: Int] = [:]
 

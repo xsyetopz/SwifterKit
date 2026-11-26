@@ -38,7 +38,10 @@ public struct DriverEventSequence: AsyncSequence, Sendable {
       self.notifications = notifications
     }
 
+    // `@concurrent` keeps iteration off the caller's actor: `AsyncStream.Iterator.next()` is the
+    // only overload before macOS 15, and it cannot run in the caller's isolation.
     /// Returns the next event, or nil after the connection closes.
+    @concurrent
     public mutating func next() async throws -> DriverEvent? {
       while true {
         try Task.checkCancellation()
@@ -55,8 +58,8 @@ public struct DriverEventSequence: AsyncSequence, Sendable {
 
     // Whether `error` reports a connection that closed, possibly while a request was in flight.
     private static func isClosed(_ error: any Error) -> Bool {
-      if let error = error as? DriverRuntimeError { return error == .closed }
-      if let error = error as? DriverKitError { return error.kind == .sessionClosed }
+      if let runtimeError = error as? DriverRuntimeError { return runtimeError == .closed }
+      if let kitError = error as? DriverKitError { return kitError.kind == .sessionClosed }
       return false
     }
   }

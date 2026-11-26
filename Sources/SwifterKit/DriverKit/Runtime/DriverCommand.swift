@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// An operation sent from Swift driver behavior to the internal extension runtime.
 public struct DriverCommand: Sendable, Equatable {

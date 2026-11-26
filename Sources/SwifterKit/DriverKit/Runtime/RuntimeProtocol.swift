@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// The wire-protocol version shared by the Swift layer and internal extension runtime.
 public struct RuntimeProtocolVersion: Sendable, Hashable, Comparable, RawRepresentable {
@@ -147,26 +147,26 @@ public struct RuntimeMessage: Sendable, Equatable {
     var reader = RuntimeDataReader(data: data)
     guard try reader.readUInt32() == Self.magic else { throw RuntimeProtocolError.invalidMagic }
 
-    let version = RuntimeProtocolVersion(rawValue: try reader.readUInt16())
-    guard RuntimeProtocolVersion.supported.contains(version) else {
-      throw RuntimeProtocolError.unsupportedVersion(version.rawValue)
+    let messageVersion = RuntimeProtocolVersion(rawValue: try reader.readUInt16())
+    guard RuntimeProtocolVersion.supported.contains(messageVersion) else {
+      throw RuntimeProtocolError.unsupportedVersion(messageVersion.rawValue)
     }
-    guard let kind = RuntimeMessageKind(rawValue: try reader.readUInt16()) else {
+    guard let messageKind = RuntimeMessageKind(rawValue: try reader.readUInt16()) else {
       throw RuntimeProtocolError.unknownMessageKind
     }
 
-    let requestID = try reader.readUInt64()
+    let messageRequestID = try reader.readUInt64()
     let payloadLength = Int(try reader.readUInt32())
-    let flags = RuntimeMessageFlags(rawValue: try reader.readUInt32())
+    let messageFlags = RuntimeMessageFlags(rawValue: try reader.readUInt32())
     guard reader.remainingCount == payloadLength else {
       throw RuntimeProtocolError.invalidPayloadLength
     }
 
     self.init(
-      version: version,
-      kind: kind,
-      requestID: requestID,
-      flags: flags,
+      version: messageVersion,
+      kind: messageKind,
+      requestID: messageRequestID,
+      flags: messageFlags,
       payload: Data(data.suffix(payloadLength))
     )
   }

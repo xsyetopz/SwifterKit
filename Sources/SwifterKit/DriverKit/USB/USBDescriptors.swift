@@ -207,23 +207,25 @@ public struct USBConfigurationDescriptor: Sendable, Hashable {
     maxPower = bytes[8]
     self.bytes = bytes
 
-    var interfaces: [USBInterfaceDescriptor] = []
+    var parsedInterfaces: [USBInterfaceDescriptor] = []
     try Self.walk(bytes, from: Int(bytes[0])) { descriptor in
       switch descriptor[descriptor.startIndex + 1] {
       case 0x04:
         guard let interface = USBInterfaceDescriptor(descriptor: descriptor) else {
           throw USBDescriptorError.malformed
         }
-        interfaces.append(interface)
+        parsedInterfaces.append(interface)
       case 0x05:
         guard let endpoint = USBEndpointDescriptor(descriptor: descriptor) else {
           throw USBDescriptorError.malformed
         }
-        if let last = interfaces.popLast() { interfaces.append(last.appending(endpoint)) }
+        if let last = parsedInterfaces.popLast() {
+          parsedInterfaces.append(last.appending(endpoint))
+        }
       default: break
       }
     }
-    self.interfaces = interfaces
+    interfaces = parsedInterfaces
   }
 
   // Visits each descriptor in `bytes` after `offset`, rejecting lengths that cannot advance or
@@ -284,15 +286,17 @@ public struct USBCapabilityDescriptors: Sendable, Hashable {
     guard bytes.count >= 5, bytes[0] >= 5, bytes[1] == 0x0F,
       Int(UInt16(bytes[2]) | UInt16(bytes[3]) << 8) == bytes.count
     else { throw USBDescriptorError.malformed }
-    var capabilities: [USBDeviceCapability] = []
+    var parsedCapabilities: [USBDeviceCapability] = []
     try USBConfigurationDescriptor.walk(bytes, from: Int(bytes[0])) { descriptor in
       let base = descriptor.startIndex
       guard descriptor.count >= 3, descriptor[base + 1] == 0x10 else {
         throw USBDescriptorError.malformed
       }
-      capabilities.append(USBDeviceCapability(type: descriptor[base + 2], bytes: Array(descriptor)))
+      parsedCapabilities.append(
+        USBDeviceCapability(type: descriptor[base + 2], bytes: Array(descriptor))
+      )
     }
-    self.capabilities = capabilities
+    capabilities = parsedCapabilities
     self.bytes = bytes
   }
 }

@@ -27,7 +27,7 @@ struct NetworkingCapabilitiesGeneratorTests {
       "kSwifterKitEthernetBSDNamePrefix[] =\n    \(DriverExtensionGenerator.cString("sk"));",
       "kSwifterKitEthernetBSDUnitNumber = 7;", "kSwifterKitEthernetPacketTap =\n    true;",
       "kSwifterKitEthernetPolling = true;", "kSwifterKitEthernetPollDataRate = 1000000000;",
-      "kSwifterKitEthernetFeatureFlags =\n    201326592;",
+      "kSwifterKitEthernetFeatureFlags =\n    201326592;"
     ] { #expect(config.contains(constant), "\(constant)") }
     let service = try source("SwifterKitRuntimeService.iig", in: output)
     for member in [
@@ -35,7 +35,7 @@ struct NetworkingCapabilitiesGeneratorTests {
       "getTSOOptions(IOUserNetworkTSOOptions* options) LOCALONLY override;",
       "getBSDNamePrefix() LOCALONLY override;", "bpfTap(uint32_t dataLinkType, uint32_t mode)",
       "hwConfigNicProxyData(nicproxy_info_t* handoff) LOCALONLY override;",
-      "void DrainNetworkTransmits() LOCALONLY;", "kern_return_t NetworkPollerCommand(",
+      "void DrainNetworkTransmits() LOCALONLY;", "kern_return_t NetworkPollerCommand("
     ] { #expect(service.contains(member), "\(member)") }
 
     try expectGeneratedExtensionBuilds(
@@ -158,7 +158,7 @@ struct NetworkingCapabilitiesGeneratorTests {
       EthernetDeviceConfiguration(
         hardwareAddress: address,
         packetPolling: EthernetPacketPolling(dataRate: 0)
-      ),
+      )
     ]
     for device in invalid {
       #expect(throws: DriverExtensionGenerationError.invalidEthernetConfiguration) {
@@ -174,7 +174,7 @@ struct NetworkingCapabilitiesGeneratorTests {
   private var fullDevice: EthernetDeviceConfiguration {
     let assists: EthernetHardwareAssists = [
       .transmitIPv4HeaderChecksum, .transmitTCPChecksum, .transmitUDPChecksum, .tso4, .tso6, .lro,
-      .receiveChecksum, .wakeOnMagicPacket, .softwareVLAN, .nicProxy,
+      .receiveChecksum, .wakeOnMagicPacket, .softwareVLAN, .nicProxy
     ]
     return EthernetDeviceConfiguration(
       hardwareAddress: EthernetAddress(2, 3, 4, 5, 6, 7),

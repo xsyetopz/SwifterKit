@@ -33,7 +33,7 @@ namespace {
         kChangeCapacity = 1,
         kChangeQueueCount = 2,
         kChangeBufferID = 3,
-        kChangeBufferAttached = 4,
+        kChangeBufferAttached = 4
     };
 
     // The VideoDriverKit classes, wire structs, and schema values the

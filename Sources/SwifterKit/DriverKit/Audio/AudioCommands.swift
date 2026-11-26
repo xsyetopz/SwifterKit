@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 extension DriverCommand {
   /// Reads raw bytes from an AudioDriverKit stream ring buffer.

@@ -53,17 +53,17 @@ public struct ServiceMatchNotification: Sendable, Hashable {
     let id: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
     let rawKind: UInt32 = try runtimePayload.readRuntimeInteger(at: 4)
     let nameLength: UInt32 = try runtimePayload.readRuntimeInteger(at: 24)
-    guard id != 0, let kind = Kind(rawValue: rawKind),
+    guard id != 0, let decodedKind = Kind(rawValue: rawKind),
       try runtimePayload.readRuntimeInteger(at: 28) as UInt32 == 0,
       nameLength <= ServicePropertyCoding.maximumNameLength,
       runtimePayload.count == 32 + Int(nameLength),
-      let name = String(bytes: runtimePayload.dropFirst(32), encoding: .utf8)
+      let decodedName = String(bytes: runtimePayload.dropFirst(32), encoding: .utf8)
     else { throw ServiceRuntimeError.invalidPayload }
     watch = ServiceWatch(id: id)
-    self.kind = kind
+    kind = decodedKind
     sequence = try runtimePayload.readRuntimeInteger(at: 8)
     registryEntryID = try runtimePayload.readRuntimeInteger(at: 16)
-    self.name = name
+    name = decodedName
     guard sequence != 0 else { throw ServiceRuntimeError.invalidPayload }
   }
 }
@@ -94,7 +94,7 @@ public struct SystemStateNotification: Sendable, Hashable {
     else { throw ServiceRuntimeError.invalidPayload }
     let start = runtimePayload.startIndex
     let nameBytes = runtimePayload[(start + 16)..<(start + 16 + nameLength)]
-    guard !nameBytes.contains(0), let item = String(bytes: nameBytes, encoding: .utf8) else {
+    guard !nameBytes.contains(0), let decodedItem = String(bytes: nameBytes, encoding: .utf8) else {
       throw ServiceRuntimeError.invalidPayload
     }
     let rest = runtimePayload[(start + 16 + nameLength)...]
@@ -108,7 +108,7 @@ public struct SystemStateNotification: Sendable, Hashable {
     }
     watch = ServiceWatch(id: id)
     sequence = try runtimePayload.readRuntimeInteger(at: 8)
-    self.item = item
+    item = decodedItem
     guard sequence != 0 else { throw ServiceRuntimeError.invalidPayload }
   }
 }

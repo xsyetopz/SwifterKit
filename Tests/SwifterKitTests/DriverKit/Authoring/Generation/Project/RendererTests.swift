@@ -20,9 +20,9 @@ struct DriverExtensionProjectTests {
           "HIDDriverKit.framework", "USBDriverKit.framework", "PCIDriverKit.framework",
           "SerialDriverKit.framework", "BlockStorageDeviceDriverKit.framework",
           "MIDIDriverKit.framework", "NetworkingDriverKit.framework", "AudioDriverKit.framework",
-          "VideoDriverKit.framework",
+          "VideoDriverKit.framework"
         ]
-      ),
+      )
     ]
 
     for (capabilities, expected) in cases {
@@ -79,13 +79,13 @@ struct DriverExtensionProjectTests {
 
     #expect(frameworkLines.count == 9)
     for framework in [
-      "HIDDriverKit.framework", "USBDriverKit.framework", "SCSIControllerDriverKit.framework",
+      "HIDDriverKit.framework", "USBDriverKit.framework", "SCSIControllerDriverKit.framework"
     ] { #expect(frameworkLines.filter { $0.contains(framework) }.count == 3) }
     for framework in [
       "PCIDriverKit.framework", "SerialDriverKit.framework",
       "BlockStorageDeviceDriverKit.framework", "MIDIDriverKit.framework",
       "NetworkingDriverKit.framework", "AudioDriverKit.framework", "VideoDriverKit.framework",
-      "SCSIPeripheralsDriverKit.framework", "USBSerialDriverKit.framework",
+      "SCSIPeripheralsDriverKit.framework", "USBSerialDriverKit.framework"
     ] { #expect(!rendered.contains(framework)) }
   }
 
@@ -122,7 +122,7 @@ struct DriverExtensionProjectTests {
     for unrelated in [
       "USBDriverKit", "PCIDriverKit", "SerialDriverKit", "BlockStorageDeviceDriverKit",
       "MIDIDriverKit", "NetworkingDriverKit", "AudioDriverKit", "VideoDriverKit",
-      "SCSIControllerDriverKit", "SCSIPeripheralsDriverKit", "USBSerialDriverKit",
+      "SCSIControllerDriverKit", "SCSIPeripheralsDriverKit", "USBSerialDriverKit"
     ] { #expect(!linkedLibraries.output.contains("\(unrelated).framework")) }
   }
 
@@ -165,18 +165,18 @@ struct DriverExtensionProjectTests {
       "SerialDriverKit.framework", "BlockStorageDeviceDriverKit.framework",
       "MIDIDriverKit.framework", "NetworkingDriverKit.framework", "AudioDriverKit.framework",
       "VideoDriverKit.framework", "SCSIControllerDriverKit.framework",
-      "SCSIPeripheralsDriverKit.framework", "USBSerialDriverKit.framework",
+      "SCSIPeripheralsDriverKit.framework", "USBSerialDriverKit.framework"
     ]
     let records = frameworks.flatMap { framework in
       [
         frameworkLine(framework, kind: .buildFile), frameworkLine(framework, kind: .fileReference),
-        frameworkLine(framework, kind: .buildPhase),
+        frameworkLine(framework, kind: .buildPhase)
       ]
     }
     return
       ([
         "com.swifterkit.Runtime", "DRIVERKIT_DEPLOYMENT_TARGET = 21.0;",
-        "DEVELOPMENT_TEAM = 9PQP6CDMQT;",
+        "DEVELOPMENT_TEAM = 9PQP6CDMQT;"
       ] + records).joined(separator: "\n")
   }
 

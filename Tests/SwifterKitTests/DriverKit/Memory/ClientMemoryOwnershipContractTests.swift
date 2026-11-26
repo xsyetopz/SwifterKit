@@ -43,7 +43,7 @@ struct ClientMemoryOwnershipContractTests {
     )
     for (start, end) in [
       ("kern_return_t CreateMemorySubrange(", "kern_return_t CreateMemoryChain("),
-      ("kern_return_t CreateMemoryChain(", "}  // namespace"),
+      ("kern_return_t CreateMemoryChain(", "}  // namespace")
     ] {
       let body = try section(of: memory, from: start, to: end)
       try expectOrder(

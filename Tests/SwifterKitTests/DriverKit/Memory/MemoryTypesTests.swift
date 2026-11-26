@@ -84,7 +84,7 @@ struct MemoryTypesTests {
           flags: 3,
           segments: [
             DriverDMASegment(address: 0x1000, length: 256),
-            DriverDMASegment(address: 0x2000, length: 128),
+            DriverDMASegment(address: 0x2000, length: 128)
           ]
         )
     )

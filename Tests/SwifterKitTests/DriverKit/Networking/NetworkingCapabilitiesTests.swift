@@ -122,7 +122,7 @@ struct NetworkingCapabilitiesTests {
       event(kind: 12, value: 2, data: [1, 0, 0, 0]), event(kind: 12, value: 0),
       event(kind: 13, value: 2), event(kind: 14, value: 4),
       event(kind: 15, value: 4, data: [4, 0, 0, 0]),
-      event(kind: 15, value: 84, data: [80] + [UInt8](repeating: 0, count: 83)),
+      event(kind: 15, value: 84, data: [80] + [UInt8](repeating: 0, count: 83))
     ]
     for value in invalid {
       #expect(throws: EthernetRuntimeError.invalidPayload) { try value.ethernet() }

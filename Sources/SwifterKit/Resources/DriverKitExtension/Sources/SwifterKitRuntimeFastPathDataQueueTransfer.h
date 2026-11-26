@@ -31,7 +31,7 @@
 enum class SwifterKitFastPathStagingResult : uint8_t {
     Enqueued,
     Full,
-    Failed,
+    Failed
 };
 
 // What one pass over a to-extension host ring did.

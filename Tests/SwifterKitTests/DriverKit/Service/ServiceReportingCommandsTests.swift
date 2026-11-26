@@ -11,7 +11,7 @@ struct ServiceReportingCommandsTests {
     #expect(
       [ReportUnit.none, .seconds, .milliseconds, .microseconds, .nanoseconds].map(\.rawValue) == [
         0, 0x0100_0000_0000_0000, 0x0100_007C_0000_0000, 0x0100_0079_0000_0000,
-        0x0100_0076_0000_0000,
+        0x0100_0076_0000_0000
       ]
     )
     #expect(ReportUnit.hardwareTicks.rawValue == 0x0101_0000_0000_0000)
@@ -70,7 +70,7 @@ struct ServiceReportingCommandsTests {
           maximum: 8,
           sum: 20
         ), 7
-      ),
+      )
     ]
     for (command, operation) in operations {
       #expect(try command.payload.readRuntimeInteger(at: 4) as UInt32 == operation)
@@ -217,7 +217,7 @@ struct ServiceReportingCommandsTests {
         group: "G",
         channels: [channel(1)],
         categories: .performance
-      ),
+      )
     ]
     for reporter in invalid { #expect(!ReportingConfiguration(reporters: [reporter]).isValid) }
     #expect(!ReportingConfiguration(reporters: []).isValid)
@@ -250,13 +250,13 @@ struct ServiceReportingCommandsTests {
     ReporterConfiguration(
       kind: .histogram(segments: [
         HistogramSegment(baseBucketWidth: 10, bucketCount: 4),
-        HistogramSegment(baseBucketWidth: 2, scale: .exponential, bucketCount: 8),
+        HistogramSegment(baseBucketWidth: 2, scale: .exponential, bucketCount: 8)
       ]),
       group: "Latency",
       channels: [ReportChannel(id: 0x4C54, name: "IO")],
       categories: [.performance, .field],
       unit: .microseconds
-    ),
+    )
   ])
 
   private func channel(_ id: UInt64) -> ReportChannel { ReportChannel(id: id, name: "C\(id)") }

@@ -48,9 +48,9 @@ private actor MockTransport: DriverTransport {
     self.connection = connection
   }
 
-  func services(matching criteria: DriverServiceMatch) -> [DriverService] { [service] }
+  func services(matching _: DriverServiceMatch) -> [DriverService] { [service] }
 
-  func open(_ service: DriverService, type: UInt32) -> any DriverConnection {
+  func open(_ _: DriverService, type: UInt32) -> any DriverConnection {
     lastOpenType = type
     return connection
   }
@@ -69,7 +69,7 @@ private actor MockConnection: DriverConnection {
     mappings.map(type: type, readOnly: readOnly)
   }
 
-  func call(_ request: DriverRequest) throws -> DriverResponse {
+  func call(_ request: DriverRequest) -> DriverResponse {
     lastRequest = request
     return response
   }

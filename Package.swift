@@ -1,45 +1,47 @@
-// swift-tools-version:6.4.0
-import Foundation
+// swift-tools-version: 6.4
 import PackageDescription
-
-// Xcode's Swift Testing framework lives outside the default search paths of swift.org
-// toolchains. macOS test builds use the selected Xcode.
-let developerDirectory =
-  ProcessInfo.processInfo.environment["DEVELOPER_DIR"]
-  ?? "/Applications/Xcode.app/Contents/Developer"
-let testingFrameworks =
-  "\(developerDirectory)/Platforms/MacOSX.platform/Developer/Library/Frameworks"
-let testingRuntime = "\(developerDirectory)/Platforms/MacOSX.platform/Developer/usr/lib"
 
 let package = Package(
   name: "SwifterKit",
-  platforms: [.macOS(.v12)],
+  platforms: [.macOS(.v13)],
   products: [.library(name: "SwifterKit", targets: ["SwifterKit"])],
   targets: [
     .target(
       name: "SwifterKit",
       resources: [.copy("Resources/DriverKitExtension")],
       linkerSettings: [.linkedFramework("IOKit", .when(platforms: [.macOS]))]
-    ), .executableTarget(name: "SwifterKitCoverage"),
-    .testTarget(
-      name: "SwifterKitCoverageTests",
-      dependencies: ["SwifterKitCoverage"],
-      swiftSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))],
-      // Both test targets link into one test bundle. Only SwifterKitTests adds the testing
-      // runtime rpath, because a second copy makes the linker warn about a duplicate.
-      linkerSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))]
     ),
-    .testTarget(
-      name: "SwifterKitTests",
-      dependencies: ["SwifterKit"],
-      swiftSettings: [.unsafeFlags(["-F", testingFrameworks], .when(platforms: [.macOS]))],
-      linkerSettings: [
-        .unsafeFlags(
-          ["-F", testingFrameworks, "-Xlinker", "-rpath", "-Xlinker", testingRuntime],
-          .when(platforms: [.macOS])
-        )
-      ]
-    ),
+    .executableTarget(name: "SwifterKitCoverage"),
+    .testTarget(name: "SwifterKitCoverageTests", dependencies: ["SwifterKitCoverage"]),
+    .testTarget(name: "SwifterKitTests", dependencies: ["SwifterKit"])
   ],
   swiftLanguageModes: [.v6]
 )
+
+// >>> swift-bedrock
+// Managed by swift-bedrock: Swift 6, the upcoming features, strict memory safety,
+// and warnings as errors, for every target.
+package.swiftLanguageModes = [.v6]
+for target in package.targets where ![.system, .binary, .plugin].contains(target.type) {
+  target.swiftSettings =
+    (target.swiftSettings ?? []) + [
+      .enableUpcomingFeature("ExistentialAny"),
+      .enableUpcomingFeature("InternalImportsByDefault"),
+      .enableUpcomingFeature("MemberImportVisibility"),
+      .enableUpcomingFeature("InferIsolatedConformances"),
+      .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+      .enableUpcomingFeature("ImmutableWeakCaptures"),
+      .strictMemorySafety(),
+      .treatAllWarnings(as: .error)
+    ]
+}
+// <<< swift-bedrock
+
+// >>> swift-bedrock-cxx
+// Managed by swift-bedrock: C++20, and C++ interop for every Swift target, since a
+// target that imports a C++ module, even through another target, needs it.
+package.cxxLanguageStandard = .cxx20
+for target in package.targets where [.regular, .executable, .test].contains(target.type) {
+  target.swiftSettings = (target.swiftSettings ?? []) + [.interoperabilityMode(.Cxx)]
+}
+// <<< swift-bedrock-cxx

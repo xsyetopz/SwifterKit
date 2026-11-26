@@ -191,9 +191,11 @@ public struct VideoStreamState: Sendable, Hashable {
     guard runtimePayload.count >= 128 else { throw VideoRuntimeError.invalidPayload }
     objectID = try runtimePayload.readRuntimeInteger(at: 0)
     guard
-      let direction = VideoStreamDirection(rawValue: try runtimePayload.readRuntimeInteger(at: 4))
+      let decodedDirection = VideoStreamDirection(
+        rawValue: try runtimePayload.readRuntimeInteger(at: 4)
+      )
     else { throw VideoRuntimeError.invalidPayload }
-    self.direction = direction
+    direction = decodedDirection
     terminalType = VideoStreamTerminalType(rawValue: try runtimePayload.readRuntimeInteger(at: 8))
     startingChannel = try runtimePayload.readRuntimeInteger(at: 12)
     let active: UInt32 = try runtimePayload.readRuntimeInteger(at: 16)
@@ -377,10 +379,10 @@ public struct VideoControlInfo: Sendable, Hashable {
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 48 else { throw VideoRuntimeError.invalidPayload }
     objectID = try runtimePayload.readRuntimeInteger(at: 0)
-    guard let kind = Kind(rawValue: try runtimePayload.readRuntimeInteger(at: 4)) else {
+    guard let decodedKind = Kind(rawValue: try runtimePayload.readRuntimeInteger(at: 4)) else {
       throw VideoRuntimeError.invalidPayload
     }
-    self.kind = kind
+    kind = decodedKind
     scope = VideoObjectScope(rawValue: try runtimePayload.readRuntimeInteger(at: 8))
     element = try runtimePayload.readRuntimeInteger(at: 12)
     let settable: UInt32 = try runtimePayload.readRuntimeInteger(at: 16)
@@ -392,12 +394,13 @@ public struct VideoControlInfo: Sendable, Hashable {
     let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 40)
     owningDeviceID = try runtimePayload.readRuntimeInteger(at: 44)
     guard settable <= 1, attached <= 1, count <= RuntimeVideoLimits.maximumSelectorItems,
-      kind == .selector || count == 0, kind != .slider || minimum <= maximum
+      decodedKind == .selector || count == 0, decodedKind != .slider || minimum <= maximum
     else { throw VideoRuntimeError.invalidPayload }
     isSettable = settable == 1
     isAttached = attached == 1
-    sliderRange = kind == .slider ? minimum...maximum : nil
-    panningChannels = kind == .stereoPan ? VideoStereoChannels(left: left, right: right) : nil
+    sliderRange = decodedKind == .slider ? minimum...maximum : nil
+    panningChannels =
+      decodedKind == .stereoPan ? VideoStereoChannels(left: left, right: right) : nil
     var items: [VideoSelectorValue] = []
     var offset = 48
     for _ in 0..<count {
@@ -479,9 +482,11 @@ public struct VideoCustomPropertyInfo: Sendable, Hashable {
     )
     let reserved: UInt32 = try runtimePayload.readRuntimeInteger(at: 20)
     guard reserved == 0,
-      let owner = VideoCustomPropertyOwner(rawValue: try runtimePayload.readRuntimeInteger(at: 16))
+      let decodedOwner = VideoCustomPropertyOwner(
+        rawValue: try runtimePayload.readRuntimeInteger(at: 16)
+      )
     else { throw VideoRuntimeError.invalidPayload }
-    self.owner = owner
+    owner = decodedOwner
   }
 }
 
@@ -532,10 +537,10 @@ public struct VideoIOOperationState: Sendable, Hashable {
     guard runtimePayload.count == 32 else { throw VideoRuntimeError.invalidPayload }
     sequence = try runtimePayload.readRuntimeInteger(at: 0)
     let rawOperation: UInt32 = try runtimePayload.readRuntimeInteger(at: 8)
-    guard let operation = Operation(rawValue: rawOperation) else {
+    guard let decodedOperation = Operation(rawValue: rawOperation) else {
       throw VideoRuntimeError.invalidOperation(rawOperation)
     }
-    self.operation = operation
+    operation = decodedOperation
     frameCount = try runtimePayload.readRuntimeInteger(at: 12)
     sampleTime = try runtimePayload.readRuntimeInteger(at: 16)
     hostTime = try runtimePayload.readRuntimeInteger(at: 24)

@@ -32,7 +32,7 @@ struct ServiceNameAndUserClassTests {
     #expect(
       try ServicePropertyCoding.decode(command.payload)
         == .dictionary([
-          "IOProviderClass": .string("IOUserService"), "IOUserClass": .string("MyDriver"),
+          "IOProviderClass": .string("IOUserService"), "IOUserClass": .string("MyDriver")
         ])
     )
     let plain = try DriverCommand.watchServices(

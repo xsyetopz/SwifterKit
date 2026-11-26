@@ -198,7 +198,7 @@ struct USBAsyncCommandsTests {
     let malformed: [[UInt8]] = [
       bytes(le(UInt32(0)), le(Int32(0)), le(UInt32(0)), [0x40, 0, 0, 0]),
       bytes(le(UInt32(1)), le(Int32(0)), le(UInt32(2)), [0xC0, 0, 0, 0], [1]),
-      bytes(le(UInt32(1)), le(Int32(0)), le(UInt32(0)), [0x40, 1, 0, 0]), [1, 2, 3],
+      bytes(le(UInt32(1)), le(Int32(0)), le(UInt32(0)), [0x40, 1, 0, 0]), [1, 2, 3]
     ]
     for payload in malformed {
       #expect(throws: USBRuntimeError.invalidResponse) {
@@ -224,7 +224,7 @@ struct USBAsyncCommandsTests {
     let malformed: [[UInt8]] = [
       bytes([0x81, 0, 0, 0], le(UInt32(64)), le(Int32(0)), le(UInt32(0))),
       bytes([0x02, 0, 0, 0], le(UInt32(1)), le(Int32(0)), le(UInt32(4)), [1]),
-      bytes([0x81, 1, 0, 0], le(UInt32(1)), le(Int32(0)), le(UInt32(0))),
+      bytes([0x81, 1, 0, 0], le(UInt32(1)), le(Int32(0)), le(UInt32(0)))
     ]
     for payload in malformed {
       #expect(throws: USBRuntimeError.invalidResponse) {

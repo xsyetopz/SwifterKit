@@ -27,7 +27,7 @@ enum CoverageArticle {
         + "a private class extension, or compiled only for the kernel or under a private "
         + "condition. No DriverKit driver can use it.", "", "### Counts", "",
       "| Framework | Public | Swift API | Runtime | Gap | Not exposed | Apple only |",
-      "| --- | --- | --- | --- | --- | --- | --- |",
+      "| --- | --- | --- | --- | --- | --- | --- |"
     ]
     var totals = Counts()
     for framework in Set(coverage.classes.map(\.framework)).sorted() {
@@ -38,7 +38,7 @@ enum CoverageArticle {
     lines.append(totals.row("**Total**"))
 
     lines += [
-      "", exclusionsTitle, "", "Public members that SwifterKit chose not to reach from Swift.",
+      "", exclusionsTitle, "", "Public members that SwifterKit chose not to reach from Swift."
     ]
     lines += listing(coverage, .excluded, by: .swifterkit) { entry, methods in
       methods.map { "- `\(entry.name)` `\($0.signature)`: \($0.note ?? "")" }
@@ -49,7 +49,7 @@ enum CoverageArticle {
     }
     lines += [
       "", "### Members Apple keeps from DriverKit clients", "",
-      "Members that no DriverKit driver can use, with the header fact that says so.",
+      "Members that no DriverKit driver can use, with the header fact that says so."
     ]
     lines += listing(coverage, .excluded, by: .apple) { entry, methods in
       [

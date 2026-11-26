@@ -69,7 +69,7 @@ extension DriverCommand {
   ) throws -> Self {
     let fixed = try [
       stylus.x, stylus.y, stylus.tipPressure, stylus.barrelPressure, stylus.tiltX, stylus.tiltY,
-      stylus.twist,
+      stylus.twist
     ].map(HIDFixed.raw)
     guard stylus.state.rawValue & ~RuntimeHIDStylusFlag.allBits == 0 else {
       throw HIDRuntimeError.valueOutOfRange
@@ -131,7 +131,7 @@ extension DriverCommand {
     payload.appendRuntimeInteger(timestamp)
     payload.append(
       HIDLimits.words([
-        collection.type.rawValue, collection.identifier, collection.parentCookie ?? 0, flags,
+        collection.type.rawValue, collection.identifier, collection.parentCookie ?? 0, flags
       ])
     )
     for value in [collection.x, collection.y, collection.z] {

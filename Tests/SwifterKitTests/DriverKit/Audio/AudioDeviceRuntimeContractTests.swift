@@ -25,13 +25,13 @@ struct AudioDeviceRuntimeContractTests {
         "SwifterKitCopyControlInfo<AudioMemberFamily>(",
         "SwifterKitSetControlProperty<AudioMemberFamily>(",
         "SwifterKitRemoveSelectorItems<AudioMemberFamily>(",
-        "SwifterKitCopyCustomPropertyInfo<AudioMemberFamily>(",
+        "SwifterKitCopyCustomPropertyInfo<AudioMemberFamily>("
       ] { #expect(members.contains(call), "missing \(call)") }
       let shared = try source("SwifterKitRuntimeMediaMembers.h", in: output)
       for call in [
         "GetCurrentClientIOTime(true", "SetPreferredInputChannelLayout(",
         "GetControlValueDescriptions(", "RemoveControlValueDescriptions(", "SetRange(",
-        "SetPanningChannels(", "GetCustomPropertyInfo()", "RemoveStream(",
+        "SetPanningChannels(", "GetCustomPropertyInfo()", "RemoveStream("
       ] { #expect(shared.contains(call), "missing \(call)") }
       let resize = try section(
         of: members,
@@ -212,7 +212,7 @@ struct AudioDeviceRuntimeContractTests {
       initialSampleRate: 48_000,
       streams: [
         AudioStreamConfiguration(direction: .output, name: "Out", formats: [format]),
-        AudioStreamConfiguration(direction: .input, name: "In", formats: [format]),
+        AudioStreamConfiguration(direction: .input, name: "In", formats: [format])
       ],
       controls: AudioGeneratorTests.selectorSliderAndPanControls(selectorName: "Source"),
       customProperties: [

@@ -19,8 +19,8 @@ Use SwifterKit when a driver needs:
 
 - Swift 6.4 (Xcode 27.0) or later for package consumers
 - the Swift version in `.swift-version` for local development
-- macOS 12 or later for the IOKit host transport and base DriverKit runtime;
-  configuration, validation, protocol, and generation code also builds on
+- macOS 13 or later for the IOKit host transport; the base DriverKit runtime
+  extension runs on macOS 12; configuration, validation, protocol, and generation code also builds on
   Linux, where the IOKit transport is unavailable
 - Xcode with the DriverKit SDK for generated extension builds
 - Apple-approved entitlements, signing assets, a host application, and physical
@@ -38,7 +38,7 @@ DriverKit version.
 ### Deployment targets
 
 The package target and the generated extension target are independent. Swift
-package clients can run on macOS 12 while a generated extension selects the
+package clients run on macOS 13 or later while a generated extension selects the
 narrowest DriverKit target required by its capabilities.
 
 | Generated capability | Minimum DriverKit target | Host availability |
@@ -204,7 +204,7 @@ expose", one member per line:
 ```
 
 Regenerate the article after changing the runtime, its documentation, or the
-installed SDKs. Pass every installed DriverKit SDK, as `validate.sh` does;
+installed SDKs. Pass every installed DriverKit SDK, as `just coverage` does;
 `--exclusions FILE` adds or replaces reasons from a local file in the same line
 format:
 
@@ -222,7 +222,7 @@ member, names one the runtime reaches, or describes intent such as "planned" or
 "not yet". With `--trees` and the same SDKs the article names, it also fails
 when the article differs from what `docc` writes; otherwise it prints a note
 and skips that comparison. CI runs it with the selected SDK and no trees;
-`validate.sh` runs it with every installed SDK and the trees.
+`just coverage` runs it with every installed SDK and the trees.
 
 ## Native boundary
 
@@ -245,24 +245,27 @@ before adding raw commands or memory operations.
 
 ## Build and test
 
-Run the complete validation suite:
+Install the pinned tools once, then run the complete validation suite:
 
 ```sh
-./scripts/ci/validate.sh
+just setup
+just verify
 ```
 
-The suite checks Swift and C++ formatting, SwiftLint, Swift 6 tests, a release
-build with warnings as errors, DocC links, C++20 static analysis, unsigned
-arm64 and x86_64 DriverKit builds, property lists, and source LOC limits.
+The suite checks Swift, C++, and IIG formatting, SwiftLint, Swift 6 tests, a
+release build with warnings as errors, DocC links, C++20 static analysis,
+unsigned arm64 and x86_64 DriverKit builds, property lists, and source LOC
+limits. `just` lists the narrower recipes, such as `just swift::test`,
+`just docs`, and `just native-build`.
 
 The compatibility job runs the tests with Xcode 27.0, Swift 6.4, and the
-DriverKit 27.0 SDK while retaining the macOS 12 deployment target. A Linux
+DriverKit 27.0 SDK while retaining the macOS 13 deployment target. A Linux
 job runs the tests in the `swift:6.4` container. The main validation job uses
 the latest passing local toolchain.
 
 Tests that build a generated extension use the DriverKit SDK in
 `SWIFTERKIT_DRIVERKIT_DEVELOPER_DIR`, or `DEVELOPER_DIR` when that is unset.
-`validate.sh` builds the checked-in native project, which links every family
+`just native-build` builds the checked-in native project, which links every family
 framework including VideoDriverKit, with `DEVELOPER_DIR`. With a newer SDK the
 build's deployment target is raised to the SDK minimum (the Xcode 27 SDK starts
 at DriverKit 21.0). Build tests for projects that need a newer SDK, such as
@@ -274,18 +277,18 @@ compilers.
 
 ### Hardware runtime coverage
 
-CI does not run on macOS 12 and cannot activate a signed extension or attach
-physical hardware. The following macOS 12 runtime paths remain
+CI does not run on macOS 13 and cannot activate a signed extension or attach
+physical hardware. The following macOS 13 runtime paths remain
 compile-checked but unexecuted in CI:
 
 - IOKit service discovery and user-client opening through `kIOMainPortDefault`;
 - event notifications through `IOConnectCallAsyncStructMethod`, the IOKit
   notification port, and the extension's `AsyncCompletion` calls;
 - generated extension activation, runtime negotiation, and device I/O on a
-  macOS 12 host; and
+  macOS 13 host; and
 - signed entitlement, provisioning, and hardware behavior.
 
-SwifterKit 0.4.0 has not been run on physical hardware. This includes fast-path
+SwifterKit 0.5.0 has not been run on physical hardware. This includes fast-path
 programs, DMA rings, host-shared data queues, wrapped or mapped host memory, and
 device I/O for every capability family: HID, USB and USB serial, PCI, serial,
 block storage, MIDI, Ethernet networking, audio, SCSI, video, interrupts,
@@ -328,8 +331,10 @@ the same when multiple Xcode versions are installed.
 
 **A signed build fails.** Confirm that the certificate, private key,
 provisioning profile, team identifier, bundle identifier, and approved
-entitlements agree. See [Publishing](docs/publishing.md) for the local and
-GitHub Actions setup.
+entitlements agree. `just sign-driverkit` reads `DEVELOPMENT_TEAM`,
+`CODESIGN_IDENTITY`, `DEXT_BUNDLE_IDENTIFIER`, and
+`DEXT_PROVISIONING_PROFILE_SPECIFIER` from the environment or from
+`.env.<SWIFTERKIT_ENV>`, which defaults to `.env.dev`.
 
 ## Signed DriverKit builds and publishing
 
@@ -342,15 +347,14 @@ entitlement, and its array must contain the extension's bundle identifier.
 Every generated extension rejects runtime connections from processes without
 it. See [The native DriverKit boundary](Sources/SwifterKit/SwifterKit.docc/NativeBoundary.md#host-access).
 
-[Publishing](docs/publishing.md) covers release tags, GitHub Actions, local `.
-env` files, signed validation, and Apple account requirements.
+Pushing a SemVer tag, such as `0.5.0`, runs the Release workflow, which runs
+`just verify` and publishes the source archive from `just release-archive`.
 
 ## Documentation
 
 - [Getting started with a Swift driver](Sources/SwifterKit/SwifterKit.docc/GettingStarted.md)
 - [Capability APIs](Sources/SwifterKit/SwifterKit.docc/Capabilities.md)
 - [The native DriverKit boundary](Sources/SwifterKit/SwifterKit.docc/NativeBoundary.md)
-- [Publishing](docs/publishing.md)
 - [Changelog](CHANGELOG.md)
 
 ## Contributing

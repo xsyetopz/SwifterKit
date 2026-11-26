@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// A CoreMIDI property selector, `IOUserMIDIProperty`.
 public struct MIDIProperty: RawRepresentable, Sendable, Hashable {
@@ -8,7 +8,7 @@ public struct MIDIProperty: RawRepresentable, Sendable, Hashable {
   public init(rawValue: UInt32) { self.rawValue = rawValue }
 
   private init(_ code: StaticString) {
-    rawValue = code.withUTF8Buffer { $0.reduce(UInt32(0)) { $0 << 8 | UInt32($1) } }
+    rawValue = code.withUTF8Buffer { unsafe $0.reduce(UInt32(0)) { $0 << 8 | UInt32($1) } }
   }
 
   /// The name of the MIDI object.

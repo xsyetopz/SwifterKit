@@ -43,7 +43,7 @@ struct IIGParserTests {
         "kern_return_t AsyncIO(IOMemoryDescriptor*, uint32_t, OSAction*)",
         "void CompleteAsyncIO(OSAction*, IOReturn)",
         "OSDictionary* CreateMatching(const char*, OSDictionary*)",
-        "kern_return_t GetSpeed(uint8_t*) const", "void _Internal(uint32_t)",
+        "kern_return_t GetSpeed(uint8_t*) const", "void _Internal(uint32_t)"
       ]
     )
     #expect(pipe.methods[0].annotations == ["LOCAL"])
@@ -70,7 +70,7 @@ struct IIGParserTests {
   }
 
   @Test
-  func recordsConditionsAndExtensions() throws {
+  func recordsConditionsAndExtensions() {
     let classes = IIGParser.parse(
       """
       class IOExample : public IOService
@@ -140,7 +140,7 @@ struct IIGParserTests {
     #expect(
       service.methods.map(\.signature) == [
         "OSArray* getElements()", "const OSData& descriptor(uint32_t) const",
-        "IOExampleService** all()",
+        "IOExampleService** all()"
       ]
     )
   }

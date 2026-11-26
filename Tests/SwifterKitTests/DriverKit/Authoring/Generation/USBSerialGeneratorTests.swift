@@ -104,7 +104,7 @@ struct USBSerialGeneratorTests {
     configuration(usbSerialPort: USBSerialPortConfiguration(baseName: "usbserial")),
     configuration(usbSerialPort: USBSerialPortConfiguration(suffix: "A")),
     configuration(usbSerialPort: USBSerialPortConfiguration(baseName: "", suffix: "A")),
-    configuration(usbSerialPort: USBSerialPortConfiguration(baseName: "a\0b", suffix: "A")),
+    configuration(usbSerialPort: USBSerialPortConfiguration(baseName: "a\0b", suffix: "A"))
   ])
   func rejectsInvalidUSBSerialMetadata(_ configuration: DriverConfiguration) {
     #expect(throws: DriverExtensionGenerationError.invalidSerialConfiguration) {

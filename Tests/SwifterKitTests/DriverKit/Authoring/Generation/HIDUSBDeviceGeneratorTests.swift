@@ -36,7 +36,7 @@ struct HIDUSBDeviceGeneratorTests {
     let device = USBHIDDeviceConfiguration(
       reportDescriptor: [0x05, 0x01, 0x09, 0x06, 0xA1, 0x01, 0xC0],
       deviceProperties: [
-        "Product": .string("Example keyboard"), "CountryCode": .unsignedInteger(33),
+        "Product": .string("Example keyboard"), "CountryCode": .unsignedInteger(33)
       ],
       acceptedHostReportTypes: .feature,
       answeredReportTypes: [.feature],
@@ -131,7 +131,7 @@ struct HIDUSBDeviceGeneratorTests {
       Self.usbHIDConfiguration(
         USBHIDDeviceConfiguration(),
         providerClass: USBDeviceConfiguration.deviceProviderClass
-      ),
+      )
     ]
     for configuration in invalid {
       #expect(throws: DriverExtensionGenerationError.self) {

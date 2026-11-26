@@ -59,9 +59,11 @@ public struct USBTransferResult: Sendable, Hashable {
   init(runtimePayload: Data) throws {
     guard runtimePayload.count >= 4 else { throw USBRuntimeError.invalidResponse }
     let count: UInt32 = try runtimePayload.readRuntimeInteger(at: 0)
-    let data = Array(runtimePayload.dropFirst(4))
-    guard data.isEmpty || data.count == Int(count) else { throw USBRuntimeError.invalidResponse }
-    self.init(bytesTransferred: count, data: data)
+    let payloadData = Array(runtimePayload.dropFirst(4))
+    guard payloadData.isEmpty || payloadData.count == Int(count) else {
+      throw USBRuntimeError.invalidResponse
+    }
+    self.init(bytesTransferred: count, data: payloadData)
   }
 }
 

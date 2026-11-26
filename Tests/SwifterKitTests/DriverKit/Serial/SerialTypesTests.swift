@@ -97,6 +97,6 @@ struct SerialTypesTests {
 
   private func littleEndian<T: FixedWidthInteger>(_ value: T) -> [UInt8] {
     var encoded = value.littleEndian
-    return withUnsafeBytes(of: &encoded) { Array($0) }
+    return withUnsafeBytes(of: &encoded) { unsafe Array($0) }
   }
 }

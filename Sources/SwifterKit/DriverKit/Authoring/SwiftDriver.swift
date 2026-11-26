@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Driver behavior authored in Swift and hosted by the SwifterKit runtime.
 public protocol SwiftDriver: Sendable {
@@ -17,13 +17,13 @@ public protocol SwiftDriver: Sendable {
 
 extension SwiftDriver {
   /// Provides a cooperative startup hook.
-  public func start(context: DriverContext) async throws {
+  public func start(context _: DriverContext) async throws {
     await Task.yield()
     try Task.checkCancellation()
   }
 
   /// Provides a cooperative shutdown hook.
-  public func stop(context: DriverContext) async { await Task.yield() }
+  public func stop(context _: DriverContext) async { await Task.yield() }
 }
 
 /// An event forwarded from the internal DriverKit extension.

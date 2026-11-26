@@ -147,13 +147,13 @@ public struct VideoObjectInfo: Sendable, Hashable {
     let maximum = RuntimeVideoLimits.nameMaximumLength
     guard reserved0 == 0, reserved1 == 0, nameLength <= maximum, uidLength <= maximum,
       runtimePayload.count == 32 + nameLength + uidLength,
-      let name = String(
+      let decodedName = String(
         data: runtimePayload[(base + 32)..<(base + 32 + nameLength)],
         encoding: .utf8
-      ), let uid = String(data: runtimePayload.suffix(uidLength), encoding: .utf8)
+      ), let decodedUID = String(data: runtimePayload.suffix(uidLength), encoding: .utf8)
     else { throw VideoRuntimeError.invalidPayload }
-    self.name = name
-    self.uid = uid
+    name = decodedName
+    uid = decodedUID
   }
 }
 

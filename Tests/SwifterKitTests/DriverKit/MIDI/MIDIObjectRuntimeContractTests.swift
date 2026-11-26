@@ -70,12 +70,12 @@ struct MIDIObjectRuntimeContractTests {
         "CopyProperty(key.name, &value)", "CopyProperty(Selector(key), &value)",
         "SetProperty(key.name, value)", "SetProperty(Selector(key), value)", "GetProperties()",
         "SetProperties(dictionary)", "GetEntities()", "GetDeviceIsRunning()", "GetSources()",
-        "GetDestinations()",
+        "GetDestinations()"
       ] { #expect(objects.contains(call), Comment(rawValue: call)) }
       let device = try source("SwifterKitRuntimeMIDIDevice.cpp", in: output)
       for call in [
         "AddEntity(entity)", "RemoveEntity(entity)", "AddSource(source)", "RemoveSource(source)",
-        "AddDestination(destination)", "RemoveDestination(destination)",
+        "AddDestination(destination)", "RemoveDestination(destination)"
       ] { #expect(device.contains(call), Comment(rawValue: call)) }
       let properties = try source("SwifterKitRuntimeMIDIProperties.cpp", in: output)
       let header = try source(RuntimeSchemaHeader.fileName, in: output)

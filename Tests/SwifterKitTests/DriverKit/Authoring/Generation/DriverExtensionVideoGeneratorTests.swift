@@ -155,7 +155,7 @@ struct VideoGeneratorTests {
           formats: [format],
           bufferCount: 2,
           dataBufferCapacity: 8_294_400
-        ),
+        )
       ],
       controls: [
         .boolean(
@@ -178,11 +178,11 @@ struct VideoGeneratorTests {
           VideoSelectorControlConfiguration(
             metadata: VideoControlMetadata(identifier: 7, name: "Mode", controlClass: .selector),
             values: [
-              VideoSelectorValue(value: 10, name: "A"), VideoSelectorValue(value: 20, name: "B"),
+              VideoSelectorValue(value: 10, name: "A"), VideoSelectorValue(value: 20, name: "B")
             ],
             initialValues: [20]
           )
-        ),
+        )
       ],
       customProperties: [property]
     )

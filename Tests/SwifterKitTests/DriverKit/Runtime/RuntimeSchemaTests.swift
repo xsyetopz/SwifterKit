@@ -12,7 +12,7 @@ struct RuntimeSchemaTests {
   private static let headers = [
     (RuntimeSchemaHeader.fileName, RuntimeSchemaHeader.render()),
     (RuntimeSchemaHeader.fastPathFileName, RuntimeSchemaHeader.renderFastPath()),
-    (RuntimeSchemaHeader.hidFileName, RuntimeSchemaHeader.renderHID()),
+    (RuntimeSchemaHeader.hidFileName, RuntimeSchemaHeader.renderHID())
   ]
 
   @Test

@@ -16,15 +16,16 @@ struct FastPathDataQueueRingTests {
   )
 
   // A zeroed host ring with the header the extension writes at start.
+  @safe
   private final class Ring: @unchecked Sendable {
     let pointer: UnsafeMutableRawBufferPointer
     let memory: DriverSharedMemory
 
     init(_ queue: FastPathDataQueue = FastPathDataQueueRingTests.queue) {
       let count = Int(queue.byteCount)
-      pointer = .allocate(byteCount: count, alignment: 16)
-      pointer.initializeMemory(as: UInt8.self, repeating: 0)
-      memory = DriverSharedMemory(
+      unsafe pointer = .allocate(byteCount: count, alignment: 16)
+      unsafe pointer.initializeMemory(as: UInt8.self, repeating: 0)
+      memory = unsafe DriverSharedMemory(
         baseAddress: pointer.baseAddress!,
         length: count,
         isReadOnly: false
@@ -35,23 +36,23 @@ struct FastPathDataQueueRingTests {
       set(FastPathDataQueueLayout.directionOffset, queue.direction == .toHost ? 0 : 1)
     }
 
-    deinit { pointer.deallocate() }
+    deinit { unsafe pointer.deallocate() }
 
     func set(_ offset: Int, _ value: UInt32) {
-      pointer.storeBytes(of: value.littleEndian, toByteOffset: offset, as: UInt32.self)
+      unsafe pointer.storeBytes(of: value.littleEndian, toByteOffset: offset, as: UInt32.self)
     }
 
     func get(_ offset: Int) -> UInt32 {
-      UInt32(littleEndian: pointer.loadUnaligned(fromByteOffset: offset, as: UInt32.self))
+      unsafe UInt32(littleEndian: pointer.loadUnaligned(fromByteOffset: offset, as: UInt32.self))
     }
 
     // Produces one entry as the extension does.
     func produce(_ value: UInt64) throws {
-      let ring = try FastPathDataQueueRing(
+      let ring = unsafe try FastPathDataQueueRing(
         header: UnsafeRawBufferPointer(pointer),
         expecting: FastPathDataQueueRingTests.queue
       )
-      try withUnsafeBytes(of: value.littleEndian) { try ring.enqueue(pointer, $0) }
+      try withUnsafeBytes(of: value.littleEndian) { unsafe try ring.enqueue(pointer, $0) }
     }
   }
 
@@ -113,9 +114,9 @@ struct FastPathDataQueueRingTests {
     try ring.produce(0xAABB)
     let queue = DriverDataQueue(memory: ring.memory, queue: Self.queue)
     struct Stop: Error {}
-    #expect(throws: Stop.self) { _ = try queue.dequeue { _ in throw Stop() } }
+    #expect(throws: Stop.self) { _ = unsafe try queue.dequeue { _ in throw Stop() } }
     #expect(ring.get(FastPathDataQueueLayout.consumerOffset) == 0)
-    let size = try queue.dequeue { $0.count }
+    let size = unsafe try queue.dequeue { $0.count }
     #expect(size == 8)
     #expect(ring.get(FastPathDataQueueLayout.consumerOffset) == 1)
   }
@@ -147,7 +148,7 @@ struct FastPathDataQueueRingTests {
   func hostWriterRoundTripsThroughTheConsumerAcrossTheWrap() throws {
     let ring = Ring(Self.inbound)
     let writer = DriverDataQueue(memory: ring.memory, queue: Self.inbound)
-    let reader = try FastPathDataQueueRing(
+    let reader = unsafe try FastPathDataQueueRing(
       header: UnsafeRawBufferPointer(ring.pointer),
       expecting: Self.inbound
     )
@@ -155,10 +156,10 @@ struct FastPathDataQueueRingTests {
       for index in UInt64(0)..<64 { try writer.enqueueValues([round, index, ~index]) }
       #expect(throws: FastPathDataQueueError.full) { try writer.enqueueValues([0]) }
       for index in UInt64(0)..<64 {
-        let values = try reader.dequeue(ring.pointer) { payload in
+        let values = unsafe try reader.dequeue(ring.pointer) { payload in
           (
             payload.count,
-            (0..<3).map { payload.loadUnaligned(fromByteOffset: $0 * 8, as: UInt64.self) }
+            (0..<3).map { unsafe payload.loadUnaligned(fromByteOffset: $0 * 8, as: UInt64.self) }
           )
         }
         #expect(values?.0 == 24)
@@ -213,7 +214,7 @@ struct FastPathDataQueueRingTests {
     (FastPathDataQueueLayout.strideOffset, UInt32(8)),
     (FastPathDataQueueLayout.strideOffset, UInt32(24)),
     (FastPathDataQueueLayout.maximumEntrySizeOffset, UInt32(0)),
-    (FastPathDataQueueLayout.maximumEntrySizeOffset, UInt32(16)),
+    (FastPathDataQueueLayout.maximumEntrySizeOffset, UInt32(16))
   ])
   func corruptGeometryIsRejected(offset: Int, value: UInt32) throws {
     let ring = Ring()
@@ -234,16 +235,16 @@ struct FastPathDataQueueRingTests {
   @Test
   func producerRefusesEmptyAndOversizedEntries() throws {
     let ring = Ring()
-    let view = try FastPathDataQueueRing(
+    let view = unsafe try FastPathDataQueueRing(
       header: UnsafeRawBufferPointer(ring.pointer),
       expecting: Self.queue
     )
     #expect(throws: FastPathDataQueueError.invalidEntry(byteCount: 0)) {
-      try view.enqueue(ring.pointer, UnsafeRawBufferPointer(start: nil, count: 0))
+      unsafe try view.enqueue(ring.pointer, UnsafeRawBufferPointer(start: nil, count: 0))
     }
     let wide = [UInt8](repeating: 1, count: 9)
     #expect(throws: FastPathDataQueueError.invalidEntry(byteCount: 9)) {
-      try wide.withUnsafeBytes { try view.enqueue(ring.pointer, $0) }
+      try wide.withUnsafeBytes { unsafe try view.enqueue(ring.pointer, $0) }
     }
   }
 

@@ -1,0 +1,8 @@
+# Multiline string literals here hold C++ that clang-format indents by 4, so their lines keep
+# their own indentation. Remove this file once the bedrock SwiftLint template sets
+# include_multiline_strings: false.
+opt_in_rules:
+  - indentation_width
+indentation_width:
+  indentation_width: 2
+  include_multiline_strings: false

@@ -26,7 +26,7 @@ struct FastPathInterpreterTests {
         operations: [
           .read(bar0(0x08, .bits32), into: .v2), .write(bar0(0x0C, .bits16), .value(.v0)),
           .write(bar2(0x00, .bits8), .constant(0xAB)), .write(bar0(0x10, .bits64), .value(.v1)),
-          .read(bar0(0x10, .bits64), into: .v3),
+          .read(bar0(0x10, .bits64), into: .v3)
         ]
       ),
       FastPathProgram(
@@ -34,7 +34,7 @@ struct FastPathInterpreterTests {
         operations: [
           .modify(bar0(0x20, .bits32), clear: 0xFF00, set: 0x42),
           .read(bar0(0x20, .bits32), into: .v0),
-          .modify(bar2(0x04, .bits8), clear: 0x0F, set: 0xF0),
+          .modify(bar2(0x04, .bits8), clear: 0x0F, set: 0xF0)
         ]
       ),
       FastPathProgram(
@@ -46,7 +46,7 @@ struct FastPathInterpreterTests {
           .compute(.v4, .xor, .constant(.max)), .compute(.v5, .add, .constant(1)),
           .compute(.v5, .shiftLeft, .constant(63)), .compute(.v6, .add, .value(.v0)),
           .compute(.v6, .shiftRight, .value(.v1)), .compute(.v7, .subtract, .constant(1)),
-          .compute(.v7, .shiftLeft, .value(.v1)),
+          .compute(.v7, .shiftLeft, .value(.v1))
         ]
       ),
       FastPathProgram(
@@ -58,7 +58,7 @@ struct FastPathInterpreterTests {
             equals: 1,
             maxIterations: 5,
             intervalMicroseconds: 100
-          ), .read(bar0(0x30, .bits32), into: .v0),
+          ), .read(bar0(0x30, .bits32), into: .v0)
         ]
       ),
       FastPathProgram(
@@ -70,7 +70,7 @@ struct FastPathInterpreterTests {
             equals: 2,
             maxIterations: 4,
             intervalMicroseconds: 50
-          ), .write(bar0(0x38, .bits32), .constant(1)),
+          ), .write(bar0(0x38, .bits32), .constant(1))
         ]
       ),
       FastPathProgram(
@@ -84,7 +84,7 @@ struct FastPathInterpreterTests {
           .skip(count: 1, if: FastPathCondition(.v0, mask: 1, is: .nonzero)),
           .write(bar2(0x08, .bits8), .constant(0x11)),
           .skip(count: 1, if: FastPathCondition(.v0, mask: 1, is: .zero)),
-          .write(bar2(0x09, .bits8), .constant(0x22)),
+          .write(bar2(0x09, .bits8), .constant(0x22))
         ]
       ),
       FastPathProgram(
@@ -92,14 +92,14 @@ struct FastPathInterpreterTests {
         operations: [
           .read(bar0(0x08, .bits32), into: .v1),
           .skip(count: 1, if: FastPathCondition(.v1, mask: 0x80, is: .zero)),
-          .emit([.v1, .v0, .v7]), .compute(.v0, .add, .constant(5)), .emit([.v0]),
+          .emit([.v1, .v0, .v7]), .compute(.v0, .add, .constant(5)), .emit([.v0])
         ]
       ),
       FastPathProgram(
         trigger: .stop,
         operations: [
           .write(bar0(0x40, .bits32), .constant(7)), .fail(status: Int32(bitPattern: 0xE000_02BC)),
-          .write(bar0(0x44, .bits32), .constant(8)),
+          .write(bar0(0x44, .bits32), .constant(8))
         ]
       ),
       FastPathProgram(
@@ -117,20 +117,20 @@ struct FastPathInterpreterTests {
           .ringAdvance(7, .producer, by: .constant(3)),
           .compute(.v3, .add, .ringIndex(7, .producer)),
           .compute(.v4, .add, .ringDeviceAddress(7, .high)),
-          .compute(.v5, .add, .ringDeviceAddress(7, .low)),
+          .compute(.v5, .add, .ringDeviceAddress(7, .low))
         ]
       ),
       FastPathProgram(
         trigger: .command,
         argumentCount: 2,
         operations: [.enqueue(3, slots: [.v1, .v0]), .enqueue(3, slots: [.v0])]
-      ),
+      )
     ],
     barSizes: [0: 0x100, 2: 0x10],
     rings: [FastPathRing(id: 7, entrySize: 16, entryCount: 4, direction: .deviceReads)],
     dataQueues: [
       FastPathDataQueue(id: 3, capacityBytes: 4096, maximumEntrySize: 16, direction: .toHost),
-      FastPathDataQueue(id: 4, capacityBytes: 4096, maximumEntrySize: 8, direction: .toExtension),
+      FastPathDataQueue(id: 4, capacityBytes: 4096, maximumEntrySize: 8, direction: .toExtension)
     ]
   )
 
@@ -162,7 +162,7 @@ struct FastPathInterpreterTests {
       + " A0+0/8=123456000",
     // Each enqueue hands the data queue its slots in order. The program's status is unaffected.
     "enqueue status=0 emitted=0 slots=12345,1122334455667788,0,0,0,0,0,0"
-      + " log=Q0:1122334455667788:12345 Q0:12345",
+      + " log=Q0:1122334455667788:12345 Q0:12345"
   ]
 
   static let rejections = [
@@ -182,14 +182,14 @@ struct FastPathInterpreterTests {
     "ring-entry-count", "ring-bytes", "ring-direction", "ring-identifier", "ring-missing",
     "enqueue-queue", "enqueue-to-extension", "enqueue-too-wide", "enqueue-zero", "enqueue-slot",
     "enqueue-unused", "queue-capacity", "queue-entry-size", "queue-entry-over", "queue-direction",
-    "queue-identifier", "queue-duplicate", "queue-missing",
+    "queue-identifier", "queue-duplicate", "queue-missing"
   ]
 
   static let invalidConfigurations = [
     "no-source", "wrong-source", "delivery-zero", "delivery-unknown", "delivery-on-command",
     "source-on-start", "kind-zero", "kind-unknown", "program-mismatch", "duplicate-interrupt",
     "arguments-on-start", "trigger-count", "bar-duplicate", "bar-zero-size", "bar-index",
-    "bar-reserved", "malformed-row",
+    "bar-reserved", "malformed-row"
   ]
 
   static let hostCompilerAvailable: Bool = {
@@ -261,7 +261,7 @@ struct FastPathInterpreterTests {
         "--sdk", "macosx", "clang++", "-std=c++20", "-Wall", "-Wextra", "-Werror",
         "-fno-exceptions", "-fno-rtti", "-fsanitize=address,undefined", "-fno-sanitize-recover=all",
         "-I", checkedInNativeSources.path, "-I", directory.path, harness.path, "-o",
-        executable.path,
+        executable.path
       ],
       driverKitXcode: false
     )

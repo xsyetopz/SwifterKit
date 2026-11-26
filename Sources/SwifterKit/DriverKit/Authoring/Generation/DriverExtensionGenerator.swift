@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Version and deployment settings for a generated DriverKit extension.
 public struct DriverExtensionGenerationOptions: Sendable, Hashable {
@@ -169,7 +169,7 @@ public enum DriverExtensionGenerator {
     if configuration.capabilities.contains(.audio) {
       guard let audio = configuration.audioDevice, isValid(audio: audio),
         configuration.capabilities.isDisjoint(with: [
-          .hid, .serial, .blockStorage, .midi, .networking,
+          .hid, .serial, .blockStorage, .midi, .networking
         ])
       else { throw DriverExtensionGenerationError.invalidAudioConfiguration }
     } else if configuration.audioDevice != nil {
@@ -179,7 +179,7 @@ public enum DriverExtensionGenerator {
       guard let video = configuration.videoDevice, isValid(video: video),
         deploymentVersion >= .v25Point5,
         configuration.capabilities.isDisjoint(with: [
-          .hid, .serial, .blockStorage, .midi, .networking, .audio, .scsi,
+          .hid, .serial, .blockStorage, .midi, .networking, .audio, .scsi
         ])
       else { throw DriverExtensionGenerationError.invalidVideoConfiguration }
     } else if configuration.videoDevice != nil {
@@ -190,7 +190,7 @@ public enum DriverExtensionGenerator {
       let hasPeripheral = configuration.scsiPeripheral != nil
       guard hasController != hasPeripheral,
         configuration.capabilities.isDisjoint(with: [
-          .hid, .serial, .blockStorage, .midi, .networking, .audio, .video,
+          .hid, .serial, .blockStorage, .midi, .networking, .audio, .video
         ])
       else { throw DriverExtensionGenerationError.invalidSCSIConfiguration }
       if let controller = configuration.scsiController {
@@ -237,7 +237,7 @@ public enum DriverExtensionGenerator {
     var reservedKeys: Set<String> = [
       "CFBundleIdentifier", "CFBundleIdentifierKernel", "IOClass", "IOMatchCategory",
       "IOProviderClass", "IOTTYBaseName", "IOTTYSuffix", "IOUserClass", "IOUserServerName",
-      "UserClientProperties",
+      "UserClientProperties"
     ]
     reservedKeys.formUnion(hidReservedKeys(configuration))
     if let usb = configuration.usbDevice { reservedKeys.formUnion(usb.matchingProperties.keys) }
@@ -277,7 +277,7 @@ public enum DriverExtensionGenerator {
   private static func isValid(midi value: MIDIDeviceConfiguration) -> Bool {
     let strings = [
       value.driverName, value.deviceIdentifier, value.modelIdentifier, value.manufacturerIdentifier,
-      value.entityName,
+      value.entityName
     ]
     return value.sourceCount <= 32 && value.destinationCount <= 32
       && value.sourceCount + value.destinationCount > 0
@@ -349,22 +349,22 @@ public enum DriverExtensionGenerator {
       "IOUserClass": DriverConfiguration.runtimeServiceClass,
       "IOUserServerName": "$(PRODUCT_BUNDLE_IDENTIFIER)",
       "UserClientProperties": [
-        "IOClass": "IOUserUserClient", "IOUserClass": "SwifterKitRuntimeUserClient",
-      ],
+        "IOClass": "IOUserUserClient", "IOUserClass": "SwifterKitRuntimeUserClient"
+      ]
     ]
     if configuration.capabilities.contains(.midi) {
       personality["IOUserMIDIDriverUserClientProperties"] = [
-        "IOClass": "IOUserUserClient", "IOUserClass": "IOUserMIDIDriverUserClient",
+        "IOClass": "IOUserUserClient", "IOUserClass": "IOUserMIDIDriverUserClient"
       ]
     }
     if configuration.capabilities.contains(.audio) {
       personality["IOUserAudioDriverUserClientProperties"] = [
-        "IOClass": "IOUserUserClient", "IOUserClass": "IOUserAudioDriverUserClient",
+        "IOClass": "IOUserUserClient", "IOUserClass": "IOUserAudioDriverUserClient"
       ]
     }
     if configuration.capabilities.contains(.video) {
       personality["IOUserVideoDriverUserClientProperties"] = [
-        "IOClass": "IOUserUserClient", "IOUserClass": "IOUserVideoDriverUserClient",
+        "IOClass": "IOUserUserClient", "IOUserClass": "IOUserVideoDriverUserClient"
       ]
     }
     addHIDPersonality(configuration, to: &personality)
@@ -409,7 +409,7 @@ public enum DriverExtensionGenerator {
       "CFBundleName": "$(PRODUCT_NAME)", "CFBundlePackageType": "$(PRODUCT_BUNDLE_PACKAGE_TYPE)",
       "CFBundleShortVersionString": options.shortVersion, "CFBundleVersion": options.buildVersion,
       "IOKitPersonalities": personalities,
-      "OSBundleUsageDescription": "Hosts DriverKit operations for Swift driver behavior.",
+      "OSBundleUsageDescription": "Hosts DriverKit operations for Swift driver behavior."
     ]
     try writePropertyList(info, to: destination)
   }

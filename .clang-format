@@ -1,39 +1,57 @@
-AccessModifierOffset: -4 # -1
+# Managed by swift-bedrock, for clang-format 23.1.
+---
+Language: Cpp
+BasedOnStyle: Google
+Standard: c++20
+ColumnLimit: 100
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+NamespaceIndentation: All
+IndentPPDirectives: BeforeHash
+IndentRequiresClause: true
+IndentWrappedFunctionNames: true
+InsertNewlineAtEOF: true
+CommentPragmas: ""
 AlignAfterOpenBracket: AlwaysBreak
-AllowAllArgumentsOnNextLine: false # true
-AllowAllConstructorInitializersOnNextLine: false # true
-AllowAllParametersOfDeclarationOnNextLine: false # true
-AllowShortBlocksOnASingleLine: Empty # Never
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: false
+BinPackParameters: OnePerLine
+AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortCompoundRequirementOnASingleLine: true
-AllowShortEnumsOnASingleLine: false # true
-AllowShortFunctionsOnASingleLine: Empty # All
-AllowShortIfStatementsOnASingleLine: Never # WithoutElse
-AllowShortLoopsOnASingleLine: false # true
-AlwaysBreakAfterReturnType: None
-AlwaysBreakTemplateDeclarations: Yes
-BinPackArguments: false # true
-BinPackParameters: false # true
-BasedOnStyle: Google
-BreakBeforeBinaryOperators: NonAssignment # None
-BreakBeforeBraces: Custom # Attach
-BreakConstructorInitializers: BeforeComma # BeforeColon
-BreakInheritanceList: AfterColon # BeforeColon
-ColumnLimit: 100 # 80
-CommentPragmas: "" # "^ IWYU pragma:"
-ContinuationIndentWidth: 4
-# ConstructorInitializerIndentWidth: 0 # 4
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakAfterReturnType: None
+BreakTemplateDeclarations: Yes
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: AfterColon
 Cpp11BracedListStyle: true
-IndentPPDirectives: BeforeHash # None
-IndentRequires: true
-IndentWidth: 4 # 2
-IndentWrappedFunctionNames: true # false
-InsertNewlineAtEOF: true # false
-NamespaceIndentation: All # None
-SpaceAfterTemplateKeyword: false # true
-SpaceBeforeCpp11BracedList: true # false
-SpacesInCStyleCastParentheses: false
-SpacesInContainerLiterals: false # false
-SpacesInParentheses: false
-Standard: Latest # Auto
-TabWidth: 4 # 8
+EnumTrailingComma: Remove
+SpaceAfterTemplateKeyword: false
+SpaceBeforeCpp11BracedList: true
+SpacesInContainerLiterals: false

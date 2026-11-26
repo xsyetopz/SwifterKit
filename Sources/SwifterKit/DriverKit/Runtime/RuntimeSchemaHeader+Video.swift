@@ -26,7 +26,7 @@ extension RuntimeSchemaHeader {
           ("kSwifterKitVideoMaximumControlCapacity", "\(video.maximumControlCapacity)"),
           ("kSwifterKitVideoTransferHeaderSize", "\(video.transferHeaderSize)"),
           ("kSwifterKitVideoMaximumReadLength", "\(video.maximumReadLength)"),
-          ("kSwifterKitVideoMaximumWriteLength", "\(video.maximumWriteLength)"),
+          ("kSwifterKitVideoMaximumWriteLength", "\(video.maximumWriteLength)")
         ]
       ),
       joined(
@@ -47,7 +47,7 @@ extension RuntimeSchemaHeader {
           type: "uint32_t",
           [
             RuntimeVideoQueueNotification.bufferQueueChange, .outputBufferNotification,
-            .streamBufferQueueChange,
+            .streamBufferQueueChange
           ]
         ),
         constants(
@@ -71,7 +71,7 @@ extension RuntimeSchemaHeader {
           type: "uint32_t",
           [
             RuntimeVideoValueKind.boolean, .decibels, .scalar, .selector, .slider, .stereoPan,
-            .direction,
+            .direction
           ]
         ),
         constants(
@@ -123,7 +123,7 @@ extension RuntimeSchemaHeader {
           RuntimeVideoClockState.self,
           all: "kSwifterKitVideoClockStateAll"
         )
-      ),
+      )
     ]
   }
 }

@@ -68,7 +68,7 @@ func expectGeneratedExtensionBuilds(
     "xcodebuild", "-quiet", "-project", "SwifterKitRuntime.xcodeproj", "-scheme",
     "SwifterKitRuntime", "-configuration", "Debug", "-sdk", "driverkit", "-derivedDataPath",
     derivedData.path, "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "DEVELOPMENT_TEAM=",
-    "ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO", "GCC_TREAT_WARNINGS_AS_ERRORS=YES",
+    "ARCHS=arm64 x86_64", "ONLY_ACTIVE_ARCH=NO", "GCC_TREAT_WARNINGS_AS_ERRORS=YES"
   ]
   let builtTarget = max(target ?? sdk.minimumDeploymentTarget, sdk.minimumDeploymentTarget)
   if let target, target < builtTarget {
@@ -91,7 +91,7 @@ func expectGeneratedExtensionBuilds(
 }
 
 // Copies a built tree's sources, IIG-generated headers, and deployment target so
-// `scripts/ci/validate-native.sh` can analyze every family configuration the build tests cover.
+// `just native-tidy` can analyze every family configuration the build tests cover.
 private func captureForNativeAnalysis(
   _ directory: URL,
   derivedData: URL,

@@ -51,15 +51,15 @@ struct ServiceReportingContractTests {
         ("ReportChannels", ReportingLimits.maximumChannels),
         ("ReportStates", ReportingLimits.maximumStates),
         ("HistogramSegments", ReportingLimits.maximumSegments),
-        ("HistogramBuckets", ReportingLimits.maximumBuckets),
+        ("HistogramBuckets", ReportingLimits.maximumBuckets)
       ] { #expect(header.contains("kSwifterKitMaximum\(name) = \(value);")) }
       let operations: [(String, DriverCommand.ReporterOperation)] = [
         ("SetValue", .setValue), ("IncrementValue", .incrementValue), ("SetState", .setState),
         ("OverrideState", .overrideState), ("IncrementState", .incrementState),
-        ("TallyValue", .tallyValue), ("OverrideBucket", .overrideBucket),
+        ("TallyValue", .tallyValue), ("OverrideBucket", .overrideBucket)
       ]
       for (name, operation) in operations {
-        #expect(header.contains("    \(name) = \(operation.rawValue),"))
+        #expect(header.declaresEnumerator(name, operation.rawValue))
       }
       let layouts = try source("SwifterKitRuntimeReportingProtocol.h", in: output)
       #expect(layouts.contains("#include \"SwifterKitRuntimeSchema.h\""))

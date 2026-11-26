@@ -40,7 +40,7 @@ struct DriverExtensionPCIGeneratorTests {
         ),
         sources: [
           InterruptSourceConfiguration(index: 0),
-          InterruptSourceConfiguration(index: 1, clock: .continuous),
+          InterruptSourceConfiguration(index: 1, clock: .continuous)
         ]
       ),
       at: output
@@ -93,7 +93,7 @@ struct DriverExtensionPCIGeneratorTests {
           requestedVectorCount: 8
         ),
         sources: [InterruptSourceConfiguration(index: 2)]
-      ),
+      )
     ]
     for configuration in invalid {
       #expect(throws: DriverExtensionGenerationError.invalidInterruptConfiguration) {

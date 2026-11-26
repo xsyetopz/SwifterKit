@@ -84,7 +84,7 @@ actor EventSourceConnection: DriverConnection {
     }
   }
 
-  func mapMemory(type: UInt32, readOnly: Bool) throws -> DriverSharedMemory {
+  func mapMemory(type _: UInt32, readOnly _: Bool) throws -> DriverSharedMemory {
     throw MappingUnsupported()
   }
 

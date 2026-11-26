@@ -239,7 +239,7 @@ struct RuntimeFastPathRow {
     name: "SwifterKitFastPathProgram",
     fields: [
       ("uint32_t", "operationStart"), ("uint32_t", "operationCount"), ("uint32_t", "argumentCount"),
-      ("uint32_t", "delayBudgetMicroseconds"),
+      ("uint32_t", "delayBudgetMicroseconds")
     ]
   )
   // One operation. ``RuntimeFastPathOpcode`` documents the fields each opcode reads.
@@ -247,7 +247,7 @@ struct RuntimeFastPathRow {
     name: "SwifterKitFastPathOperation",
     fields: [
       ("uint32_t", "opcode"), ("uint32_t", "a"), ("uint32_t", "b"), ("uint32_t", "c"),
-      ("uint64_t", "immediate0"), ("uint64_t", "immediate1"), ("uint64_t", "immediate2"),
+      ("uint64_t", "immediate0"), ("uint64_t", "immediate1"), ("uint64_t", "immediate2")
     ]
   )
   // One trigger: what runs `program`, the interrupt source index, and the event delivery.
@@ -255,7 +255,7 @@ struct RuntimeFastPathRow {
     name: "SwifterKitFastPathTrigger",
     fields: [
       ("uint32_t", "kind"), ("uint32_t", "source"), ("uint32_t", "delivery"),
-      ("uint32_t", "program"),
+      ("uint32_t", "program")
     ]
   )
   // The minimum size in bytes a program relies on for one BAR.
@@ -269,7 +269,7 @@ struct RuntimeFastPathRow {
     name: "SwifterKitFastPathRing",
     fields: [
       ("uint32_t", "id"), ("uint32_t", "entrySize"), ("uint32_t", "entryCount"),
-      ("uint32_t", "direction"),
+      ("uint32_t", "direction")
     ]
   )
 
@@ -279,7 +279,7 @@ struct RuntimeFastPathRow {
     name: "SwifterKitFastPathDataQueue",
     fields: [
       ("uint32_t", "id"), ("uint32_t", "capacityBytes"), ("uint32_t", "maximumEntrySize"),
-      ("uint32_t", "direction"),
+      ("uint32_t", "direction")
     ]
   )
 
@@ -311,7 +311,7 @@ struct RuntimeFastPathRow {
     name: "SwifterKitFastPathDataQueueNotifyReply",
     fields: [
       ("uint32_t", "status"), ("uint32_t", "moved"), ("uint32_t", "waiting"),
-      ("uint32_t", "reserved"), ("uint64_t", "refusals"),
+      ("uint32_t", "reserved"), ("uint64_t", "refusals")
     ]
   )
 
@@ -341,6 +341,6 @@ struct RuntimeFastPathRow {
   // Every row layout, in header order.
   static let all = [
     program, operation, trigger, bar, ring, dataQueue, runRequest, runResult, event, dataQueueEvent,
-    statusReply, dataQueueNotifyRequest, dataQueueNotifyReply,
+    statusReply, dataQueueNotifyRequest, dataQueueNotifyReply
   ]
 }

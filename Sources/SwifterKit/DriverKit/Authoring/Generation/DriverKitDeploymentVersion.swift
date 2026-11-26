@@ -16,11 +16,11 @@ struct DriverKitDeploymentVersion: Comparable, Sendable {
     let parts = value.split(separator: ".", omittingEmptySubsequences: false)
     guard (1...2).contains(parts.count),
       parts.allSatisfy({ part in !part.isEmpty && part.allSatisfy { $0.isASCII && $0.isNumber } }),
-      let major = Int(parts[0]), let minor = parts.count == 2 ? Int(parts[1]) : 0
+      let parsedMajor = Int(parts[0]), let parsedMinor = parts.count == 2 ? Int(parts[1]) : 0
     else { return nil }
 
-    self.major = major
-    self.minor = minor
+    major = parsedMajor
+    minor = parsedMinor
   }
 
   static func < (lhs: Self, rhs: Self) -> Bool {

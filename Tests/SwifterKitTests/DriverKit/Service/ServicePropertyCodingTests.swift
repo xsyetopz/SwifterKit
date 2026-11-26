@@ -33,7 +33,7 @@ struct ServicePropertyCodingTests {
     let value = DriverProperty.dictionary([
       "flag": .boolean(true), "count": .unsignedInteger(42), "name": .string("Größe"),
       "bytes": .data(Data([1, 2, 3])), "empty": .data(Data()),
-      "list": .array([.string("x"), .dictionary(["inner": .unsignedInteger(7)])]),
+      "list": .array([.string("x"), .dictionary(["inner": .unsignedInteger(7)])])
     ])
     #expect(try ServicePropertyCoding.decode(ServicePropertyCoding.encode(value)) == value)
     // DriverKit numbers are unsigned, so a signed value returns as its bit pattern.
@@ -84,7 +84,7 @@ struct ServicePropertyCodingTests {
       Data(), Data([7]), Data([1, 2]), Data([1, 1, 0]), Data([3, 2, 0, 0, 0, 0x61]),
       Data([3, 1, 0, 0, 0, 0]), Data([5, 0xFF, 0xFF, 0, 0, 1, 1]),
       Data([6, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1]),
-      Data([6, 2, 0, 0, 0, 1, 0, 0, 0, 0x61, 1, 1, 1, 0, 0, 0, 0x61, 1, 0]),
+      Data([6, 2, 0, 0, 0, 1, 0, 0, 0, 0x61, 1, 1, 1, 0, 0, 0, 0x61, 1, 0])
     ]
     for data in malformed {
       #expect(throws: ServiceRuntimeError.invalidPayload) { try ServicePropertyCoding.decode(data) }

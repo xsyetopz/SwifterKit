@@ -12,7 +12,7 @@ struct ClientMemoryWrapTests {
     let command = try DriverCommand.wrapClientMemory(
       [
         DriverClientMemorySegment(address: 0x1_0000, length: 0x4000),
-        DriverClientMemorySegment(address: 0x8_0000, length: 1),
+        DriverClientMemorySegment(address: 0x8_0000, length: 1)
       ],
       direction: .deviceWrites
     )
@@ -81,11 +81,11 @@ struct ClientMemoryWrapTests {
     #expect(memory.length == 2 * page)
     #expect(memory.segment.length == UInt64(2 * page))
     #expect(memory.segment.address.isMultiple(of: UInt64(page)))
-    memory.withUnsafeMutableBytes { bytes in
-      #expect(bytes.allSatisfy { $0 == 0 })
-      bytes[page] = 0xA5
+    unsafe memory.withUnsafeMutableBytes { bytes in
+      unsafe #expect(bytes.allSatisfy { $0 == 0 })
+      unsafe bytes[page] = 0xA5
     }
-    #expect(memory.withUnsafeMutableBytes { $0[page] } == 0xA5)
+    unsafe #expect(memory.withUnsafeMutableBytes { unsafe $0[page] } == 0xA5)
     let command = try DriverCommand.wrapClientMemory([memory.segment], direction: .deviceReads)
     #expect(try command.payload.readRuntimeInteger(at: 8) as UInt64 == memory.segment.address)
     #expect(!memory.isWrapped)

@@ -264,11 +264,11 @@ public struct AudioClockDeviceState: Sendable, Hashable {
     zeroTimestampPeriod = try runtimePayload.readRuntimeInteger(at: 72)
     let count = Int(try runtimePayload.readRuntimeInteger(at: 76) as UInt32)
     typealias Flag = RuntimeAudioClockState
-    guard let transportState = AudioDeviceTransportState(rawValue: rawState),
+    guard let decodedState = AudioDeviceTransportState(rawValue: rawState),
       flags & ~Flag.allBits == 0, count <= RuntimeAudioLimits.maximumReportedSampleRates,
       runtimePayload.count == 80 + count * 8
     else { throw AudioRuntimeError.invalidPayload }
-    self.transportState = transportState
+    self.transportState = decodedState
     clockIsStable = flags & Flag.clockIsStable.rawValue != 0
     isAlive = flags & Flag.isAlive.rawValue != 0
     isRunning = flags & Flag.isRunning.rawValue != 0

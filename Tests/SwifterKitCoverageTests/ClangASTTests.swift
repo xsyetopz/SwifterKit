@@ -79,7 +79,7 @@ struct ClangASTTests {
           kind: .override,
           file: "Runtime.cpp",
           function: "Runtime::Start_Impl"
-        ),
+        )
       ]
     )
   }
@@ -131,7 +131,7 @@ struct ClangASTTests {
 
     #expect(
       ast.uses.map(\.receiver).sorted { ($0 ?? "") < ($1 ?? "") } == [
-        nil, "IOTimer", "IOTimer", "IOTimer",
+        nil, "IOTimer", "IOTimer", "IOTimer"
       ]
     )
     #expect(ast.uses.allSatisfy { $0.className == "IOBase" && $0.function == "Runtime::Poll" })
@@ -221,7 +221,7 @@ struct ClangASTTests {
     )
     #expect(
       ClangAST.parameters(ofType: "auto (uint64_t, void (*)(int)) -> kern_return_t (*)(bool)") == [
-        "uint64_t", "void(*)(int)",
+        "uint64_t", "void(*)(int)"
       ]
     )
     #expect(

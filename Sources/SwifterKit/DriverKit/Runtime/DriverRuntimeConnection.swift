@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// A negotiated connection between Swift driver behavior and the internal DriverKit runtime.
 public actor DriverRuntimeConnection {

@@ -68,7 +68,7 @@ struct VideoMemberCommandsTests {
     #expect(try terminal.payload.readRuntimeInteger(at: 8) as UInt64 == 0x6C69_6E65)
     let invalid: [VideoStreamProperty] = [
       .startingChannel(0), .currentFormat(index: 16), .bufferCapacity(data: 0, control: 1),
-      .bufferCapacity(data: 1, control: 1_048_577), .queueEntryCount(0), .queueEntryCount(257),
+      .bufferCapacity(data: 1, control: 1_048_577), .queueEntryCount(0), .queueEntryCount(257)
     ]
     for property in invalid {
       #expect(throws: VideoRuntimeError.invalidPayload) {

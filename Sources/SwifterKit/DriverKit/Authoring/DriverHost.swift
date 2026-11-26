@@ -45,26 +45,26 @@ public actor DriverHost<Driver: SwiftDriver> {
 
     do {
       let configuration = Driver.configuration
-      guard let service = try await client.services(matching: configuration.serviceMatch).first
+      guard let found = try await client.services(matching: configuration.serviceMatch).first
       else { throw DriverHostError.serviceNotFound(configuration.serviceMatch) }
 
-      let session = try await client.open(service)
-      let runtime = try await DriverRuntimeConnection.connect(
+      let session = try await client.open(found)
+      let connection = try await DriverRuntimeConnection.connect(
         session: session,
         requiring: configuration.capabilities
       )
-      let context = await DriverContext(runtime: runtime, fastPath: configuration.fastPath)
+      let driverContext = await DriverContext(runtime: connection, fastPath: configuration.fastPath)
 
-      do { try await driver.start(context: context) } catch {
-        await runtime.close()
+      do { try await driver.start(context: driverContext) } catch {
+        await connection.close()
         throw error
       }
 
-      self.service = service
-      self.runtime = runtime
-      self.context = context
+      service = found
+      runtime = connection
+      context = driverContext
       state = .running
-      return service
+      return found
     } catch {
       service = nil
       runtime = nil

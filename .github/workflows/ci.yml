@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   compatibility:
-    name: Swift 6.4 / macOS 12
+    name: Swift 6.4 / macOS 13
     runs-on: xcode-27
     timeout-minutes: 20
     env:
@@ -28,19 +28,20 @@ jobs:
 
       - name: Verify compatibility toolchain
         run: |
-          test "$(head -n 1 Package.swift)" = "// swift-tools-version:6.4.0"
+          test "$(head -n 1 Package.swift)" = "// swift-tools-version: 6.4"
           swift --version | grep -E "Swift version 6\.4([ .(]|$)"
           xcodebuild -version
 
       - name: Verify deployment floor
         run: |
-          swift package dump-package | jq -e 'any(.platforms[]; .platformName == "macos" and .version == "12.0")'
+          swift package dump-package | jq -e 'any(.platforms[]; .platformName == "macos" and .version == "13.0")'
 
+      # Package.swift treats warnings as errors, so these fail on one.
       - name: Test package
-        run: swift test -Xswiftc -warnings-as-errors
+        run: swift test
 
       - name: Build release package
-        run: swift build -c release -Xswiftc -warnings-as-errors
+        run: swift build -c release
 
       - name: Check DriverKit coverage claims
         run: |
@@ -58,7 +59,7 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Test package
-        run: swift test -Xswiftc -warnings-as-errors
+        run: swift test
 
   validate:
     name: Swift 6 and DriverKit
@@ -79,7 +80,10 @@ jobs:
           xcodebuild -version
 
       - name: Install validation tools
-        run: brew install swiftlint llvm
+        run: brew install just swiftlint llvm
+
+      - name: Install pinned tools
+        run: just setup
 
       - name: Validate
-        run: ./scripts/ci/validate.sh
+        run: just verify

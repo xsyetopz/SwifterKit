@@ -65,7 +65,7 @@ struct NativeBufferContractTests {
     (
       "SwifterKitRuntimeSerial.cpp", "return descriptor->CreateMapping(0, 0, 0, 0, 0, map);",
       "serialArenaMap->GetLength() < sizeof(driverkit::serial::SerialPortInterface)"
-    ),
+    )
   ]
 
   private static func mappingVariable(_ line: Substring) -> String? {
@@ -98,7 +98,7 @@ struct NativeBufferContractTests {
         let compared = Self.mappingVariable(line).map { variable in
           [
             "\(variable)->GetLength() <", "\(variable)->GetLength() >=",
-            "(*\(variable))->GetLength() <",
+            "(*\(variable))->GetLength() <"
           ].contains { check in window.contains { $0.contains(check) } }
         }
         if compared != true { unchecked.append("\(file.name):\(index + 1)") }
@@ -135,7 +135,7 @@ struct NativeBufferContractTests {
             && !argument.replacingOccurrences(of: "kIOMemoryDirectionOutIn", with: "").contains(
               "kIOMemoryDirectionOut"
             )
-          if !literal && !argument.hasPrefix("SwifterKitWritableDirection(") {
+          if !literal, !argument.hasPrefix("SwifterKitWritableDirection(") {
             let line = text[..<found.lowerBound].filter { $0 == "\n" }.count + 1
             outputOnly.append("\(file.name):\(line)")
           }

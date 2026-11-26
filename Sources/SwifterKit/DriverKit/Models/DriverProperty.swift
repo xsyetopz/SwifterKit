@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// A Sendable property-list value used for registry matching and inspection.
 public indirect enum DriverProperty: Sendable, Hashable {
